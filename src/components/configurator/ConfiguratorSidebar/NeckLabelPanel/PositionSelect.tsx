@@ -1,0 +1,37 @@
+import type { NeckLabelPosition } from '@/lib/configurator/types/configurator';
+import { JSX } from 'react/jsx-runtime';
+
+export interface PositionSelectProps {
+  value: NeckLabelPosition;
+  onChange: (position: NeckLabelPosition) => void;
+}
+
+const POSITION_OPTIONS: { value: NeckLabelPosition; label: string }[] = [
+  { value: 'below_neck_tape', label: 'Below neck tape (5mm)' },
+  { value: 'on_neck_tape', label: 'On neck tape' },
+];
+
+export default function PositionSelect({ value, onChange }: PositionSelectProps): JSX.Element {
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      {POSITION_OPTIONS.map((option) => {
+        const selected = value === option.value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => onChange(option.value)}
+            aria-pressed={selected}
+            className={`min-h-12 rounded-lg px-4 py-3 text-left text-sm font-bold transition-colors ${
+              selected
+                ? 'bg-[#111111] text-white'
+                : 'bg-white shadow-[inset_0_0_0_1px_#D9D9D9] text-[#111111]/75 hover:text-[#111111]'
+            }`}
+          >
+            {option.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}

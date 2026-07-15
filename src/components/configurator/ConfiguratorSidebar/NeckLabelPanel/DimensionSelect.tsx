@@ -1,0 +1,47 @@
+"use client";
+
+import type { NeckLabelDimensions } from "@/lib/configurator/types/configurator";
+
+export interface DimensionSelectProps {
+  value: NeckLabelDimensions | null;
+  onChange: (dimensions: NeckLabelDimensions) => void;
+}
+
+interface DimensionPreset {
+  id: NeckLabelDimensions;
+  label: string;
+}
+
+// Position/Stitch options are identical across all 4 presets per Appendix §6,
+// so no per-preset metadata beyond id/label is needed here.
+const PRESETS: DimensionPreset[] = [
+  { id: "50x18", label: "50 × 18mm" },
+  { id: "60x20", label: "60 × 20mm" },
+  { id: "65x15", label: "65 × 15mm" },
+  { id: "45x45", label: "45 × 45mm" },
+];
+
+export default function DimensionSelect({ value, onChange }: DimensionSelectProps) {
+  return (
+    <div className="grid grid-cols-4 gap-2">
+      {PRESETS.map((preset) => {
+        const isSelected = preset.id === value;
+        return (
+          <button
+            key={preset.id}
+            type="button"
+            onClick={() => onChange(preset.id)}
+            aria-pressed={isSelected}
+            className={`flex min-h-[72px] items-center justify-center rounded-md px-2 text-xs font-bold transition-colors ${
+              isSelected
+                ? "bg-white shadow-[inset_0_0_0_1.5px_#111111] text-[#111111]"
+                : "bg-[#F3F3F2] text-[#111111]/55 hover:text-[#111111]"
+            }`}
+          >
+            {preset.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}

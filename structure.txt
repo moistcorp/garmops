@@ -1,0 +1,160 @@
+public
+├── assets
+│   └── garments
+│       └── tee
+│           ├── back
+│           ├── front
+│           └── neck
+├── brands
+│   ├── apartamento.svg
+│   ├── asics.svg
+│   ├── bereal.svg
+│   ├── boat.svg
+│   ├── sony.svg
+│   └── thrive.svg
+├── downloads
+│   ├── moistfoundry-print_templates-1.0.zip
+│   └── neck-label-templates.zip
+├── file.svg
+├── garments
+│   └── regular-fit-tee
+│       ├── back
+│       │   ├── highlight.png
+│       │   ├── mask.png
+│       │   ├── shadow.png
+│       │   └── texture.png
+│       ├── front
+│       │   ├── highlight.png
+│       │   ├── mask.png
+│       │   ├── shadow.png
+│       │   └── texture.png
+│       └── neck
+│           ├── highlight.png
+│           ├── mask.png
+│           ├── shadow.png
+│           └── texture.png
+├── globe.svg
+├── hero.jpg
+├── icons
+│   ├── hoodie.png
+│   ├── longsleeve.png
+│   ├── sweatshirt.png
+│   ├── tee.png
+│   └── totebag.png
+├── images
+│   ├── how-it-works-1.jpg
+│   ├── how-it-works-2.jpg
+│   ├── how-it-works-3.jpg
+│   └── print-techniques.jpg
+├── industries
+│   ├── arts-culture.jpg
+│   ├── companies-startups.jpg
+│   ├── creative-studios.jpg
+│   ├── hotels-restaurants.jpg
+│   ├── music-events.jpg
+│   └── sports-fitness.jpg
+├── logo3.png
+├── products
+│   ├── boxy-fit-hoodie-320gsm.jpg
+│   ├── boxy-fit-tee-200gsm.jpg
+│   ├── boxy-fit-tee-260gsm.jpg
+│   ├── canvas-tote-bag.jpg
+│   ├── longsleeve-tee-260gsm.jpg
+│   ├── regular-fit-hoodie-320gsm.jpg
+│   ├── regular-fit-sweatshirt-320gsm.jpg
+│   ├── regular-fit-tee-200gsm.jpg
+│   └── regular-fit-tee-260gsm.jpg
+├── vercel.svg
+├── videos
+│   └── homepage-reel.mp4
+├── window.svg
+└── work
+    ├── bistro57
+    │   └── cover.jpg
+    ├── houseofcraft
+    │   └── cover.jpg
+    ├── northstar
+    │   └── cover.jpg
+    └── soundwave
+        └── cover.jpg
+src
+├── app
+│   ├── HeroScrollVideo.tsx
+│   ├── _components
+│   │   ├── HomeClient.tsx
+│   │   ├── HowItWorks.tsx
+│   │   └── WhyMoistFoundry.tsx
+│   ├── api
+│   │   ├── payu
+│   │   │   └── hash
+│   │   │       └── route.ts
+│   │   └── send-confirmation
+│   │       └── route.ts
+│   ├── cart
+│   │   └── page.tsx
+│   ├── checkout
+│   │   └── page.tsx
+│   ├── configurator
+│   │   └── build
+│   ├── configure
+│   │   ├── ConfigureClient.tsx
+│   │   └── loading.tsx
+│   ├── contact
+│   │   ├── ContactClient.tsx
+│   │   └── page.tsx
+│   ├── favicon.ico
+│   ├── globals.css
+│   ├── how-it-works
+│   │   └── page.tsx
+│   ├── journal
+│   │   └── page.tsx
+│   ├── layout.tsx
+│   ├── loading.tsx
+│   ├── not-found.tsx
+│   ├── page.tsx
+│   ├── payment
+│   │   ├── failure
+│   │   │   └── page.tsx
+│   │   └── success
+│   │       └── page.tsx
+│   ├── pricing
+│   │   ├── PricingClient.tsx
+│   │   └── page.tsx
+│   ├── products
+│   │   ├── [slug]
+│   │   │   ├── ShopProductClient.tsx
+│   │   │   └── page.tsx
+│   │   └── page.tsx
+│   ├── robots.ts
+│   ├── sitemap.ts
+│   └── work
+│       ├── [slug]
+│       │   ├── WorkDetailClient.tsx
+│       │   └── page.tsx
+│       └── page.tsx
+├── components
+│   ├── common
+│   │   ├── Footer.tsx
+│   │   └── Navbar.tsx
+│   ├── configurator
+│   │   └── ConfiguratorSidebar
+│   ├── home
+│   │   ├── HomepageCaseStudies.tsx
+│   │   └── TrustedBy.tsx
+│   └── ui
+│       ├── Breadcrumbs.tsx
+│       ├── Button.tsx
+│       ├── CartDrawer.tsx
+│       ├── SectionHeading.tsx
+│       └── WhatsAppButton.tsx
+└── lib
+    ├── casestudies.ts
+    ├── configurator
+    ├── constants.ts
+    ├── pricing.ts
+    ├── products.ts
+    ├── seo.ts
+    ├── sizecharts.ts
+    └── store.ts
+
+55 directories, 103 files
