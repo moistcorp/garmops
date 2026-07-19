@@ -1,5 +1,4 @@
 import {
-  EXPRESS_DELIVERY_FEE_PER_UNIT,
   GST_PERCENT,
   getBasePrice,
   getConfiguredUnitPrice,
@@ -88,6 +87,7 @@ export function createCartItems(cartId: string): CartItem[] {
       neckLabel: undefined,
       sizeQuantities: { XS: 5, S: 15, M: 20, L: 15, XL: 5, XXL: 0 },
       unitPrice,
+      rushDelivery: false,
       artworkFees: [{ label: "Preparation - Front", unitPrice: 499, count: 1 }],
       applicationFees: [{ label: "Underbase", unitPrice: 299, count: 1 }],
     },
@@ -130,6 +130,7 @@ export interface ConfiguredCartItemInput {
   artwork: Artwork;
   neckLabel?: NeckLabel;
   quantity: number;
+  rushDelivery: boolean;
 }
 
 export function splitQuantityAcrossSizes(quantity: number): Record<Size, number> {
@@ -168,7 +169,8 @@ export function upsertConfiguredCartItem(
     input.productId,
     input.colour,
     input.artwork,
-    input.neckLabel
+    input.neckLabel,
+    input.rushDelivery
   );
 
   const configuredItem: CartItem = {
@@ -181,6 +183,7 @@ export function upsertConfiguredCartItem(
     neckLabel: input.neckLabel,
     sizeQuantities,
     unitPrice,
+    rushDelivery: input.rushDelivery,
     artworkFees: [],
     applicationFees: [],
   };
@@ -209,8 +212,9 @@ export function calculateTotals(
   );
   const totalQuantity = items.reduce((sum, item) => sum + totalUnits(item.sizeQuantities), 0);
   const volumeDiscount = 0;
-  const shippingFee =
-    deliveryType === "rush" ? totalQuantity * EXPRESS_DELIVERY_FEE_PER_UNIT : 0;
+  const shippingFee = 0;
+  const hasRushDelivery =
+    deliveryType === "rush" || items.some((item) => item.rushDelivery === true);
   const subtotal = garmentSubtotal;
   const taxableSubtotal = subtotal - volumeDiscount + shippingFee;
   const gst = (taxableSubtotal * GST_PERCENT) / 100;
@@ -220,6 +224,7 @@ export function calculateTotals(
     subtotal,
     volumeDiscount,
     shippingFee,
+    hasRushDelivery,
     gst,
     taxableSubtotal,
     total,

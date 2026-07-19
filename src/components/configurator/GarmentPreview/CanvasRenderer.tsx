@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
+import type { ProductId } from "@/lib/configurator/pricing";
+import type { Artwork, ArtworkSide, NeckLabel } from "@/lib/configurator/types/configurator";
 import type { GarmentView } from "@/lib/configurator/types/garment";
 import {
   useArtworkPosition,
@@ -17,20 +19,10 @@ import {
 interface CanvasRendererProps {
   view: GarmentView;
   colourHex: string;
+  productId: ProductId;
+  artwork: Artwork;
+  neckLabel?: NeckLabel;
 }
-
-// PLACEHOLDER ASSET — no real flat-lay image exists yet.
-// Swap this path when the grayscale/luminosity base photo is added to /public.
-const BASE_IMAGE_SRC = "/configurator/garments/tshirt-base-grayscale.png";
-
-// Normalized (0–1) source-image crop regions. Front/Back use the full frame;
-// Neck crops into the collar area. Placeholder estimates — re-tune against
-// the real asset once it exists.
-const CROP_REGIONS: Record<GarmentView, { x: number; y: number; width: number; height: number }> = {
-  front: { x: 0, y: 0, width: 1, height: 1 },
-  back: { x: 0, y: 0, width: 1, height: 1 },
-  neck: { x: 0.32, y: 0.02, width: 0.36, height: 0.22 },
-};
 
 const CANVAS_SIZE = CANVAS_PX;
 
@@ -46,72 +38,78 @@ interface DragOrigin {
   startFromCenterCm: number;
 }
 
-export default function CanvasRenderer({ view, colourHex }: CanvasRendererProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const imgRef = useRef<HTMLImageElement | null>(null);
-  const [imgStatus, setImgStatus] = useState<"loading" | "loaded" | "error">("loading");
+function getGarmentFolder(productId: ProductId): string {
+  if (productId.includes("canvas-tote")) return "canvas-tote-bag";
+  if (productId.includes("boxy-fit-hoodie")) return "boxy-fit-hoodie";
+  if (productId.includes("regular-fit-hoodie")) return "regular-fit-hoodie";
+  if (productId.includes("regular-fit-sweatshirt")) return "regular-fit-sweatshirt";
+  if (productId.includes("longsleeve")) return "longsleeve-tee";
+  if (productId.includes("polo")) return "polo";
+  if (productId.includes("boxy-fit-tee")) return "boxy-fit-tee";
+  return "regular-fit-tee";
+}
+
+function assetPath(productId: ProductId, view: GarmentView, layer: string): string {
+  return `/garments/${getGarmentFolder(productId)}/${view}/${layer}.png`;
+}
+
+function isRenderableImage(fileUrl?: string): boolean {
+  if (!fileUrl) return false;
+  return /\.(png|jpe?g|svg|webp)$/i.test(fileUrl) || fileUrl.startsWith("blob:");
+}
+
+function ArtworkPreview({ side }: { side: ArtworkSide }) {
+  if (isRenderableImage(side.fileUrl)) {
+    return (
+      <img
+        src={side.fileUrl}
+        alt=""
+        draggable={false}
+        className="h-full w-full object-contain"
+      />
+    );
+  }
+
+  return (
+    <div className="flex h-full w-full items-center justify-center bg-white/80 px-2 text-center text-xs font-semibold uppercase tracking-wide text-[#111111]/55">
+      {side.fileType} Artwork
+    </div>
+  );
+}
+
+function NeckLabelPreview({ neckLabel }: { neckLabel: NeckLabel }) {
+  if (isRenderableImage(neckLabel.fileUrl)) {
+    return (
+      <img
+        src={neckLabel.fileUrl}
+        alt=""
+        draggable={false}
+        className="h-full w-full object-contain"
+      />
+    );
+  }
+
+  return (
+    <div className="flex h-full w-full items-center justify-center rounded-sm border border-[#111111]/20 bg-white text-[10px] font-semibold uppercase tracking-wide text-[#111111]/55">
+      Label
+    </div>
+  );
+}
+
+export default function CanvasRenderer({
+  view,
+  colourHex,
+  productId,
+  artwork,
+  neckLabel,
+}: CanvasRendererProps) {
   const { positions, updatePosition } = useArtworkPosition();
   const dragOrigin = useRef<DragOrigin | null>(null);
 
-  useEffect(() => {
-    const img = new Image();
-    img.onload = () => {
-      imgRef.current = img;
-      setImgStatus("loaded");
-    };
-    img.onerror = () => setImgStatus("error");
-    img.src = BASE_IMAGE_SRC;
-  }, []);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    ctx.clearRect(0, 0, CANVAS_SIZE.width, CANVAS_SIZE.height);
-
-    if (imgStatus !== "loaded" || !imgRef.current) {
-      // Fallback until the real asset exists: flat colour swatch + status
-      // text, so the pipeline is visibly wired end-to-end.
-      ctx.fillStyle = "#E5E5E5";
-      ctx.fillRect(0, 0, CANVAS_SIZE.width, CANVAS_SIZE.height);
-      ctx.fillStyle = colourHex;
-      ctx.globalAlpha = 0.85;
-      ctx.fillRect(150, 150, 300, 300);
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = "#111111";
-      ctx.font = "14px Inter, sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(
-        imgStatus === "error" ? "Base image not found (placeholder)" : "Loading…",
-        CANVAS_SIZE.width / 2,
-        CANVAS_SIZE.height - 20
-      );
-      return;
-    }
-
-    const img = imgRef.current;
-    const crop = CROP_REGIONS[view];
-    const sx = crop.x * img.naturalWidth;
-    const sy = crop.y * img.naturalHeight;
-    const sWidth = crop.width * img.naturalWidth;
-    const sHeight = crop.height * img.naturalHeight;
-
-    ctx.globalCompositeOperation = "source-over";
-    ctx.fillStyle = colourHex;
-    ctx.fillRect(0, 0, CANVAS_SIZE.width, CANVAS_SIZE.height);
-
-    // Multiply the grayscale/luminosity base image over the colour fill to
-    // recover shading — same blend approach across all three views.
-    ctx.globalCompositeOperation = "multiply";
-    ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, CANVAS_SIZE.width, CANVAS_SIZE.height);
-
-    ctx.globalCompositeOperation = "source-over";
-  }, [view, colourHex, imgStatus]);
-
   const showBox = DRAGGABLE_VIEWS.includes(view);
   const boxState = positions[view];
+  const activeArtwork = view === "front" ? artwork.front : view === "back" ? artwork.back : undefined;
+  const showNeckLabel = view === "neck" && neckLabel?.fileUrl;
 
   const boxWidthPx = boxState.widthCm * PX_PER_CM_X;
   const boxHeightPx = boxState.heightCm * PX_PER_CM_Y;
@@ -125,21 +123,21 @@ export default function CanvasRenderer({ view, colourHex }: CanvasRendererProps)
     const dPxY = e.clientY - origin.pointerY;
 
     if (origin.mode === "move") {
-      const nextFromCenterCm = clampDim(origin.startFromCenterCm + dPxX / PX_PER_CM_X, MIN_OFFSET);
-      const nextFromNeckCm = clampDim(origin.startFromNeckCm + dPxY / PX_PER_CM_Y, MIN_OFFSET);
-      updatePosition(view, { fromCenterCm: nextFromCenterCm, fromNeckCm: nextFromNeckCm });
+      updatePosition(view, {
+        fromCenterCm: clampDim(origin.startFromCenterCm + dPxX / PX_PER_CM_X, MIN_OFFSET),
+        fromNeckCm: clampDim(origin.startFromNeckCm + dPxY / PX_PER_CM_Y, MIN_OFFSET),
+      });
       return;
     }
 
-    // resize (bottom-right handle): drive width from horizontal delta,
-    // reuse the same aspect-lock math PositionControls' steppers use.
-    const nextWidthCm = origin.startWidthCm + dPxX / PX_PER_CM_X;
-    const partial = resizeWithAspect(
-      { ...boxState, widthCm: origin.startWidthCm, heightCm: origin.startHeightCm },
-      "width",
-      nextWidthCm
+    updatePosition(
+      view,
+      resizeWithAspect(
+        { ...boxState, widthCm: origin.startWidthCm, heightCm: origin.startHeightCm },
+        "width",
+        origin.startWidthCm + dPxX / PX_PER_CM_X
+      )
     );
-    updatePosition(view, partial);
   };
 
   const handlePointerUp = () => {
@@ -165,18 +163,67 @@ export default function CanvasRenderer({ view, colourHex }: CanvasRendererProps)
   };
 
   return (
-    <div className="relative aspect-square h-[min(58dvh,540px)] max-h-[540px] max-w-full">
-      <canvas
-        ref={canvasRef}
-        width={CANVAS_SIZE.width}
-        height={CANVAS_SIZE.height}
-        className="h-full w-full bg-[#F3F3F2]"
-      />
+    <div className="relative aspect-square h-[min(64dvh,650px)] max-h-[650px] max-w-full overflow-hidden rounded-lg bg-[#E9E5DC]">
+      <div className="absolute inset-[5%]">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundColor: colourHex,
+            WebkitMaskImage: `url(${assetPath(productId, view, "mask")})`,
+            maskImage: `url(${assetPath(productId, view, "mask")})`,
+            WebkitMaskSize: "contain",
+            maskSize: "contain",
+            WebkitMaskRepeat: "no-repeat",
+            maskRepeat: "no-repeat",
+            WebkitMaskPosition: "center",
+            maskPosition: "center",
+          }}
+        />
+        <img
+          src={assetPath(productId, view, "texture")}
+          alt=""
+          draggable={false}
+          className="absolute inset-0 h-full w-full object-contain mix-blend-multiply opacity-35"
+        />
+        <img
+          src={assetPath(productId, view, "shadow")}
+          alt=""
+          draggable={false}
+          className="absolute inset-0 h-full w-full object-contain mix-blend-multiply opacity-75"
+        />
+        <img
+          src={assetPath(productId, view, "highlight")}
+          alt=""
+          draggable={false}
+          className="absolute inset-0 h-full w-full object-contain mix-blend-screen opacity-80"
+        />
+      </div>
+
+      {activeArtwork && (
+        <div
+          className="absolute z-10"
+          style={{
+            left: `${(boxLeftPx / CANVAS_SIZE.width) * 100}%`,
+            top: `${(boxTopPx / CANVAS_SIZE.height) * 100}%`,
+            width: `${(boxWidthPx / CANVAS_SIZE.width) * 100}%`,
+            height: `${(boxHeightPx / CANVAS_SIZE.height) * 100}%`,
+          }}
+        >
+          <ArtworkPreview side={activeArtwork} />
+        </div>
+      )}
+
+      {showNeckLabel && (
+        <div className="absolute left-1/2 top-[20%] z-10 h-[9%] w-[24%] -translate-x-1/2">
+          <NeckLabelPreview neckLabel={neckLabel} />
+        </div>
+      )}
+
       {showBox && (
         <div
           role="presentation"
           onPointerDown={(e) => handleDragStart(e, "move")}
-          className="absolute cursor-move border-2 border-dashed border-neutral-900/70 bg-neutral-900/5"
+          className="absolute z-20 cursor-move border border-dashed border-[#111111]/55 bg-white/10"
           style={{
             left: `${(boxLeftPx / CANVAS_SIZE.width) * 100}%`,
             top: `${(boxTopPx / CANVAS_SIZE.height) * 100}%`,
@@ -188,7 +235,7 @@ export default function CanvasRenderer({ view, colourHex }: CanvasRendererProps)
             role="presentation"
             onPointerDown={(e) => handleDragStart(e, "resize")}
             aria-label="Resize artwork"
-            className="absolute -bottom-1.5 -right-1.5 h-3 w-3 cursor-nwse-resize rounded-sm border border-white bg-neutral-900"
+            className="absolute -bottom-1.5 -right-1.5 h-3 w-3 cursor-nwse-resize rounded-sm border border-white bg-[#111111]"
           />
         </div>
       )}

@@ -129,7 +129,7 @@ export function ConfiguratorSidebar({
   // Uncontrolled fallback — preserves Phase 4 standalone behaviour when no
   // expandedStepId prop is passed in.
   const [internalExpandedStepId, setInternalExpandedStepId] =
-    useState<AccordionStepId | null>("garment-colour");
+    useState<AccordionStepId | null>(null);
 
   const isControlled = controlledExpandedStepId !== undefined;
   const expandedStepId = isControlled ? controlledExpandedStepId : internalExpandedStepId;

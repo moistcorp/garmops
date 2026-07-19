@@ -40,16 +40,24 @@ export function ConfiguratorHeader({
   }
 
   return (
-    <header className="grid h-14 shrink-0 grid-cols-[1fr_auto] items-center px-5">
+    <header className="relative grid h-16 shrink-0 grid-cols-[1fr_auto] items-center px-5">
+      <Link
+        href="/"
+        aria-label="Moist Foundry home"
+        className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center"
+      >
+        <img src="/logo3.png" alt="Moist Foundry" className="h-9 w-auto object-contain" />
+      </Link>
+
       <div className="flex items-center gap-2.5">
         <Link
           href="/configurator"
           aria-label="Back to grid"
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-white transition-colors hover:bg-[#E8E8E6]"
+          className="flex h-9 w-9 items-center justify-center rounded-md border border-[#E1DED6] bg-white transition-colors hover:bg-[#F1EFE8]"
         >
           <ArrowLeft size={17} strokeWidth={2} />
         </Link>
-        <span className="bg-white px-3 py-1.5 text-sm font-semibold text-[#111111]/70">
+        <span className="hidden rounded-md border border-[#E1DED6] bg-white px-3 py-1.5 text-sm font-semibold text-[#111111]/70 sm:inline">
           {productName}
         </span>
       </div>
@@ -59,11 +67,11 @@ export function ConfiguratorHeader({
           type="button"
           onClick={handleShareClick}
           aria-label="Copy shareable link"
-          className="relative flex items-center gap-2 rounded-full px-2.5 py-1.5 text-sm font-semibold transition-colors hover:bg-white"
+          className="relative flex items-center gap-2 rounded-md border border-transparent px-2.5 py-1.5 text-sm font-semibold transition-colors hover:border-[#E1DED6] hover:bg-white"
         >
           <Link2 size={16} strokeWidth={2.4} />
           {justCopied ? "Copied!" : "Share"}
-          <span className="ml-1.5 flex h-7 w-7 items-center justify-center rounded-full border border-[#E5E5E5] bg-[#F7F7F7] text-sm font-medium text-[#111111]/45">
+          <span className="ml-1.5 flex h-7 w-7 items-center justify-center rounded-md border border-[#E5E5E5] bg-[#F7F7F7] text-sm font-medium text-[#111111]/45">
             {shareCount}
           </span>
         </button>

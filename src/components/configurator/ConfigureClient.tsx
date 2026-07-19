@@ -58,8 +58,9 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   const productId = product?.id ?? "tshirt-classic";
   const productName = product?.name ?? "Classic Tee";
   const [activeView, setActiveView] = useState<GarmentView>("front");
-  const [expandedStepId, setExpandedStepId] = useState<AccordionStepId | null>("garment-colour");
+  const [expandedStepId, setExpandedStepId] = useState<AccordionStepId | null>(null);
   const [quantity, setQuantity] = useState<number>(50);
+  const [rushDelivery, setRushDelivery] = useState(false);
 
   // Lifted so the live preview (below) and the sidebar's Garment Colour step
   // read/write the same colour — was a disconnected placeholder pre-5B.
@@ -164,29 +165,25 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       artwork,
       neckLabel: neckLabel?.fileUrl ? neckLabel : undefined,
       quantity,
+      rushDelivery,
     });
     router.push(`/configurator/cart/${encodeURIComponent(configId)}/review`);
   }
 
   return (
     <ArtworkPositionProvider activeView={activeView}>
-      <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-[#F3F3F2] text-[#111111]">
+      <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-[#F6F5F1] text-[#111111]">
         <ConfiguratorHeader configId={configId} productName={productName} />
 
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 px-4 pb-4 lg:grid-cols-[minmax(0,1fr)_410px] lg:px-5">
-          <div className="relative flex min-h-0 min-w-0 flex-col items-center justify-center overflow-hidden rounded-[28px]">
-            <GarmentPreview
-              activeView={activeView}
-              onViewChange={setActiveView}
-              colourHex={colour.hex}
-            />
-            <div className="absolute bottom-4 right-4 hidden lg:block">
-              <WhatsAppAssistantBar configId={configId} />
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 px-4 pb-4 lg:grid-cols-[360px_minmax(0,1fr)_310px] lg:px-5">
+          <aside className="order-2 flex min-h-0 min-w-0 flex-col overflow-hidden rounded-lg border border-[#E1DED6] bg-white/85 lg:order-1">
+            <div className="border-b border-[#E1DED6] px-4 py-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#111111]/45">
+                Build Steps
+              </p>
+              <h1 className="mt-1 text-lg font-semibold text-[#111111]">{productName}</h1>
             </div>
-          </div>
-
-          <aside className="flex min-h-0 min-w-0 flex-col gap-3 overflow-hidden">
-            <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+            <div className="min-h-0 flex-1 overflow-y-auto px-3">
               <ConfiguratorSidebar
                 expandedStepId={expandedStepId}
                 onExpandedStepChange={handleExpandedStepChange}
@@ -200,11 +197,59 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 onNeckLabelChange={setNeckLabel}
               />
             </div>
+          </aside>
+
+          <main className="order-1 relative flex min-h-0 min-w-0 flex-col items-center justify-center overflow-hidden rounded-lg border border-[#E1DED6] bg-[#EDEAE3] lg:order-2">
+            <GarmentPreview
+              activeView={activeView}
+              onViewChange={setActiveView}
+              colourHex={colour.hex}
+              productId={productId}
+              artwork={artwork}
+              neckLabel={neckLabel}
+            />
+            <div className="absolute bottom-4 right-4 hidden lg:block">
+              <WhatsAppAssistantBar configId={configId} />
+            </div>
+          </main>
+
+          <aside className="order-3 flex min-h-0 min-w-0 flex-col justify-between gap-3 overflow-hidden">
+            <div className="rounded-lg border border-[#E1DED6] bg-white/85 p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#111111]/45">
+                Studio Summary
+              </p>
+              <div className="mt-4 space-y-3 text-sm">
+                <div className="flex justify-between gap-4">
+                  <span className="text-[#111111]/55">Colour</span>
+                  <span className="text-right font-medium">{colour.name}</span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="text-[#111111]/55">Artwork</span>
+                  <span className="text-right font-medium">
+                    {[artwork.front?.confirmed && "Front", artwork.back?.confirmed && "Back"]
+                      .filter(Boolean)
+                      .join(" + ") || "Not added"}
+                  </span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="text-[#111111]/55">Neck label</span>
+                  <span className="text-right font-medium">
+                    {neckLabel?.confirmed ? "Added" : "Not added"}
+                  </span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="text-[#111111]/55">Rush</span>
+                  <span className="text-right font-medium">{rushDelivery ? "On" : "Off"}</span>
+                </div>
+              </div>
+            </div>
 
             <div className="shrink-0">
               <OrderBar
                 quantity={quantity}
                 onQuantityChange={setQuantity}
+                rushDelivery={rushDelivery}
+                onRushDeliveryChange={setRushDelivery}
                 ctaLabel={getCtaLabel(expandedStepId)}
                 onCtaClick={handleCtaClick}
                 productId={productId}

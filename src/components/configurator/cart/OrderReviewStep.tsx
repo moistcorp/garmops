@@ -26,6 +26,7 @@ export interface CartItem {
   neckLabel?: NeckLabel;
   sizeQuantities: Record<Size, number>;
   unitPrice: number;
+  rushDelivery?: boolean;
   artworkFees: DevelopmentCostLine[];
   applicationFees: DevelopmentCostLine[];
 }
@@ -128,7 +129,8 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
           const priceAdjustments = getUnitPriceAdjustments(
             item.colour,
             item.artwork,
-            item.neckLabel
+            item.neckLabel,
+            item.rushDelivery
           );
 
           return (
@@ -210,7 +212,9 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                             key={adjustment.label}
                             className="rounded-full border border-[#D8D8D8] bg-white px-2.5 py-1 text-xs text-[#111111]/70"
                           >
-                            {adjustment.label} +{adjustment.percent}%
+                            {adjustment.amount
+                              ? `${adjustment.label} +${formatInr(adjustment.amount)}`
+                              : `${adjustment.label} +${adjustment.percent}%`}
                           </span>
                         ))}
                       </div>

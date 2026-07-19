@@ -25,18 +25,21 @@ export const CUSTOM_DYE_UNIT_INCREASE_PERCENT = 15.33;
 export const PRINT_UNIT_INCREASE_PERCENT = 42;
 export const BACK_ARTWORK_UNIT_INCREASE_PERCENT = 22;
 export const NECK_LABEL_UNIT_INCREASE_PERCENT = 10;
-export const EXPRESS_DELIVERY_FEE_PER_UNIT = 75;
+export const RUSH_DELIVERY_FEE_PER_UNIT = 75;
+export const EXPRESS_DELIVERY_FEE_PER_UNIT = RUSH_DELIVERY_FEE_PER_UNIT;
 export const GST_PERCENT = 18;
 
 export type UnitPriceAdjustment = {
   label: string;
-  percent: number;
+  percent?: number;
+  amount?: number;
 };
 
 export function getUnitPriceAdjustments(
   colour?: Pick<GarmentColour, "type">,
   artwork: Artwork = {},
-  neckLabel?: Partial<NeckLabel>
+  neckLabel?: Partial<NeckLabel>,
+  rushDelivery = false
 ): UnitPriceAdjustment[] {
   const adjustments: UnitPriceAdjustment[] = [];
   const hasAnyPrint = Boolean(artwork.front?.confirmed || artwork.back?.confirmed);
@@ -57,6 +60,10 @@ export function getUnitPriceAdjustments(
     adjustments.push({ label: "Neck label", percent: NECK_LABEL_UNIT_INCREASE_PERCENT });
   }
 
+  if (rushDelivery) {
+    adjustments.push({ label: "Rush delivery", amount: RUSH_DELIVERY_FEE_PER_UNIT });
+  }
+
   return adjustments;
 }
 
@@ -64,18 +71,24 @@ export function applyUnitPriceAdjustments(
   basePrice: number,
   adjustments: UnitPriceAdjustment[]
 ): number {
-  return adjustments.reduce((price, adjustment) => price * (1 + adjustment.percent / 100), basePrice);
+  return adjustments.reduce((price, adjustment) => {
+    if (adjustment.percent !== undefined) {
+      return price * (1 + adjustment.percent / 100);
+    }
+    return price + (adjustment.amount ?? 0);
+  }, basePrice);
 }
 
 export function getConfiguredUnitPrice(
   productId: ProductId,
   colour?: Pick<GarmentColour, "type">,
   artwork: Artwork = {},
-  neckLabel?: Partial<NeckLabel>
+  neckLabel?: Partial<NeckLabel>,
+  rushDelivery = false
 ): number {
   return applyUnitPriceAdjustments(
     getBasePrice(productId),
-    getUnitPriceAdjustments(colour, artwork, neckLabel)
+    getUnitPriceAdjustments(colour, artwork, neckLabel, rushDelivery)
   );
 }
 

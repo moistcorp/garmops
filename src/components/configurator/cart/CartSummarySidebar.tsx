@@ -5,6 +5,7 @@ interface CartSummarySidebarProps {
   volumeDiscount: number;
   shippingFee?: number;
   gst?: number;
+  rushDelivery?: boolean;
   delivery: string;
   total: number;
   onNext?: () => void;
@@ -17,6 +18,7 @@ export function CartSummarySidebar({
   volumeDiscount,
   shippingFee = 0,
   gst = 0,
+  rushDelivery = false,
   delivery,
   total,
   onNext,
@@ -45,8 +47,14 @@ export function CartSummarySidebar({
         )}
         {shippingFee > 0 && (
           <div className="flex justify-between text-[#111111]/70">
-            <span>Express delivery</span>
+            <span>Rush delivery</span>
             <span>{formatInr(shippingFee)}</span>
+          </div>
+        )}
+        {rushDelivery && shippingFee === 0 && (
+          <div className="flex justify-between text-[#111111]/70">
+            <span>Rush delivery</span>
+            <span>Included in unit price</span>
           </div>
         )}
         <div className="flex justify-between text-[#111111]/70">
@@ -64,7 +72,7 @@ export function CartSummarySidebar({
       </div>
 
       <p className="mt-3 text-[11px] text-[#111111]/60">
-        Prices include 18% GST. Express delivery adds ₹75 per unit.
+        Prices include 18% GST. Rush Delivery adds ₹75 per unit when enabled.
       </p>
 
       <p className="mt-3 text-xs text-[#111111]">

@@ -26,7 +26,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
       const totals = calculateTotals(draft.items, draft.deliveryType);
       const paymentStatus: PaymentStatus = "reservation_paid";
       const delivery = draft.selectedDeliveryDateIso
-        ? `${draft.deliveryType === "rush" ? "Express" : draft.deliveryType ?? "standard"} - ${new Date(
+        ? `${draft.deliveryType === "rush" ? "Rush" : draft.deliveryType ?? "standard"} - ${new Date(
             draft.selectedDeliveryDateIso
           ).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`
         : "Delivery date not selected";
@@ -208,7 +208,12 @@ function AddressSummary({ address }: { address: Address }) {
 
 function ProductRecapCard({ item }: { item: CartItem }) {
   const units = totalUnits(item.sizeQuantities);
-  const adjustments = getUnitPriceAdjustments(item.colour, item.artwork, item.neckLabel);
+  const adjustments = getUnitPriceAdjustments(
+    item.colour,
+    item.artwork,
+    item.neckLabel,
+    item.rushDelivery
+  );
 
   return (
     <div className="flex gap-4 border border-[#E5E5E5] rounded-lg p-4">
@@ -237,7 +242,9 @@ function ProductRecapCard({ item }: { item: CartItem }) {
                 key={adjustment.label}
                 className="rounded-full border border-[#E5E5E5] px-2 py-1 text-[10px] text-[#111111]/60"
               >
-                {adjustment.label} +{adjustment.percent}%
+                {adjustment.amount
+                  ? `${adjustment.label} +${formatInr(adjustment.amount)}`
+                  : `${adjustment.label} +${adjustment.percent}%`}
               </span>
             ))}
           </div>
