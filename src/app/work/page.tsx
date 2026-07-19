@@ -134,7 +134,7 @@ export default function Work() {
           </div>
           <div className="flex gap-3 shrink-0">
             <Link
-              href="/configure"
+              href="/configurator"
               className="bg-white text-[#111111] px-7 py-3.5 text-sm font-medium hover:bg-[#E5E5E5] transition whitespace-nowrap"
             >
               Start designing

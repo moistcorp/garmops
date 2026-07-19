@@ -19,7 +19,7 @@ export default function TrustedBy() {
 
         <div className="flex items-center gap-12">
 
-          <h2 className="text-2xl font-semibold shrink-0">
+          <h2 className="text-2xl font-semibold shrink-0 text-[#111111]">
             Trusted by
           </h2>
 
@@ -41,7 +41,7 @@ export default function TrustedBy() {
                   <img
                  src={brand.logo}
                 alt={brand.name}
-                className="h-8 w-auto opacity-50 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0"
+                className="h-8 w-auto opacity-80 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0"
                 />
                 </div>
               ))}

@@ -12,7 +12,7 @@ export default function HomepageCaseStudies() {
         <div className="grid lg:grid-cols-[300px_1fr] gap-12 items-start">
 
           <div className="lg:sticky lg:top-24">
-            <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">
+            <p className="text-xs text-[#666666] font-medium mb-4 tracking-widest uppercase">
               Case Studies
             </p>
 
@@ -20,7 +20,7 @@ export default function HomepageCaseStudies() {
               How the best brands use Foundry
             </h2>
 
-            <p className="text-[#111111]/55 leading-relaxed mb-10">
+            <p className="text-[#4a4a4a] leading-relaxed mb-10">
               Brand is more important than ever, and clothes are the ultimate storytellers. See for yourself how industry leaders are using merch to build brand and community.
             </p>
 
@@ -100,13 +100,13 @@ export default function HomepageCaseStudies() {
                       {cs.client}
                     </p>
 
-                    <p className="text-sm text-[#111111]/45 mb-5">
+                    <p className="text-sm text-[#555555] mb-5">
                       {cs.industry}
                     </p>
 
                     <div className="flex justify-between items-center pt-5 border-t border-[#E5E5E5]">
 
-                      <div className="flex gap-4 text-xs text-[#111111]/40">
+                      <div className="flex gap-4 text-xs text-[#555555]">
                         <span>{cs.quantity} pcs</span>
                         <span>{cs.turnaround}</span>
                       </div>

@@ -1,3 +1,4 @@
+import { products as catalogProducts } from "../products";
 import type { ProductId } from "./pricing";
 
 export interface Product {
@@ -7,34 +8,29 @@ export interface Product {
   hoverImage: string;
 }
 
-// PLACEHOLDER catalogue — swap ids/names/images for real data.
-// ids below are NOT guaranteed to exist in pricing.ts's internal catalogue.
-export const products: Product[] = [
-  {
-    id: "tshirt-classic",
-    name: "Classic Tee",
-    defaultImage: "/configurator/placeholders/tshirt-classic-flat.jpg",
-    hoverImage: "/configurator/placeholders/tshirt-classic-model.jpg",
-  },
-  {
-    id: "hoodie-classic",
-    name: "Classic Hoodie",
-    defaultImage: "/configurator/placeholders/hoodie-classic-flat.jpg",
-    hoverImage: "/configurator/placeholders/hoodie-classic-model.jpg",
-  },
-  {
-    id: "polo-classic",
-    name: "Classic Polo",
-    defaultImage: "/configurator/placeholders/polo-classic-flat.jpg",
-    hoverImage: "/configurator/placeholders/polo-classic-model.jpg",
-  },
-  {
-    id: "sweatshirt-classic",
-    name: "Classic Sweatshirt",
-    defaultImage: "/configurator/placeholders/sweatshirt-classic-flat.jpg",
-    hoverImage: "/configurator/placeholders/sweatshirt-classic-model.jpg",
-  },
-];
+function getFlatlayImage(slug: string): string {
+  if (slug.includes("longsleeve")) return "/flatlays/longsleeve.webp";
+  if (slug.includes("tee")) {
+    return slug.includes("boxy") ? "/flatlays/boxytee.webp" : "/flatlays/regulartee.webp";
+  }
+  if (slug.includes("hoodie")) {
+    return slug.includes("boxy") ? "/flatlays/boxyhoodie.webp" : "/flatlays/regularhoodie.webp";
+  }
+  if (slug.includes("polo")) return "/flatlays/polo.webp";
+  if (slug.includes("sweatshirt")) return "/flatlays/sweatshirt.webp";
+  if (slug.includes("tote")) return "/flatlays/totebag.webp";
+  return "/flatlays/boxytee.webp";
+}
+
+export const products: Product[] = catalogProducts.map((product) => {
+  const flatlay = getFlatlayImage(product.slug);
+  return {
+    id: product.slug,
+    name: product.pricingKey,
+    defaultImage: flatlay,
+    hoverImage: flatlay,
+  };
+});
 
 export function getProduct(id: ProductId): Product | undefined {
   return products.find((p) => p.id === id);

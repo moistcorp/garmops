@@ -104,7 +104,7 @@ export default function ContactClient() {
           ))}
           <div>
             <p className="text-xs font-medium text-[#111111]/40 mb-2 uppercase tracking-widest">Or start directly</p>
-            <Link href="/configure" className="inline-block border border-[#111111] text-[#111111] px-5 py-2.5 text-sm hover:bg-[#111111] hover:text-white transition-colors">
+            <Link href="/configurator" className="inline-block border border-[#111111] text-[#111111] px-5 py-2.5 text-sm hover:bg-[#111111] hover:text-white transition-colors">
               Open the configurator
             </Link>
           </div>

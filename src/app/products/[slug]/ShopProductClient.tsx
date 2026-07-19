@@ -178,7 +178,7 @@ export default function ShopProductClient({
                 {added ? 'Added to cart' : 'Add to cart'}
               </button>
               <Link
-  href="/configure"
+  href="/configurator"
   className="
     w-full
     rounded-md

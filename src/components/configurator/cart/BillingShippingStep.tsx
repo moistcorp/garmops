@@ -23,10 +23,14 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
   const router = useRouter();
   const [draft, setDraft] = useState(() => readDraft(cartId));
   const [promoApplied, setPromoApplied] = useState(false);
-  const selectedDeliveryDate = draft.selectedDeliveryDateIso
-    ? new Date(draft.selectedDeliveryDateIso)
-    : undefined;
-  const totals = calculateTotals(draft.items);
+  const selectedDeliveryDate = useMemo(
+    () =>
+      draft.selectedDeliveryDateIso
+        ? new Date(draft.selectedDeliveryDateIso)
+        : undefined,
+    [draft.selectedDeliveryDateIso]
+  );
+  const totals = calculateTotals(draft.items, draft.deliveryType);
 
   const updateDraft = (patch: Partial<CartDraft>) => {
     setDraft((prev) => {
@@ -40,11 +44,11 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
     if (!selectedDeliveryDate) return "Select a delivery date";
     const tag =
       draft.deliveryType === "rush"
-        ? "⚡ Express"
+        ? "Express"
         : draft.deliveryType === "standard"
-        ? "🚚 Standard"
-        : "🕐 Flexible";
-    return `${tag} — ${formatDate(selectedDeliveryDate)}`;
+        ? "Standard"
+        : "Flexible";
+    return `${tag} - ${formatDate(selectedDeliveryDate)}`;
   }, [selectedDeliveryDate, draft.deliveryType]);
 
   const isValid = useMemo(() => {
@@ -138,6 +142,8 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
       <CartSummarySidebar
         subtotal={totals.subtotal}
         volumeDiscount={totals.volumeDiscount}
+        shippingFee={totals.shippingFee}
+        gst={totals.gst}
         delivery={deliveryLabel}
         total={totals.total}
         onNext={handleNext}

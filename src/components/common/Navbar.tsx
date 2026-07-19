@@ -26,9 +26,6 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // close mobile menu on route change
-  useEffect(() => { setOpen(false) }, [pathname])
-
   return (
     <header className={`w-full bg-white sticky top-0 z-50 transition-shadow duration-200 ${scrolled ? 'shadow-sm' : 'border-b border-[#E5E5E5]'}`}>
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-8">
@@ -44,7 +41,7 @@ export default function Navbar() {
               className={`transition-colors text-xs tracking-wide ${
                 pathname === l.href || pathname.startsWith(l.href + '/')
                   ? 'text-[#111111] font-semibold'
-                  : 'text-[#111111]/50 hover:text-[#111111]'
+                  : 'text-[#444444] hover:text-[#111111]'
               }`}>
               {l.label}
             </Link>
@@ -53,7 +50,7 @@ export default function Navbar() {
 
         {/* Right side actions */}
         <div className="hidden md:flex items-center gap-4 shrink-0">
-          <Link href="/cart" className="relative text-xs text-[#111111]/50 hover:text-[#111111] transition-colors">
+          <Link href="/cart" className="relative text-xs text-[#444444] hover:text-[#111111] transition-colors">
             Cart
             {itemCount > 0 && (
               <span className="absolute -top-2 -right-3 bg-[#111111] text-white text-xs w-4 h-4 rounded-full flex items-center justify-center leading-none">
@@ -61,7 +58,7 @@ export default function Navbar() {
               </span>
             )}
           </Link>
-          <Link href="/configure"
+          <Link href="/configurator"
             className="bg-[#111111] text-white text-xs px-5 py-2.5 hover:bg-black transition-colors tracking-wide">
             Start designing
           </Link>
@@ -90,13 +87,15 @@ export default function Navbar() {
         <div className="md:hidden px-6 pb-6 flex flex-col gap-1 border-t border-[#E5E5E5] pt-4 bg-white">
           {links.map(l => (
             <Link key={l.href} href={l.href}
+              onClick={() => setOpen(false)}
               className={`py-2.5 text-sm border-b border-[#F7F7F7] ${
                 pathname === l.href ? 'text-[#111111] font-semibold' : 'text-[#111111]/60'
               }`}>
               {l.label}
             </Link>
           ))}
-          <Link href="/configure"
+          <Link href="/configurator"
+            onClick={() => setOpen(false)}
             className="mt-3 bg-[#111111] text-white px-5 py-3 text-center text-sm font-medium">
             Start designing
           </Link>

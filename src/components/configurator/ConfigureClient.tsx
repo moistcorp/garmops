@@ -13,7 +13,7 @@ import {
   DEFAULT_COLOUR,
 } from "./ConfiguratorSidebar/ConfiguratorSidebar";
 import { TECHNIQUE_LABELS } from "./ConfiguratorSidebar/ArtworkPanel/TechniqueSelect";
-import { computeConfiguredUnitCost, OrderBar } from "./OrderBar";
+import { OrderBar } from "./OrderBar";
 import { ConfiguratorHeader } from "./ConfiguratorHeader";
 import { WhatsAppAssistantBar } from "./WhatsAppAssistantBar";
 import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionContext";
@@ -164,7 +164,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       artwork,
       neckLabel: neckLabel?.fileUrl ? neckLabel : undefined,
       quantity,
-      unitPrice: computeConfiguredUnitCost(productId, quantity, artwork, neckLabel),
     });
     router.push(`/configurator/cart/${encodeURIComponent(configId)}/review`);
   }
@@ -210,6 +209,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 onCtaClick={handleCtaClick}
                 productId={productId}
                 steps={steps}
+                colour={colour}
                 artwork={artwork}
                 neckLabel={neckLabel}
               />

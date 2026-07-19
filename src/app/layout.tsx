@@ -3,7 +3,11 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import AppChrome from '@/components/common/AppChrome'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -23,7 +27,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-white text-[#111111]`}>
+      <body className={`${inter.variable} bg-white text-[#111111] antialiased`}>
         <AppChrome>{children}</AppChrome>
       </body>
     </html>

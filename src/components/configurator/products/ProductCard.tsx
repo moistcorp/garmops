@@ -16,8 +16,8 @@ export default function ProductCard({ product }: { product: Product }) {
   const priceLabel = getDisplayPrice(product.id);
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-lg border border-[#E5E5E5] bg-white">
-      <div className="relative aspect-[3/4] w-full overflow-hidden bg-[#F7F7F7]">
+    <div className="group relative flex flex-col overflow-hidden rounded-lg bg-white">
+      <div className="relative aspect-[3/4] w-full overflow-hidden bg-white">
         {/* Default: flat-lay image */}
         <img
           src={product.defaultImage}

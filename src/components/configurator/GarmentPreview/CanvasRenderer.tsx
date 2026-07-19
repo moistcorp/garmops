@@ -81,7 +81,7 @@ export default function CanvasRenderer({ view, colourHex }: CanvasRendererProps)
       ctx.fillRect(150, 150, 300, 300);
       ctx.globalAlpha = 1;
       ctx.fillStyle = "#111111";
-      ctx.font = "14px sans-serif";
+      ctx.font = "14px Inter, sans-serif";
       ctx.textAlign = "center";
       ctx.fillText(
         imgStatus === "error" ? "Base image not found (placeholder)" : "Loading…",
@@ -118,7 +118,7 @@ export default function CanvasRenderer({ view, colourHex }: CanvasRendererProps)
   const boxLeftPx = CANVAS_SIZE.width / 2 + boxState.fromCenterCm * PX_PER_CM_X - boxWidthPx / 2;
   const boxTopPx = boxState.fromNeckCm * PX_PER_CM_Y;
 
-  function handlePointerMove(e: PointerEvent) {
+  const handlePointerMove = (e: PointerEvent) => {
     const origin = dragOrigin.current;
     if (!origin) return;
     const dPxX = e.clientX - origin.pointerX;
@@ -140,31 +140,29 @@ export default function CanvasRenderer({ view, colourHex }: CanvasRendererProps)
       nextWidthCm
     );
     updatePosition(view, partial);
-  }
+  };
 
-  function handlePointerUp() {
+  const handlePointerUp = () => {
     dragOrigin.current = null;
     window.removeEventListener("pointermove", handlePointerMove);
     window.removeEventListener("pointerup", handlePointerUp);
-  }
+  };
 
-  function startDrag(mode: DragMode) {
-    return (e: ReactPointerEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
-      dragOrigin.current = {
-        mode,
-        pointerX: e.clientX,
-        pointerY: e.clientY,
-        startWidthCm: boxState.widthCm,
-        startHeightCm: boxState.heightCm,
-        startFromNeckCm: boxState.fromNeckCm,
-        startFromCenterCm: boxState.fromCenterCm,
-      };
-      window.addEventListener("pointermove", handlePointerMove);
-      window.addEventListener("pointerup", handlePointerUp);
+  const handleDragStart = (e: ReactPointerEvent<HTMLDivElement>, mode: DragMode) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragOrigin.current = {
+      mode,
+      pointerX: e.clientX,
+      pointerY: e.clientY,
+      startWidthCm: boxState.widthCm,
+      startHeightCm: boxState.heightCm,
+      startFromNeckCm: boxState.fromNeckCm,
+      startFromCenterCm: boxState.fromCenterCm,
     };
-  }
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+  };
 
   return (
     <div className="relative aspect-square h-[min(58dvh,540px)] max-h-[540px] max-w-full">
@@ -177,7 +175,7 @@ export default function CanvasRenderer({ view, colourHex }: CanvasRendererProps)
       {showBox && (
         <div
           role="presentation"
-          onPointerDown={startDrag("move")}
+          onPointerDown={(e) => handleDragStart(e, "move")}
           className="absolute cursor-move border-2 border-dashed border-neutral-900/70 bg-neutral-900/5"
           style={{
             left: `${(boxLeftPx / CANVAS_SIZE.width) * 100}%`,
@@ -188,7 +186,7 @@ export default function CanvasRenderer({ view, colourHex }: CanvasRendererProps)
         >
           <div
             role="presentation"
-            onPointerDown={startDrag("resize")}
+            onPointerDown={(e) => handleDragStart(e, "resize")}
             aria-label="Resize artwork"
             className="absolute -bottom-1.5 -right-1.5 h-3 w-3 cursor-nwse-resize rounded-sm border border-white bg-neutral-900"
           />

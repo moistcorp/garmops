@@ -9,6 +9,7 @@ import { SIZES } from "./SizeQuantityGrid";
 import type { CartItem } from "./OrderReviewStep";
 import type { Order, PaymentStatus } from "@/lib/configurator/types/cart";
 import { calculateTotals, readDraft, RESERVATION_FEE, totalUnits } from "./cartDraft";
+import { formatInr, getUnitPriceAdjustments } from "@/lib/configurator/pricing";
 
 export interface ConfirmationStepProps {
   cartId: string;
@@ -20,12 +21,12 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("payu");
 
-  const { subtotal, volumeDiscount, delivery, orderTotal, balanceDue, paymentStatus } =
+  const { subtotal, volumeDiscount, shippingFee, gst, delivery, orderTotal, balanceDue, paymentStatus } =
     useMemo(() => {
-      const totals = calculateTotals(draft.items);
+      const totals = calculateTotals(draft.items, draft.deliveryType);
       const paymentStatus: PaymentStatus = "reservation_paid";
       const delivery = draft.selectedDeliveryDateIso
-        ? `${draft.deliveryType ?? "standard"} — ${new Date(
+        ? `${draft.deliveryType === "rush" ? "Express" : draft.deliveryType ?? "standard"} - ${new Date(
             draft.selectedDeliveryDateIso
           ).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`
         : "Delivery date not selected";
@@ -33,6 +34,8 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
       return {
         subtotal: totals.subtotal,
         volumeDiscount: totals.volumeDiscount,
+        shippingFee: totals.shippingFee,
+        gst: totals.gst,
         delivery,
         orderTotal: totals.total,
         balanceDue: totals.balanceDue,
@@ -146,21 +149,23 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
         <CartSummarySidebar
           subtotal={subtotal}
           volumeDiscount={volumeDiscount}
+          shippingFee={shippingFee}
+          gst={gst}
           delivery={delivery}
           total={orderTotal}
         />
         <div className="rounded-lg border border-[#E5E5E5] bg-white p-5 space-y-2 text-sm">
           <div className="flex justify-between text-[#111111]/70">
             <span>Reservation fee paid</span>
-            <span>₹{RESERVATION_FEE}</span>
+            <span>{formatInr(RESERVATION_FEE)}</span>
           </div>
           <div className="flex justify-between text-[#111111]/70">
             <span>Order total</span>
-            <span>₹{orderTotal.toLocaleString("en-IN")}</span>
+            <span>{formatInr(orderTotal)}</span>
           </div>
           <div className="flex justify-between font-medium text-[#111111] pt-2 border-t border-[#E5E5E5]">
             <span>Balance due</span>
-            <span>₹{balanceDue.toLocaleString("en-IN")}</span>
+            <span>{formatInr(balanceDue)}</span>
           </div>
         </div>
         <button
@@ -203,7 +208,7 @@ function AddressSummary({ address }: { address: Address }) {
 
 function ProductRecapCard({ item }: { item: CartItem }) {
   const units = totalUnits(item.sizeQuantities);
-  const allFees = [...item.artworkFees, ...item.applicationFees];
+  const adjustments = getUnitPriceAdjustments(item.colour, item.artwork, item.neckLabel);
 
   return (
     <div className="flex gap-4 border border-[#E5E5E5] rounded-lg p-4">
@@ -215,7 +220,7 @@ function ProductRecapCard({ item }: { item: CartItem }) {
       <div className="flex-1">
         <p className="text-sm font-medium text-[#111111]">{item.productName}</p>
         <p className="text-xs text-[#111111]/60">
-          {item.colour.name} · {units} units · ₹{item.unitPrice}/unit
+          {item.colour.name} · {units} units · {formatInr(item.unitPrice)}/unit
         </p>
         <div className="mt-2 grid grid-cols-6 gap-1 text-[10px] text-[#111111]/60">
           {SIZES.map((size) => (
@@ -225,13 +230,15 @@ function ProductRecapCard({ item }: { item: CartItem }) {
             </div>
           ))}
         </div>
-        {allFees.length > 0 && (
-          <div className="mt-2 space-y-0.5 text-xs text-[#111111]/60">
-            {allFees.map((fee, i) => (
-              <div key={i} className="flex justify-between">
-                <span>{fee.label}</span>
-                <span>₹{fee.unitPrice * fee.count}</span>
-              </div>
+        {adjustments.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {adjustments.map((adjustment) => (
+              <span
+                key={adjustment.label}
+                className="rounded-full border border-[#E5E5E5] px-2 py-1 text-[10px] text-[#111111]/60"
+              >
+                {adjustment.label} +{adjustment.percent}%
+              </span>
             ))}
           </div>
         )}

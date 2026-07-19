@@ -251,7 +251,7 @@ export default function PricingClient() {
               Get a firm quote
             </Link>
             <Link
-              href="/configure"
+              href="/configurator"
               className="border border-[#111111] text-[#111111] text-sm font-medium px-6 py-4 text-center hover:bg-[#111111] hover:text-white transition"
             >
               Start designing instead

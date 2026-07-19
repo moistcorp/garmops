@@ -144,7 +144,7 @@ export default function WorkDetailClient({
                 We work with brands across India. MOQ 50 pieces, quote in 24 hours.
               </p>
               <Link
-                href="/configure"
+                href="/configurator"
                 className="bg-white text-[#111111] px-4 py-2.5 text-xs font-medium text-center hover:bg-[#E5E5E5] transition-colors"
               >
                 Start designing

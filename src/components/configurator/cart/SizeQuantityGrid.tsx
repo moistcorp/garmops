@@ -21,6 +21,9 @@ export function SizeQuantityGrid({ value, onChange, unitPrice }: SizeQuantityGri
 
   return (
     <div className="w-full">
+      <div className="mb-2 flex items-center justify-end gap-3 text-xs text-[#111111]/60">
+        <span className="font-medium text-[#111111]">{totalUnits} units</span>
+      </div>
       <div className="grid grid-cols-6 gap-px overflow-hidden rounded-md border border-[#E5E5E5] bg-[#E5E5E5]">
         {SIZES.map((size) => (
           <div key={size} className="bg-[#F7F7F7] px-2 py-2 text-center text-xs font-medium tracking-wide text-[#111111]">
@@ -45,11 +48,7 @@ export function SizeQuantityGrid({ value, onChange, unitPrice }: SizeQuantityGri
         ))}
       </div>
 
-      <div className="mt-3 flex items-center justify-between border-t border-[#E5E5E5] pt-3 text-sm">
-        <div className="text-[#111111]">
-          <span className="font-medium">Total units:</span>{' '}
-          <span>{totalUnits}</span>
-        </div>
+      <div className="mt-3 flex items-center justify-end border-t border-[#E5E5E5] pt-3 text-sm">
         <div className="text-[#111111]">
           <span className="font-medium">Price/unit:</span>{' '}
           <span>{formatInr(unitPrice)}</span>

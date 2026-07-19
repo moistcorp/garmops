@@ -1,31 +1,82 @@
 // src/lib/configurator/pricing.ts
 
+import { products as catalogProducts } from "../products";
+import type { Artwork, GarmentColour, NeckLabel } from "./types/configurator";
+
 // ============================================================
 // PHASE 1 (confirmed) — base price lookup
 // ============================================================
 
 export type ProductId = string;
 
-// TODO: placeholder catalogue — replace with real Moist Corp product IDs/base prices.
-const BASE_PRICES: Record<ProductId, number> = {
-  'tshirt-classic': 499,
-  'hoodie-classic': 1299,
-  'polo-classic': 799,
-  'sweatshirt-classic': 999,
-};
+const BASE_PRICES: Record<ProductId, number> = Object.fromEntries(
+  catalogProducts.map((product) => [product.slug, product.price])
+);
 
-/**
- * Base Unit Cost lookup — Signature vs Custom Dye upcharge handling deferred
- * to a future phase (see Appendix §8, flagged "confirm"; 21% upcharge confirmed
- * by Rahul but NOT implemented here — requires a signature change to this
- * function, out of scope for Phase 9A).
- */
 export function getBasePrice(productId: ProductId): number {
   const price = BASE_PRICES[productId];
   if (price === undefined) {
     throw new Error(`No base price found for product ID "${productId}"`);
   }
   return price;
+}
+
+export const CUSTOM_DYE_UNIT_INCREASE_PERCENT = 15.33;
+export const PRINT_UNIT_INCREASE_PERCENT = 42;
+export const BACK_ARTWORK_UNIT_INCREASE_PERCENT = 22;
+export const NECK_LABEL_UNIT_INCREASE_PERCENT = 10;
+export const EXPRESS_DELIVERY_FEE_PER_UNIT = 75;
+export const GST_PERCENT = 18;
+
+export type UnitPriceAdjustment = {
+  label: string;
+  percent: number;
+};
+
+export function getUnitPriceAdjustments(
+  colour?: Pick<GarmentColour, "type">,
+  artwork: Artwork = {},
+  neckLabel?: Partial<NeckLabel>
+): UnitPriceAdjustment[] {
+  const adjustments: UnitPriceAdjustment[] = [];
+  const hasAnyPrint = Boolean(artwork.front?.confirmed || artwork.back?.confirmed);
+
+  if (colour?.type === "custom_dye") {
+    adjustments.push({ label: "Custom dye", percent: CUSTOM_DYE_UNIT_INCREASE_PERCENT });
+  }
+
+  if (hasAnyPrint) {
+    adjustments.push({ label: "Print application", percent: PRINT_UNIT_INCREASE_PERCENT });
+  }
+
+  if (artwork.back?.confirmed) {
+    adjustments.push({ label: "Back artwork", percent: BACK_ARTWORK_UNIT_INCREASE_PERCENT });
+  }
+
+  if (neckLabel?.confirmed) {
+    adjustments.push({ label: "Neck label", percent: NECK_LABEL_UNIT_INCREASE_PERCENT });
+  }
+
+  return adjustments;
+}
+
+export function applyUnitPriceAdjustments(
+  basePrice: number,
+  adjustments: UnitPriceAdjustment[]
+): number {
+  return adjustments.reduce((price, adjustment) => price * (1 + adjustment.percent / 100), basePrice);
+}
+
+export function getConfiguredUnitPrice(
+  productId: ProductId,
+  colour?: Pick<GarmentColour, "type">,
+  artwork: Artwork = {},
+  neckLabel?: Partial<NeckLabel>
+): number {
+  return applyUnitPriceAdjustments(
+    getBasePrice(productId),
+    getUnitPriceAdjustments(colour, artwork, neckLabel)
+  );
 }
 
 // ============================================================

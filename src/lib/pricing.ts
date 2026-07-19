@@ -4,6 +4,7 @@ export const PRODUCT_PRICES: Record<string, number> = {
   'Regular Fit Tee (260 GSM)': 565,
   'Boxy Fit Tee (260 GSM)': 565,
   'Longsleeve Tee (260 GSM)': 565,
+  'Polo (280 GSM)': 595,
   'Regular Fit Sweatshirt (320 GSM)': 565,
   'Boxy Fit Sweatshirt (320 GSM)': 585,
   'Regular Fit Hoodie (320 GSM)': 575,

@@ -69,7 +69,7 @@ export default function Journal() {
             <p className="text-[#111111]/50 text-sm">50 pieces minimum. Quote within 24 hours.</p>
           </div>
           <div className="flex gap-3">
-            <Link href="/configure" className="bg-[#111111] text-white px-6 py-3 text-sm font-medium hover:bg-black transition">Start designing</Link>
+            <Link href="/configurator" className="bg-[#111111] text-white px-6 py-3 text-sm font-medium hover:bg-black transition">Start designing</Link>
             <Link href="/contact" className="border border-[#111111] text-[#111111] px-6 py-3 text-sm font-medium hover:bg-[#111111] hover:text-white transition">Contact us</Link>
           </div>
         </div>

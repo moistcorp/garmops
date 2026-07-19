@@ -65,7 +65,7 @@ export default function Products() {
             <p className="text-[#111111]/50 text-sm">Custom apparel for brands, cafes, and companies. MOQ 50 pieces.</p>
           </div>
           <div className="flex gap-3 shrink-0">
-            <Link href="/configure" className="bg-[#111111] text-white px-6 py-3 text-sm font-medium hover:bg-black transition">Start designing</Link>
+            <Link href="/configurator" className="bg-[#111111] text-white px-6 py-3 text-sm font-medium hover:bg-black transition">Start designing</Link>
           </div>
         </div>
       </section>

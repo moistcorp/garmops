@@ -67,7 +67,7 @@ export default function HowItWorks() {
       <section className="max-w-7xl mx-auto px-6 py-20 text-center">
         <h2 className="text-4xl font-bold mb-4 tracking-tight">Ready to start?</h2>
         <p className="text-[#111111]/50 mb-8 text-sm">Configure your order in minutes. We&apos;ll take it from there.</p>
-        <Link href="/configure" className="inline-block bg-[#111111] text-white px-8 py-4 hover:bg-black transition text-sm font-medium">
+        <Link href="/configurator" className="inline-block bg-[#111111] text-white px-8 py-4 hover:bg-black transition text-sm font-medium">
           Start designing
         </Link>
       </section>

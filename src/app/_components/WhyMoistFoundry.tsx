@@ -31,7 +31,7 @@ export default function WhyMoistFoundry() {
 
           {/* LEFT — heading + accordion */}
           <div>
-            <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">
+            <p className="text-xs text-[#595959] font-medium mb-4 tracking-widest uppercase">
               Why Moist Foundry
             </p>
             <h2 className="text-4xl font-bold text-[#111111] tracking-tight leading-tight mb-10">
@@ -49,7 +49,7 @@ export default function WhyMoistFoundry() {
                     <span className={`text-base font-semibold leading-snug transition-colors ${openIndex === i ? 'text-[#111111]' : 'text-[#111111]/60'}`}>
                       {item.title}
                     </span>
-                    <span className="shrink-0 w-5 h-5 flex items-center justify-center text-[#111111]/30">
+                    <span className="shrink-0 w-5 h-5 flex items-center justify-center text-[#666666]">
                       <svg
                         className={`w-4 h-4 transition-transform duration-200 ${openIndex === i ? 'rotate-180' : ''}`}
                         fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
@@ -59,7 +59,7 @@ export default function WhyMoistFoundry() {
                     </span>
                   </button>
                   {openIndex === i && (
-                    <p className="pb-5 text-sm text-[#111111]/55 leading-relaxed -mt-1">
+                    <p className="pb-5 text-sm text-[#4a4a4a] leading-relaxed -mt-1">
                       {item.body}
                     </p>
                   )}

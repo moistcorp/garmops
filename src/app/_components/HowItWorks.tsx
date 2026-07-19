@@ -1,7 +1,7 @@
 'use client'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 const STEP_DURATION = 5000
 
@@ -31,7 +31,7 @@ export default function HowItWorks() {
   const [progress, setProgress] = useState(0)
   const [isMobile, setIsMobile] = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const startTimeRef = useRef<number>(Date.now())
+  const startTimeRef = useRef<number>(0)
   const scrollRef = useRef<HTMLDivElement>(null)
   const cardRefs = useRef<(HTMLDivElement | null)[]>([])
   const isUserScrolling = useRef(false)
@@ -43,10 +43,9 @@ export default function HowItWorks() {
     return () => window.removeEventListener('resize', check)
   }, [])
 
-  const startTimer = (index: number) => {
+  const startTimer = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current)
     startTimeRef.current = Date.now()
-    setProgress(0)
 
     intervalRef.current = setInterval(() => {
       const elapsed = Date.now() - startTimeRef.current
@@ -54,19 +53,17 @@ export default function HowItWorks() {
       setProgress(pct)
 
       if (elapsed >= STEP_DURATION) {
-        setActive(prev => {
-          const next = (prev + 1) % steps.length
-          startTimer(next)
-          return next
-        })
+        startTimeRef.current = Date.now()
+        setProgress(0)
+        setActive(prev => (prev + 1) % steps.length)
       }
     }, 16)
-  }
+  }, [])
 
   useEffect(() => {
-    startTimer(0)
+    startTimer()
     return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
-  }, [])
+  }, [startTimer])
 
   useEffect(() => {
     if (!isMobile || isUserScrolling.current) return
@@ -90,7 +87,8 @@ export default function HowItWorks() {
     })
     if (closest !== active) {
       setActive(closest)
-      startTimer(closest)
+      setProgress(0)
+      startTimer()
     }
   }
 
@@ -99,13 +97,13 @@ export default function HowItWorks() {
 
       {/* Header — always inside max-w container */}
       <div className="max-w-7xl mx-auto px-6 mb-10">
-        <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">How it works</p>
+        <p className="text-xs text-[#595959] font-medium mb-4 tracking-widest uppercase">How it works</p>
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <h2 className="text-4xl font-bold text-[#111111] tracking-tight leading-tight">
             Launch your merch<br />project today.
           </h2>
           <Link
-            href="/configure"
+            href="/configurator"
             className="text-sm font-medium text-[#111111] underline underline-offset-4 hover:opacity-50 transition-opacity whitespace-nowrap"
           >
             Start designing →
@@ -150,7 +148,7 @@ export default function HowItWorks() {
               {/* Text */}
               <div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '6px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: 'rgba(17,17,17,0.35)' }}>{step.number}.</span>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#666666' }}>{step.number}.</span>
                   <span style={{ fontSize: '19px', fontWeight: 700, color: '#111111', lineHeight: 1.2 }}>{step.title}</span>
                 </div>
                 <div style={{ height: '1px', background: '#E5E5E5', marginBottom: '10px', overflow: 'hidden' }}>
@@ -158,7 +156,7 @@ export default function HowItWorks() {
                     <div style={{ height: '100%', background: '#111111', width: `${progress}%` }} />
                   )}
                 </div>
-                <p style={{ fontSize: '13px', color: 'rgba(17,17,17,0.55)', lineHeight: 1.6, margin: 0 }}>{step.body}</p>
+                <p style={{ fontSize: '13px', color: '#4a4a4a', lineHeight: 1.6, margin: 0 }}>{step.body}</p>
               </div>
               {/* Image */}
               <div style={{
@@ -197,7 +195,7 @@ export default function HowItWorks() {
                   <button
                     key={i}
                     type="button"
-                    onClick={() => { setActive(i); startTimer(i) }}
+                    onClick={() => { setActive(i); setProgress(0); startTimer() }}
                     style={{
                       width: '100%',
                       textAlign: 'left',
@@ -208,15 +206,15 @@ export default function HowItWorks() {
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '12px', fontWeight: 700, color: isActive ? '#111111' : 'rgba(17,17,17,0.25)' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: isActive ? '#111111' : '#666666' }}>
                         {step.number}.
                       </span>
-                      <span style={{ fontSize: '20px', fontWeight: 700, color: isActive ? '#111111' : 'rgba(17,17,17,0.3)', lineHeight: 1.2 }}>
+                      <span style={{ fontSize: '20px', fontWeight: 700, color: isActive ? '#111111' : '#555555', lineHeight: 1.2 }}>
                         {step.title}
                       </span>
                     </div>
                     <div style={{ overflow: 'hidden', maxHeight: isActive ? '160px' : '0px', opacity: isActive ? 1 : 0, transition: 'max-height 0.3s ease, opacity 0.3s ease' }}>
-                      <p style={{ fontSize: '14px', color: 'rgba(17,17,17,0.55)', lineHeight: 1.6, paddingLeft: '20px', paddingBottom: '16px' }}>
+                      <p style={{ fontSize: '14px', color: '#4a4a4a', lineHeight: 1.6, paddingLeft: '20px', paddingBottom: '16px' }}>
                         {step.body}
                       </p>
                     </div>

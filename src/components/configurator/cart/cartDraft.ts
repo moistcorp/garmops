@@ -1,4 +1,9 @@
-import { getBasePrice, getVolumeDiscountAmount } from "@/lib/configurator/pricing";
+import {
+  EXPRESS_DELIVERY_FEE_PER_UNIT,
+  GST_PERCENT,
+  getBasePrice,
+  getConfiguredUnitPrice,
+} from "@/lib/configurator/pricing";
 import { getProduct } from "@/lib/configurator/products";
 import type { ProductId } from "@/lib/configurator/pricing";
 import type { GarmentColour, Artwork, NeckLabel } from "@/lib/configurator/types/configurator";
@@ -10,6 +15,15 @@ import { SIZES } from "./SizeQuantityGrid";
 const STORAGE_PREFIX = "mf_configurator_cart:";
 
 export const RESERVATION_FEE = 499;
+
+const SIZE_DISTRIBUTION: Record<Size, number> = {
+  XS: 0.1,
+  S: 0.25,
+  M: 0.3,
+  L: 0.2,
+  XL: 0.1,
+  XXL: 0.05,
+};
 
 export const emptyAddress: Address = {
   firstName: "",
@@ -116,7 +130,32 @@ export interface ConfiguredCartItemInput {
   artwork: Artwork;
   neckLabel?: NeckLabel;
   quantity: number;
-  unitPrice: number;
+}
+
+export function splitQuantityAcrossSizes(quantity: number): Record<Size, number> {
+  const safeQuantity = Math.max(1, Math.floor(quantity));
+  const entries = SIZES.map((size) => {
+    const exact = safeQuantity * SIZE_DISTRIBUTION[size];
+    return {
+      size,
+      qty: Math.floor(exact),
+      remainder: exact - Math.floor(exact),
+    };
+  });
+  let allocated = entries.reduce((sum, entry) => sum + entry.qty, 0);
+
+  [...entries]
+    .sort((a, b) => b.remainder - a.remainder)
+    .forEach((entry) => {
+      if (allocated >= safeQuantity) return;
+      entry.qty += 1;
+      allocated += 1;
+    });
+
+  return entries.reduce(
+    (acc, entry) => ({ ...acc, [entry.size]: entry.qty }),
+    {} as Record<Size, number>
+  );
 }
 
 export function upsertConfiguredCartItem(
@@ -124,9 +163,12 @@ export function upsertConfiguredCartItem(
   input: ConfiguredCartItemInput
 ): void {
   const draft = readDraft(cartId);
-  const sizeQuantities = SIZES.reduce(
-    (acc, size) => ({ ...acc, [size]: size === "M" ? input.quantity : 0 }),
-    {} as Record<Size, number>
+  const sizeQuantities = splitQuantityAcrossSizes(input.quantity);
+  const unitPrice = getConfiguredUnitPrice(
+    input.productId,
+    input.colour,
+    input.artwork,
+    input.neckLabel
   );
 
   const configuredItem: CartItem = {
@@ -138,7 +180,7 @@ export function upsertConfiguredCartItem(
     artwork: input.artwork,
     neckLabel: input.neckLabel,
     sizeQuantities,
-    unitPrice: input.unitPrice,
+    unitPrice,
     artworkFees: [],
     applicationFees: [],
   };
@@ -153,36 +195,33 @@ export function totalUnits(sizeQuantities: Record<Size, number>): number {
   return SIZES.reduce((sum, size) => sum + (sizeQuantities[size] || 0), 0);
 }
 
-function linesTotal(lines: CartItem["artworkFees"]): number {
-  return lines.reduce((sum, line) => sum + line.unitPrice * line.count, 0);
-}
-
 export function itemSubtotal(item: CartItem): number {
-  return (
-    totalUnits(item.sizeQuantities) * item.unitPrice +
-    linesTotal(item.artworkFees) +
-    linesTotal(item.applicationFees)
-  );
+  return totalUnits(item.sizeQuantities) * item.unitPrice;
 }
 
-export function calculateTotals(items: CartItem[]) {
+export function calculateTotals(
+  items: CartItem[],
+  deliveryType?: CartDraft["deliveryType"]
+) {
   const garmentSubtotal = items.reduce(
     (sum, item) => sum + totalUnits(item.sizeQuantities) * item.unitPrice,
     0
   );
-  const developmentTotal = items.reduce(
-    (sum, item) => sum + linesTotal(item.artworkFees) + linesTotal(item.applicationFees),
-    0
-  );
   const totalQuantity = items.reduce((sum, item) => sum + totalUnits(item.sizeQuantities), 0);
-  const averageUnitPrice = totalQuantity > 0 ? garmentSubtotal / totalQuantity : 0;
-  const volumeDiscount = getVolumeDiscountAmount(averageUnitPrice, totalQuantity) * totalQuantity;
-  const subtotal = garmentSubtotal + developmentTotal;
-  const total = subtotal - volumeDiscount;
+  const volumeDiscount = 0;
+  const shippingFee =
+    deliveryType === "rush" ? totalQuantity * EXPRESS_DELIVERY_FEE_PER_UNIT : 0;
+  const subtotal = garmentSubtotal;
+  const taxableSubtotal = subtotal - volumeDiscount + shippingFee;
+  const gst = (taxableSubtotal * GST_PERCENT) / 100;
+  const total = taxableSubtotal + gst;
 
   return {
     subtotal,
     volumeDiscount,
+    shippingFee,
+    gst,
+    taxableSubtotal,
     total,
     balanceDue: Math.max(0, total - RESERVATION_FEE),
   };

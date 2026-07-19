@@ -99,6 +99,22 @@ export const products: Product[] = [
   },
   {
     id: 6,
+    slug: 'polo-280gsm',
+    name: 'Polo',
+    pricingKey: 'Polo (280 GSM)',
+    icon: '/icons/tee.png',
+    category: 'Polos',
+    description: '280 GSM polo with a structured collar and clean regular fit.',
+    gsm: 280,
+    fits: ['Regular'],
+    details: ['280 GSM cotton pique', 'Regular fit', 'Ribbed polo collar', 'Button placket', 'Preshrunk fabric'],
+    careInstructions: ['Machine Wash', 'Tumble Dry', 'Do not bleach', 'Iron on low heat'],
+    sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+    price: PRODUCT_PRICES['Polo (280 GSM)'],
+    image: '/flatlays/polo.webp',
+  },
+  {
+    id: 7,
     slug: 'canvas-tote-bag',
     name: 'Canvas Tote Bag',
     pricingKey: 'Canvas Tote Bag',
@@ -113,7 +129,7 @@ export const products: Product[] = [
     image: '/products/canvas-tote-bag.jpg',
   },
   {
-    id: 7,
+    id: 8,
     slug: 'regular-fit-sweatshirt-320gsm',
     name: 'Regular Fit Sweatshirt',
     pricingKey: 'Regular Fit Sweatshirt (320 GSM)',
@@ -162,4 +178,4 @@ export const products: Product[] = [
   },
 ]
 
-export const categories = ['T-Shirts', 'Longsleeve', 'Sweatshirts', 'Hoodies', 'Accessories']
+export const categories = ['T-Shirts', 'Longsleeve', 'Polos', 'Sweatshirts', 'Hoodies', 'Accessories']

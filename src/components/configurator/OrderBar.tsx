@@ -3,14 +3,10 @@
 import type { ProductId } from "@/lib/configurator/pricing";
 import {
   formatInr,
-  getBasePrice,
-  getVolumeDiscountAmount,
-  getArtworkPrepFee,
-  getArtworkApplicationFee,
-  getNeckLabelFee,
+  getConfiguredUnitPrice,
 } from "@/lib/configurator/pricing";
 import { getDeliveryOptions } from "@/lib/configurator/delivery";
-import type { Artwork, NeckLabel } from "@/lib/configurator/types/configurator";
+import type { Artwork, GarmentColour, NeckLabel } from "@/lib/configurator/types/configurator";
 import type { AccordionStepState } from "@/components/configurator/ConfiguratorSidebar/ConfiguratorSidebar";
 
 export interface OrderBarProps {
@@ -27,10 +23,8 @@ export interface OrderBarProps {
 
   // NEW — live pricing/delivery inputs
   productId?: ProductId;
-  // Accepted for interface parity per phase spec; not read internally this
-  // phase (garment-colour is implicitly always confirmed by the time OrderBar
-  // renders, per clarification #4, so base price never needs gating on it).
   steps?: AccordionStepState[];
+  colour?: GarmentColour;
   artwork?: Artwork;
   neckLabel?: NeckLabel;
 }
@@ -41,31 +35,11 @@ function formatDate(date: Date): string {
 
 export function computeConfiguredUnitCost(
   productId: ProductId,
-  quantity: number,
+  colour: GarmentColour | undefined,
   artwork: Artwork,
   neckLabel: NeckLabel | undefined
 ): number {
-  const basePrice = getBasePrice(productId);
-  const volumeDiscountAmount = getVolumeDiscountAmount(basePrice, quantity);
-  const perUnitPrice = basePrice - volumeDiscountAmount;
-
-  const confirmedSides = [artwork.front, artwork.back].filter(
-    (side) => side?.confirmed
-  ).length;
-  const prepFee = getArtworkPrepFee(confirmedSides);
-  const applicationFee = getArtworkApplicationFee(confirmedSides);
-  const neckLabelFee = getNeckLabelFee(neckLabel?.confirmed ? 1 : 0);
-
-  // Prep/application/neck-label fees are flat, one-time order-level charges
-  // (Appendix §8), not per-unit. UNCONFIRMED: there's no line-item breakdown
-  // slot in OrderBar's UI — only a single "Unit Cost" string. Assumption for
-  // this phase: spread the one-time total across quantity so Unit Cost
-  // reflects true per-garment cost. Flag if these should instead render as
-  // separate line items (would need an OrderBar layout change, out of scope
-  // here since only computation was requested).
-  const oneTimeFees = prepFee + applicationFee + neckLabelFee;
-  const totalCost = perUnitPrice * quantity + oneTimeFees;
-  return totalCost / quantity;
+  return getConfiguredUnitPrice(productId, colour, artwork, neckLabel);
 }
 
 function computeDeliveryDate(): string {
@@ -82,11 +56,12 @@ export function OrderBar({
   ctaLabel,
   onCtaClick,
   productId = "tshirt-classic",
+  colour,
   artwork = {},
   neckLabel,
 }: OrderBarProps) {
   const displayUnitCost =
-    unitCost ?? formatInr(computeConfiguredUnitCost(productId, quantity, artwork, neckLabel));
+    unitCost ?? formatInr(computeConfiguredUnitCost(productId, colour, artwork, neckLabel));
   const displayDeliveryDate = deliveryDate ?? computeDeliveryDate();
 
   return (

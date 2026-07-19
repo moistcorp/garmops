@@ -6,10 +6,9 @@ import type { ProductId } from '@/lib/configurator/pricing';
 import type { GarmentColour, Artwork, NeckLabel } from '@/lib/configurator/types/configurator';
 import type { GarmentView } from '@/lib/configurator/types/garment';
 import { SizeQuantityGrid, type Size } from './SizeQuantityGrid';
-import { DevelopmentCostsTable } from './DevelopmentCostsTable';
 import { CartSummarySidebar } from './CartSummarySidebar';
 import { calculateTotals, itemSubtotal, readDraft, totalUnits, writeDraft } from './cartDraft';
-import { formatInr } from '@/lib/configurator/pricing';
+import { formatInr, getUnitPriceAdjustments } from '@/lib/configurator/pricing';
 
 export interface DevelopmentCostLine {
   label: string;
@@ -126,6 +125,11 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
           const selectedView = activeView[item.id] ?? 'front';
           const itemUnits = totalUnits(item.sizeQuantities);
           const garmentTotal = item.unitPrice * itemUnits;
+          const priceAdjustments = getUnitPriceAdjustments(
+            item.colour,
+            item.artwork,
+            item.neckLabel
+          );
 
           return (
             <section key={item.id} className="rounded-lg border border-[#E5E5E5] bg-white p-5">
@@ -192,19 +196,26 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                     unitPrice={item.unitPrice}
                   />
 
-                  <div className="rounded-md bg-[#F7F7F7] px-4 py-3 text-sm text-[#111111]">
+                  <div className="rounded-md border border-[#E5E5E5] bg-[#F7F7F7] px-4 py-3 text-sm text-[#111111]">
                     <div className="flex items-center justify-between gap-4">
-                      <span className="font-medium">Garment total</span>
+                      <span className="font-medium">Item total</span>
                       <span className="font-semibold">
                         {formatInr(item.unitPrice)} x {itemUnits} = {formatInr(garmentTotal)}
                       </span>
                     </div>
+                    {priceAdjustments.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {priceAdjustments.map((adjustment) => (
+                          <span
+                            key={adjustment.label}
+                            className="rounded-full border border-[#D8D8D8] bg-white px-2.5 py-1 text-xs text-[#111111]/70"
+                          >
+                            {adjustment.label} +{adjustment.percent}%
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
-
-                  <DevelopmentCostsTable
-                    artworkFees={item.artworkFees}
-                    applicationFees={item.applicationFees}
-                  />
 
                   <div className="flex justify-between border-t border-[#E5E5E5] pt-3 text-sm font-medium text-[#111111]">
                     <span>Item subtotal</span>
@@ -220,6 +231,8 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
       <CartSummarySidebar
         subtotal={totals.subtotal}
         volumeDiscount={totals.volumeDiscount}
+        shippingFee={totals.shippingFee}
+        gst={totals.gst}
         delivery="Calculated at shipping"
         total={totals.total}
         onNext={handleNext}
