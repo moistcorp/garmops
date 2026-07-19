@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DeliveryDatePicker } from "@/components/configurator/cart/DeliveryDatePicker";
 import { AddressForm, isAddressValid } from "@/components/configurator/cart/AddressForm";
 import { CartSummarySidebar } from "@/components/configurator/cart/CartSummarySidebar";
-import { calculateTotals, readDraft, type CartDraft, writeDraft } from "./cartDraft";
+import { calculateTotals, createDraft, readDraft, type CartDraft, writeDraft } from "./cartDraft";
 
 export interface BillingShippingStepProps {
   cartId: string;
@@ -21,7 +21,17 @@ function formatDate(d: Date): string {
 
 export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
   const router = useRouter();
-  const [draft, setDraft] = useState(() => readDraft(cartId));
+  // Deterministic empty draft on the first render (server AND client) so
+  // hydration matches; the real draft (read from localStorage) is loaded
+  // right after mount. Reading localStorage directly in the useState
+  // initializer was the cause of the "Hydration failed" error — on the
+  // client, `window` already exists on that very first render, so it
+  // returned the saved delivery date/type immediately while the server
+  // markup was rendered with none, and the two didn't match.
+  const [draft, setDraft] = useState<CartDraft>(() => createDraft(cartId));
+  useEffect(() => {
+    setDraft(readDraft(cartId));
+  }, [cartId]);
   const [promoApplied, setPromoApplied] = useState(false);
   const selectedDeliveryDate = useMemo(
     () =>
@@ -44,7 +54,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
     if (!selectedDeliveryDate) return "Select a delivery date";
     const tag =
       draft.deliveryType === "rush"
-        ? "Express"
+        ? "Rush"
         : draft.deliveryType === "standard"
         ? "Standard"
         : "Flexible";

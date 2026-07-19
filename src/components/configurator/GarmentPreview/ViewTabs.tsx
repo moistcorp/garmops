@@ -22,7 +22,7 @@ export default function ViewTabs({ activeView, onChange, productId }: ViewTabsPr
   );
 
   return (
-    <div className="inline-flex shrink-0 items-center rounded-lg border border-[#D8D2C6] bg-white/85 p-1 shadow-sm">
+    <div className="inline-flex shrink-0 items-center rounded-lg border border-[#E5E5E5] bg-white/85 p-1 shadow-sm">
       {viewOptions.map((opt) => {
         const isActive = opt.id === activeView;
         return (

@@ -53,11 +53,11 @@ export function ConfiguratorHeader({
         <Link
           href="/configurator"
           aria-label="Back to grid"
-          className="flex h-9 w-9 items-center justify-center rounded-md border border-[#E1DED6] bg-white transition-colors hover:bg-[#F1EFE8]"
+          className="flex h-9 w-9 items-center justify-center rounded-md border border-[#E5E5E5] bg-white transition-colors hover:bg-[#F7F7F7]"
         >
           <ArrowLeft size={17} strokeWidth={2} />
         </Link>
-        <span className="hidden rounded-md border border-[#E1DED6] bg-white px-3 py-1.5 text-sm font-semibold text-[#111111]/70 sm:inline">
+        <span className="hidden rounded-md border border-[#E5E5E5] bg-white px-3 py-1.5 text-sm font-semibold text-[#111111]/70 sm:inline">
           {productName}
         </span>
       </div>
@@ -67,7 +67,7 @@ export function ConfiguratorHeader({
           type="button"
           onClick={handleShareClick}
           aria-label="Copy shareable link"
-          className="relative flex items-center gap-2 rounded-md border border-transparent px-2.5 py-1.5 text-sm font-semibold transition-colors hover:border-[#E1DED6] hover:bg-white"
+          className="relative flex items-center gap-2 rounded-md border border-transparent px-2.5 py-1.5 text-sm font-semibold transition-colors hover:border-[#E5E5E5] hover:bg-white"
         >
           <Link2 size={16} strokeWidth={2.4} />
           {justCopied ? "Copied!" : "Share"}

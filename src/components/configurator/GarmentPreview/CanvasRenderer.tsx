@@ -163,7 +163,7 @@ export default function CanvasRenderer({
   };
 
   return (
-    <div className="relative aspect-square h-[min(64dvh,650px)] max-h-[650px] max-w-full overflow-hidden rounded-lg bg-[#E9E5DC]">
+    <div className="relative aspect-square h-[min(64dvh,650px)] max-h-[650px] max-w-full overflow-hidden rounded-lg bg-[#F7F7F7]">
       <div className="absolute inset-[5%]">
         <div
           className="absolute inset-0"

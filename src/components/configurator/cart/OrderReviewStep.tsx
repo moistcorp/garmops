@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ProductId } from '@/lib/configurator/pricing';
 import type { GarmentColour, Artwork, NeckLabel } from '@/lib/configurator/types/configurator';
 import type { GarmentView } from '@/lib/configurator/types/garment';
 import { SizeQuantityGrid, type Size } from './SizeQuantityGrid';
 import { CartSummarySidebar } from './CartSummarySidebar';
-import { calculateTotals, itemSubtotal, readDraft, totalUnits, writeDraft } from './cartDraft';
+import { calculateTotals, createDraft, itemSubtotal, readDraft, totalUnits, writeDraft } from './cartDraft';
 import { formatInr, getUnitPriceAdjustments } from '@/lib/configurator/pricing';
 
 export interface DevelopmentCostLine {
@@ -39,11 +39,20 @@ const GARMENT_VIEWS: GarmentView[] = ['front', 'neck', 'back'];
 
 export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
   const router = useRouter();
-  const [draft, setDraft] = useState(() => readDraft(cartId));
+  // Deterministic empty draft for the first render (server AND client) —
+  // reading localStorage inside the useState initializer returned the real,
+  // already-saved items on the client's first render but not on the
+  // server's, so the two renders didn't match and React threw a hydration
+  // error. The real draft is loaded right after mount instead.
+  const [draft, setDraft] = useState(() => createDraft(cartId));
   const items = draft.items;
-  const [activeView, setActiveView] = useState<Record<string, GarmentView>>(
-    () => Object.fromEntries(readDraft(cartId).items.map((item) => [item.id, 'front']))
-  );
+  const [activeView, setActiveView] = useState<Record<string, GarmentView>>({});
+
+  useEffect(() => {
+    const realDraft = readDraft(cartId);
+    setDraft(realDraft);
+    setActiveView(Object.fromEntries(realDraft.items.map((item) => [item.id, 'front'])));
+  }, [cartId]);
 
   function handleQtyChange(itemId: string, size: Size, qty: number) {
     setDraft((prev) => {

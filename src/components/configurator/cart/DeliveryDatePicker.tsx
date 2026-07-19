@@ -69,7 +69,7 @@ export function DeliveryDatePicker({
             onDateSelect(options.rush, "rush");
           }}
         >
-          <span className="block text-sm font-medium">Express</span>
+          <span className="block text-sm font-medium">Rush</span>
           <span className="block text-xs opacity-70">
             {formatDate(options.rush)} · +₹75/unit
           </span>
@@ -114,7 +114,7 @@ export function DeliveryDatePicker({
       )}
 
       <div className="text-xs text-[#111111]/60 space-y-1 pt-1">
-        <p>Express adds ₹75 per unit to the invoice.</p>
+        <p>Rush adds ₹75 per unit to the invoice.</p>
         <p>Standard follows the regular production and shipping timeline.</p>
         <p>Flexible dates are available on or after the standard date.</p>
       </div>

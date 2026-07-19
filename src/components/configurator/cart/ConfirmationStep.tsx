@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Address } from "./AddressForm";
 import { CartSummarySidebar } from "./CartSummarySidebar";
@@ -8,7 +8,7 @@ import { PaymentMethodSelect } from "./PaymentMethodSelect";
 import { SIZES } from "./SizeQuantityGrid";
 import type { CartItem } from "./OrderReviewStep";
 import type { Order, PaymentStatus } from "@/lib/configurator/types/cart";
-import { calculateTotals, readDraft, RESERVATION_FEE, totalUnits } from "./cartDraft";
+import { calculateTotals, createDraft, readDraft, RESERVATION_FEE, totalUnits } from "./cartDraft";
 import { formatInr, getUnitPriceAdjustments } from "@/lib/configurator/pricing";
 
 export interface ConfirmationStepProps {
@@ -17,7 +17,16 @@ export interface ConfirmationStepProps {
 
 export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
   const router = useRouter();
-  const [draft] = useState(() => readDraft(cartId));
+  // Start from a deterministic empty draft so the server-rendered markup and
+  // the client's first render match exactly, then load the real
+  // localStorage-backed draft once mounted (see BillingShippingStep for the
+  // same pattern — reading localStorage inside the useState initializer runs
+  // on the client's first render too, which doesn't match what the server
+  // sent and trips a hydration error).
+  const [draft, setDraft] = useState(() => createDraft(cartId));
+  useEffect(() => {
+    setDraft(readDraft(cartId));
+  }, [cartId]);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("payu");
 

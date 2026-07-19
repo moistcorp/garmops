@@ -90,7 +90,7 @@ export default function NeckLabelPanel({ value, onChange }: NeckLabelPanelProps)
   return (
     <div className="flex flex-col gap-5">
       {alreadyConfigured && (
-        <p className="rounded-lg bg-[#F3F3F2] px-3 py-2 text-xs font-medium text-[#111111]/60">
+        <p className="rounded-lg bg-[#F7F7F7] px-3 py-2 text-xs font-medium text-[#111111]/60">
           Neck label configured. Edit any option below to update.
         </p>
       )}
@@ -109,7 +109,7 @@ export default function NeckLabelPanel({ value, onChange }: NeckLabelPanelProps)
                 className={`flex min-h-[78px] flex-col items-center justify-center gap-2 rounded-md text-xs font-semibold transition-colors ${
                   selected
                     ? 'bg-white shadow-[inset_0_0_0_1.5px_#111111]'
-                    : 'bg-[#F3F3F2] text-[#111111]/55 hover:text-[#111111]'
+                    : 'bg-[#F7F7F7] text-[#111111]/55 hover:text-[#111111]'
                 }`}
               >
                 <DimensionPreview option={option} />
@@ -159,7 +159,7 @@ export default function NeckLabelPanel({ value, onChange }: NeckLabelPanelProps)
           htmlFor={uploadInputId}
           className="flex min-h-[112px] cursor-pointer flex-col items-center justify-center gap-2 border border-dashed border-[#111111]/20 bg-white px-4 py-5 text-center hover:border-[#111111]/40"
         >
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F3F3F2]">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F7F7]">
             <Upload size={17} strokeWidth={2.1} />
           </span>
           <span className="text-xs font-bold text-[#111111]">

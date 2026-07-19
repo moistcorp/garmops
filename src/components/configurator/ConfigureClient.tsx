@@ -60,7 +60,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   const [activeView, setActiveView] = useState<GarmentView>("front");
   const [expandedStepId, setExpandedStepId] = useState<AccordionStepId | null>(null);
   const [quantity, setQuantity] = useState<number>(50);
-  const [rushDelivery, setRushDelivery] = useState(false);
 
   // Lifted so the live preview (below) and the sidebar's Garment Colour step
   // read/write the same colour — was a disconnected placeholder pre-5B.
@@ -165,19 +164,19 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       artwork,
       neckLabel: neckLabel?.fileUrl ? neckLabel : undefined,
       quantity,
-      rushDelivery,
+      rushDelivery: false,
     });
     router.push(`/configurator/cart/${encodeURIComponent(configId)}/review`);
   }
 
   return (
     <ArtworkPositionProvider activeView={activeView}>
-      <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-[#F6F5F1] text-[#111111]">
+      <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-white text-[#111111]">
         <ConfiguratorHeader configId={configId} productName={productName} />
 
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 px-4 pb-4 lg:grid-cols-[360px_minmax(0,1fr)_310px] lg:px-5">
-          <aside className="order-2 flex min-h-0 min-w-0 flex-col overflow-hidden rounded-lg border border-[#E1DED6] bg-white/85 lg:order-1">
-            <div className="border-b border-[#E1DED6] px-4 py-3">
+          <aside className="order-2 flex min-h-0 min-w-0 flex-col overflow-hidden rounded-lg border border-[#E5E5E5] bg-white lg:order-1">
+            <div className="border-b border-[#E5E5E5] px-4 py-3">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-[#111111]/45">
                 Build Steps
               </p>
@@ -199,7 +198,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
             </div>
           </aside>
 
-          <main className="order-1 relative flex min-h-0 min-w-0 flex-col items-center justify-center overflow-hidden rounded-lg border border-[#E1DED6] bg-[#EDEAE3] lg:order-2">
+          <main className="order-1 relative flex min-h-0 min-w-0 flex-col items-center justify-center overflow-hidden rounded-lg border border-[#E5E5E5] bg-[#F7F7F7] lg:order-2">
             <GarmentPreview
               activeView={activeView}
               onViewChange={setActiveView}
@@ -214,7 +213,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
           </main>
 
           <aside className="order-3 flex min-h-0 min-w-0 flex-col justify-between gap-3 overflow-hidden">
-            <div className="rounded-lg border border-[#E1DED6] bg-white/85 p-4">
+            <div className="rounded-lg border border-[#E5E5E5] bg-white p-4">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-[#111111]/45">
                 Studio Summary
               </p>
@@ -237,10 +236,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                     {neckLabel?.confirmed ? "Added" : "Not added"}
                   </span>
                 </div>
-                <div className="flex justify-between gap-4">
-                  <span className="text-[#111111]/55">Rush</span>
-                  <span className="text-right font-medium">{rushDelivery ? "On" : "Off"}</span>
-                </div>
               </div>
             </div>
 
@@ -248,8 +243,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
               <OrderBar
                 quantity={quantity}
                 onQuantityChange={setQuantity}
-                rushDelivery={rushDelivery}
-                onRushDeliveryChange={setRushDelivery}
                 ctaLabel={getCtaLabel(expandedStepId)}
                 onCtaClick={handleCtaClick}
                 productId={productId}

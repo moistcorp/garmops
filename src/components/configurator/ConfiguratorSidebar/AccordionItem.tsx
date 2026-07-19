@@ -32,7 +32,7 @@ export function AccordionItem({
   const status = getStatus(summary, confirmed);
 
   return (
-    <div className="overflow-hidden rounded-lg border border-[#E5E1D8] bg-[#FCFBF8]">
+    <div className="overflow-hidden rounded-lg border border-[#E5E5E5] bg-white">
       <button
         type="button"
         onClick={onToggle}
@@ -48,12 +48,12 @@ export function AccordionItem({
 
         <span className="flex items-center gap-1.5">
           {status === "empty" && (
-            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-[#F0EEE8]">
+            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-[#E5E5E5]">
               <Plus size={17} strokeWidth={2.2} />
             </span>
           )}
           {status === "editable" && (
-            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-[#F0EEE8]">
+            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-[#E5E5E5]">
               <Edit2 size={16} strokeWidth={2.2} />
             </span>
           )}
@@ -62,7 +62,7 @@ export function AccordionItem({
               <span className="flex h-8 w-8 items-center justify-center rounded-md bg-[#EAF5EA] text-[#2E7D32]">
                 <Check size={17} strokeWidth={2.4} />
               </span>
-              <span className="flex h-8 w-8 items-center justify-center rounded-md bg-[#F0EEE8]">
+              <span className="flex h-8 w-8 items-center justify-center rounded-md bg-[#E5E5E5]">
                 <Edit2 size={16} strokeWidth={2.2} />
               </span>
               <span
@@ -79,7 +79,7 @@ export function AccordionItem({
                   }
                 }}
                 aria-label={`Remove ${title} selection`}
-                className="flex h-8 w-8 items-center justify-center rounded-md bg-[#F0EEE8] text-[#C62828]"
+                className="flex h-8 w-8 items-center justify-center rounded-md bg-[#E5E5E5] text-[#C62828]"
               >
                 <Trash2 size={16} strokeWidth={2.2} />
               </span>
@@ -88,7 +88,7 @@ export function AccordionItem({
         </span>
       </button>
 
-      {expanded && <div className="border-t border-[#E5E1D8] bg-white px-4 py-4">{children}</div>}
+      {expanded && <div className="border-t border-[#E5E5E5] bg-white px-4 py-4">{children}</div>}
     </div>
   );
 }

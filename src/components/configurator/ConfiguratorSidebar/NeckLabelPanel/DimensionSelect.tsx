@@ -35,7 +35,7 @@ export default function DimensionSelect({ value, onChange }: DimensionSelectProp
             className={`flex min-h-[72px] items-center justify-center rounded-md px-2 text-xs font-bold transition-colors ${
               isSelected
                 ? "bg-white shadow-[inset_0_0_0_1.5px_#111111] text-[#111111]"
-                : "bg-[#F3F3F2] text-[#111111]/55 hover:text-[#111111]"
+                : "bg-[#F7F7F7] text-[#111111]/55 hover:text-[#111111]"
             }`}
           >
             {preset.label}

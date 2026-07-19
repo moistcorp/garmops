@@ -15,8 +15,6 @@ export interface OrderBarProps {
 
   quantity: number;
   onQuantityChange: (quantity: number) => void;
-  rushDelivery: boolean;
-  onRushDeliveryChange: (rushDelivery: boolean) => void;
   ctaLabel: string;
   onCtaClick?: () => void;
 
@@ -53,8 +51,6 @@ export function OrderBar({
   deliveryDate,
   quantity,
   onQuantityChange,
-  rushDelivery,
-  onRushDeliveryChange,
   ctaLabel,
   onCtaClick,
   productId = "tshirt-classic",
@@ -64,7 +60,7 @@ export function OrderBar({
 }: OrderBarProps) {
   const displayUnitCost =
     unitCost ??
-    formatInr(computeConfiguredUnitCost(productId, colour, artwork, neckLabel, rushDelivery));
+    formatInr(computeConfiguredUnitCost(productId, colour, artwork, neckLabel));
   const displayDeliveryDate = deliveryDate ?? computeDeliveryDate();
 
   return (
@@ -84,7 +80,7 @@ export function OrderBar({
         <label htmlFor="configurator-quantity" className="whitespace-nowrap text-xs font-semibold text-[#111111]">
           Quantity
         </label>
-        <div className="flex h-10 min-w-0 items-center justify-between rounded-md bg-[#F3F3F2] px-3">
+        <div className="flex h-10 min-w-0 items-center justify-between rounded-md bg-[#F7F7F7] px-3">
           <input
             id="configurator-quantity"
             type="number"
@@ -119,29 +115,6 @@ export function OrderBar({
         </button>
       </div>
 
-      <label className="flex min-h-11 cursor-pointer items-center justify-between gap-4 rounded-md bg-[#F7F7F7] px-3 text-sm text-[#111111]">
-        <span>
-          <span className="block font-semibold">Rush Delivery</span>
-          <span className="block text-xs text-[#111111]/55">Adds ₹75 per piece</span>
-        </span>
-        <span
-          className={`relative h-6 w-11 rounded-full transition-colors ${
-            rushDelivery ? "bg-[#111111]" : "bg-[#D8D8D8]"
-          }`}
-        >
-          <input
-            type="checkbox"
-            checked={rushDelivery}
-            onChange={(e) => onRushDeliveryChange(e.target.checked)}
-            className="sr-only"
-          />
-          <span
-            className={`absolute top-1 h-4 w-4 rounded-full bg-white transition-transform ${
-              rushDelivery ? "translate-x-6" : "translate-x-1"
-            }`}
-          />
-        </span>
-      </label>
     </div>
   );
 }
