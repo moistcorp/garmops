@@ -10,6 +10,7 @@ import type {
   Artwork,
   NeckLabel,
 } from "@/lib/configurator/types/configurator";
+import type { GarmentView } from "@/lib/configurator/types/garment";
 
 export type AccordionStepId = "garment-colour" | "artwork" | "neck-label";
 
@@ -41,6 +42,12 @@ export interface ConfiguratorSidebarProps {
   neckLabel?: NeckLabel;
   /** Fires with the new NeckLabel once a file and dimension preset are both present. */
   onNeckLabelChange?: (neckLabel: NeckLabel) => void;
+  /** Which garment view the live canvas is currently showing. Threaded down to the
+   *  Artwork step so its per-side position controls can switch the canvas to the
+   *  matching side before editing it. */
+  activeView?: GarmentView;
+  /** Fires when the Artwork step wants the canvas to switch to a different side. */
+  onViewChange?: (view: GarmentView) => void;
 }
 
 export const INITIAL_STEPS: AccordionStepState[] = [
@@ -67,6 +74,8 @@ export function ConfiguratorSidebar({
   onArtworkChange,
   neckLabel: controlledNeckLabel,
   onNeckLabelChange,
+  activeView,
+  onViewChange,
 }: ConfiguratorSidebarProps = {}) {
   // Uncontrolled fallback for steps — mirrors the expandedStepId/selectedColour
   // pattern so this component still renders standalone (Phase 4 shell testing)
@@ -178,7 +187,12 @@ export function ConfiguratorSidebar({
           {step.id === "garment-colour" ? (
             <GarmentColourPanel value={colour} onChange={handleColourChange} />
           ) : step.id === "artwork" ? (
-            <ArtworkPanel value={artwork} onChange={handleArtworkChange} />
+            <ArtworkPanel
+              value={artwork}
+              onChange={handleArtworkChange}
+              activeView={activeView}
+              onViewChange={onViewChange}
+            />
           ) : step.id === "neck-label" ? (
             <NeckLabelPanel value={neckLabel} onChange={handleNeckLabelChange} />
           ) : (

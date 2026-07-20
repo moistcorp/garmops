@@ -15,6 +15,15 @@ import {
   resizeWithAspect,
   clampDim,
 } from "@/lib/configurator/ArtworkPositionContext";
+import { PRINT_AREA_SIZE_CHART } from "@/lib/configurator/sizecharts";
+import { LEFT_CHEST_DIMENSIONS } from "@/components/configurator/ConfiguratorSidebar/ArtworkPanel/GuidelinesToggles";
+
+// Matches the small top margin PositionControls/the box default use as the
+// garment's overall printable boundary — the guideline overlays anchor here
+// rather than to the user's current (adjustable) artwork box position, since
+// they represent a fixed manufacturing limit, not the artwork placement.
+const GUIDELINE_TOP_MARGIN_CM = 3;
+const LEFT_CHEST_FROM_CENTER_CM = 9;
 
 interface CanvasRendererProps {
   view: GarmentView;
@@ -115,6 +124,25 @@ export default function CanvasRenderer({
   const boxHeightPx = boxState.heightCm * PX_PER_CM_Y;
   const boxLeftPx = CANVAS_SIZE.width / 2 + boxState.fromCenterCm * PX_PER_CM_X - boxWidthPx / 2;
   const boxTopPx = boxState.fromNeckCm * PX_PER_CM_Y;
+
+  // Print guideline overlays (maximum printable area / left-chest reference),
+  // anchored to the garment's fixed boundaries rather than the user's
+  // adjustable artwork box — see GUIDELINE_TOP_MARGIN_CM note above.
+  const printAreaDims = activeArtwork
+    ? PRINT_AREA_SIZE_CHART[activeArtwork.printArea]
+    : undefined;
+  const showMaxArea = showBox && !!activeArtwork?.guidelines.maximumArea && !!printAreaDims;
+  const showLeftChest = showBox && !!activeArtwork?.guidelines.leftChest;
+
+  const maxAreaWidthPx = printAreaDims ? printAreaDims.width * PX_PER_CM_X : 0;
+  const maxAreaHeightPx = printAreaDims ? printAreaDims.height * PX_PER_CM_Y : 0;
+  const maxAreaLeftPx = CANVAS_SIZE.width / 2 - maxAreaWidthPx / 2;
+  const maxAreaTopPx = GUIDELINE_TOP_MARGIN_CM * PX_PER_CM_Y;
+
+  const chestWidthPx = LEFT_CHEST_DIMENSIONS.width * PX_PER_CM_X;
+  const chestHeightPx = LEFT_CHEST_DIMENSIONS.height * PX_PER_CM_Y;
+  const chestLeftPx = CANVAS_SIZE.width / 2 + LEFT_CHEST_FROM_CENTER_CM * PX_PER_CM_X - chestWidthPx / 2;
+  const chestTopPx = GUIDELINE_TOP_MARGIN_CM * PX_PER_CM_Y;
 
   const handlePointerMove = (e: PointerEvent) => {
     const origin = dragOrigin.current;
@@ -217,6 +245,34 @@ export default function CanvasRenderer({
         <div className="absolute left-1/2 top-[20%] z-10 h-[9%] w-[24%] -translate-x-1/2">
           <NeckLabelPreview neckLabel={neckLabel} />
         </div>
+      )}
+
+      {showMaxArea && (
+        <div
+          role="presentation"
+          aria-label="Maximum print area guideline"
+          className="pointer-events-none absolute z-[15] border-2 border-dashed border-blue-500/70"
+          style={{
+            left: `${(maxAreaLeftPx / CANVAS_SIZE.width) * 100}%`,
+            top: `${(maxAreaTopPx / CANVAS_SIZE.height) * 100}%`,
+            width: `${(maxAreaWidthPx / CANVAS_SIZE.width) * 100}%`,
+            height: `${(maxAreaHeightPx / CANVAS_SIZE.height) * 100}%`,
+          }}
+        />
+      )}
+
+      {showLeftChest && (
+        <div
+          role="presentation"
+          aria-label="Left chest print guideline"
+          className="pointer-events-none absolute z-[15] border-2 border-dashed border-amber-500/80"
+          style={{
+            left: `${(chestLeftPx / CANVAS_SIZE.width) * 100}%`,
+            top: `${(chestTopPx / CANVAS_SIZE.height) * 100}%`,
+            width: `${(chestWidthPx / CANVAS_SIZE.width) * 100}%`,
+            height: `${(chestHeightPx / CANVAS_SIZE.height) * 100}%`,
+          }}
+        />
       )}
 
       {showBox && (
