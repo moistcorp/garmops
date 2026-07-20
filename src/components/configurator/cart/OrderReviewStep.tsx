@@ -6,8 +6,9 @@ import { ArrowLeft, Plus } from 'lucide-react';
 import type { ProductId } from '@/lib/configurator/pricing';
 import type { GarmentColour, Artwork, NeckLabel } from '@/lib/configurator/types/configurator';
 import type { GarmentView } from '@/lib/configurator/types/garment';
-import { SizeQuantityGrid, type Size } from './SizeQuantityGrid';
+import { SizeQuantityGrid, SIZES, type Size } from './SizeQuantityGrid';
 import { CartSummarySidebar } from './CartSummarySidebar';
+import { CheckoutSteps } from './CheckoutSteps';
 import { calculateTotals, createDraft, itemSubtotal, readDraft, totalUnits, writeDraft } from './cartDraft';
 import { formatInr } from '@/lib/configurator/pricing';
 import CanvasRenderer from '../GarmentPreview/CanvasRenderer';
@@ -50,25 +51,39 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
   const [draft, setDraft] = useState(() => createDraft(cartId));
   const items = draft.items;
   const [activeView, setActiveView] = useState<Record<string, GarmentView>>({});
+  const [pendingDeleteItemId, setPendingDeleteItemId] = useState<string | null>(null);
+  const [draftLoaded, setDraftLoaded] = useState(false);
 
   useEffect(() => {
-    const hydrate = window.setTimeout(() => {
+    let cancelled = false;
+
+    Promise.resolve().then(() => {
+      if (cancelled) return;
       const realDraft = readDraft(cartId);
       setDraft(realDraft);
       setActiveView(Object.fromEntries(realDraft.items.map((item) => [item.id, 'front'])));
-    }, 0);
-    return () => window.clearTimeout(hydrate);
+      setDraftLoaded(true);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [cartId]);
 
   function handleQtyChange(itemId: string, size: Size, qty: number) {
     setDraft((prev) => {
       const next = {
         ...prev,
-        items: prev.items.map((item) =>
-          item.id === itemId
-            ? { ...item, sizeQuantities: { ...item.sizeQuantities, [size]: qty } }
-            : item
-        ),
+        items: prev.items.map((item) => {
+          if (item.id !== itemId) return item;
+
+          const currentSizeQty = item.sizeQuantities[size] ?? 0;
+          const currentTotal = totalUnits(item.sizeQuantities);
+          const minimumAllowedQty = Math.max(0, currentSizeQty - Math.max(0, currentTotal - 50));
+          const safeQty = Math.max(minimumAllowedQty, qty);
+
+          return { ...item, sizeQuantities: { ...item.sizeQuantities, [size]: safeQty } };
+        }),
       };
       writeDraft(cartId, next);
       return next;
@@ -90,6 +105,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
       delete next[itemId];
       return next;
     });
+    setPendingDeleteItemId(null);
   }
 
   function handleAddAnotherProduct() {
@@ -101,10 +117,12 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
   }
 
   const totals = calculateTotals(items);
+  const cartUnitCount = items.reduce((sum, item) => sum + totalUnits(item.sizeQuantities), 0);
 
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-6">
+        <CheckoutSteps currentStep="summary" />
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-[#111111]/50">
@@ -132,7 +150,9 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
           </div>
         </div>
 
-        {items.length === 0 && (
+        {!draftLoaded && <OrderItemSkeleton />}
+
+        {draftLoaded && items.length === 0 && (
           <section className="rounded-lg border border-[#E5E5E5] bg-white p-8 text-center">
             <h2 className="text-lg font-medium text-[#111111]">Your cart is empty</h2>
             <p className="mt-1 text-sm text-[#111111]/60">
@@ -148,7 +168,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
           </section>
         )}
 
-        {items.map((item) => {
+        {draftLoaded && items.map((item) => {
           const selectedView = activeView[item.id] ?? 'front';
           const itemUnits = totalUnits(item.sizeQuantities);
           const garmentTotal = item.unitPrice * itemUnits;
@@ -207,13 +227,33 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                       >
                         Edit
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(item.id)}
-                        className="rounded-md border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:text-[#111111]"
-                      >
-                        Delete
-                      </button>
+                      {pendingDeleteItemId === item.id ? (
+                        <div className="flex items-center gap-2 rounded-md border border-[#E5E5E5] px-2 py-1.5 text-xs text-[#111111]/70">
+                          <span>Remove this item?</span>
+                          <button
+                            type="button"
+                            onClick={() => setPendingDeleteItemId(null)}
+                            className="font-medium hover:text-[#111111]"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(item.id)}
+                            className="font-semibold text-[#111111] hover:opacity-70"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setPendingDeleteItemId(item.id)}
+                          className="rounded-md border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:text-[#111111]"
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -252,8 +292,30 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
         total={totals.total}
         onNext={handleNext}
         nextLabel="Next: Invoice & Shipping"
-        nextDisabled={items.length === 0}
+        nextDisabled={cartUnitCount < 50}
       />
     </div>
+  );
+}
+
+function OrderItemSkeleton() {
+  return (
+    <section className="rounded-lg border border-[#E5E5E5] bg-white p-5" aria-label="Loading order items">
+      <div className="flex flex-col gap-5 md:flex-row">
+        <div className="h-56 w-full shrink-0 rounded-md bg-[#F7F7F7] md:w-44" />
+        <div className="min-w-0 flex-1 space-y-5">
+          <div className="space-y-2">
+            <div className="h-5 w-44 rounded bg-[#F7F7F7]" />
+            <div className="h-4 w-28 rounded bg-[#F7F7F7]" />
+          </div>
+          <div className="grid grid-cols-6 gap-px overflow-hidden rounded-md border border-[#E5E5E5] bg-[#E5E5E5]">
+            {SIZES.map((size) => (
+              <div key={size} className="h-16 bg-[#F7F7F7]" />
+            ))}
+          </div>
+          <div className="h-12 rounded-md bg-[#F7F7F7]" />
+        </div>
+      </div>
+    </section>
   );
 }

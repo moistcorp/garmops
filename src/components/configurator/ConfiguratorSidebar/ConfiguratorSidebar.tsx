@@ -64,8 +64,8 @@ export const INITIAL_STEPS: AccordionStepState[] = [
 
 export const DEFAULT_COLOUR: GarmentColour = {
   type: "signature",
-  name: "True Black",
-  hex: "#111111",
+  name: "",
+  hex: "#F7F7F7",
   confirmed: false,
 };
 

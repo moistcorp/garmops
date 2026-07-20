@@ -41,6 +41,8 @@ export interface OrderBarProps {
   ctaErrorNonce?: number;
 }
 
+const MINIMUM_ORDER_QUANTITY = 50;
+
 function formatDate(date: Date): string {
   return date.toLocaleDateString("en-IN", { month: "short", day: "numeric" });
 }
@@ -314,21 +316,25 @@ export function OrderBar({
             Quantity
           </label>
           <div className="flex h-10 min-w-0 items-center justify-between rounded-md bg-[#F7F7F7] px-3">
-            <input
-              id="configurator-quantity"
-              type="number"
-              value={quantity}
-              onChange={(e) => onQuantityChange(Math.max(1, Number(e.target.value) || 1))}
-              className="h-full w-10 bg-transparent text-center text-sm font-medium text-[#111111] outline-none"
-            />
             <button
               type="button"
               aria-label="Decrease quantity"
-              onClick={() => onQuantityChange(Math.max(1, quantity - 1))}
-              className="flex h-7 w-7 items-center justify-center rounded-md text-lg leading-none text-[#111111]/80 hover:bg-white"
+              disabled={quantity <= MINIMUM_ORDER_QUANTITY}
+              onClick={() => onQuantityChange(Math.max(MINIMUM_ORDER_QUANTITY, quantity - 1))}
+              className="flex h-7 w-7 items-center justify-center rounded-md text-lg leading-none text-[#111111]/80 hover:bg-white disabled:cursor-not-allowed disabled:text-[#111111]/25"
             >
               −
             </button>
+            <input
+              id="configurator-quantity"
+              type="number"
+              min={MINIMUM_ORDER_QUANTITY}
+              value={quantity}
+              onChange={(e) =>
+                onQuantityChange(Math.max(MINIMUM_ORDER_QUANTITY, Number(e.target.value) || MINIMUM_ORDER_QUANTITY))
+              }
+              className="h-full w-12 bg-transparent text-center text-sm font-medium text-[#111111] outline-none"
+            />
             <button
               type="button"
               aria-label="Increase quantity"

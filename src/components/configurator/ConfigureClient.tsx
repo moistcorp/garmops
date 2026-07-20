@@ -14,12 +14,12 @@ import {
   DEFAULT_COLOUR,
 } from "./ConfiguratorSidebar/ConfiguratorSidebar";
 import { TECHNIQUE_LABELS } from "./ConfiguratorSidebar/ArtworkPanel/TechniqueSelect";
-import { OrderBar } from "./OrderBar";
+import { computeConfiguredUnitCost, OrderBar } from "./OrderBar";
 import { ConfiguratorHeader } from "./ConfiguratorHeader";
 import { WhatsAppAssistantBar } from "./WhatsAppAssistantBar";
 import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionContext";
 import { getProduct } from "@/lib/configurator/products";
-import { getBasePrice } from "@/lib/configurator/pricing";
+import { formatInr, getBasePrice } from "@/lib/configurator/pricing";
 import { upsertConfiguredCartItem } from "./cart/cartDraft";
 import {
   readBuildDraft,
@@ -67,6 +67,18 @@ function getStepTitle(stepId: AccordionStepId): string {
   }
 }
 
+function getBuildProgress(steps: AccordionStepState[]) {
+  const nextStepIndex = steps.findIndex((step) => !step.confirmed);
+  const currentStepIndex = nextStepIndex === -1 ? steps.length - 1 : nextStepIndex;
+  const stepLabel = steps[currentStepIndex]?.title.replace("Garment ", "") ?? "Colour";
+
+  return {
+    current: currentStepIndex + 1,
+    total: steps.length,
+    label: stepLabel,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -92,6 +104,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   // read/write the same colour — was a disconnected placeholder pre-5B.
   const [colour, setColour] = useState<GarmentColour>(DEFAULT_COLOUR);
   const [steps, setSteps] = useState<AccordionStepState[]>(INITIAL_STEPS);
+  const buildProgress = getBuildProgress(steps);
 
   // Lifted (6D-2) so the CTA/confirm flow can read per-side confirmed state
   // and build the summary string, mirroring the colour lift above.
@@ -100,6 +113,14 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   // Lifted (7B) so the CTA/confirm flow can validate fileUrl/dimensions/
   // position and build the summary string, mirroring the artwork lift above.
   const [neckLabel, setNeckLabel] = useState<NeckLabel>({} as NeckLabel);
+  const configuredUnitCost = computeConfiguredUnitCost(
+    productId,
+    colour,
+    artwork,
+    neckLabel,
+    quantity
+  );
+  const configuredOrderTotal = configuredUnitCost * quantity;
 
   // Autosave: whether a saved draft was restored on load (drives the small
   // "Draft restored" notice below), and a ref so the debounced-write effect
@@ -339,6 +360,9 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 </span>
               </div>
               <h1 className="mt-1 text-lg font-semibold text-[#111111]">{productName}</h1>
+              <p className="mt-1 text-xs font-medium text-[#111111]/60">
+                Step {buildProgress.current} of {buildProgress.total}: {buildProgress.label}
+              </p>
               {draftRestored && (
                 <div className="mt-2 flex items-center justify-between gap-2 rounded-md bg-[#F7F7F7] px-2.5 py-1.5 text-xs text-[#111111]/65">
                   <span>Restored your unsaved progress.</span>
@@ -413,7 +437,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
               artwork={artwork}
               neckLabel={neckLabel}
             />
-            <div className="absolute bottom-4 right-4 hidden lg:block">
+            <div className="fixed bottom-4 right-4 z-40 lg:absolute lg:z-10">
               <WhatsAppAssistantBar configId={configId} />
             </div>
           </main>
@@ -426,7 +450,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
               <div className="mt-4 space-y-3 text-sm">
                 <div className="flex justify-between gap-4">
                   <span className="text-[#111111]/55">Colour</span>
-                  <span className="text-right font-medium">{colour.name}</span>
+                  <span className="text-right font-medium">{colour.name || "Not selected"}</span>
                 </div>
                 <div className="flex justify-between gap-4">
                   <span className="text-[#111111]/55">Artwork</span>
@@ -440,6 +464,18 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                   <span className="text-[#111111]/55">Neck label</span>
                   <span className="text-right font-medium">
                     {neckLabel?.confirmed ? "Added" : "Not added"}
+                  </span>
+                </div>
+                <div className="flex justify-between gap-4 border-t border-[#E5E5E5] pt-3">
+                  <span className="text-[#111111]/55">Unit price</span>
+                  <span className="text-right font-medium">
+                    {formatInr(configuredUnitCost)}
+                  </span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="text-[#111111]/55">Order total</span>
+                  <span className="text-right font-semibold">
+                    {formatInr(configuredOrderTotal)}
                   </span>
                 </div>
               </div>

@@ -1,5 +1,6 @@
 import {
   GST_PERCENT,
+  RUSH_DELIVERY_FEE_PER_UNIT,
   getBasePrice,
   getConfiguredUnitPrice,
   getVolumeDiscountPercent,
@@ -219,7 +220,7 @@ export function calculateTotals(
   const totalQuantity = items.reduce((sum, item) => sum + totalUnits(item.sizeQuantities), 0);
   const volumeDiscountPercent = getVolumeDiscountPercent(totalQuantity);
   const volumeDiscount = (garmentSubtotal * volumeDiscountPercent) / 100;
-  const shippingFee = 0;
+  const shippingFee = deliveryType === "rush" ? RUSH_DELIVERY_FEE_PER_UNIT * totalQuantity : 0;
   const hasRushDelivery =
     deliveryType === "rush" || items.some((item) => item.rushDelivery === true);
   const subtotal = garmentSubtotal;

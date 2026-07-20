@@ -84,6 +84,7 @@ export function AddressForm({
     "w-full border border-[#E5E5E5] bg-[#F7F7F7] px-3 py-2 text-sm text-[#111111] placeholder:text-[#111111]/40 focus:outline-none focus:border-[#111111]";
 
   const labelClass = "text-xs font-medium text-[#111111]/70 mb-1 block";
+  const zipLabel = value.country === "India" ? "PIN Code" : "Zip";
 
   return (
     <div className="space-y-4">
@@ -175,7 +176,7 @@ export function AddressForm({
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className={labelClass}>Zip</label>
+          <label className={labelClass}>{zipLabel}</label>
           <input
             className={inputClass}
             value={value.zip}

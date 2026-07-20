@@ -104,7 +104,7 @@ export default function GarmentColourPanel({ value, onChange, unitBasePrice }: G
         </div>
         <SignatureColourGrid
           colours={SIGNATURE_COLOURS}
-          selectedHex={value.type === "signature" ? value.hex : ""}
+          selectedHex={value.type === "signature" && value.name ? value.hex : ""}
           onSelect={handleSignatureSelect}
         />
       </div>

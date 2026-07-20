@@ -22,6 +22,7 @@ export function SizeQuantityGrid({ value, onChange, unitPrice }: SizeQuantityGri
   return (
     <div className="w-full">
       <div className="mb-2 flex items-center justify-end gap-3 text-xs text-[#111111]/60">
+        <span>Minimum 50 units</span>
         <span className="font-medium text-[#111111]">{totalUnits} units</span>
       </div>
       <div className="grid grid-cols-6 gap-px overflow-hidden rounded-md border border-[#E5E5E5] bg-[#E5E5E5]">
@@ -35,15 +36,34 @@ export function SizeQuantityGrid({ value, onChange, unitPrice }: SizeQuantityGri
             <label className="sr-only" htmlFor={`qty-${size}`}>
               Quantity for size {size}
             </label>
-            <input
-              id={`qty-${size}`}
-              type="number"
-              inputMode="numeric"
-              min={0}
-              value={value[size] ?? 0}
-              onChange={(e) => handleInputChange(size, e.target.value)}
-              className="w-full rounded border border-[#E5E5E5] bg-white px-1.5 py-1 text-center text-sm text-[#111111] focus:border-[#111111] focus:outline-none"
-            />
+            <div className="flex h-9 items-center justify-between rounded-md bg-[#F7F7F7] px-1">
+              <button
+                type="button"
+                aria-label={`Decrease ${size} quantity`}
+                disabled={totalUnits <= 50 || (value[size] ?? 0) <= 0}
+                onClick={() => onChange(size, Math.max(0, (value[size] ?? 0) - 1))}
+                className="flex h-7 w-7 items-center justify-center rounded-md text-lg leading-none text-[#111111]/80 hover:bg-white disabled:cursor-not-allowed disabled:text-[#111111]/25"
+              >
+                −
+              </button>
+              <input
+                id={`qty-${size}`}
+                type="number"
+                inputMode="numeric"
+                min={0}
+                value={value[size] ?? 0}
+                onChange={(e) => handleInputChange(size, e.target.value)}
+                className="h-full w-8 bg-transparent text-center text-sm font-medium text-[#111111] outline-none"
+              />
+              <button
+                type="button"
+                aria-label={`Increase ${size} quantity`}
+                onClick={() => onChange(size, (value[size] ?? 0) + 1)}
+                className="flex h-7 w-7 items-center justify-center rounded-md text-lg leading-none text-[#111111]/80 hover:bg-white"
+              >
+                +
+              </button>
+            </div>
           </div>
         ))}
       </div>
