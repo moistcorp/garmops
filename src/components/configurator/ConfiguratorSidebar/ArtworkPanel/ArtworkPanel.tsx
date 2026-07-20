@@ -50,6 +50,10 @@ function CheckIcon() {
   );
 }
 
+function techniqueLabel(technique: ArtworkTechnique | undefined): string {
+  return technique ? TECHNIQUE_LABELS[technique] : "Technique needed";
+}
+
 function PencilIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
@@ -141,7 +145,7 @@ export function ArtworkPanel({ value, onChange, onViewChange }: ArtworkPanelProp
   function handlePrintAreaChange(side: Side, printArea: PrintAreaSize) {
     const current = artwork[side];
     if (!current) return;
-    commit({ ...artwork, [side]: { ...current, printArea } });
+    commit({ ...artwork, [side]: { ...current, printArea, guidelines: { ...current.guidelines, maximumArea: true } } });
   }
 
   function handleGuidelineChange(side: Side, key: "maximumArea" | "leftChest", checked: boolean) {
@@ -232,7 +236,7 @@ export function ArtworkPanel({ value, onChange, onViewChange }: ArtworkPanelProp
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between border border-[#E5E5E5] px-3 py-2">
             <span className="text-xs text-[#111111]/60">
-              {SIDE_LABELS[side]} — {TECHNIQUE_LABELS[current.technique]}
+              {SIDE_LABELS[side]} — {techniqueLabel(current.technique)}
             </span>
             <span className="flex items-center gap-2">
               <CheckIcon />

@@ -19,8 +19,7 @@ export function ArtworkAreaSizeSelect(props?: ArtworkAreaSizeSelectProps): JSX.E
   );
   const value = controlled ? (props!.value as PrintAreaSize) : internalValue;
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const next = e.target.value as PrintAreaSize;
+  const handleChange = (next: PrintAreaSize) => {
     if (!controlled) setInternalValue(next);
     props?.onChange?.(next);
   };
@@ -29,24 +28,32 @@ export function ArtworkAreaSizeSelect(props?: ArtworkAreaSizeSelectProps): JSX.E
 
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor="artwork-area-size-select" className="text-sm font-medium">
-        Smallest Size (Sets Artwork Area)
-      </label>
-      <select
-        id="artwork-area-size-select"
-        value={value}
-        onChange={handleChange}
-        className="rounded border px-2 py-1 text-sm"
-      >
+      <span className="text-sm font-medium">Smallest Size (Sets Artwork Area)</span>
+      <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Smallest artwork size">
         {SIZE_ORDER.map((size) => {
           const dims = PRINT_AREA_SIZE_CHART[size];
+          const selected = value === size;
           return (
-            <option key={size} value={size}>
-              {size} — {dims.width}×{dims.height}cm
-            </option>
+            <button
+              key={size}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              onClick={() => handleChange(size)}
+              className={`rounded-md border px-2 py-2 text-left text-xs transition-colors ${
+                selected
+                  ? 'border-[#111111] bg-[#111111] text-white'
+                  : 'border-[#E5E5E5] bg-white text-[#111111] hover:border-[#111111]'
+              }`}
+            >
+              <span className="block font-semibold">{size}</span>
+              <span className={selected ? 'text-white/70' : 'text-[#111111]/50'}>
+                {dims.width}×{dims.height}cm
+              </span>
+            </button>
           );
         })}
-      </select>
+      </div>
       <p className="text-xs text-muted-foreground">
         Sizes to order: {value} - {maxSize}
       </p>

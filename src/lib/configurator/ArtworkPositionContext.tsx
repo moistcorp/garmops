@@ -44,17 +44,15 @@ export function clampDim(value: number, min: number = MIN_DIM): number {
 
 // ---------------------------------------------------------------------------
 // cm <-> px mapping
-// Confirmed print-area the front/back canvas represents: 31cm (w) x 43cm (h),
-// mapped onto the fixed 600x600px canvas (see CanvasRenderer.tsx CANVAS_SIZE).
-// The two axes scale differently since the print area isn't square. The
-// "neck" view is a zoomed crop of the same source image and does NOT share
-// this scale — it has no interactive box in this phase (see DRAGGABLE_VIEWS).
+// Front/back print measurement scale. The printable area is a smaller region
+// on the rendered garment, not the full square canvas.
 // ---------------------------------------------------------------------------
 
 export const PRINT_AREA_CM = { width: 31, height: 43 };
 export const CANVAS_PX = { width: 600, height: 600 };
-export const PX_PER_CM_X = CANVAS_PX.width / PRINT_AREA_CM.width;
-export const PX_PER_CM_Y = CANVAS_PX.height / PRINT_AREA_CM.height;
+export const PX_PER_CM_X = 9.2;
+export const PX_PER_CM_Y = 8.7;
+export const PRINT_ORIGIN_PX = { x: CANVAS_PX.width / 2, y: 146 };
 
 // Views that render/support the draggable + resizable artwork box.
 export const DRAGGABLE_VIEWS: readonly GarmentView[] = ["front", "back"];
@@ -116,10 +114,7 @@ export function ArtworkPositionProvider({ children, activeView }: ArtworkPositio
 
   const updatePosition = useCallback((view: GarmentView, partial: Partial<PositionControlsState>) => {
     setPositions((prev) => {
-      const next = { ...prev, [view]: { ...prev[view], ...partial } };
-      // eslint-disable-next-line no-console
-      console.log(`[ArtworkPositionContext] ${view} ->`, next[view]);
-      return next;
+      return { ...prev, [view]: { ...prev[view], ...partial } };
     });
   }, []);
 

@@ -20,6 +20,7 @@ export interface NeckLabelPanelProps {
 const DEFAULT_POSITION: NeckLabelPosition = 'below_neck_tape';
 const ACCEPTED_FILE_TYPES = '.svg,.ai';
 const DIMENSION_OPTIONS: NeckLabelDimensions[] = ['50x18', '60x20', '65x15', '45x45'];
+const DEFAULT_DIMENSIONS: NeckLabelDimensions = '50x18';
 const TEMPLATE_HREF = '/downloads/neck-label-templates.zip';
 // A real, renderable sample (the template zip is .ai-only and can't be
 // rasterized in a browser preview) — used by "Try sample artwork" so the
@@ -75,9 +76,11 @@ export default function NeckLabelPanel({ value, onChange }: NeckLabelPanelProps)
   }
 
   function handleFileSelected(url: string, type?: NeckLabelFileType) {
+    const nextDimensions = dimensions ?? DEFAULT_DIMENSIONS;
     setFileUrl(url);
     setFileType(type);
-    emit({ fileUrl: url, fileType: type, dimensions, position, stitch });
+    setDimensions(nextDimensions);
+    emit({ fileUrl: url, fileType: type, dimensions: nextDimensions, position, stitch });
   }
 
   function handleSampleArtwork() {

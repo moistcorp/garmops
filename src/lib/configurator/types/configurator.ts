@@ -30,7 +30,7 @@ export interface ArtworkSide {
   fileUrl: string;
   fileType: ArtworkFileType;
   vectorized: boolean;
-  technique: ArtworkTechnique;
+  technique?: ArtworkTechnique;
   width: number; // cm
   height: number; // cm
   fromNeck: number; // cm

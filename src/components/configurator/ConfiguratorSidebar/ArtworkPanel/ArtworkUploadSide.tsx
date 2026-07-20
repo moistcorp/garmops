@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import { useArtworkPosition } from "@/lib/configurator/ArtworkPositionContext";
 import type {
   ArtworkFileType,
   ArtworkSide,
@@ -9,6 +10,9 @@ import type {
 
 const ACCEPTED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".svg", ".ai"];
 const MAX_FILE_BYTES = 4.5 * 1024 * 1024;
+const SAMPLE_ARTWORK_HREF = "/garments/artwork-sample.svg";
+const DEFAULT_ARTWORK_WIDTH_CM = 20;
+const FALLBACK_VECTOR_HEIGHT_CM = 4.2;
 
 const VECTOR_REQUIRED_TECHNIQUES: ArtworkTechnique[] = [
   "screen_print",
@@ -16,15 +20,6 @@ const VECTOR_REQUIRED_TECHNIQUES: ArtworkTechnique[] = [
   "embroidery",
   "reflective_heat_transfer",
 ];
-
-const TECHNIQUE_LABELS: Record<ArtworkTechnique, string> = {
-  screen_print: "Screen Print",
-  dtg: "DTG",
-  dtf: "DTF",
-  reflective_heat_transfer: "Reflective Heat Transfer",
-  puff_print: "Puff Print",
-  embroidery: "Embroidery",
-};
 
 function extensionToFileType(filename: string): ArtworkFileType | null {
   const ext = filename.slice(filename.lastIndexOf(".")).toLowerCase();
@@ -41,21 +36,56 @@ function extensionToFileType(filename: string): ArtworkFileType | null {
 function makeDefaultSide(
   fileUrl: string,
   fileType: ArtworkFileType,
-  technique: ArtworkTechnique
+  dimensions: { width: number; height: number },
+  technique?: ArtworkTechnique
 ): ArtworkSide {
   return {
     fileUrl,
     fileType,
     vectorized: fileType === "svg" || fileType === "ai",
     technique,
-    width: 0,
-    height: 0,
-    fromNeck: 0,
+    width: dimensions.width,
+    height: dimensions.height,
+    fromNeck: 5,
     fromCenter: 0,
-    printArea: "M",
-    guidelines: { maximumArea: false, leftChest: false },
+    printArea: "XS",
+    guidelines: { maximumArea: true, leftChest: false },
     confirmed: false,
   };
+}
+
+function getImageDimensions(fileUrl: string): Promise<{ naturalWidth: number; naturalHeight: number }> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () =>
+      resolve({ naturalWidth: image.naturalWidth, naturalHeight: image.naturalHeight });
+    image.onerror = reject;
+    image.src = fileUrl;
+  });
+}
+
+async function getDefaultArtworkDimensions(
+  fileUrl: string,
+  fileType: ArtworkFileType
+): Promise<{ width: number; height: number }> {
+  if (fileType === "ai") {
+    return { width: DEFAULT_ARTWORK_WIDTH_CM, height: FALLBACK_VECTOR_HEIGHT_CM };
+  }
+
+  try {
+    const { naturalWidth, naturalHeight } = await getImageDimensions(fileUrl);
+    if (naturalWidth > 0 && naturalHeight > 0) {
+      const ratio = naturalHeight / naturalWidth;
+      return {
+        width: DEFAULT_ARTWORK_WIDTH_CM,
+        height: Math.max(1, Math.round(DEFAULT_ARTWORK_WIDTH_CM * ratio * 10) / 10),
+      };
+    }
+  } catch {
+    // Fall through to a logo-strip default for malformed/blocked preview assets.
+  }
+
+  return { width: DEFAULT_ARTWORK_WIDTH_CM, height: FALLBACK_VECTOR_HEIGHT_CM };
 }
 
 export interface ArtworkUploadSideProps {
@@ -66,12 +96,13 @@ export interface ArtworkUploadSideProps {
 
 export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSideProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const { updatePosition } = useArtworkPosition();
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<number | null>(null); // null = not uploading
 
   const requiresVector =
-    !!value && VECTOR_REQUIRED_TECHNIQUES.includes(value.technique) && !value.vectorized;
+    !!value?.technique && VECTOR_REQUIRED_TECHNIQUES.includes(value.technique) && !value.vectorized;
 
   const runFakeProgress = useCallback((onDone: () => void) => {
     setProgress(0);
@@ -89,6 +120,17 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
     }, 120);
   }, []);
 
+  async function importArtwork(fileUrl: string, fileType: ArtworkFileType) {
+    const dimensions = await getDefaultArtworkDimensions(fileUrl, fileType);
+    updatePosition(side, {
+      widthCm: dimensions.width,
+      heightCm: dimensions.height,
+      fromNeckCm: 5,
+      fromCenterCm: 0,
+    });
+    onChange(makeDefaultSide(fileUrl, fileType, dimensions, value?.technique));
+  }
+
   function handleFiles(files: FileList | null) {
     const file = files?.[0];
     if (!file) return;
@@ -105,18 +147,9 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
     setError(null);
 
     const fileUrl = URL.createObjectURL(file);
-    // Default technique intentionally does not require a vectorized file, so
-    // the warning only appears once the user actively selects one that does.
-    const technique = value?.technique ?? "dtg";
-
     runFakeProgress(() => {
-      onChange(makeDefaultSide(fileUrl, fileType, technique));
+      void importArtwork(fileUrl, fileType);
     });
-  }
-
-  function handleTechniqueChange(technique: ArtworkTechnique) {
-    if (!value) return;
-    onChange({ ...value, technique });
   }
 
   function handleRemove() {
@@ -126,10 +159,14 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
   }
 
   function handleTrySample() {
-    const technique = value?.technique ?? "dtg";
     runFakeProgress(() => {
-      onChange(makeDefaultSide("/sample-artwork.svg", "svg", technique));
+      void importArtwork(SAMPLE_ARTWORK_HREF, "svg");
     });
+  }
+
+  function handleConvertArtwork() {
+    if (!value) return;
+    onChange({ ...value, vectorized: true, fileType: "svg" });
   }
 
   const isPending = progress !== null;
@@ -222,21 +259,6 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
             </button>
           </div>
 
-          <label className="flex flex-col gap-1 text-xs text-[#111111]/70">
-            Technique
-            <select
-              value={value.technique}
-              onChange={(e) => handleTechniqueChange(e.target.value as ArtworkTechnique)}
-              className="border border-[#E5E5E5] bg-white px-2 py-1 text-sm text-[#111111]"
-            >
-              {(Object.keys(TECHNIQUE_LABELS) as ArtworkTechnique[]).map((technique) => (
-                <option key={technique} value={technique}>
-                  {TECHNIQUE_LABELS[technique]}
-                </option>
-              ))}
-            </select>
-          </label>
-
           {requiresVector && (
             <div className="flex flex-col gap-2 border border-amber-300 bg-amber-50 p-2 text-xs text-amber-900">
               <p>
@@ -245,6 +267,7 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
               </p>
               <button
                 type="button"
+                onClick={handleConvertArtwork}
                 className="self-start border border-amber-900 px-2 py-1 uppercase tracking-wide hover:bg-amber-900 hover:text-amber-50"
               >
                 Convert Artwork

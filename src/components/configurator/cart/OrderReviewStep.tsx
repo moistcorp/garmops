@@ -2,13 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { ArrowLeft, Plus } from 'lucide-react';
 import type { ProductId } from '@/lib/configurator/pricing';
 import type { GarmentColour, Artwork, NeckLabel } from '@/lib/configurator/types/configurator';
 import type { GarmentView } from '@/lib/configurator/types/garment';
 import { SizeQuantityGrid, type Size } from './SizeQuantityGrid';
 import { CartSummarySidebar } from './CartSummarySidebar';
 import { calculateTotals, createDraft, itemSubtotal, readDraft, totalUnits, writeDraft } from './cartDraft';
-import { formatInr, getUnitPriceAdjustments } from '@/lib/configurator/pricing';
+import { formatInr } from '@/lib/configurator/pricing';
+import CanvasRenderer from '../GarmentPreview/CanvasRenderer';
+import { ArtworkPositionProvider } from '@/lib/configurator/ArtworkPositionContext';
 
 export interface DevelopmentCostLine {
   label: string;
@@ -49,9 +52,12 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
   const [activeView, setActiveView] = useState<Record<string, GarmentView>>({});
 
   useEffect(() => {
-    const realDraft = readDraft(cartId);
-    setDraft(realDraft);
-    setActiveView(Object.fromEntries(realDraft.items.map((item) => [item.id, 'front'])));
+    const hydrate = window.setTimeout(() => {
+      const realDraft = readDraft(cartId);
+      setDraft(realDraft);
+      setActiveView(Object.fromEntries(realDraft.items.map((item) => [item.id, 'front'])));
+    }, 0);
+    return () => window.clearTimeout(hydrate);
   }, [cartId]);
 
   function handleQtyChange(itemId: string, size: Size, qty: number) {
@@ -69,8 +75,8 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
     });
   }
 
-  function handleEdit() {
-    router.push(`/configurator/build/${encodeURIComponent(cartId)}`);
+  function handleEdit(item: CartItem) {
+    router.push(`/configurator/build/${encodeURIComponent(item.productId)}`);
   }
 
   function handleDelete(itemId: string) {
@@ -106,13 +112,24 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             </p>
             <h1 className="text-2xl font-semibold text-[#111111]">Order Summary</h1>
           </div>
-          <button
-            type="button"
-            onClick={handleAddAnotherProduct}
-            className="self-start rounded-md border border-[#111111] px-4 py-2 text-sm font-medium text-[#111111] hover:bg-[#111111] hover:text-white sm:self-auto"
-          >
-            Add another product
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => router.push('/configurator')}
+              className="inline-flex items-center gap-2 rounded-md border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[#111111] hover:text-[#111111]"
+            >
+              <ArrowLeft size={16} strokeWidth={2.2} />
+              Back to configurator
+            </button>
+            <button
+              type="button"
+              onClick={handleAddAnotherProduct}
+              className="inline-flex items-center gap-2 rounded-md border border-[#111111] px-4 py-2 text-sm font-medium text-[#111111] hover:bg-[#111111] hover:text-white"
+            >
+              <Plus size={16} strokeWidth={2.2} />
+              Add another product
+            </button>
+          </div>
         </div>
 
         {items.length === 0 && (
@@ -135,23 +152,22 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
           const selectedView = activeView[item.id] ?? 'front';
           const itemUnits = totalUnits(item.sizeQuantities);
           const garmentTotal = item.unitPrice * itemUnits;
-          const priceAdjustments = getUnitPriceAdjustments(
-            item.colour,
-            item.artwork,
-            item.neckLabel,
-            item.rushDelivery
-          );
-
           return (
             <section key={item.id} className="rounded-lg border border-[#E5E5E5] bg-white p-5">
               <div className="flex flex-col gap-5 md:flex-row">
                 <div className="w-full shrink-0 md:w-44">
                   <div className="aspect-[3/4] overflow-hidden rounded-md bg-[#F7F7F7]">
-                    <img
-                      src={item.previewImage}
-                      alt={`${item.productName} preview`}
-                      className="h-full w-full object-cover"
-                    />
+                    <ArtworkPositionProvider activeView={selectedView}>
+                      <CanvasRenderer
+                        view={selectedView}
+                        colourHex={item.colour.hex}
+                        productId={item.productId}
+                        artwork={item.artwork}
+                        neckLabel={item.neckLabel}
+                        interactive={false}
+                        className="h-full w-full bg-[#F7F7F7]"
+                      />
+                    </ArtworkPositionProvider>
                   </div>
                   <div className="mt-3 grid grid-cols-3 gap-1">
                     {GARMENT_VIEWS.map((view) => (
@@ -186,7 +202,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                     <div className="flex shrink-0 gap-2">
                       <button
                         type="button"
-                        onClick={handleEdit}
+                        onClick={() => handleEdit(item)}
                         className="rounded-md border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:text-[#111111]"
                       >
                         Edit
@@ -214,20 +230,6 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                         {formatInr(item.unitPrice)} x {itemUnits} = {formatInr(garmentTotal)}
                       </span>
                     </div>
-                    {priceAdjustments.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {priceAdjustments.map((adjustment) => (
-                          <span
-                            key={adjustment.label}
-                            className="rounded-full border border-[#D8D8D8] bg-white px-2.5 py-1 text-xs text-[#111111]/70"
-                          >
-                            {adjustment.amount
-                              ? `${adjustment.label} +${formatInr(adjustment.amount)}`
-                              : `${adjustment.label} +${adjustment.percent}%`}
-                          </span>
-                        ))}
-                      </div>
-                    )}
                   </div>
 
                   <div className="flex justify-between border-t border-[#E5E5E5] pt-3 text-sm font-medium text-[#111111]">

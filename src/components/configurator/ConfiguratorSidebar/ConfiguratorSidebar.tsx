@@ -52,6 +52,8 @@ export interface ConfiguratorSidebarProps {
    *  Garment Colour step to show the actual Custom Dye price delta inline
    *  instead of only a percentage. Omit to fall back to percentage-only. */
   unitBasePrice?: number;
+  /** Opens the unsaved-changes confirmation before abandoning an unfinished step. */
+  onAttemptStepChange?: (id: AccordionStepId | null) => void;
 }
 
 export const INITIAL_STEPS: AccordionStepState[] = [
@@ -81,6 +83,7 @@ export function ConfiguratorSidebar({
   activeView,
   onViewChange,
   unitBasePrice,
+  onAttemptStepChange,
 }: ConfiguratorSidebarProps = {}) {
   // Uncontrolled fallback for steps — mirrors the expandedStepId/selectedColour
   // pattern so this component still renders standalone (Phase 4 shell testing)
@@ -150,6 +153,10 @@ export function ConfiguratorSidebar({
 
   function toggleStep(id: AccordionStepId) {
     const next = expandedStepId === id ? null : id;
+    if (onAttemptStepChange) {
+      onAttemptStepChange(next);
+      return;
+    }
     if (!isControlled) {
       setInternalExpandedStepId(next);
     }
@@ -178,7 +185,7 @@ export function ConfiguratorSidebar({
   }
 
   return (
-    <div className="flex flex-col gap-2 bg-transparent py-3">
+    <div className="flex h-full min-h-0 flex-col gap-2 bg-transparent py-3">
       {steps.map((step) => (
         <AccordionItem
           key={step.id}

@@ -27,7 +27,7 @@ export const BACK_ARTWORK_UNIT_INCREASE_PERCENT = 22;
 export const NECK_LABEL_UNIT_INCREASE_PERCENT = 10;
 export const RUSH_DELIVERY_FEE_PER_UNIT = 75;
 export const EXPRESS_DELIVERY_FEE_PER_UNIT = RUSH_DELIVERY_FEE_PER_UNIT;
-export const GST_PERCENT = 18;
+export const GST_PERCENT = 5;
 
 export type UnitPriceAdjustment = {
   label: string;

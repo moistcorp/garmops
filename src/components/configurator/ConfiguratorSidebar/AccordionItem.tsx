@@ -33,18 +33,16 @@ export function AccordionItem({
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Reset the pending-delete state whenever the step collapses/expands or
-  // loses its confirmed status out from under it, so a stale "Remove?" bar
-  // never lingers after the underlying selection has already changed.
-  useEffect(() => {
-    setConfirmingDelete(false);
-  }, [expanded, confirmed]);
-
   useEffect(() => {
     if (confirmingDelete) {
       cancelButtonRef.current?.focus();
     }
   }, [confirmingDelete]);
+
+  function handleToggle() {
+    setConfirmingDelete(false);
+    onToggle();
+  }
 
   function handleTrashClick(e: React.MouseEvent | React.KeyboardEvent) {
     e.stopPropagation();
@@ -63,10 +61,14 @@ export function AccordionItem({
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-[#E5E5E5] bg-white">
+    <div
+      className={`flex min-h-0 flex-col overflow-hidden rounded-lg border border-[#E5E5E5] bg-white ${
+        expanded ? "flex-1" : "shrink-0"
+      }`}
+    >
       <button
         type="button"
-        onClick={onToggle}
+        onClick={handleToggle}
         aria-expanded={expanded}
         className="flex min-h-[68px] w-full items-start justify-between gap-4 px-4 py-3 text-left hover:bg-white"
       >
@@ -119,7 +121,7 @@ export function AccordionItem({
           needing to measure content, and without an abrupt snap. */}
       <div
         className={`grid transition-[grid-template-rows] duration-200 ease-in-out ${
-          confirmingDelete ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+          confirmingDelete && expanded && confirmed ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
         }`}
       >
         <div className="overflow-hidden">
@@ -150,17 +152,11 @@ export function AccordionItem({
         </div>
       </div>
 
-      {/* Panel body — same grid-rows animation approach so expand/collapse
-          eases smoothly instead of snapping open/shut. */}
-      <div
-        className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
-          expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-        }`}
-      >
-        <div className="overflow-hidden">
-          <div className="border-t border-[#E5E5E5] bg-white px-4 py-4">{children}</div>
+      {expanded && (
+        <div className="min-h-0 flex-1 overflow-y-auto border-t border-[#E5E5E5] bg-white px-4 py-4">
+          {children}
         </div>
-      </div>
+      )}
     </div>
   );
 }

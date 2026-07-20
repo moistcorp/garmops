@@ -8,6 +8,7 @@ import {
   getBasePrice,
   getConfiguredUnitPrice,
   getUnitPriceAdjustments,
+  getVolumeDiscountAmount,
   getVolumeDiscountPercent,
   VOLUME_DISCOUNT_TIERS,
   GST_PERCENT,
@@ -49,9 +50,12 @@ export function computeConfiguredUnitCost(
   colour: GarmentColour | undefined,
   artwork: Artwork,
   neckLabel: NeckLabel | undefined,
+  quantity = 1,
   rushDelivery = false
 ): number {
-  return getConfiguredUnitPrice(productId, colour, artwork, neckLabel, rushDelivery);
+  const undiscounted = getConfiguredUnitPrice(productId, colour, artwork, neckLabel, rushDelivery);
+  const discount = getVolumeDiscountAmount(undiscounted, quantity);
+  return undiscounted - discount;
 }
 
 function computeDeliveryDate(): string {
@@ -239,8 +243,24 @@ export function OrderBar({
 }: OrderBarProps) {
   const displayUnitCost =
     unitCost ??
-    formatInr(computeConfiguredUnitCost(productId, colour, artwork, neckLabel));
+    formatInr(computeConfiguredUnitCost(productId, colour, artwork, neckLabel, quantity));
   const displayDeliveryDate = deliveryDate ?? computeDeliveryDate();
+  const undiscountedUnitCost = computeConfiguredUnitCost(
+    productId,
+    colour,
+    artwork,
+    neckLabel,
+    1
+  );
+  const discountedUnitCost = computeConfiguredUnitCost(
+    productId,
+    colour,
+    artwork,
+    neckLabel,
+    quantity
+  );
+  const unitDiscount = Math.max(0, undiscountedUnitCost - discountedUnitCost);
+  const discountPercent = getVolumeDiscountPercent(quantity);
 
   // Attention flash for a failed CTA click — mirrors the existing
   // "Draft saved" pattern in ConfigureClient (brief true, then auto-reset).
@@ -260,7 +280,19 @@ export function OrderBar({
       <div className="grid min-h-11 grid-cols-2 gap-4 text-xs">
         <div className="min-w-0">
           <div className="font-semibold leading-tight text-[#111111]">Unit Cost</div>
-          <div className="mt-1 font-semibold text-[#111111]/70">{displayUnitCost}</div>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+            <span className="font-semibold text-[#111111]/80">{displayUnitCost}</span>
+            {unitDiscount > 0 && (
+              <span className="rounded-full bg-[#EAF7EA] px-2 py-0.5 text-[10px] font-semibold text-[#1B7F36]">
+                {discountPercent}% off
+              </span>
+            )}
+          </div>
+          {unitDiscount > 0 && (
+            <p className="mt-1 text-[11px] font-medium text-[#1B7F36]">
+              Saves {formatInr(unitDiscount)}/unit at {quantity} units
+            </p>
+          )}
         </div>
         <div className="min-w-0">
           <div className="font-semibold leading-tight text-[#111111]">Delivery Date</div>
@@ -316,7 +348,7 @@ export function OrderBar({
                 : "bg-[#111111]"
             }`}
           >
-            {ctaLabel} -&gt;
+            {ctaLabel}
           </button>
         </div>
 
