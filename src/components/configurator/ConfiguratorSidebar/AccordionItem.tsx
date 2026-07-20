@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Check, Edit2, Plus, Trash2 } from "lucide-react";
+import { AlertCircle, Check, Edit2, Plus, Trash2 } from "lucide-react";
 
 type AccordionStatus = "empty" | "editable" | "confirmed";
 
@@ -13,6 +13,12 @@ export interface AccordionItemProps {
   onToggle: () => void;
   onDelete: () => void;
   children: ReactNode;
+  /** Validation message from the last failed "Confirm" attempt on this step.
+   *  Rendered inline at the top of the expanded panel and as a red ring on
+   *  the header, so an incomplete step gives feedback instead of the CTA
+   *  click silently doing nothing. Cleared by the parent once the step is
+   *  fixed or the user navigates away from it. */
+  errorMessage?: string | null;
 }
 
 function getStatus(summary: string | null, confirmed: boolean): AccordionStatus {
@@ -28,11 +34,17 @@ export function AccordionItem({
   onToggle,
   onDelete,
   children,
+  errorMessage,
 }: AccordionItemProps) {
   const status = getStatus(summary, confirmed);
+  const hasError = Boolean(errorMessage);
 
   return (
-    <div className="overflow-hidden rounded-lg border border-[#E5E5E5] bg-white">
+    <div
+      className={`overflow-hidden rounded-lg border bg-white transition-colors ${
+        hasError ? "border-[#C62828]" : "border-[#E5E5E5]"
+      }`}
+    >
       <button
         type="button"
         onClick={onToggle}
@@ -88,7 +100,20 @@ export function AccordionItem({
         </span>
       </button>
 
-      {expanded && <div className="border-t border-[#E5E5E5] bg-white px-4 py-4">{children}</div>}
+      {expanded && (
+        <div className="border-t border-[#E5E5E5] bg-white px-4 py-4">
+          {hasError && (
+            <div
+              role="alert"
+              className="mb-4 flex items-start gap-2 rounded-md border border-[#C62828]/30 bg-[#FBEAEA] px-3 py-2 text-xs font-medium text-[#C62828]"
+            >
+              <AlertCircle size={14} strokeWidth={2.2} className="mt-[1px] shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+          {children}
+        </div>
+      )}
     </div>
   );
 }
