@@ -18,6 +18,7 @@ import { ConfiguratorHeader } from "./ConfiguratorHeader";
 import { WhatsAppAssistantBar } from "./WhatsAppAssistantBar";
 import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionContext";
 import { getProduct } from "@/lib/configurator/products";
+import { getBasePrice } from "@/lib/configurator/pricing";
 import { upsertConfiguredCartItem } from "./cart/cartDraft";
 import {
   readBuildDraft,
@@ -63,6 +64,12 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   const product = getProduct(configId);
   const productId = product?.id ?? "tshirt-classic";
   const productName = product?.name ?? "Classic Tee";
+  let unitBasePrice: number | undefined;
+  try {
+    unitBasePrice = getBasePrice(productId);
+  } catch {
+    unitBasePrice = undefined;
+  }
   const [activeView, setActiveView] = useState<GarmentView>("front");
   const [expandedStepId, setExpandedStepId] = useState<AccordionStepId | null>(null);
   const [quantity, setQuantity] = useState<number>(50);
@@ -87,17 +94,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   const [draftJustSaved, setDraftJustSaved] = useState(false);
   const hasHydrated = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Validation feedback for a failed "Confirm"/CTA click on the currently
-  // expanded step. Previously an incomplete step's CTA click was a silent
-  // no-op (see handleCtaClick below) — this surfaces what's missing inline
-  // on the step itself, plus a brief flash near the CTA button in OrderBar.
-  const [stepError, setStepError] = useState<{ id: AccordionStepId; message: string } | null>(
-    null
-  );
-  // Bumped on every failed CTA click so OrderBar can re-trigger its
-  // attention flash even when the error message text hasn't changed.
-  const [ctaErrorNonce, setCtaErrorNonce] = useState(0);
 
   // Restore any in-progress draft for this configId on mount. Runs once —
   // deliberately not re-run on configId change within this component's
@@ -141,25 +137,10 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
 
   function handleExpandedStepChange(next: AccordionStepId | null) {
     setExpandedStepId(next);
-    setStepError(null);
     if (next === "neck-label") {
       setActiveView("neck");
     }
   }
-
-  // Clears any validation message for the step the user is actively editing
-  // as soon as they make a change — the error shouldn't linger once they've
-  // started addressing it, even before they click Confirm again.
-  useEffect(() => {
-    if (!stepError) return;
-    const shouldClear =
-      (stepError.id === "artwork" && expandedStepId === "artwork") ||
-      (stepError.id === "neck-label" && expandedStepId === "neck-label");
-    if (!shouldClear) return;
-    const timer = setTimeout(() => setStepError(null), 0);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [artwork, neckLabel]);
 
   function handleCtaClick() {
     if (expandedStepId === "garment-colour") {
@@ -175,9 +156,10 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         )
       );
 
-      setStepError(null);
-      setExpandedStepId(null);
       setActiveView("front");
+      // Auto-advance: open Artwork next instead of leaving the customer to
+      // reopen it manually.
+      handleExpandedStepChange("artwork");
       return;
     }
 
@@ -187,25 +169,10 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         (!artwork.front || artwork.front.confirmed) &&
         (!artwork.back || artwork.back.confirmed);
 
-      // Was a silent no-op click on an incomplete step. Now surfaces exactly
-      // what's missing — nothing uploaded vs. a side uploaded but not yet
-      // confirmed with its own "Confirm Front/Back" button — so the CTA
-      // click always gives the customer feedback.
-      if (!hasAnySide) {
-        setStepError({
-          id: "artwork",
-          message: "Upload artwork for at least one side before confirming.",
-        });
-        setCtaErrorNonce((n) => n + 1);
-        return;
-      }
-      if (!allUploadedSidesConfirmed) {
-        setStepError({
-          id: "artwork",
-          message:
-            "Finish confirming artwork on each side you've added — use the Confirm button under that side.",
-        });
-        setCtaErrorNonce((n) => n + 1);
+      // No precedent from 5B for a disabled/error CTA state, so an
+      // incomplete artwork step (nothing uploaded, or a side still mid-edit)
+      // is a no-op click rather than an error.
+      if (!hasAnySide || !allUploadedSidesConfirmed) {
         return;
       }
 
@@ -222,8 +189,8 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         )
       );
 
-      setStepError(null);
-      setExpandedStepId(null);
+      // Auto-advance: open Neck Label next.
+      handleExpandedStepChange("neck-label");
       return;
     }
 
@@ -232,12 +199,8 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         neckLabel?.fileUrl && neckLabel?.dimensions && neckLabel?.position
       );
 
+      // Same no-op-on-incomplete convention as the artwork branch above.
       if (!isReady) {
-        const message = !neckLabel?.fileUrl
-          ? "Upload your neck label artwork (or try the sample) before confirming."
-          : "Choose a label size before confirming.";
-        setStepError({ id: "neck-label", message });
-        setCtaErrorNonce((n) => n + 1);
         return;
       }
 
@@ -253,8 +216,8 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         )
       );
 
-      setStepError(null);
-      setExpandedStepId(null);
+      // Last step — nothing left to auto-advance to, just close it.
+      handleExpandedStepChange(null);
       return;
     }
 
@@ -325,7 +288,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 onNeckLabelChange={setNeckLabel}
                 activeView={activeView}
                 onViewChange={setActiveView}
-                stepError={stepError}
+                unitBasePrice={unitBasePrice}
               />
             </div>
           </aside>
@@ -382,10 +345,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 colour={colour}
                 artwork={artwork}
                 neckLabel={neckLabel}
-                ctaErrorMessage={
-                  stepError && stepError.id === expandedStepId ? stepError.message : null
-                }
-                ctaErrorNonce={ctaErrorNonce}
               />
             </div>
           </aside>

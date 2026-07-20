@@ -14,7 +14,7 @@ export default function SignatureColourGrid({
   onSelect,
 }: SignatureColourGridProps) {
   return (
-    <div className="grid max-h-72 grid-cols-2 gap-3 overflow-y-auto pr-1">
+    <div className="grid max-h-72 grid-cols-2 gap-3 overflow-y-auto pr-1 pt-3">
       {colours.map((colour) => {
         const isActive = colour.hex.toLowerCase() === selectedHex.toLowerCase();
         return (

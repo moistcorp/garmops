@@ -48,9 +48,10 @@ export interface ConfiguratorSidebarProps {
   activeView?: GarmentView;
   /** Fires when the Artwork step wants the canvas to switch to a different side. */
   onViewChange?: (view: GarmentView) => void;
-  /** Validation error from the last failed "Confirm"/CTA attempt, if any.
-   *  Rendered inline on the matching step's AccordionItem. */
-  stepError?: { id: AccordionStepId; message: string } | null;
+  /** Undiscounted per-unit base price for the selected product, used by the
+   *  Garment Colour step to show the actual Custom Dye price delta inline
+   *  instead of only a percentage. Omit to fall back to percentage-only. */
+  unitBasePrice?: number;
 }
 
 export const INITIAL_STEPS: AccordionStepState[] = [
@@ -79,7 +80,7 @@ export function ConfiguratorSidebar({
   onNeckLabelChange,
   activeView,
   onViewChange,
-  stepError,
+  unitBasePrice,
 }: ConfiguratorSidebarProps = {}) {
   // Uncontrolled fallback for steps — mirrors the expandedStepId/selectedColour
   // pattern so this component still renders standalone (Phase 4 shell testing)
@@ -187,10 +188,13 @@ export function ConfiguratorSidebar({
           expanded={expandedStepId === step.id}
           onToggle={() => toggleStep(step.id)}
           onDelete={() => stubResetStep(step.id)}
-          errorMessage={stepError?.id === step.id ? stepError.message : null}
         >
           {step.id === "garment-colour" ? (
-            <GarmentColourPanel value={colour} onChange={handleColourChange} />
+            <GarmentColourPanel
+              value={colour}
+              onChange={handleColourChange}
+              unitBasePrice={unitBasePrice}
+            />
           ) : step.id === "artwork" ? (
             <ArtworkPanel
               value={artwork}
