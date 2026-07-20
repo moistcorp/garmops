@@ -98,8 +98,6 @@ export function PositionControls({ onDebugChange }: PositionControlsProps): JSX.
 
   function update(partial: Partial<PositionControlsState>) {
     const next = { ...state, ...partial };
-    // eslint-disable-next-line no-console
-    console.log("[PositionControls] state ->", next);
     onDebugChange?.(next);
     updatePosition(activeView, partial);
   }

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AlertTriangle } from "lucide-react";
 import type { GarmentView } from "@/lib/configurator/types/garment";
 import type { GarmentColour, Artwork, NeckLabel } from "@/lib/configurator/types/configurator";
 import GarmentPreview from "./GarmentPreview/GarmentPreview";
@@ -55,6 +56,17 @@ function getCtaLabel(openStep: AccordionStepId | null): string {
   }
 }
 
+function getStepTitle(stepId: AccordionStepId): string {
+  switch (stepId) {
+    case "garment-colour":
+      return "Garment Colour";
+    case "artwork":
+      return "Artwork";
+    case "neck-label":
+      return "Neck Label";
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -72,6 +84,8 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   }
   const [activeView, setActiveView] = useState<GarmentView>("front");
   const [expandedStepId, setExpandedStepId] = useState<AccordionStepId | null>(null);
+  const [pendingStepId, setPendingStepId] = useState<AccordionStepId | null>(null);
+  const [unsavedStepId, setUnsavedStepId] = useState<AccordionStepId | null>(null);
   const [quantity, setQuantity] = useState<number>(50);
 
   // Lifted so the live preview (below) and the sidebar's Garment Colour step
@@ -135,7 +149,36 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
     };
   }, [configId, colour, artwork, neckLabel, steps, quantity]);
 
-  function handleExpandedStepChange(next: AccordionStepId | null) {
+  function hasUnconfirmedChanges(stepId: AccordionStepId | null): boolean {
+    if (!stepId) return false;
+    if (stepId === "garment-colour") return !colour.confirmed;
+    if (stepId === "artwork") {
+      return Boolean(
+        (artwork.front && !artwork.front.confirmed) ||
+          (artwork.back && !artwork.back.confirmed)
+      );
+    }
+    return Boolean(neckLabel?.fileUrl && !neckLabel.confirmed);
+  }
+
+  function resetStepDraft(stepId: AccordionStepId) {
+    if (stepId === "garment-colour") {
+      setColour(DEFAULT_COLOUR);
+    }
+    if (stepId === "artwork") {
+      setArtwork({});
+    }
+    if (stepId === "neck-label") {
+      setNeckLabel({} as NeckLabel);
+    }
+    setSteps((prev) =>
+      prev.map((step) =>
+        step.id === stepId ? { ...step, confirmed: false, summary: null } : step
+      )
+    );
+  }
+
+  function applyExpandedStepChange(next: AccordionStepId | null) {
     const wasNeckLabel = expandedStepId === "neck-label";
     setExpandedStepId(next);
     if (next === "neck-label") {
@@ -145,6 +188,29 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       // don't leave the live preview stuck on the neck crop.
       setActiveView("front");
     }
+  }
+
+  function handleExpandedStepChange(next: AccordionStepId | null) {
+    if (next !== expandedStepId && hasUnconfirmedChanges(expandedStepId)) {
+      setPendingStepId(next);
+      setUnsavedStepId(expandedStepId);
+      return;
+    }
+    applyExpandedStepChange(next);
+  }
+
+  function discardUnsavedChanges() {
+    if (unsavedStepId) {
+      resetStepDraft(unsavedStepId);
+    }
+    applyExpandedStepChange(pendingStepId);
+    setPendingStepId(null);
+    setUnsavedStepId(null);
+  }
+
+  function keepEditing() {
+    setPendingStepId(null);
+    setUnsavedStepId(null);
   }
 
   function handleCtaClick() {
@@ -164,26 +230,34 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       setActiveView("front");
       // Auto-advance: open Artwork next instead of leaving the customer to
       // reopen it manually.
-      handleExpandedStepChange("artwork");
+      applyExpandedStepChange("artwork");
       return;
     }
 
     if (expandedStepId === "artwork") {
       const hasAnySide = Boolean(artwork.front || artwork.back);
-      const allUploadedSidesConfirmed =
-        (!artwork.front || artwork.front.confirmed) &&
-        (!artwork.back || artwork.back.confirmed);
+      const allUploadedSidesReady =
+        (!artwork.front || Boolean(artwork.front.technique)) &&
+        (!artwork.back || Boolean(artwork.back.technique));
 
       // No precedent from 5B for a disabled/error CTA state, so an
       // incomplete artwork step (nothing uploaded, or a side still mid-edit)
       // is a no-op click rather than an error.
-      if (!hasAnySide || !allUploadedSidesConfirmed) {
+      if (!hasAnySide || !allUploadedSidesReady) {
         return;
       }
 
+      const confirmedArtwork: Artwork = {
+        front: artwork.front ? { ...artwork.front, confirmed: true } : undefined,
+        back: artwork.back ? { ...artwork.back, confirmed: true } : undefined,
+      };
+      setArtwork(confirmedArtwork);
+
       const summary = [
-        artwork.front && `Front — ${TECHNIQUE_LABELS[artwork.front.technique]}`,
-        artwork.back && `Back — ${TECHNIQUE_LABELS[artwork.back.technique]}`,
+        confirmedArtwork.front?.technique &&
+          `Front — ${TECHNIQUE_LABELS[confirmedArtwork.front.technique]}`,
+        confirmedArtwork.back?.technique &&
+          `Back — ${TECHNIQUE_LABELS[confirmedArtwork.back.technique]}`,
       ]
         .filter(Boolean)
         .join(", ");
@@ -195,7 +269,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       );
 
       // Auto-advance: open Neck Label next.
-      handleExpandedStepChange("neck-label");
+      applyExpandedStepChange("neck-label");
       return;
     }
 
@@ -222,7 +296,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       );
 
       // Last step — nothing left to auto-advance to, just close it.
-      handleExpandedStepChange(null);
+      applyExpandedStepChange(null);
       return;
     }
 
@@ -282,9 +356,10 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
             <div className="min-h-0 flex-1 overflow-y-auto px-3">
               <ConfiguratorSidebar
                 expandedStepId={expandedStepId}
-                onExpandedStepChange={handleExpandedStepChange}
+                onExpandedStepChange={applyExpandedStepChange}
+                onAttemptStepChange={handleExpandedStepChange}
                 selectedColour={colour}
-                onColourChange={setColour}
+                onColourChange={(next) => setColour({ ...next, confirmed: false })}
                 steps={steps}
                 onStepsChange={setSteps}
                 artwork={artwork}
@@ -297,6 +372,37 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
               />
             </div>
           </aside>
+
+          {unsavedStepId && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/78 px-4 backdrop-blur-[1px]">
+              <div className="w-full max-w-sm rounded-lg bg-white p-5 text-center shadow-xl ring-1 ring-[#111111]/10">
+                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF4DE] text-[#C47A00]">
+                  <AlertTriangle size={20} strokeWidth={2.3} />
+                </div>
+                <h2 className="mt-4 text-xl font-semibold text-[#111111]">Unsaved Changes</h2>
+                <p className="mt-2 text-sm leading-snug text-[#111111]/70">
+                  You didn&apos;t save your {getStepTitle(unsavedStepId)}. Confirm it to keep your
+                  changes.
+                </p>
+                <div className="mt-5 grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={discardUnsavedChanges}
+                    className="min-h-11 rounded-md border border-[#111111] px-3 text-sm font-semibold text-[#111111] hover:bg-[#F7F7F7]"
+                  >
+                    Discard Changes
+                  </button>
+                  <button
+                    type="button"
+                    onClick={keepEditing}
+                    className="min-h-11 rounded-md bg-[#111111] px-3 text-sm font-semibold text-white hover:opacity-90"
+                  >
+                    Keep Editing
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           <main className="order-1 relative flex min-h-0 min-w-0 flex-col items-center justify-center overflow-hidden rounded-lg border border-[#E5E5E5] bg-[#F7F7F7] lg:order-2">
             <GarmentPreview

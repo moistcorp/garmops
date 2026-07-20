@@ -2,6 +2,7 @@ import {
   GST_PERCENT,
   getBasePrice,
   getConfiguredUnitPrice,
+  getVolumeDiscountPercent,
 } from "@/lib/configurator/pricing";
 import { getProduct } from "@/lib/configurator/products";
 import type { ProductId } from "@/lib/configurator/pricing";
@@ -12,6 +13,7 @@ import type { Size } from "./SizeQuantityGrid";
 import { SIZES } from "./SizeQuantityGrid";
 
 const STORAGE_PREFIX = "mf_configurator_cart:";
+const ACTIVE_CART_KEY = `${STORAGE_PREFIX}active`;
 
 export const RESERVATION_FEE = 499;
 
@@ -107,7 +109,9 @@ export function createDraft(cartId: string): CartDraft {
 export function readDraft(cartId: string): CartDraft {
   if (typeof window === "undefined") return createDraft(cartId);
 
-  const raw = window.localStorage.getItem(`${STORAGE_PREFIX}${cartId}`);
+  const raw =
+    window.localStorage.getItem(ACTIVE_CART_KEY) ??
+    window.localStorage.getItem(`${STORAGE_PREFIX}${cartId}`);
   if (!raw) return createDraft(cartId);
 
   try {
@@ -119,7 +123,9 @@ export function readDraft(cartId: string): CartDraft {
 
 export function writeDraft(cartId: string, draft: CartDraft): void {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(`${STORAGE_PREFIX}${cartId}`, JSON.stringify(draft));
+  const serialized = JSON.stringify(draft);
+  window.localStorage.setItem(ACTIVE_CART_KEY, serialized);
+  window.localStorage.setItem(`${STORAGE_PREFIX}${cartId}`, serialized);
 }
 
 export interface ConfiguredCartItemInput {
@@ -174,7 +180,7 @@ export function upsertConfiguredCartItem(
   );
 
   const configuredItem: CartItem = {
-    id: "item-1",
+    id: input.productId,
     productId: input.productId,
     productName: input.productName,
     previewImage: input.previewImage,
@@ -211,7 +217,8 @@ export function calculateTotals(
     0
   );
   const totalQuantity = items.reduce((sum, item) => sum + totalUnits(item.sizeQuantities), 0);
-  const volumeDiscount = 0;
+  const volumeDiscountPercent = getVolumeDiscountPercent(totalQuantity);
+  const volumeDiscount = (garmentSubtotal * volumeDiscountPercent) / 100;
   const shippingFee = 0;
   const hasRushDelivery =
     deliveryType === "rush" || items.some((item) => item.rushDelivery === true);
@@ -223,6 +230,7 @@ export function calculateTotals(
   return {
     subtotal,
     volumeDiscount,
+    volumeDiscountPercent,
     shippingFee,
     hasRushDelivery,
     gst,

@@ -16,6 +16,7 @@ import {
   CANVAS_PX,
   PX_PER_CM_X,
   PX_PER_CM_Y,
+  PRINT_ORIGIN_PX,
   DRAGGABLE_VIEWS,
   MIN_OFFSET,
   resizeWithAspect,
@@ -83,6 +84,8 @@ interface CanvasRendererProps {
   productId: ProductId;
   artwork: Artwork;
   neckLabel?: NeckLabel;
+  interactive?: boolean;
+  className?: string;
 }
 
 const CANVAS_SIZE = CANVAS_PX;
@@ -114,8 +117,8 @@ function assetPath(productId: ProductId, view: GarmentView, layer: string): stri
   return `/garments/${getGarmentFolder(productId)}/${view}/${layer}.png`;
 }
 
-function isRenderableImage(fileUrl?: string): boolean {
-  if (!fileUrl) return false;
+function isRenderableImage(fileUrl?: string, fileType?: ArtworkSide["fileType"]): boolean {
+  if (!fileUrl || fileType === "ai") return false;
   return /\.(png|jpe?g|svg|webp)$/i.test(fileUrl) || fileUrl.startsWith("blob:");
 }
 
@@ -129,7 +132,7 @@ function isRenderableNeckLabel(neckLabel: NeckLabel): boolean {
 }
 
 function ArtworkPreview({ side }: { side: ArtworkSide }) {
-  if (isRenderableImage(side.fileUrl)) {
+  if (isRenderableImage(side.fileUrl, side.fileType)) {
     return (
       <img
         src={side.fileUrl}
@@ -265,13 +268,24 @@ export default function CanvasRenderer({
   productId,
   artwork,
   neckLabel,
+  interactive = true,
+  className = "aspect-square h-[min(78dvh,820px)] max-h-[820px] max-w-full rounded-lg bg-[#F7F7F7]",
 }: CanvasRendererProps) {
   const { positions, updatePosition } = useArtworkPosition();
   const dragOrigin = useRef<DragOrigin | null>(null);
 
   const showBox = DRAGGABLE_VIEWS.includes(view);
-  const boxState = positions[view];
   const activeArtwork = view === "front" ? artwork.front : view === "back" ? artwork.back : undefined;
+  const boxState =
+    !interactive && activeArtwork
+      ? {
+          ...positions[view],
+          widthCm: activeArtwork.width,
+          heightCm: activeArtwork.height,
+          fromNeckCm: activeArtwork.fromNeck,
+          fromCenterCm: activeArtwork.fromCenter,
+        }
+      : positions[view];
   const isNeckLabelView = (v: GarmentView): v is NeckLabelView =>
     (NECK_LABEL_VIEWS as readonly GarmentView[]).includes(v);
   const showNeckLabel =
@@ -294,8 +308,8 @@ export default function CanvasRenderer({
 
   const boxWidthPx = boxState.widthCm * PX_PER_CM_X;
   const boxHeightPx = boxState.heightCm * PX_PER_CM_Y;
-  const boxLeftPx = CANVAS_SIZE.width / 2 + boxState.fromCenterCm * PX_PER_CM_X - boxWidthPx / 2;
-  const boxTopPx = boxState.fromNeckCm * PX_PER_CM_Y;
+  const boxLeftPx = PRINT_ORIGIN_PX.x + boxState.fromCenterCm * PX_PER_CM_X - boxWidthPx / 2;
+  const boxTopPx = PRINT_ORIGIN_PX.y + boxState.fromNeckCm * PX_PER_CM_Y;
 
   // Print guideline overlays (maximum printable area / left-chest reference),
   // anchored to the garment's fixed boundaries rather than the user's
@@ -303,18 +317,18 @@ export default function CanvasRenderer({
   const printAreaDims = activeArtwork
     ? PRINT_AREA_SIZE_CHART[activeArtwork.printArea]
     : undefined;
-  const showMaxArea = showBox && !!activeArtwork?.guidelines.maximumArea && !!printAreaDims;
-  const showLeftChest = showBox && !!activeArtwork?.guidelines.leftChest;
+  const showMaxArea = interactive && showBox && !!activeArtwork?.guidelines.maximumArea && !!printAreaDims;
+  const showLeftChest = interactive && showBox && !!activeArtwork?.guidelines.leftChest;
 
   const maxAreaWidthPx = printAreaDims ? printAreaDims.width * PX_PER_CM_X : 0;
   const maxAreaHeightPx = printAreaDims ? printAreaDims.height * PX_PER_CM_Y : 0;
-  const maxAreaLeftPx = CANVAS_SIZE.width / 2 - maxAreaWidthPx / 2;
-  const maxAreaTopPx = GUIDELINE_TOP_MARGIN_CM * PX_PER_CM_Y;
+  const maxAreaLeftPx = PRINT_ORIGIN_PX.x - maxAreaWidthPx / 2;
+  const maxAreaTopPx = PRINT_ORIGIN_PX.y + GUIDELINE_TOP_MARGIN_CM * PX_PER_CM_Y;
 
   const chestWidthPx = LEFT_CHEST_DIMENSIONS.width * PX_PER_CM_X;
   const chestHeightPx = LEFT_CHEST_DIMENSIONS.height * PX_PER_CM_Y;
-  const chestLeftPx = CANVAS_SIZE.width / 2 + LEFT_CHEST_FROM_CENTER_CM * PX_PER_CM_X - chestWidthPx / 2;
-  const chestTopPx = GUIDELINE_TOP_MARGIN_CM * PX_PER_CM_Y;
+  const chestLeftPx = PRINT_ORIGIN_PX.x + LEFT_CHEST_FROM_CENTER_CM * PX_PER_CM_X - chestWidthPx / 2;
+  const chestTopPx = PRINT_ORIGIN_PX.y + GUIDELINE_TOP_MARGIN_CM * PX_PER_CM_Y;
 
   const handlePointerMove = (e: PointerEvent) => {
     const origin = dragOrigin.current;
@@ -347,6 +361,7 @@ export default function CanvasRenderer({
   };
 
   const handleDragStart = (e: ReactPointerEvent<HTMLDivElement>, mode: DragMode) => {
+    if (!interactive) return;
     e.preventDefault();
     e.stopPropagation();
     dragOrigin.current = {
@@ -363,7 +378,7 @@ export default function CanvasRenderer({
   };
 
   return (
-    <div className="relative aspect-square h-[min(78dvh,820px)] max-h-[820px] max-w-full overflow-hidden rounded-lg bg-[#F7F7F7]">
+    <div className={`relative overflow-hidden ${className}`}>
       <div className="absolute inset-[2%]">
         <div
           className="absolute inset-0"
@@ -401,7 +416,8 @@ export default function CanvasRenderer({
 
       {activeArtwork && (
         <div
-          className="absolute z-10"
+          onPointerDown={(e) => handleDragStart(e, "move")}
+          className={`absolute z-20 ${interactive ? "cursor-move" : "pointer-events-none"}`}
           style={{
             left: `${(boxLeftPx / CANVAS_SIZE.width) * 100}%`,
             top: `${(boxTopPx / CANVAS_SIZE.height) * 100}%`,
@@ -410,6 +426,14 @@ export default function CanvasRenderer({
           }}
         >
           <ArtworkPreview side={activeArtwork} />
+          {showBox && interactive && (
+            <div
+              role="presentation"
+              onPointerDown={(e) => handleDragStart(e, "resize")}
+              aria-label="Resize artwork"
+              className="absolute -bottom-1.5 -right-1.5 h-3 w-3 cursor-nwse-resize rounded-sm border border-white bg-[#111111]"
+            />
+          )}
         </div>
       )}
 
@@ -447,26 +471,6 @@ export default function CanvasRenderer({
         />
       )}
 
-      {showBox && (
-        <div
-          role="presentation"
-          onPointerDown={(e) => handleDragStart(e, "move")}
-          className="absolute z-20 cursor-move border border-dashed border-[#111111]/55 bg-white/10"
-          style={{
-            left: `${(boxLeftPx / CANVAS_SIZE.width) * 100}%`,
-            top: `${(boxTopPx / CANVAS_SIZE.height) * 100}%`,
-            width: `${(boxWidthPx / CANVAS_SIZE.width) * 100}%`,
-            height: `${(boxHeightPx / CANVAS_SIZE.height) * 100}%`,
-          }}
-        >
-          <div
-            role="presentation"
-            onPointerDown={(e) => handleDragStart(e, "resize")}
-            aria-label="Resize artwork"
-            className="absolute -bottom-1.5 -right-1.5 h-3 w-3 cursor-nwse-resize rounded-sm border border-white bg-[#111111]"
-          />
-        </div>
-      )}
     </div>
   );
 }

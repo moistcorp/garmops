@@ -1,8 +1,9 @@
-import { formatInr } from "@/lib/configurator/pricing";
+import { formatInr, GST_PERCENT } from "@/lib/configurator/pricing";
 
 interface CartSummarySidebarProps {
   subtotal: number;
   volumeDiscount: number;
+  volumeDiscountPercent?: number;
   shippingFee?: number;
   gst?: number;
   rushDelivery?: boolean;
@@ -16,6 +17,7 @@ interface CartSummarySidebarProps {
 export function CartSummarySidebar({
   subtotal,
   volumeDiscount,
+  volumeDiscountPercent = 0,
   shippingFee = 0,
   gst = 0,
   rushDelivery = false,
@@ -40,8 +42,8 @@ export function CartSummarySidebar({
           <span>{formatInr(subtotal)}</span>
         </div>
         {volumeDiscount > 0 && (
-          <div className="flex justify-between text-[#111111]/70">
-            <span>Volume discount</span>
+          <div className="flex justify-between rounded-md bg-[#EAF7EA] px-2 py-1.5 font-medium text-[#1B7F36]">
+            <span>Volume discount{volumeDiscountPercent > 0 ? ` (${volumeDiscountPercent}%)` : ""}</span>
             <span>-{formatInr(volumeDiscount)}</span>
           </div>
         )}
@@ -58,7 +60,7 @@ export function CartSummarySidebar({
           </div>
         )}
         <div className="flex justify-between text-[#111111]/70">
-          <span>GST (18%)</span>
+          <span>GST ({GST_PERCENT}%)</span>
           <span>{formatInr(gst)}</span>
         </div>
         <div className="flex justify-between text-[#111111]/70">
@@ -72,7 +74,7 @@ export function CartSummarySidebar({
       </div>
 
       <p className="mt-3 text-[11px] text-[#111111]/60">
-        Prices include 18% GST. Rush Delivery adds ₹75 per unit when enabled.
+        Prices include {GST_PERCENT}% GST. Rush Delivery adds ₹75 per unit when enabled.
       </p>
 
       <p className="mt-3 text-xs text-[#111111]">
