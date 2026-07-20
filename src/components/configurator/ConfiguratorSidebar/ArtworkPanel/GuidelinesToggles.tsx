@@ -4,7 +4,9 @@ import type { PrintAreaDimensions } from '@/lib/configurator/sizecharts';
 // PLACEHOLDER — not specified in Appendix, needs confirmation.
 // "Left Chest" is documented only as "a smaller reference box"; this is a
 // commonly-used left-chest print size, not a value sourced from the ledger.
-const LEFT_CHEST_DIMENSIONS: PrintAreaDimensions = { width: 10, height: 12 };
+// Exported so CanvasRenderer can draw the same reference box on the live
+// preview instead of only in this sidebar diagram.
+export const LEFT_CHEST_DIMENSIONS: PrintAreaDimensions = { width: 10, height: 12 };
 
 // px-per-cm scale for the illustrative overlay rendered by this component.
 const PX_PER_CM = 6;

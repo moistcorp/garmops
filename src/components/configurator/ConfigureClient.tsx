@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { GarmentView } from "@/lib/configurator/types/garment";
 import type { GarmentColour, Artwork, NeckLabel } from "@/lib/configurator/types/configurator";
@@ -19,6 +19,12 @@ import { WhatsAppAssistantBar } from "./WhatsAppAssistantBar";
 import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionContext";
 import { getProduct } from "@/lib/configurator/products";
 import { upsertConfiguredCartItem } from "./cart/cartDraft";
+import {
+  readBuildDraft,
+  writeBuildDraft,
+  clearBuildDraft,
+  hasMeaningfulDraft,
+} from "@/lib/configurator/buildDraft";
 
 // ---------------------------------------------------------------------------
 // Types (local to this file)
@@ -73,6 +79,54 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   // Lifted (7B) so the CTA/confirm flow can validate fileUrl/dimensions/
   // position and build the summary string, mirroring the artwork lift above.
   const [neckLabel, setNeckLabel] = useState<NeckLabel>({} as NeckLabel);
+
+  // Autosave: whether a saved draft was restored on load (drives the small
+  // "Draft restored" notice below), and a ref so the debounced-write effect
+  // doesn't fire on the very first render before restoration has happened.
+  const [draftRestored, setDraftRestored] = useState(false);
+  const [draftJustSaved, setDraftJustSaved] = useState(false);
+  const hasHydrated = useRef(false);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Restore any in-progress draft for this configId on mount. Runs once —
+  // deliberately not re-run on configId change within this component's
+  // lifetime, since configId is a route param and the component remounts
+  // when it changes.
+  useEffect(() => {
+    const draft = readBuildDraft(configId);
+    if (hasMeaningfulDraft(draft) && draft) {
+      // Restoring a localStorage draft is a one-time sync from an external
+      // system (browser storage) on mount, not state derived from props —
+      // the usual reason to avoid setState-in-effect doesn't apply here.
+      /* eslint-disable react-hooks/set-state-in-effect */
+      setColour(draft.colour);
+      setArtwork(draft.artwork);
+      setNeckLabel(draft.neckLabel);
+      setSteps(draft.steps);
+      setQuantity(draft.quantity);
+      setDraftRestored(true);
+      /* eslint-enable react-hooks/set-state-in-effect */
+    }
+    hasHydrated.current = true;
+  }, [configId]);
+
+  // Debounced autosave — writes the in-progress build to localStorage
+  // shortly after any change, so a refresh or closed tab doesn't lose
+  // uploaded artwork or unconfirmed selections. Only the final "Add To Cart"
+  // click previously persisted anything; every step in between was lost on
+  // reload.
+  useEffect(() => {
+    if (!hasHydrated.current) return;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      writeBuildDraft(configId, { colour, artwork, neckLabel, steps, quantity });
+      setDraftJustSaved(true);
+      setTimeout(() => setDraftJustSaved(false), 1500);
+    }, 500);
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
+  }, [configId, colour, artwork, neckLabel, steps, quantity]);
 
   function handleExpandedStepChange(next: AccordionStepId | null) {
     setExpandedStepId(next);
@@ -166,6 +220,10 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       quantity,
       rushDelivery: false,
     });
+    // The in-progress build draft's job is done now that it's been handed
+    // off to the cart draft — clear it so a stale autosave doesn't resurface
+    // if the customer starts a fresh build under the same configId later.
+    clearBuildDraft(configId);
     router.push(`/configurator/cart/${encodeURIComponent(configId)}/review`);
   }
 
@@ -177,10 +235,33 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 px-4 pb-4 lg:grid-cols-[360px_minmax(0,1fr)_310px] lg:px-5">
           <aside className="order-2 flex min-h-0 min-w-0 flex-col overflow-hidden rounded-lg border border-[#E5E5E5] bg-white lg:order-1">
             <div className="border-b border-[#E5E5E5] px-4 py-3">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#111111]/45">
-                Build Steps
-              </p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-[#111111]/45">
+                  Build Steps
+                </p>
+                <span
+                  className={`text-[10px] font-medium uppercase tracking-wide text-[#111111]/35 transition-opacity ${
+                    draftJustSaved ? "opacity-100" : "opacity-0"
+                  }`}
+                  aria-live="polite"
+                >
+                  Draft saved
+                </span>
+              </div>
               <h1 className="mt-1 text-lg font-semibold text-[#111111]">{productName}</h1>
+              {draftRestored && (
+                <div className="mt-2 flex items-center justify-between gap-2 rounded-md bg-[#F7F7F7] px-2.5 py-1.5 text-xs text-[#111111]/65">
+                  <span>Restored your unsaved progress.</span>
+                  <button
+                    type="button"
+                    onClick={() => setDraftRestored(false)}
+                    aria-label="Dismiss"
+                    className="shrink-0 font-semibold text-[#111111]/50 hover:text-[#111111]"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto px-3">
               <ConfiguratorSidebar
@@ -194,6 +275,8 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 onArtworkChange={setArtwork}
                 neckLabel={neckLabel}
                 onNeckLabelChange={setNeckLabel}
+                activeView={activeView}
+                onViewChange={setActiveView}
               />
             </div>
           </aside>
