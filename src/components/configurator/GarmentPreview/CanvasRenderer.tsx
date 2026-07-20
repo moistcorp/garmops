@@ -191,8 +191,8 @@ export default function CanvasRenderer({
   };
 
   return (
-    <div className="relative aspect-square h-[min(64dvh,650px)] max-h-[650px] max-w-full overflow-hidden rounded-lg bg-[#F7F7F7]">
-      <div className="absolute inset-[5%]">
+    <div className="relative aspect-square h-[min(78dvh,820px)] max-h-[820px] max-w-full overflow-hidden rounded-lg bg-[#F7F7F7]">
+      <div className="absolute inset-[2%]">
         <div
           className="absolute inset-0"
           style={{
@@ -211,19 +211,19 @@ export default function CanvasRenderer({
           src={assetPath(productId, view, "texture")}
           alt=""
           draggable={false}
-          className="absolute inset-0 h-full w-full object-contain mix-blend-multiply opacity-35"
+          className="absolute inset-0 h-full w-full object-contain mix-blend-multiply opacity-50"
         />
         <img
           src={assetPath(productId, view, "shadow")}
           alt=""
           draggable={false}
-          className="absolute inset-0 h-full w-full object-contain mix-blend-multiply opacity-75"
+          className="absolute inset-0 h-full w-full object-contain mix-blend-multiply opacity-45"
         />
         <img
           src={assetPath(productId, view, "highlight")}
           alt=""
           draggable={false}
-          className="absolute inset-0 h-full w-full object-contain mix-blend-screen opacity-80"
+          className="absolute inset-0 h-full w-full object-contain mix-blend-screen opacity-35"
         />
       </div>
 

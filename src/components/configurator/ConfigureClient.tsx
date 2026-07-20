@@ -18,6 +18,7 @@ import { ConfiguratorHeader } from "./ConfiguratorHeader";
 import { WhatsAppAssistantBar } from "./WhatsAppAssistantBar";
 import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionContext";
 import { getProduct } from "@/lib/configurator/products";
+import { getBasePrice } from "@/lib/configurator/pricing";
 import { upsertConfiguredCartItem } from "./cart/cartDraft";
 import {
   readBuildDraft,
@@ -63,6 +64,12 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   const product = getProduct(configId);
   const productId = product?.id ?? "tshirt-classic";
   const productName = product?.name ?? "Classic Tee";
+  let unitBasePrice: number | undefined;
+  try {
+    unitBasePrice = getBasePrice(productId);
+  } catch {
+    unitBasePrice = undefined;
+  }
   const [activeView, setActiveView] = useState<GarmentView>("front");
   const [expandedStepId, setExpandedStepId] = useState<AccordionStepId | null>(null);
   const [quantity, setQuantity] = useState<number>(50);
@@ -149,8 +156,10 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         )
       );
 
-      setExpandedStepId(null);
       setActiveView("front");
+      // Auto-advance: open Artwork next instead of leaving the customer to
+      // reopen it manually.
+      handleExpandedStepChange("artwork");
       return;
     }
 
@@ -180,7 +189,8 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         )
       );
 
-      setExpandedStepId(null);
+      // Auto-advance: open Neck Label next.
+      handleExpandedStepChange("neck-label");
       return;
     }
 
@@ -206,7 +216,8 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         )
       );
 
-      setExpandedStepId(null);
+      // Last step — nothing left to auto-advance to, just close it.
+      handleExpandedStepChange(null);
       return;
     }
 
@@ -277,6 +288,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 onNeckLabelChange={setNeckLabel}
                 activeView={activeView}
                 onViewChange={setActiveView}
+                unitBasePrice={unitBasePrice}
               />
             </div>
           </aside>

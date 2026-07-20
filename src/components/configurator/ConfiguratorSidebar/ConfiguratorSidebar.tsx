@@ -48,6 +48,10 @@ export interface ConfiguratorSidebarProps {
   activeView?: GarmentView;
   /** Fires when the Artwork step wants the canvas to switch to a different side. */
   onViewChange?: (view: GarmentView) => void;
+  /** Undiscounted per-unit base price for the selected product, used by the
+   *  Garment Colour step to show the actual Custom Dye price delta inline
+   *  instead of only a percentage. Omit to fall back to percentage-only. */
+  unitBasePrice?: number;
 }
 
 export const INITIAL_STEPS: AccordionStepState[] = [
@@ -76,6 +80,7 @@ export function ConfiguratorSidebar({
   onNeckLabelChange,
   activeView,
   onViewChange,
+  unitBasePrice,
 }: ConfiguratorSidebarProps = {}) {
   // Uncontrolled fallback for steps — mirrors the expandedStepId/selectedColour
   // pattern so this component still renders standalone (Phase 4 shell testing)
@@ -185,7 +190,11 @@ export function ConfiguratorSidebar({
           onDelete={() => stubResetStep(step.id)}
         >
           {step.id === "garment-colour" ? (
-            <GarmentColourPanel value={colour} onChange={handleColourChange} />
+            <GarmentColourPanel
+              value={colour}
+              onChange={handleColourChange}
+              unitBasePrice={unitBasePrice}
+            />
           ) : step.id === "artwork" ? (
             <ArtworkPanel
               value={artwork}

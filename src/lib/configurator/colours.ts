@@ -30,27 +30,42 @@ export const SIGNATURE_COLOURS: SignatureColour[] = [
 export interface PantoneColour {
   code: string; // e.g. "100 U", "7401 U"
   hex: string;
+  /** Common colour-family names a buyer might search for instead of the
+   *  Pantone code (e.g. "navy", "maroon"). Not shown in the UI — used for
+   *  search matching only. */
+  aliases: string[];
 }
 
 export const PANTONE_COLOURS: PantoneColour[] = [
-  { code: "100 U", hex: "#F5E657" },
-  { code: "101 U", hex: "#F5E13F" },
-  { code: "102 U", hex: "#F7E017" },
-  { code: "7401 U", hex: "#E9DDAF" },
-  { code: "7402 U", hex: "#E4D69B" },
-  { code: "7403 U", hex: "#D9C46A" },
-  { code: "137 U", hex: "#F0A83A" },
-  { code: "1585 U", hex: "#E2792B" },
-  { code: "179 U", hex: "#E0402A" },
-  { code: "1795 U", hex: "#C6122A" },
-  { code: "202 U", hex: "#7C2529" },
-  { code: "2617 U", hex: "#5F2B78" },
-  { code: "2725 U", hex: "#5147AD" },
-  { code: "286 U", hex: "#1C4CA6" },
-  { code: "3145 U", hex: "#00767E" },
-  { code: "3415 U", hex: "#00693C" },
-  { code: "355 U", hex: "#189F4A" },
-  { code: "425 U", hex: "#565A5C" },
-  { code: "431 U", hex: "#4B535A" },
-  { code: "446 U", hex: "#3A3D3C" },
+  { code: "100 U", hex: "#F5E657", aliases: ["yellow", "lemon"] },
+  { code: "101 U", hex: "#F5E13F", aliases: ["yellow", "canary"] },
+  { code: "102 U", hex: "#F7E017", aliases: ["yellow", "sunshine"] },
+  { code: "7401 U", hex: "#E9DDAF", aliases: ["sand", "beige", "cream"] },
+  { code: "7402 U", hex: "#E4D69B", aliases: ["sand", "beige", "khaki"] },
+  { code: "7403 U", hex: "#D9C46A", aliases: ["gold", "mustard"] },
+  { code: "137 U", hex: "#F0A83A", aliases: ["orange", "amber"] },
+  { code: "1585 U", hex: "#E2792B", aliases: ["orange", "rust", "burnt orange"] },
+  { code: "179 U", hex: "#E0402A", aliases: ["red", "orange red", "tomato"] },
+  { code: "1795 U", hex: "#C6122A", aliases: ["red", "crimson"] },
+  { code: "202 U", hex: "#7C2529", aliases: ["maroon", "burgundy", "wine"] },
+  { code: "2617 U", hex: "#5F2B78", aliases: ["purple", "violet", "plum"] },
+  { code: "2725 U", hex: "#5147AD", aliases: ["purple", "violet", "indigo"] },
+  { code: "286 U", hex: "#1C4CA6", aliases: ["navy", "royal blue", "cobalt", "blue"] },
+  { code: "3145 U", hex: "#00767E", aliases: ["teal", "turquoise"] },
+  { code: "3415 U", hex: "#00693C", aliases: ["green", "forest", "emerald"] },
+  { code: "355 U", hex: "#189F4A", aliases: ["green", "kelly green"] },
+  { code: "425 U", hex: "#565A5C", aliases: ["grey", "gray", "steel"] },
+  { code: "431 U", hex: "#4B535A", aliases: ["grey", "gray", "slate"] },
+  { code: "446 U", hex: "#3A3D3C", aliases: ["charcoal", "grey", "gray"] },
 ];
+
+// ============================================================
+// Custom Dye disclosure — MOQ / lead-time tradeoffs vs Signature.
+// Shown inline before selection so the impact isn't a surprise later
+// in OrderBar.
+// ============================================================
+export const CUSTOM_DYE_MOQ_UNITS = 100;
+export const CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS: { min: number; max: number } = {
+  min: 12,
+  max: 15,
+};

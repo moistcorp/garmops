@@ -1,7 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { Check, Edit2, Plus, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Check, Edit2, Plus, Trash2, X } from "lucide-react";
 
 type AccordionStatus = "empty" | "editable" | "confirmed";
 
@@ -30,6 +30,37 @@ export function AccordionItem({
   children,
 }: AccordionItemProps) {
   const status = getStatus(summary, confirmed);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Reset the pending-delete state whenever the step collapses/expands or
+  // loses its confirmed status out from under it, so a stale "Remove?" bar
+  // never lingers after the underlying selection has already changed.
+  useEffect(() => {
+    setConfirmingDelete(false);
+  }, [expanded, confirmed]);
+
+  useEffect(() => {
+    if (confirmingDelete) {
+      cancelButtonRef.current?.focus();
+    }
+  }, [confirmingDelete]);
+
+  function handleTrashClick(e: React.MouseEvent | React.KeyboardEvent) {
+    e.stopPropagation();
+    setConfirmingDelete(true);
+  }
+
+  function handleCancelDelete(e: React.MouseEvent) {
+    e.stopPropagation();
+    setConfirmingDelete(false);
+  }
+
+  function handleConfirmDelete(e: React.MouseEvent) {
+    e.stopPropagation();
+    setConfirmingDelete(false);
+    onDelete();
+  }
 
   return (
     <div className="overflow-hidden rounded-lg border border-[#E5E5E5] bg-white">
@@ -37,16 +68,16 @@ export function AccordionItem({
         type="button"
         onClick={onToggle}
         aria-expanded={expanded}
-        className="flex min-h-[68px] w-full items-center justify-between gap-4 px-4 py-3 text-left hover:bg-white"
+        className="flex min-h-[68px] w-full items-start justify-between gap-4 px-4 py-3 text-left hover:bg-white"
       >
-        <span className="flex flex-col">
+        <span className="flex min-w-0 flex-1 flex-col">
           <span className="text-sm font-semibold leading-tight text-[#111111]">{title}</span>
-          <span className="mt-1 max-w-[220px] truncate text-xs font-medium text-[#111111]/55">
+          <span className="mt-1 line-clamp-2 break-words text-xs font-medium leading-snug text-[#111111]/55">
             {summary ?? "No Selection"}
           </span>
         </span>
 
-        <span className="flex items-center gap-1.5">
+        <span className="flex shrink-0 items-center gap-1.5">
           {status === "empty" && (
             <span className="flex h-8 w-8 items-center justify-center rounded-md bg-[#E5E5E5]">
               <Plus size={17} strokeWidth={2.2} />
@@ -68,14 +99,10 @@ export function AccordionItem({
               <span
                 role="button"
                 tabIndex={0}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete();
-                }}
+                onClick={handleTrashClick}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
-                    e.stopPropagation();
-                    onDelete();
+                    handleTrashClick(e);
                   }
                 }}
                 aria-label={`Remove ${title} selection`}
@@ -88,7 +115,52 @@ export function AccordionItem({
         </span>
       </button>
 
-      {expanded && <div className="border-t border-[#E5E5E5] bg-white px-4 py-4">{children}</div>}
+      {/* Delete confirmation bar — grid-rows trick animates height without
+          needing to measure content, and without an abrupt snap. */}
+      <div
+        className={`grid transition-[grid-template-rows] duration-200 ease-in-out ${
+          confirmingDelete ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        }`}
+      >
+        <div className="overflow-hidden">
+          <div className="flex items-center justify-between gap-3 border-t border-[#F3D9D9] bg-[#FDF3F3] px-4 py-2.5">
+            <p className="text-xs font-medium text-[#8A2E2E]">
+              Remove this {title.toLowerCase()} selection? This can&rsquo;t be undone.
+            </p>
+            <span className="flex shrink-0 items-center gap-1.5">
+              <button
+                ref={cancelButtonRef}
+                type="button"
+                onClick={handleCancelDelete}
+                className="flex h-7 items-center gap-1 rounded-md border border-[#E5E5E5] bg-white px-2 text-xs font-semibold text-[#111111]/70 hover:border-[#111111] hover:text-[#111111]"
+              >
+                <X size={13} strokeWidth={2.4} />
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="flex h-7 items-center gap-1 rounded-md bg-[#C62828] px-2 text-xs font-semibold text-white hover:opacity-90"
+              >
+                <Trash2 size={13} strokeWidth={2.4} />
+                Remove
+              </button>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Panel body — same grid-rows animation approach so expand/collapse
+          eases smoothly instead of snapping open/shut. */}
+      <div
+        className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
+          expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        }`}
+      >
+        <div className="overflow-hidden">
+          <div className="border-t border-[#E5E5E5] bg-white px-4 py-4">{children}</div>
+        </div>
+      </div>
     </div>
   );
 }
