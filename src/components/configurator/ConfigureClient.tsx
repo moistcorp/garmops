@@ -136,9 +136,14 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   }, [configId, colour, artwork, neckLabel, steps, quantity]);
 
   function handleExpandedStepChange(next: AccordionStepId | null) {
+    const wasNeckLabel = expandedStepId === "neck-label";
     setExpandedStepId(next);
     if (next === "neck-label") {
       setActiveView("neck");
+    } else if (wasNeckLabel) {
+      // Neck Label just closed (collapsed, or another step opened instead) —
+      // don't leave the live preview stuck on the neck crop.
+      setActiveView("front");
     }
   }
 

@@ -5,6 +5,7 @@ import { Download, Plus, Upload } from 'lucide-react';
 import type {
   NeckLabel,
   NeckLabelDimensions,
+  NeckLabelFileType,
   NeckLabelPosition,
   NeckLabelStitch,
 } from '@/lib/configurator/types/configurator';
@@ -20,6 +21,17 @@ const DEFAULT_POSITION: NeckLabelPosition = 'below_neck_tape';
 const ACCEPTED_FILE_TYPES = '.svg,.ai';
 const DIMENSION_OPTIONS: NeckLabelDimensions[] = ['50x18', '60x20', '65x15', '45x45'];
 const TEMPLATE_HREF = '/downloads/neck-label-templates.zip';
+// A real, renderable sample (the template zip is .ai-only and can't be
+// rasterized in a browser preview) — used by "Try sample artwork" so the
+// live preview has something to actually show.
+const SAMPLE_ARTWORK_HREF = '/garments/neck-label-sample.svg';
+
+function fileTypeFromName(name: string): NeckLabelFileType | undefined {
+  const ext = name.split('.').pop()?.toLowerCase();
+  if (ext === 'svg') return 'svg';
+  if (ext === 'ai') return 'ai';
+  return undefined;
+}
 
 function DimensionPreview({ option }: { option: NeckLabelDimensions }) {
   const isSquare = option === '45x45';
@@ -39,12 +51,14 @@ function DimensionPreview({ option }: { option: NeckLabelDimensions }) {
 export default function NeckLabelPanel({ value, onChange }: NeckLabelPanelProps): JSX.Element {
   const uploadInputId = useId();
   const [fileUrl, setFileUrl] = useState<string | undefined>(value?.fileUrl);
+  const [fileType, setFileType] = useState<NeckLabelFileType | undefined>(value?.fileType);
   const [dimensions, setDimensions] = useState<NeckLabelDimensions | undefined>(value?.dimensions);
   const [position, setPosition] = useState<NeckLabelPosition>(value?.position ?? DEFAULT_POSITION);
   const [stitch, setStitch] = useState<NeckLabelStitch | undefined>(value?.stitch);
 
   function emit(next: {
     fileUrl?: string;
+    fileType?: NeckLabelFileType;
     dimensions?: NeckLabelDimensions;
     position: NeckLabelPosition;
     stitch?: NeckLabelStitch;
@@ -52,6 +66,7 @@ export default function NeckLabelPanel({ value, onChange }: NeckLabelPanelProps)
     if (!next.fileUrl || !next.dimensions) return;
     onChange?.({
       fileUrl: next.fileUrl,
+      fileType: next.fileType,
       dimensions: next.dimensions,
       position: next.position,
       stitch: next.stitch,
@@ -59,30 +74,31 @@ export default function NeckLabelPanel({ value, onChange }: NeckLabelPanelProps)
     });
   }
 
-  function handleFileSelected(url: string) {
+  function handleFileSelected(url: string, type?: NeckLabelFileType) {
     setFileUrl(url);
-    emit({ fileUrl: url, dimensions, position, stitch });
+    setFileType(type);
+    emit({ fileUrl: url, fileType: type, dimensions, position, stitch });
   }
 
   function handleSampleArtwork() {
-    handleFileSelected('/downloads/neck-label-templates.zip');
+    handleFileSelected(SAMPLE_ARTWORK_HREF, 'svg');
   }
 
   function handleDimensionsSelected(next: NeckLabelDimensions) {
     setDimensions(next);
-    emit({ fileUrl, dimensions: next, position, stitch });
+    emit({ fileUrl, fileType, dimensions: next, position, stitch });
   }
 
   function handlePositionChange(next: NeckLabelPosition) {
     const nextStitch = next === 'on_neck_tape' ? undefined : stitch;
     setPosition(next);
     setStitch(nextStitch);
-    emit({ fileUrl, dimensions, position: next, stitch: nextStitch });
+    emit({ fileUrl, fileType, dimensions, position: next, stitch: nextStitch });
   }
 
   function handleStitchChange(next: NeckLabelStitch) {
     setStitch(next);
-    emit({ fileUrl, dimensions, position, stitch: next });
+    emit({ fileUrl, fileType, dimensions, position, stitch: next });
   }
 
   const alreadyConfigured = value?.confirmed === true;
@@ -134,7 +150,7 @@ export default function NeckLabelPanel({ value, onChange }: NeckLabelPanelProps)
         </a>
       </div>
 
-      <div className="relative">
+      <div className="group relative">
         <input
           id={uploadInputId}
           type="file"
@@ -144,13 +160,13 @@ export default function NeckLabelPanel({ value, onChange }: NeckLabelPanelProps)
             const file = e.target.files?.[0];
             if (!file) return;
             const url = URL.createObjectURL(file);
-            handleFileSelected(url);
+            handleFileSelected(url, fileTypeFromName(file.name));
           }}
         />
         <button
           type="button"
           onClick={handleSampleArtwork}
-          className="absolute right-3 top-3 z-10 inline-flex h-8 items-center gap-1.5 rounded-full bg-[#333333] px-3 text-xs font-bold text-white hover:bg-[#111111]"
+          className="absolute right-3 top-3 z-10 inline-flex h-8 items-center gap-1.5 rounded-full bg-[#333333] px-3 text-xs font-bold text-white opacity-0 pointer-events-none transition-opacity duration-150 hover:bg-[#111111] group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100"
         >
           <Plus size={13} strokeWidth={2.4} />
           Try sample artwork
