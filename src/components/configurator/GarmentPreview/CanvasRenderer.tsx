@@ -3,7 +3,13 @@
 import { useRef } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import type { ProductId } from "@/lib/configurator/pricing";
-import type { Artwork, ArtworkSide, NeckLabel } from "@/lib/configurator/types/configurator";
+import type {
+  Artwork,
+  ArtworkSide,
+  NeckLabel,
+  NeckLabelDimensions,
+  NeckLabelPosition,
+} from "@/lib/configurator/types/configurator";
 import type { GarmentView } from "@/lib/configurator/types/garment";
 import {
   useArtworkPosition,
@@ -24,6 +30,52 @@ import { LEFT_CHEST_DIMENSIONS } from "@/components/configurator/ConfiguratorSid
 // they represent a fixed manufacturing limit, not the artwork placement.
 const GUIDELINE_TOP_MARGIN_CM = 3;
 const LEFT_CHEST_FROM_CENTER_CM = 9;
+
+// Neck label sizing/position calibration, per view. "neck" is the zoomed
+// close-up crop; "front" is the full garment shot — the label should still
+// show there (a woven tag typically peeks up just above the back collar
+// even in a front-facing shot) but much smaller and higher up than in the
+// close-up. Neither view has a defined cm scale of its own (see
+// PX_PER_CM_X/Y note above), so these are separate constants — tune them
+// against the real garment art if the label looks under/oversized or
+// misaligned with the collar/tape.
+const NECK_LABEL_VIEWS = ["front", "neck"] as const;
+type NeckLabelView = (typeof NECK_LABEL_VIEWS)[number];
+
+const NECK_LABEL_PX_PER_MM: Record<NeckLabelView, number> = {
+  front: 0.55, // front is zoomed out relative to the neck close-up crop
+  neck: 2.4,
+};
+const NECK_LABEL_TOP_PERCENT: Record<NeckLabelView, Record<NeckLabelPosition, number>> = {
+  front: {
+    below_neck_tape: 13, // small peek just above the back collar seam
+    on_neck_tape: 10,
+  },
+  neck: {
+    below_neck_tape: 24, // hangs just under the neck binding, as a sewn-in tag
+    on_neck_tape: 17, // sits directly over/on the binding tape itself
+  },
+};
+
+// The 45x45mm preset has ~2x the on-canvas area of the strip presets (50x18,
+// 60x20, 65x15) once scaled by the same px-per-mm factor, and being a tall
+// square it visually dominates the collar in a way the physical size
+// difference doesn't really justify. Scale it down relative to the others.
+const NECK_LABEL_SCALE_OVERRIDE: Partial<Record<NeckLabelDimensions, number>> = {
+  "45x45": 0.62,
+};
+
+function neckLabelSizeMultiplier(dimensions: NeckLabelDimensions): number {
+  return NECK_LABEL_SCALE_OVERRIDE[dimensions] ?? 1;
+}
+
+function parseNeckLabelDimensionsMm(dimensions: NeckLabelDimensions): {
+  widthMm: number;
+  heightMm: number;
+} {
+  const [widthMm, heightMm] = dimensions.split("x").map(Number);
+  return { widthMm, heightMm };
+}
 
 interface CanvasRendererProps {
   view: GarmentView;
@@ -67,6 +119,15 @@ function isRenderableImage(fileUrl?: string): boolean {
   return /\.(png|jpe?g|svg|webp)$/i.test(fileUrl) || fileUrl.startsWith("blob:");
 }
 
+// Neck labels are restricted to .svg/.ai uploads (see NeckLabel type). Unlike
+// the general ArtworkPreview check above, a blob: url alone isn't enough
+// here — an .ai upload also gets a blob: url but a browser can't rasterize
+// PostScript/PDF content inside an <img>, so we key off the tracked
+// fileType instead and only ever try to render actual .svg files.
+function isRenderableNeckLabel(neckLabel: NeckLabel): boolean {
+  return neckLabel.fileType === "svg" && Boolean(neckLabel.fileUrl);
+}
+
 function ArtworkPreview({ side }: { side: ArtworkSide }) {
   if (isRenderableImage(side.fileUrl)) {
     return (
@@ -86,22 +147,115 @@ function ArtworkPreview({ side }: { side: ArtworkSide }) {
   );
 }
 
+// Renders the neck label as a stitched fabric tag: white patch, the
+// uploaded artwork (svg only — see isRenderableNeckLabel), and a stitch-line
+// overlay that reflects the selected stitch type. Built as one SVG so the
+// stitching stays crisp and proportional as the box resizes with the
+// dimension preset, rather than layering separate DOM borders.
 function NeckLabelPreview({ neckLabel }: { neckLabel: NeckLabel }) {
-  if (isRenderableImage(neckLabel.fileUrl)) {
-    return (
-      <img
-        src={neckLabel.fileUrl}
-        alt=""
-        draggable={false}
-        className="h-full w-full object-contain"
-      />
-    );
-  }
+  const { widthMm, heightMm } = parseNeckLabelDimensionsMm(neckLabel.dimensions);
+  // preserveAspectRatio="none" below stretches this SVG to fill whatever box
+  // the parent gives it, so this scale only sets the internal coordinate
+  // system (stroke widths, corner-tick length, font size) — it doesn't
+  // affect the label's actual on-screen size, which is controlled per-view
+  // in neckLabelBoxStyle.
+  const w = widthMm * NECK_LABEL_PX_PER_MM.neck;
+  const h = heightMm * NECK_LABEL_PX_PER_MM.neck;
+  const renderable = isRenderableNeckLabel(neckLabel);
+  const stitchColor = "#111111";
+
+  // Stitch type only applies to a "below neck tape" hang-tag — an "on neck
+  // tape" label is sewn flush into the tape on all four sides instead.
+  const stitch = neckLabel.position === "below_neck_tape" ? neckLabel.stitch : undefined;
+  const tick = Math.min(w, h) * 0.22;
+  const corners = [
+    { x: 0, y: 0, dx: 1, dy: 1 },
+    { x: w, y: 0, dx: -1, dy: 1 },
+    { x: 0, y: h, dx: 1, dy: -1 },
+    { x: w, y: h, dx: -1, dy: -1 },
+  ];
+  const activeCorners =
+    stitch === "4_corner" ? corners : stitch === "2_corner" ? corners.slice(0, 2) : [];
 
   return (
-    <div className="flex h-full w-full items-center justify-center rounded-sm border border-[#111111]/20 bg-white text-[10px] font-semibold uppercase tracking-wide text-[#111111]/55">
-      Label
-    </div>
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      className="h-full w-full overflow-visible drop-shadow-sm"
+      preserveAspectRatio="none"
+      role="img"
+      aria-label="Neck label preview"
+    >
+      <rect
+        x={0.5}
+        y={0.5}
+        width={w - 1}
+        height={h - 1}
+        fill="#FFFFFF"
+        stroke="#111111"
+        strokeOpacity={0.25}
+        strokeWidth={1}
+      />
+
+      {renderable ? (
+        <image
+          href={neckLabel.fileUrl}
+          x={w * 0.1}
+          y={h * 0.1}
+          width={w * 0.8}
+          height={h * 0.8}
+          preserveAspectRatio="xMidYMid meet"
+        />
+      ) : (
+        <text
+          x={w / 2}
+          y={h / 2}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontSize={Math.min(w, h) * 0.15}
+          fontWeight={700}
+          fill="#111111"
+          opacity={0.45}
+        >
+          {neckLabel.fileType === "ai" ? "AI FILE" : "LABEL"}
+        </text>
+      )}
+
+      {/* On-tape labels are stitched flush around all four edges. */}
+      {neckLabel.position === "on_neck_tape" && (
+        <rect
+          x={1}
+          y={1}
+          width={w - 2}
+          height={h - 2}
+          fill="none"
+          stroke={stitchColor}
+          strokeWidth={1.2}
+          strokeDasharray="3 2"
+        />
+      )}
+
+      {/* Below-tape hang-tags: stitched down the two sides only. */}
+      {stitch === "2_side" && (
+        <>
+          <line x1={1} y1={0} x2={1} y2={h} stroke={stitchColor} strokeWidth={1.2} strokeDasharray="3 2" />
+          <line x1={w - 1} y1={0} x2={w - 1} y2={h} stroke={stitchColor} strokeWidth={1.2} strokeDasharray="3 2" />
+        </>
+      )}
+
+      {/* Below-tape hang-tags: bar-tack stitch ticks at 2 or 4 corners. */}
+      {activeCorners.map((c, i) => (
+        <line
+          key={i}
+          x1={c.x}
+          y1={c.y}
+          x2={c.x + c.dx * tick}
+          y2={c.y + c.dy * tick}
+          stroke={stitchColor}
+          strokeWidth={1.6}
+          strokeLinecap="round"
+        />
+      ))}
+    </svg>
   );
 }
 
@@ -118,7 +272,25 @@ export default function CanvasRenderer({
   const showBox = DRAGGABLE_VIEWS.includes(view);
   const boxState = positions[view];
   const activeArtwork = view === "front" ? artwork.front : view === "back" ? artwork.back : undefined;
-  const showNeckLabel = view === "neck" && neckLabel?.fileUrl;
+  const isNeckLabelView = (v: GarmentView): v is NeckLabelView =>
+    (NECK_LABEL_VIEWS as readonly GarmentView[]).includes(v);
+  const showNeckLabel =
+    isNeckLabelView(view) && Boolean(neckLabel?.fileUrl && neckLabel?.dimensions);
+
+  let neckLabelBoxStyle: { left: string; top: string; width: string; height: string; transform: string } | undefined;
+  if (showNeckLabel && neckLabel?.dimensions && isNeckLabelView(view)) {
+    const { widthMm, heightMm } = parseNeckLabelDimensionsMm(neckLabel.dimensions);
+    const scale = NECK_LABEL_PX_PER_MM[view] * neckLabelSizeMultiplier(neckLabel.dimensions);
+    const labelWidthPx = widthMm * scale;
+    const labelHeightPx = heightMm * scale;
+    neckLabelBoxStyle = {
+      left: "50%",
+      top: `${NECK_LABEL_TOP_PERCENT[view][neckLabel.position]}%`,
+      width: `${(labelWidthPx / CANVAS_SIZE.width) * 100}%`,
+      height: `${(labelHeightPx / CANVAS_SIZE.height) * 100}%`,
+      transform: "translateX(-50%)",
+    };
+  }
 
   const boxWidthPx = boxState.widthCm * PX_PER_CM_X;
   const boxHeightPx = boxState.heightCm * PX_PER_CM_Y;
@@ -241,8 +413,8 @@ export default function CanvasRenderer({
         </div>
       )}
 
-      {showNeckLabel && (
-        <div className="absolute left-1/2 top-[20%] z-10 h-[9%] w-[24%] -translate-x-1/2">
+      {showNeckLabel && neckLabel && neckLabelBoxStyle && (
+        <div className="absolute z-10" style={neckLabelBoxStyle}>
           <NeckLabelPreview neckLabel={neckLabel} />
         </div>
       )}

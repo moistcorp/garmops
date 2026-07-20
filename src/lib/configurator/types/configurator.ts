@@ -49,8 +49,11 @@ export type NeckLabelDimensions = '50x18' | '60x20' | '65x15' | '45x45'; // mm
 export type NeckLabelPosition = 'below_neck_tape' | 'on_neck_tape';
 export type NeckLabelStitch = '2_side' | '4_corner' | '2_corner';
 
+export type NeckLabelFileType = 'svg' | 'ai';
+
 export interface NeckLabel {
   fileUrl: string; // .svg or .ai only
+  fileType?: NeckLabelFileType; // drives whether the live preview can rasterize the file (svg) or must show a placeholder (ai — browsers can't render it)
   dimensions: NeckLabelDimensions;
   position: NeckLabelPosition;
   stitch?: NeckLabelStitch; // only present/relevant when position = 'below_neck_tape'
