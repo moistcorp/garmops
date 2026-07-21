@@ -56,6 +56,8 @@ export interface ConfiguratorSidebarProps {
   onAttemptStepChange?: (id: AccordionStepId | null) => void;
   /** Tote bags use bag-label copy instead of neck/collar copy. */
   isToteProduct?: boolean;
+  /** Clears the underlying controlled data for a confirmed step. */
+  onResetStep?: (id: AccordionStepId) => void;
 }
 
 export const INITIAL_STEPS: AccordionStepState[] = [
@@ -87,6 +89,7 @@ export function ConfiguratorSidebar({
   unitBasePrice,
   onAttemptStepChange,
   isToteProduct = false,
+  onResetStep,
 }: ConfiguratorSidebarProps = {}) {
   // Uncontrolled fallback for steps — mirrors the expandedStepId/selectedColour
   // pattern so this component still renders standalone (Phase 4 shell testing)
@@ -180,6 +183,7 @@ export function ConfiguratorSidebar({
   }
 
   function stubResetStep(id: AccordionStepId) {
+    onResetStep?.(id);
     updateSteps((prev) =>
       prev.map((step) =>
         step.id === id ? { ...step, summary: null, confirmed: false } : step

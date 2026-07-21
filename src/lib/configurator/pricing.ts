@@ -1,7 +1,7 @@
 // src/lib/configurator/pricing.ts
 
 import { products as catalogProducts } from "../products";
-import type { Artwork, GarmentColour, NeckLabel } from "./types/configurator";
+import type { Artwork, ArtworkTechnique, GarmentColour, NeckLabel } from "./types/configurator";
 
 // ============================================================
 // PHASE 1 (confirmed) — base price lookup
@@ -22,12 +22,20 @@ export function getBasePrice(productId: ProductId): number {
 }
 
 export const CUSTOM_DYE_UNIT_INCREASE_PERCENT = 15.33;
-export const PRINT_UNIT_INCREASE_PERCENT = 42;
 export const BACK_ARTWORK_UNIT_INCREASE_PERCENT = 22;
-export const NECK_LABEL_UNIT_INCREASE_PERCENT = 10;
+export const NECK_LABEL_UNIT_PRICE = 25;
 export const RUSH_DELIVERY_FEE_PER_UNIT = 75;
 export const EXPRESS_DELIVERY_FEE_PER_UNIT = RUSH_DELIVERY_FEE_PER_UNIT;
 export const GST_PERCENT = 5;
+
+export const TECHNIQUE_UNIT_PRICE_DELTAS: Record<ArtworkTechnique, number> = {
+  screen_print: 38,
+  dtg: 28,
+  dtf: 32,
+  reflective_heat_transfer: 46,
+  puff_print: 52,
+  embroidery: 65,
+};
 
 export type UnitPriceAdjustment = {
   label: string;
@@ -42,22 +50,25 @@ export function getUnitPriceAdjustments(
   rushDelivery = false
 ): UnitPriceAdjustment[] {
   const adjustments: UnitPriceAdjustment[] = [];
-  const hasAnyPrint = Boolean(artwork.front?.confirmed || artwork.back?.confirmed);
-
   if (colour?.type === "custom_dye") {
     adjustments.push({ label: "Custom dye", percent: CUSTOM_DYE_UNIT_INCREASE_PERCENT });
   }
 
-  if (hasAnyPrint) {
-    adjustments.push({ label: "Print application", percent: PRINT_UNIT_INCREASE_PERCENT });
-  }
+  (["front", "back"] as const).forEach((side) => {
+    const artworkSide = artwork[side];
+    if (!artworkSide?.confirmed || !artworkSide.technique) return;
+    adjustments.push({
+      label: `${side === "front" ? "Front" : "Back"} ${artworkSide.technique.replaceAll("_", " ")}`,
+      amount: TECHNIQUE_UNIT_PRICE_DELTAS[artworkSide.technique],
+    });
+  });
 
   if (artwork.back?.confirmed) {
     adjustments.push({ label: "Back artwork", percent: BACK_ARTWORK_UNIT_INCREASE_PERCENT });
   }
 
   if (neckLabel?.confirmed) {
-    adjustments.push({ label: "Neck label", percent: NECK_LABEL_UNIT_INCREASE_PERCENT });
+    adjustments.push({ label: "Neck label", amount: NECK_LABEL_UNIT_PRICE });
   }
 
   if (rushDelivery) {

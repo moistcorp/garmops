@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AlertTriangle } from "lucide-react";
 import type { GarmentView } from "@/lib/configurator/types/garment";
 import type { GarmentColour, Artwork, NeckLabel } from "@/lib/configurator/types/configurator";
@@ -86,6 +86,7 @@ function getBuildProgress(steps: AccordionStepState[]) {
 
 export default function ConfigureClient({ configId }: ConfigureClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const product = getProduct(configId);
   const productId = product?.id ?? "tshirt-classic";
   const productName = product?.name ?? "Classic Tee";
@@ -117,6 +118,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   // Lifted (7B) so the CTA/confirm flow can validate fileUrl/dimensions/
   // position and build the summary string, mirroring the artwork lift above.
   const [neckLabel, setNeckLabel] = useState<NeckLabel>({} as NeckLabel);
+  const shareDraft = { colour, artwork, neckLabel, steps, quantity };
   const configuredUnitCost = computeConfiguredUnitCost(
     productId,
     colour,
@@ -140,6 +142,27 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   // lifetime, since configId is a route param and the component remounts
   // when it changes.
   useEffect(() => {
+    const sharedDesign = searchParams.get("design");
+    if (sharedDesign) {
+      try {
+        const parsed = JSON.parse(decodeURIComponent(escape(atob(sharedDesign))));
+        if (parsed?.colour && parsed?.artwork && parsed?.steps) {
+          /* eslint-disable react-hooks/set-state-in-effect */
+          setColour(parsed.colour);
+          setArtwork(parsed.artwork);
+          setNeckLabel((parsed.neckLabel ?? {}) as NeckLabel);
+          setSteps(parsed.steps);
+          setQuantity(parsed.quantity ?? 50);
+          setDraftRestored(true);
+          hasHydrated.current = true;
+          /* eslint-enable react-hooks/set-state-in-effect */
+          return;
+        }
+      } catch {
+        // Ignore malformed shared-design payloads and fall back to local draft restore.
+      }
+    }
+
     const draft = readBuildDraft(configId);
     if (hasMeaningfulDraft(draft) && draft) {
       // Restoring a localStorage draft is a one-time sync from an external
@@ -155,7 +178,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       /* eslint-enable react-hooks/set-state-in-effect */
     }
     hasHydrated.current = true;
-  }, [configId]);
+  }, [configId, searchParams]);
 
   // Debounced autosave — writes the in-progress build to localStorage
   // shortly after any change, so a refresh or closed tab doesn't lose
@@ -368,7 +391,11 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   return (
     <ArtworkPositionProvider activeView={activeView}>
       <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-white text-[#111111]">
-        <ConfiguratorHeader configId={configId} productName={productName} />
+        <ConfiguratorHeader
+          configId={configId}
+          productName={productName}
+          shareDraft={shareDraft}
+        />
 
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 px-4 pb-4 lg:grid-cols-[360px_minmax(0,1fr)_310px] lg:px-5">
           <aside className="order-2 flex min-h-0 min-w-0 flex-col overflow-hidden rounded-lg border border-[#E5E5E5] bg-white lg:order-1">
@@ -426,6 +453,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 onViewChange={setActiveView}
                 unitBasePrice={unitBasePrice}
                 isToteProduct={isToteProduct}
+                onResetStep={resetStepDraft}
               />
             </div>
           </aside>

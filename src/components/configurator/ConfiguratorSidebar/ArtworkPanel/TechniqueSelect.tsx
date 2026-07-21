@@ -1,6 +1,7 @@
 "use client";
 
 import type { ArtworkTechnique } from "@/lib/configurator/types/configurator";
+import { formatInr, TECHNIQUE_UNIT_PRICE_DELTAS } from "@/lib/configurator/pricing";
 
 export interface TechniqueSelectProps {
   value?: ArtworkTechnique;
@@ -24,15 +25,6 @@ const TECHNIQUE_ORDER: ArtworkTechnique[] = [
   "puff_print",
   "embroidery",
 ];
-
-const TECHNIQUE_PRICE_DELTAS: Record<ArtworkTechnique, string> = {
-  screen_print: "+₹38/unit",
-  dtg: "+₹28/unit",
-  dtf: "+₹32/unit",
-  reflective_heat_transfer: "+₹46/unit",
-  puff_print: "+₹52/unit",
-  embroidery: "+₹65/unit",
-};
 
 export function TechniqueSelect({ value, onChange }: TechniqueSelectProps) {
   return (
@@ -71,7 +63,7 @@ export function TechniqueSelect({ value, onChange }: TechniqueSelectProps) {
                   selected ? "text-white/70" : "text-[#111111]/50"
                 }`}
               >
-                {TECHNIQUE_PRICE_DELTAS[technique]}
+                +{formatInr(TECHNIQUE_UNIT_PRICE_DELTAS[technique])}/unit
               </span>
             </button>
           );
