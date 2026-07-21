@@ -394,7 +394,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         <ConfiguratorHeader
           configId={configId}
           productName={productName}
-          shareDraft={shareDraft}
         />
 
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 px-4 pb-4 lg:grid-cols-[360px_minmax(0,1fr)_310px] lg:px-5">
