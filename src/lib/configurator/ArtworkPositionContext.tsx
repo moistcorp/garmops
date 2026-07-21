@@ -36,10 +36,11 @@ export const DEFAULT_POSITION_STATE: PositionControlsState = {
 
 export const STEP = 0.5;
 export const MIN_DIM = 1;
+export const MAX_DIM = 50;
 export const MIN_OFFSET = 0;
 
-export function clampDim(value: number, min: number = MIN_DIM): number {
-  return Math.max(min, Math.round(value * 2) / 2);
+export function clampDim(value: number, min: number = MIN_DIM, max: number = MAX_DIM): number {
+  return Math.min(max, Math.max(min, Math.round(value * 2) / 2));
 }
 
 // ---------------------------------------------------------------------------

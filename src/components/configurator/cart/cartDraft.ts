@@ -15,6 +15,7 @@ import { SIZES } from "./SizeQuantityGrid";
 
 const STORAGE_PREFIX = "mf_configurator_cart:";
 const ACTIVE_CART_KEY = `${STORAGE_PREFIX}active`;
+const ACTIVE_CART_ID_KEY = `${STORAGE_PREFIX}active_id`;
 
 export const RESERVATION_FEE = 499;
 
@@ -31,6 +32,7 @@ export const emptyAddress: Address = {
   firstName: "",
   lastName: "",
   company: "",
+  gstin: "",
   country: "India",
   addressLine1: "",
   addressLine2: "",
@@ -110,9 +112,7 @@ export function createDraft(cartId: string): CartDraft {
 export function readDraft(cartId: string): CartDraft {
   if (typeof window === "undefined") return createDraft(cartId);
 
-  const raw =
-    window.localStorage.getItem(ACTIVE_CART_KEY) ??
-    window.localStorage.getItem(`${STORAGE_PREFIX}${cartId}`);
+  const raw = window.localStorage.getItem(`${STORAGE_PREFIX}${cartId}`);
   if (!raw) return createDraft(cartId);
 
   try {
@@ -125,8 +125,23 @@ export function readDraft(cartId: string): CartDraft {
 export function writeDraft(cartId: string, draft: CartDraft): void {
   if (typeof window === "undefined") return;
   const serialized = JSON.stringify(draft);
+  window.localStorage.setItem(ACTIVE_CART_ID_KEY, cartId);
   window.localStorage.setItem(ACTIVE_CART_KEY, serialized);
   window.localStorage.setItem(`${STORAGE_PREFIX}${cartId}`, serialized);
+}
+
+export function readActiveCartSummary(): { cartId: string; itemCount: number } | null {
+  if (typeof window === "undefined") return null;
+  const cartId = window.localStorage.getItem(ACTIVE_CART_ID_KEY);
+  const raw = window.localStorage.getItem(ACTIVE_CART_KEY);
+  if (!cartId || !raw) return null;
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<CartDraft>;
+    return { cartId, itemCount: parsed.items?.length ?? 0 };
+  } catch {
+    return null;
+  }
 }
 
 export interface ConfiguredCartItemInput {
@@ -181,7 +196,7 @@ export function upsertConfiguredCartItem(
   );
 
   const configuredItem: CartItem = {
-    id: input.productId,
+    id: `${input.productId}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
     productId: input.productId,
     productName: input.productName,
     previewImage: input.previewImage,
@@ -197,7 +212,7 @@ export function upsertConfiguredCartItem(
 
   writeDraft(cartId, {
     ...draft,
-    items: [configuredItem, ...draft.items.filter((item) => item.id !== configuredItem.id)],
+    items: [configuredItem, ...draft.items],
   });
 }
 

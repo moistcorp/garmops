@@ -40,7 +40,7 @@ export function TechniqueSelect({ value, onChange }: TechniqueSelectProps) {
       <div className="flex items-center justify-between gap-3">
         <span className="text-sm font-semibold text-[#111111]">Technique</span>
         <a
-          href="#techniques-guide"
+          href="/how-it-works"
           target="_blank"
           rel="noopener noreferrer"
           className="text-xs font-medium text-[#111111]/65 underline underline-offset-2 hover:text-[#111111]"

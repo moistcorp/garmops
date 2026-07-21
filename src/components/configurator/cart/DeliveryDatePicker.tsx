@@ -5,6 +5,7 @@ import { getDeliveryOptions } from "@/lib/configurator/delivery";
 
 export interface DeliveryDatePickerProps {
   orderConfirmedDate?: Date;
+  extraLeadTimeDays?: number;
   onDateSelect: (date: Date, type: "rush" | "standard" | "flexible") => void;
   selectedDate?: Date;
 }
@@ -18,11 +19,15 @@ function formatDate(d: Date): string {
 }
 
 function toInputValue(d: Date): string {
-  return d.toISOString().split("T")[0];
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 export function DeliveryDatePicker({
   orderConfirmedDate,
+  extraLeadTimeDays = 0,
   onDateSelect,
   selectedDate,
 }: DeliveryDatePickerProps) {
@@ -30,7 +35,10 @@ export function DeliveryDatePicker({
   const [showCalendar, setShowCalendar] = useState(false);
   const [calendarError, setCalendarError] = useState<string | null>(null);
 
-  const options = useMemo(() => getDeliveryOptions(baseDate), [baseDate]);
+  const options = useMemo(
+    () => getDeliveryOptions(baseDate, extraLeadTimeDays),
+    [baseDate, extraLeadTimeDays]
+  );
 
   const chipClass = (active: boolean) =>
     `flex-1 rounded-md border px-4 py-3 text-left transition-colors ${
@@ -116,6 +124,9 @@ export function DeliveryDatePicker({
       <div className="text-xs text-[#111111]/60 space-y-1 pt-1">
         <p>Rush adds ₹75 per unit to the invoice.</p>
         <p>Standard follows the regular production and shipping timeline.</p>
+        {extraLeadTimeDays > 0 && (
+          <p>Custom dye adds {extraLeadTimeDays} production days to these estimates.</p>
+        )}
         <p>Flexible dates are available on or after the standard date.</p>
       </div>
     </div>

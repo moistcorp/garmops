@@ -11,6 +11,8 @@ import { CartSummarySidebar } from './CartSummarySidebar';
 import { CheckoutSteps } from './CheckoutSteps';
 import { calculateTotals, createDraft, itemSubtotal, readDraft, totalUnits, writeDraft } from './cartDraft';
 import { formatInr } from '@/lib/configurator/pricing';
+import { CUSTOM_DYE_MOQ_UNITS } from '@/lib/configurator/colours';
+import { getSizeChart } from '@/lib/sizecharts';
 import CanvasRenderer from '../GarmentPreview/CanvasRenderer';
 import { ArtworkPositionProvider } from '@/lib/configurator/ArtworkPositionContext';
 
@@ -79,7 +81,11 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
 
           const currentSizeQty = item.sizeQuantities[size] ?? 0;
           const currentTotal = totalUnits(item.sizeQuantities);
-          const minimumAllowedQty = Math.max(0, currentSizeQty - Math.max(0, currentTotal - 50));
+          const minimumUnits = item.colour.type === 'custom_dye' ? CUSTOM_DYE_MOQ_UNITS : 50;
+          const minimumAllowedQty = Math.max(
+            0,
+            currentSizeQty - Math.max(0, currentTotal - minimumUnits)
+          );
           const safeQty = Math.max(minimumAllowedQty, qty);
 
           return { ...item, sizeQuantities: { ...item.sizeQuantities, [size]: safeQty } };
@@ -171,6 +177,8 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
         {draftLoaded && items.map((item) => {
           const selectedView = activeView[item.id] ?? 'front';
           const itemUnits = totalUnits(item.sizeQuantities);
+          const itemMinimumUnits = item.colour.type === 'custom_dye' ? CUSTOM_DYE_MOQ_UNITS : 50;
+          const sizeChart = getSizeChart(item.productId);
           const garmentTotal = item.unitPrice * itemUnits;
           return (
             <section key={item.id} className="rounded-lg border border-[#E5E5E5] bg-white p-5">
@@ -261,7 +269,39 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                     value={item.sizeQuantities}
                     onChange={(size, qty) => handleQtyChange(item.id, size, qty)}
                     unitPrice={item.unitPrice}
+                    minimumUnits={itemMinimumUnits}
                   />
+
+                  {sizeChart && (
+                    <details className="rounded-md border border-[#E5E5E5] bg-white p-3 text-xs text-[#111111]">
+                      <summary className="cursor-pointer font-semibold">Fit / measurement chart</summary>
+                      <div className="mt-3 overflow-x-auto">
+                        <table className="w-full min-w-[420px] text-left">
+                          <thead className="text-[#111111]/50">
+                            <tr>
+                              <th className="py-1 pr-3">Size</th>
+                              <th className="py-1 pr-3">Chest</th>
+                              <th className="py-1 pr-3">Length</th>
+                              <th className="py-1 pr-3">Shoulder</th>
+                              <th className="py-1 pr-3">Sleeve</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {sizeChart.sizes.map((row) => (
+                              <tr key={row.size} className="border-t border-[#E5E5E5]">
+                                <td className="py-1.5 pr-3 font-medium">{row.size}</td>
+                                <td className="py-1.5 pr-3">{row.chest}</td>
+                                <td className="py-1.5 pr-3">{row.length}</td>
+                                <td className="py-1.5 pr-3">{row.shoulder ?? "-"}</td>
+                                <td className="py-1.5 pr-3">{row.sleeve ?? "-"}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      {sizeChart.note && <p className="mt-2 text-[#111111]/55">{sizeChart.note}</p>}
+                    </details>
+                  )}
 
                   <div className="rounded-md border border-[#E5E5E5] bg-[#F7F7F7] px-4 py-3 text-sm text-[#111111]">
                     <div className="flex items-center justify-between gap-4">

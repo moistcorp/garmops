@@ -14,6 +14,7 @@ import {
   GST_PERCENT,
 } from "@/lib/configurator/pricing";
 import { getDeliveryOptions } from "@/lib/configurator/delivery";
+import { CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS } from "@/lib/configurator/colours";
 import type { Artwork, GarmentColour, NeckLabel } from "@/lib/configurator/types/configurator";
 import type { AccordionStepState } from "@/components/configurator/ConfiguratorSidebar/ConfiguratorSidebar";
 
@@ -23,6 +24,7 @@ export interface OrderBarProps {
 
   quantity: number;
   onQuantityChange: (quantity: number) => void;
+  minQuantity?: number;
   ctaLabel: string;
   onCtaClick?: () => void;
 
@@ -60,9 +62,9 @@ export function computeConfiguredUnitCost(
   return undiscounted - discount;
 }
 
-function computeDeliveryDate(): string {
+function computeDeliveryDate(extraLeadTimeDays = 0): string {
   const orderConfirmedDate = new Date();
-  const { standard } = getDeliveryOptions(orderConfirmedDate);
+  const { standard } = getDeliveryOptions(orderConfirmedDate, extraLeadTimeDays);
   return formatDate(standard);
 }
 
@@ -234,6 +236,7 @@ export function OrderBar({
   deliveryDate,
   quantity,
   onQuantityChange,
+  minQuantity = MINIMUM_ORDER_QUANTITY,
   ctaLabel,
   onCtaClick,
   productId = "tshirt-classic",
@@ -246,7 +249,9 @@ export function OrderBar({
   const displayUnitCost =
     unitCost ??
     formatInr(computeConfiguredUnitCost(productId, colour, artwork, neckLabel, quantity));
-  const displayDeliveryDate = deliveryDate ?? computeDeliveryDate();
+  const extraLeadTimeDays =
+    colour?.type === "custom_dye" ? CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS.max : 0;
+  const displayDeliveryDate = deliveryDate ?? computeDeliveryDate(extraLeadTimeDays);
   const undiscountedUnitCost = computeConfiguredUnitCost(
     productId,
     colour,
@@ -319,8 +324,8 @@ export function OrderBar({
             <button
               type="button"
               aria-label="Decrease quantity"
-              disabled={quantity <= MINIMUM_ORDER_QUANTITY}
-              onClick={() => onQuantityChange(Math.max(MINIMUM_ORDER_QUANTITY, quantity - 1))}
+              disabled={quantity <= minQuantity}
+              onClick={() => onQuantityChange(Math.max(minQuantity, quantity - 1))}
               className="flex h-7 w-7 items-center justify-center rounded-md text-lg leading-none text-[#111111]/80 hover:bg-white disabled:cursor-not-allowed disabled:text-[#111111]/25"
             >
               −
@@ -328,10 +333,10 @@ export function OrderBar({
             <input
               id="configurator-quantity"
               type="number"
-              min={MINIMUM_ORDER_QUANTITY}
+              min={minQuantity}
               value={quantity}
               onChange={(e) =>
-                onQuantityChange(Math.max(MINIMUM_ORDER_QUANTITY, Number(e.target.value) || MINIMUM_ORDER_QUANTITY))
+                onQuantityChange(Math.max(minQuantity, Number(e.target.value) || minQuantity))
               }
               className="h-full w-12 bg-transparent text-center text-sm font-medium text-[#111111] outline-none"
             />
@@ -359,6 +364,11 @@ export function OrderBar({
         </div>
 
         <VolumeDiscountNudge quantity={quantity} />
+        {minQuantity > MINIMUM_ORDER_QUANTITY && (
+          <p className="text-[11px] font-medium text-[#8A6212]">
+            Custom dye minimum: {minQuantity} units per colour.
+          </p>
+        )}
 
         {ctaErrorMessage && (
           <p role="alert" className="text-right text-[11px] font-medium text-[#C62828]">

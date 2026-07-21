@@ -20,6 +20,7 @@ import { WhatsAppAssistantBar } from "./WhatsAppAssistantBar";
 import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionContext";
 import { getProduct } from "@/lib/configurator/products";
 import { formatInr, getBasePrice } from "@/lib/configurator/pricing";
+import { CUSTOM_DYE_MOQ_UNITS } from "@/lib/configurator/colours";
 import { upsertConfiguredCartItem } from "./cart/cartDraft";
 import {
   readBuildDraft,
@@ -56,14 +57,14 @@ function getCtaLabel(openStep: AccordionStepId | null): string {
   }
 }
 
-function getStepTitle(stepId: AccordionStepId): string {
+function getStepTitle(stepId: AccordionStepId, isToteProduct = false): string {
   switch (stepId) {
     case "garment-colour":
       return "Garment Colour";
     case "artwork":
       return "Artwork";
     case "neck-label":
-      return "Neck Label";
+      return isToteProduct ? "Bag Label" : "Neck Label";
   }
 }
 
@@ -88,6 +89,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   const product = getProduct(configId);
   const productId = product?.id ?? "tshirt-classic";
   const productName = product?.name ?? "Classic Tee";
+  const isToteProduct = productId.includes("tote");
   let unitBasePrice: number | undefined;
   try {
     unitBasePrice = getBasePrice(productId);
@@ -99,6 +101,8 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   const [pendingStepId, setPendingStepId] = useState<AccordionStepId | null>(null);
   const [unsavedStepId, setUnsavedStepId] = useState<AccordionStepId | null>(null);
   const [quantity, setQuantity] = useState<number>(50);
+  const [ctaErrorMessage, setCtaErrorMessage] = useState<string | null>(null);
+  const [ctaErrorNonce, setCtaErrorNonce] = useState(0);
 
   // Lifted so the live preview (below) and the sidebar's Garment Colour step
   // read/write the same colour — was a disconnected placeholder pre-5B.
@@ -121,6 +125,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
     quantity
   );
   const configuredOrderTotal = configuredUnitCost * quantity;
+  const minimumQuantity = colour.type === "custom_dye" ? CUSTOM_DYE_MOQ_UNITS : 50;
 
   // Autosave: whether a saved draft was restored on load (drives the small
   // "Draft restored" notice below), and a ref so the debounced-write effect
@@ -199,6 +204,15 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
     );
   }
 
+  function showCtaError(message: string) {
+    setCtaErrorMessage(message);
+    setCtaErrorNonce((prev) => prev + 1);
+  }
+
+  function setSafeQuantity(next: number) {
+    setQuantity(Math.max(minimumQuantity, next));
+  }
+
   function applyExpandedStepChange(next: AccordionStepId | null) {
     const wasNeckLabel = expandedStepId === "neck-label";
     setExpandedStepId(next);
@@ -236,6 +250,10 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
 
   function handleCtaClick() {
     if (expandedStepId === "garment-colour") {
+      if (!colour.name) {
+        showCtaError("Choose a garment colour before confirming.");
+        return;
+      }
       const confirmedColour: GarmentColour = { ...colour, confirmed: true };
       setColour(confirmedColour);
 
@@ -261,10 +279,12 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         (!artwork.front || Boolean(artwork.front.technique)) &&
         (!artwork.back || Boolean(artwork.back.technique));
 
-      // No precedent from 5B for a disabled/error CTA state, so an
-      // incomplete artwork step (nothing uploaded, or a side still mid-edit)
-      // is a no-op click rather than an error.
       if (!hasAnySide || !allUploadedSidesReady) {
+        showCtaError(
+          !hasAnySide
+            ? "Upload artwork for at least one side."
+            : "Choose a technique for each uploaded artwork."
+        );
         return;
       }
 
@@ -299,8 +319,8 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         neckLabel?.fileUrl && neckLabel?.dimensions && neckLabel?.position
       );
 
-      // Same no-op-on-incomplete convention as the artwork branch above.
       if (!isReady) {
+        showCtaError("Upload label artwork and choose dimensions/position first.");
         return;
       }
 
@@ -318,6 +338,13 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
 
       // Last step — nothing left to auto-advance to, just close it.
       applyExpandedStepChange(null);
+      return;
+    }
+
+    const missingStep = steps.find((step) => !step.confirmed);
+    if (missingStep) {
+      showCtaError(`Confirm ${missingStep.title} before adding to cart.`);
+      applyExpandedStepChange(missingStep.id);
       return;
     }
 
@@ -383,7 +410,12 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 onExpandedStepChange={applyExpandedStepChange}
                 onAttemptStepChange={handleExpandedStepChange}
                 selectedColour={colour}
-                onColourChange={(next) => setColour({ ...next, confirmed: false })}
+                onColourChange={(next) => {
+                  setColour({ ...next, confirmed: false });
+                  if (next.type === "custom_dye") {
+                    setQuantity((prev) => Math.max(CUSTOM_DYE_MOQ_UNITS, prev));
+                  }
+                }}
                 steps={steps}
                 onStepsChange={setSteps}
                 artwork={artwork}
@@ -393,6 +425,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 activeView={activeView}
                 onViewChange={setActiveView}
                 unitBasePrice={unitBasePrice}
+                isToteProduct={isToteProduct}
               />
             </div>
           </aside>
@@ -405,7 +438,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 </div>
                 <h2 className="mt-4 text-xl font-semibold text-[#111111]">Unsaved Changes</h2>
                 <p className="mt-2 text-sm leading-snug text-[#111111]/70">
-                  You didn&apos;t save your {getStepTitle(unsavedStepId)}. Confirm it to keep your
+                  You didn&apos;t save your {getStepTitle(unsavedStepId, isToteProduct)}. Confirm it to keep your
                   changes.
                 </p>
                 <div className="mt-5 grid grid-cols-2 gap-3">
@@ -461,7 +494,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                   </span>
                 </div>
                 <div className="flex justify-between gap-4">
-                  <span className="text-[#111111]/55">Neck label</span>
+                  <span className="text-[#111111]/55">{isToteProduct ? "Bag label" : "Neck label"}</span>
                   <span className="text-right font-medium">
                     {neckLabel?.confirmed ? "Added" : "Not added"}
                   </span>
@@ -484,7 +517,8 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
             <div className="shrink-0">
               <OrderBar
                 quantity={quantity}
-                onQuantityChange={setQuantity}
+                onQuantityChange={setSafeQuantity}
+                minQuantity={minimumQuantity}
                 ctaLabel={getCtaLabel(expandedStepId)}
                 onCtaClick={handleCtaClick}
                 productId={productId}
@@ -492,6 +526,8 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 colour={colour}
                 artwork={artwork}
                 neckLabel={neckLabel}
+                ctaErrorMessage={ctaErrorMessage}
+                ctaErrorNonce={ctaErrorNonce}
               />
             </div>
           </aside>

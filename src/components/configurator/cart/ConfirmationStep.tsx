@@ -111,6 +111,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
             )
             .join(" | "),
           estimatedTotal: formatInr(orderTotal),
+          retryHref: `/configurator/cart/${encodeURIComponent(cartId)}/confirmation`,
           shipping: {
             addressLine1: draft.shippingAddress.addressLine1,
             city: draft.shippingAddress.city,
@@ -276,7 +277,9 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
             <span>{formatInr(balanceDue)}</span>
           </div>
           <p className="pt-2 text-xs text-[#111111]/60">
-            Remaining invoice is settled by net banking after shipping is quoted.
+            After you pay the reservation fee, we review the artwork, confirm production
+            feasibility, and share the final invoice with shipping. The balance is due before
+            production starts, payable by bank transfer or your agreed B2B payment terms.
           </p>
         </div>
         <button
@@ -311,6 +314,7 @@ function AddressSummary({ address }: { address: Address }) {
       </p>
       <p>{address.addressLine1}</p>
       {address.addressLine2 && <p>{address.addressLine2}</p>}
+      {address.gstin && <p>GSTIN: {address.gstin}</p>}
       <p>
         {address.city}
         {address.state ? `, ${address.state}` : ""} {address.zip}

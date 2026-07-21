@@ -54,6 +54,8 @@ export interface ConfiguratorSidebarProps {
   unitBasePrice?: number;
   /** Opens the unsaved-changes confirmation before abandoning an unfinished step. */
   onAttemptStepChange?: (id: AccordionStepId | null) => void;
+  /** Tote bags use bag-label copy instead of neck/collar copy. */
+  isToteProduct?: boolean;
 }
 
 export const INITIAL_STEPS: AccordionStepState[] = [
@@ -84,6 +86,7 @@ export function ConfiguratorSidebar({
   onViewChange,
   unitBasePrice,
   onAttemptStepChange,
+  isToteProduct = false,
 }: ConfiguratorSidebarProps = {}) {
   // Uncontrolled fallback for steps — mirrors the expandedStepId/selectedColour
   // pattern so this component still renders standalone (Phase 4 shell testing)
@@ -189,7 +192,7 @@ export function ConfiguratorSidebar({
       {steps.map((step) => (
         <AccordionItem
           key={step.id}
-          title={step.title}
+          title={isToteProduct && step.id === "neck-label" ? "Bag Label" : step.title}
           summary={step.summary}
           confirmed={step.confirmed}
           expanded={expandedStepId === step.id}
@@ -210,7 +213,11 @@ export function ConfiguratorSidebar({
               onViewChange={onViewChange}
             />
           ) : step.id === "neck-label" ? (
-            <NeckLabelPanel value={neckLabel} onChange={handleNeckLabelChange} />
+            <NeckLabelPanel
+              value={neckLabel}
+              onChange={handleNeckLabelChange}
+              isToteProduct={isToteProduct}
+            />
           ) : (
             <div className="flex flex-col gap-2 text-sm text-[#111111]">
               <p className="text-[#111111]/60">

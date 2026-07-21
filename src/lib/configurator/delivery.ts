@@ -12,9 +12,9 @@ export type DeliveryOptions = {
   flexible: (customDate: Date) => boolean;
 };
 
-export function getDeliveryOptions(orderConfirmedDate: Date): DeliveryOptions {
-  const standard = addDays(orderConfirmedDate, 35);
-  const rush = addDays(orderConfirmedDate, 18);
+export function getDeliveryOptions(orderConfirmedDate: Date, extraLeadTimeDays = 0): DeliveryOptions {
+  const standard = addDays(orderConfirmedDate, 35 + extraLeadTimeDays);
+  const rush = addDays(orderConfirmedDate, 18 + extraLeadTimeDays);
 
   return {
     rush,

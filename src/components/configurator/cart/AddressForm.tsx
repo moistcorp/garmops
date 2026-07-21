@@ -6,6 +6,7 @@ export interface Address {
   firstName: string;
   lastName: string;
   company?: string;
+  gstin?: string;
   country: string;
   addressLine1: string;
   addressLine2?: string;
@@ -31,22 +32,10 @@ export interface AddressFormProps {
 
 const COUNTRIES = [
   "India",
-  "United States",
-  "United Kingdom",
-  "Germany",
-  "France",
-  "Australia",
-  "Canada",
-  "United Arab Emirates",
-  "Singapore",
-  "Japan",
-  "Netherlands",
-  "Italy",
-  "Spain",
-  "New Zealand",
 ];
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const GSTIN_RE = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 
 export function isAddressValid(a: Address): boolean {
   return Boolean(
@@ -57,6 +46,7 @@ export function isAddressValid(a: Address): boolean {
       a.zip.trim() &&
       a.city.trim() &&
       EMAIL_RE.test(a.email.trim()) &&
+      (!a.gstin?.trim() || GSTIN_RE.test(a.gstin.trim())) &&
       a.phone.trim()
   );
 }
@@ -85,6 +75,7 @@ export function AddressForm({
 
   const labelClass = "text-xs font-medium text-[#111111]/70 mb-1 block";
   const zipLabel = value.country === "India" ? "PIN Code" : "Zip";
+  const gstin = value.gstin?.trim() ?? "";
 
   return (
     <div className="space-y-4">
@@ -122,13 +113,30 @@ export function AddressForm({
       </div>
 
       {showCompany && (
-        <div>
-          <label className={labelClass}>Company</label>
-          <input
-            className={inputClass}
-            value={value.company ?? ""}
-            onChange={(e) => set("company", e.target.value)}
-          />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label className={labelClass}>Company</label>
+            <input
+              className={inputClass}
+              value={value.company ?? ""}
+              onChange={(e) => set("company", e.target.value)}
+            />
+          </div>
+          <div>
+            <label className={labelClass}>GSTIN (optional)</label>
+            <input
+              className={inputClass}
+              value={value.gstin ?? ""}
+              maxLength={15}
+              autoCapitalize="characters"
+              placeholder="27ABCDE1234F1Z5"
+              onChange={(e) => set("gstin", e.target.value.toUpperCase())}
+              onBlur={() => markTouched("gstin")}
+            />
+            {showError("gstin", Boolean(gstin) && !GSTIN_RE.test(gstin)) && (
+              <p className="text-xs text-red-600 mt-1">Enter a valid 15-character GSTIN</p>
+            )}
+          </div>
         </div>
       )}
 
@@ -150,6 +158,9 @@ export function AddressForm({
         {showError("country", !value.country.trim()) && (
           <p className="text-xs text-red-600 mt-1">Required</p>
         )}
+        <p className="mt-1 text-xs text-[#111111]/50">
+          Checkout is INR-only and currently available for India orders.
+        </p>
       </div>
 
       <div>

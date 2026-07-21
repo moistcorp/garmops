@@ -8,6 +8,7 @@ import { AddressForm, isAddressValid } from "@/components/configurator/cart/Addr
 import { CartSummarySidebar } from "@/components/configurator/cart/CartSummarySidebar";
 import { CheckoutSteps } from "@/components/configurator/cart/CheckoutSteps";
 import { calculateTotals, createDraft, readDraft, type CartDraft, writeDraft } from "./cartDraft";
+import { CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS } from "@/lib/configurator/colours";
 
 export interface BillingShippingStepProps {
   cartId: string;
@@ -46,6 +47,9 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
     [draft.selectedDeliveryDateIso]
   );
   const totals = calculateTotals(draft.items, draft.deliveryType);
+  const extraLeadTimeDays = draft.items.some((item) => item.colour.type === "custom_dye")
+    ? CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS.max
+    : 0;
 
   const updateDraft = (patch: Partial<CartDraft>) => {
     setDraft((prev) => {
@@ -99,6 +103,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
 
         <section className="rounded-lg border border-[#E5E5E5] bg-white p-5">
           <DeliveryDatePicker
+            extraLeadTimeDays={extraLeadTimeDays}
             onDateSelect={(date, type) => {
               updateDraft({
                 selectedDeliveryDateIso: date.toISOString(),

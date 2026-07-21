@@ -19,6 +19,7 @@ import {
   clampDim,
   STEP,
   MIN_DIM,
+  MAX_DIM,
   MIN_OFFSET,
   type PositionControlsState,
   type HorizontalAlign,
@@ -30,11 +31,12 @@ interface StepperProps {
   value: number;
   onChange: (next: number) => void;
   min: number;
+  max?: number;
   tooltip?: string;
   disabled?: boolean;
 }
 
-function Stepper({ label, value, onChange, min, tooltip, disabled }: StepperProps) {
+function Stepper({ label, value, onChange, min, max = MAX_DIM, tooltip, disabled }: StepperProps) {
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-1">
@@ -56,7 +58,7 @@ function Stepper({ label, value, onChange, min, tooltip, disabled }: StepperProp
         <button
           type="button"
           disabled={disabled}
-          onClick={() => onChange(clampDim(value - STEP, min))}
+          onClick={() => onChange(clampDim(value - STEP, min, max))}
           className="px-2 py-1 text-neutral-500 hover:text-neutral-900 disabled:cursor-not-allowed"
           aria-label={`Decrease ${label}`}
         >
@@ -69,14 +71,14 @@ function Stepper({ label, value, onChange, min, tooltip, disabled }: StepperProp
           disabled={disabled}
           onChange={(e) => {
             const parsed = parseFloat(e.target.value);
-            onChange(clampDim(Number.isFinite(parsed) ? parsed : min, min));
+            onChange(clampDim(Number.isFinite(parsed) ? parsed : min, min, max));
           }}
           className="w-14 border-x border-neutral-200 bg-transparent py-1 text-center text-sm outline-none disabled:cursor-not-allowed"
         />
         <button
           type="button"
           disabled={disabled}
-          onClick={() => onChange(clampDim(value + STEP, min))}
+          onClick={() => onChange(clampDim(value + STEP, min, max))}
           className="px-2 py-1 text-neutral-500 hover:text-neutral-900 disabled:cursor-not-allowed"
           aria-label={`Increase ${label}`}
         >
@@ -172,7 +174,7 @@ export function PositionControls({ onDebugChange }: PositionControlsProps): JSX.
       </div>
 
       <div className="flex items-end gap-2">
-        <Stepper label="Width" value={state.widthCm} onChange={setWidth} min={MIN_DIM} />
+        <Stepper label="Width" value={state.widthCm} onChange={setWidth} min={MIN_DIM} max={MAX_DIM} />
         <button
           type="button"
           onClick={() => update({ aspectLocked: !state.aspectLocked })}
@@ -191,6 +193,7 @@ export function PositionControls({ onDebugChange }: PositionControlsProps): JSX.
           value={state.heightCm}
           onChange={setHeight}
           min={MIN_DIM}
+          max={MAX_DIM}
           disabled={state.aspectLocked}
         />
       </div>

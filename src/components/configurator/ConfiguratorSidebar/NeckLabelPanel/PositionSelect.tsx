@@ -4,17 +4,28 @@ import { JSX } from 'react/jsx-runtime';
 export interface PositionSelectProps {
   value: NeckLabelPosition;
   onChange: (position: NeckLabelPosition) => void;
+  isToteProduct?: boolean;
 }
 
-const POSITION_OPTIONS: { value: NeckLabelPosition; label: string }[] = [
+const GARMENT_POSITION_OPTIONS: { value: NeckLabelPosition; label: string }[] = [
   { value: 'below_neck_tape', label: 'Below neck tape (5mm)' },
   { value: 'on_neck_tape', label: 'On neck tape' },
 ];
 
-export default function PositionSelect({ value, onChange }: PositionSelectProps): JSX.Element {
+const TOTE_POSITION_OPTIONS: { value: NeckLabelPosition; label: string }[] = [
+  { value: 'below_neck_tape', label: 'Inside top seam (5mm)' },
+  { value: 'on_neck_tape', label: 'On inner seam' },
+];
+
+export default function PositionSelect({
+  value,
+  onChange,
+  isToteProduct = false,
+}: PositionSelectProps): JSX.Element {
+  const options = isToteProduct ? TOTE_POSITION_OPTIONS : GARMENT_POSITION_OPTIONS;
   return (
     <div className="grid grid-cols-2 gap-2">
-      {POSITION_OPTIONS.map((option) => {
+      {options.map((option) => {
         const selected = value === option.value;
         return (
           <button

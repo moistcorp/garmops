@@ -6,6 +6,11 @@ export interface Product {
   name: string;
   defaultImage: string;
   hoverImage: string;
+  description: string;
+  gsm: number;
+  details: string[];
+  careInstructions: string[];
+  sizes: string[];
 }
 
 function getFlatlayImage(slug: string): string {
@@ -29,6 +34,11 @@ export const products: Product[] = catalogProducts.map((product) => {
     name: product.pricingKey,
     defaultImage: flatlay,
     hoverImage: flatlay,
+    description: product.description,
+    gsm: product.gsm,
+    details: product.details,
+    careInstructions: product.careInstructions,
+    sizes: product.sizes,
   };
 });
 

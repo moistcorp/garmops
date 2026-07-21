@@ -102,7 +102,7 @@ interface DragOrigin {
   startFromCenterCm: number;
 }
 
-function getGarmentFolder(productId: ProductId): string {
+function getGarmentFolder(productId: ProductId): string | null {
   if (productId.includes("canvas-tote")) return "canvas-tote-bag";
   if (productId.includes("boxy-fit-hoodie")) return "boxy-fit-hoodie";
   if (productId.includes("regular-fit-hoodie")) return "regular-fit-hoodie";
@@ -110,11 +110,13 @@ function getGarmentFolder(productId: ProductId): string {
   if (productId.includes("longsleeve")) return "longsleeve-tee";
   if (productId.includes("polo")) return "polo";
   if (productId.includes("boxy-fit-tee")) return "boxy-fit-tee";
-  return "regular-fit-tee";
+  if (productId.includes("regular-fit-tee")) return "regular-fit-tee";
+  return null;
 }
 
 function assetPath(productId: ProductId, view: GarmentView, layer: string): string {
-  return `/garments/${getGarmentFolder(productId)}/${view}/${layer}.png`;
+  const folder = getGarmentFolder(productId);
+  return folder ? `/garments/${folder}/${view}/${layer}.png` : "";
 }
 
 function isRenderableImage(fileUrl?: string, fileType?: ArtworkSide["fileType"]): boolean {
@@ -273,6 +275,7 @@ export default function CanvasRenderer({
 }: CanvasRendererProps) {
   const { positions, updatePosition } = useArtworkPosition();
   const dragOrigin = useRef<DragOrigin | null>(null);
+  const garmentFolder = getGarmentFolder(productId);
 
   const showBox = DRAGGABLE_VIEWS.includes(view);
   const activeArtwork = view === "front" ? artwork.front : view === "back" ? artwork.back : undefined;
@@ -379,6 +382,11 @@ export default function CanvasRenderer({
 
   return (
     <div className={`relative overflow-hidden ${className}`}>
+      {!garmentFolder && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-[#F7F7F7] p-6 text-center text-sm font-semibold text-[#C62828]">
+          Preview assets are not mapped for this product.
+        </div>
+      )}
       <div className="absolute inset-[2%]">
         <div
           className="absolute inset-0"

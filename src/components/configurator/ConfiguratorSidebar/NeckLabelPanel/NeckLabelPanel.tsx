@@ -15,6 +15,7 @@ import StitchSelect from './StitchSelect';
 export interface NeckLabelPanelProps {
   value?: NeckLabel;
   onChange?: (neckLabel: NeckLabel) => void;
+  isToteProduct?: boolean;
 }
 
 const DEFAULT_POSITION: NeckLabelPosition = 'below_neck_tape';
@@ -49,7 +50,11 @@ function DimensionPreview({ option }: { option: NeckLabelDimensions }) {
   );
 }
 
-export default function NeckLabelPanel({ value, onChange }: NeckLabelPanelProps): JSX.Element {
+export default function NeckLabelPanel({
+  value,
+  onChange,
+  isToteProduct = false,
+}: NeckLabelPanelProps): JSX.Element {
   const uploadInputId = useId();
   const [fileUrl, setFileUrl] = useState<string | undefined>(value?.fileUrl);
   const [fileType, setFileType] = useState<NeckLabelFileType | undefined>(value?.fileType);
@@ -110,7 +115,7 @@ export default function NeckLabelPanel({ value, onChange }: NeckLabelPanelProps)
     <div className="flex flex-col gap-5">
       {alreadyConfigured && (
         <p className="rounded-lg bg-[#F7F7F7] px-3 py-2 text-xs font-medium text-[#111111]/60">
-          Neck label configured. Edit any option below to update.
+          {isToteProduct ? 'Bag label' : 'Neck label'} configured. Edit any option below to update.
         </p>
       )}
 
@@ -182,7 +187,7 @@ export default function NeckLabelPanel({ value, onChange }: NeckLabelPanelProps)
             <Upload size={17} strokeWidth={2.1} />
           </span>
           <span className="text-xs font-bold text-[#111111]">
-            {fileUrl ? 'Artwork selected' : 'Upload neck label artwork'}
+            {fileUrl ? 'Artwork selected' : `Upload ${isToteProduct ? 'bag label' : 'neck label'} artwork`}
           </span>
           <span className="text-xs text-[#111111]/55">
             Supports .svg and .ai files up to 4.5MB
@@ -192,7 +197,7 @@ export default function NeckLabelPanel({ value, onChange }: NeckLabelPanelProps)
 
       <div>
         <div className="mb-2 text-xs font-bold text-[#111111]">Position</div>
-        <PositionSelect value={position} onChange={handlePositionChange} />
+        <PositionSelect value={position} onChange={handlePositionChange} isToteProduct={isToteProduct} />
       </div>
 
       {position === 'below_neck_tape' && (

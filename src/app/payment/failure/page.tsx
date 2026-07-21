@@ -10,12 +10,14 @@ export default function PaymentFailurePage() {
 
   // Read from localStorage only on client to avoid hydration mismatch
   const [name, setName] = useState('')
+  const [retryHref, setRetryHref] = useState('/configurator')
   useEffect(() => {
     try {
       const raw = localStorage.getItem('mf_pending_order')
       if (raw) {
         const o = JSON.parse(raw)
         if (o.name) queueMicrotask(() => setName(o.name.split(' ')[0]))
+        if (o.retryHref) queueMicrotask(() => setRetryHref(o.retryHref))
         // Restore configurator to review screen so retry works
         const progress = sessionStorage.getItem('mf_configurator_v2')
         if (progress) {
@@ -64,7 +66,7 @@ export default function PaymentFailurePage() {
         </div>
 
         <div className="flex flex-col gap-3">
-          <Link href="/configurator"
+          <Link href={retryHref}
             className="w-full bg-[#111111] text-white py-3.5 text-sm font-medium hover:bg-black transition-colors flex items-center justify-center gap-2">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M23 4v6h-6" /><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />

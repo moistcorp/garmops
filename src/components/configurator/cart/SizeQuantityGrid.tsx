@@ -8,9 +8,15 @@ export interface SizeQuantityGridProps {
   value: Record<Size, number>;
   onChange: (size: Size, qty: number) => void;
   unitPrice: number;
+  minimumUnits?: number;
 }
 
-export function SizeQuantityGrid({ value, onChange, unitPrice }: SizeQuantityGridProps) {
+export function SizeQuantityGrid({
+  value,
+  onChange,
+  unitPrice,
+  minimumUnits = 50,
+}: SizeQuantityGridProps) {
   const totalUnits = SIZES.reduce((sum, size) => sum + (value[size] || 0), 0);
 
   function handleInputChange(size: Size, raw: string) {
@@ -22,7 +28,7 @@ export function SizeQuantityGrid({ value, onChange, unitPrice }: SizeQuantityGri
   return (
     <div className="w-full">
       <div className="mb-2 flex items-center justify-end gap-3 text-xs text-[#111111]/60">
-        <span>Minimum 50 units</span>
+        <span>Minimum {minimumUnits} units</span>
         <span className="font-medium text-[#111111]">{totalUnits} units</span>
       </div>
       <div className="grid grid-cols-6 gap-px overflow-hidden rounded-md border border-[#E5E5E5] bg-[#E5E5E5]">
@@ -40,7 +46,7 @@ export function SizeQuantityGrid({ value, onChange, unitPrice }: SizeQuantityGri
               <button
                 type="button"
                 aria-label={`Decrease ${size} quantity`}
-                disabled={totalUnits <= 50 || (value[size] ?? 0) <= 0}
+                disabled={totalUnits <= minimumUnits || (value[size] ?? 0) <= 0}
                 onClick={() => onChange(size, Math.max(0, (value[size] ?? 0) - 1))}
                 className="flex h-7 w-7 items-center justify-center rounded-md text-lg leading-none text-[#111111]/80 hover:bg-white disabled:cursor-not-allowed disabled:text-[#111111]/25"
               >

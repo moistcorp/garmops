@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Star } from "lucide-react";
 import type { PantoneColour } from "@/lib/configurator/colours";
 import { useFavouritePantones } from "./useColourMemory";
+import SwatchHoverPreview from "./SwatchHoverPreview";
 
 interface CustomDyePantoneGridProps {
   colours: PantoneColour[];
@@ -62,12 +63,13 @@ export default function CustomDyePantoneGrid({
               type="button"
               onClick={() => onSelect(colour)}
               aria-pressed={isActive}
-              className={`flex items-center gap-2 rounded-full border py-1.5 pl-2 pr-1 text-left text-sm transition-colors ${
+              className={`group relative flex items-center gap-2 rounded-full border py-1.5 pl-2 pr-1 text-left text-sm transition-colors ${
                 isActive
                   ? "border-[#111111] bg-white"
                   : "border-[#E5E5E5] bg-transparent hover:bg-[#E5E5E5]/40"
               }`}
             >
+              <SwatchHoverPreview hex={colour.hex} label={colour.code} />
               <span
                 className="h-6 w-6 shrink-0 rounded-full border border-[#E5E5E5]"
                 style={{ backgroundColor: colour.hex }}
