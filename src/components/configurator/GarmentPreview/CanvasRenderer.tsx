@@ -406,19 +406,19 @@ export default function CanvasRenderer({
           src={assetPath(productId, view, "texture")}
           alt=""
           draggable={false}
-          className="absolute inset-0 h-full w-full object-contain mix-blend-multiply opacity-50"
+          className="absolute inset-0 h-full w-full object-contain mix-blend-multiply opacity-90"
         />
         <img
           src={assetPath(productId, view, "shadow")}
           alt=""
           draggable={false}
-          className="absolute inset-0 h-full w-full object-contain mix-blend-multiply opacity-45"
+          className="absolute inset-0 h-full w-full object-contain mix-blend-multiply opacity-85"
         />
         <img
           src={assetPath(productId, view, "highlight")}
           alt=""
           draggable={false}
-          className="absolute inset-0 h-full w-full object-contain mix-blend-screen opacity-35"
+          className="absolute inset-0 h-full w-full object-contain mix-blend-screen opacity-60"
         />
       </div>
 

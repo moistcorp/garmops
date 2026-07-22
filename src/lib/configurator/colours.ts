@@ -8,7 +8,7 @@ export interface SignatureColour {
 }
 
 export const SIGNATURE_COLOURS: SignatureColour[] = [
-  { name: "Bright White", hex: "#F7F7F7" },
+  { name: "Bright White", hex: "#FBFBF9" },
   { name: "Ecru", hex: "#E8E1D3" },
   { name: "True Black", hex: "#111111" },
   { name: "Oat Milk", hex: "#DCD3C0" },
