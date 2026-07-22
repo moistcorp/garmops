@@ -49,12 +49,12 @@ const NECK_LABEL_PX_PER_MM: Record<NeckLabelView, number> = {
 };
 const NECK_LABEL_TOP_PERCENT: Record<NeckLabelView, Record<NeckLabelPosition, number>> = {
   front: {
-    below_neck_tape: 13, // small peek just above the back collar seam
-    on_neck_tape: 10,
+    below_neck_tape: 14, // small peek just above the back collar seam
+    on_neck_tape: 13,
   },
   neck: {
-    below_neck_tape: 24, // hangs just under the neck binding, as a sewn-in tag
-    on_neck_tape: 17, // sits directly over/on the binding tape itself
+    below_neck_tape: 35, // hangs just under the neck binding, as a sewn-in tag
+    on_neck_tape: 33, // sits directly over/on the binding tape itself
   },
 };
 
