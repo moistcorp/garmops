@@ -6,7 +6,7 @@ import { PRODUCT_PRICES } from '@/lib/pricing'
 
 export const metadata: Metadata = generateMeta({
   title: 'Products',
-  description: 'Shop Moist Foundry\'s own line — designed and manufactured in-house. Heavyweight tees, hoodies, sweatpants, and more.',
+  description: 'Shop Garmops\'s own line — designed and manufactured in-house. Heavyweight tees, hoodies, sweatpants, and more.',
   path: '/products',
 })
 
@@ -14,7 +14,7 @@ export default function Products() {
   return (
     <>
       <section className="max-w-7xl mx-auto px-6 pt-20 pb-12">
-        <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Moist Foundry</p>
+        <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Garmops</p>
         <h1 className="text-5xl font-bold text-[#111111] leading-tight mb-4 tracking-tight">Products</h1>
         <p className="text-[#111111]/50 max-w-lg text-lg">
           Order samples of our products before placing a bulk order. All pieces are manufactured in-house.

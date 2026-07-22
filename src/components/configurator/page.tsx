@@ -7,10 +7,10 @@ export default function ConfiguratorPage() {
     <main className="min-h-screen bg-white px-6 py-10 sm:px-10">
       <div className="mx-auto flex max-w-7xl flex-col gap-8">
         <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-center" aria-label="Moist Foundry homepage">
+          <Link href="/" className="flex items-center" aria-label="Garmops homepage">
             <Image
               src="/logo3.png"
-              alt="Moist Foundry"
+              alt="Garmops"
               width={180}
               height={48}
               className="h-6 w-auto object-contain"

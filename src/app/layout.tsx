@@ -11,13 +11,13 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Moist Foundry — Custom Apparel, Made to Order',
-    template: '%s — Moist Foundry',
+    default: 'Garmops — Custom Apparel, Made to Order',
+    template: '%s — Garmops',
   },
   description: 'Small batch custom apparel for brands, cafes, and companies. MOQ 50 pieces. Ships in 35 days. Manufactured in India.',
-  metadataBase: new URL('https://moistfoundry.com'),
+  metadataBase: new URL('https://Garmops.com'),
   openGraph: {
-    siteName: 'Moist Foundry',
+    siteName: 'Garmops',
     locale: 'en_IN',
     type: 'website',
   },

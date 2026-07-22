@@ -3,7 +3,7 @@ import HomepageCaseStudies from '@/components/home/HomepageCaseStudies'
 import TrustedBy from '@/components/home/TrustedBy'
 import HowItWorks from '@/app/_components/HowItWorks'
 import HeroScrollVideo from '@/app/HeroScrollVideo'
-import WhyMoistFoundry from '@/app/_components/WhyMoistFoundry'
+import WhyGarmops from '@/app/_components/WhyGarmops'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -50,7 +50,7 @@ export default function HomeClient() {
 
      <HowItWorks />
 
-     <WhyMoistFoundry />
+     <WhyGarmops />
 
      <TrustedBy />
 
@@ -265,7 +265,7 @@ export default function HomeClient() {
         <p className="text-xs text-[#595959] font-medium mb-4 tracking-widest uppercase">Who we work with</p>
         <h2 className="text-4xl font-bold mb-3 tracking-tight">Premium merch for every industry</h2>
         <p className="text-[#4a4a4a] text-sm mb-12 max-w-lg leading-relaxed">
-          From hospitality to creative agencies, Foundry delivers premium branded merchandise tailored to different industries.
+          From hospitality to creative agencies, Garmops delivers premium branded merchandise tailored to different industries.
         </p>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-[#E5E5E5]">
           {industries.map(i => (

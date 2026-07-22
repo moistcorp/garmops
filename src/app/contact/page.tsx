@@ -4,7 +4,7 @@ import ContactClient from './ContactClient'
 
 export const metadata: Metadata = generateMeta({
   title: 'Contact Us',
-  description: 'Get in touch with Moist Foundry for premium merch for your brand. Final quote within 24 hours. MOQ 50 pieces.',
+  description: 'Get in touch with Garmops for premium merch for your brand. Final quote within 24 hours. MOQ 50 pieces.',
   path: '/contact',
 })
 

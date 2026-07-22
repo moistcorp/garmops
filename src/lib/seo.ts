@@ -1,7 +1,7 @@
 export const siteConfig = {
-  name: 'Moist Foundry',
+  name: 'Garmops',
   description: 'Small batch custom apparel for brands, cafes, and companies. MOQ 50 pieces. Ships in 35 days. Manufactured in India.',
-  url: 'https://moistfoundry.com',
+  url: 'https://Garmops.com',
   ogImage: '/og-image.jpg',
 }
 
@@ -16,7 +16,7 @@ export function generateMeta({
   path?: string
   image?: string
 }) {
-  const fullTitle = title ? `${title} — Moist Foundry` : 'Moist Foundry — Custom Apparel, Made to Order'
+  const fullTitle = title ? `${title} — Garmops` : 'Garmops — Custom Apparel, Made to Order'
   const fullDescription = description ?? siteConfig.description
   const url = `${siteConfig.url}${path}`
   const ogImage = image ?? siteConfig.ogImage

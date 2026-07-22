@@ -1,4 +1,4 @@
-// TODO: placeholder hex values — replace with real Moist Corp signature swatch
+// TODO: placeholder hex values — replace with real  Corp signature swatch
 // set before launch. Names are final per Appendix §4 Section A; hex values are
 // approximations only.
 

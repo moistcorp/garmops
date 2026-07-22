@@ -1,6 +1,6 @@
 export default function WhatsAppButton() {
   const phone = '919971510083' // replace with your WhatsApp number with country code, no +
-  const message = 'Hi, I found Moist Foundry and would like to know more about custom apparel.'
+  const message = 'Hi, I found Garmops and would like to know more about custom apparel.'
   const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
 
   return (

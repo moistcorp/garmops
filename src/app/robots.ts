@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/api/', '/payment/', '/checkout/'],
     },
-    sitemap: 'https://moistfoundry.com/sitemap.xml',
+    sitemap: 'https://Garmops.com/sitemap.xml',
   }
 }

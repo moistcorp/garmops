@@ -43,10 +43,10 @@ export function ConfiguratorHeader({
     <header className="relative grid h-16 shrink-0 grid-cols-[1fr_auto] items-center px-5">
       <Link
         href="/"
-        aria-label="Moist Foundry home"
+        aria-label="Garmops home"
         className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center"
       >
-        <img src="/logo3.png" alt="Moist Foundry" className="h-9 w-auto object-contain" />
+        <img src="/logo3.png" alt="Garmops" className="h-9 w-auto object-contain" />
       </Link>
 
       <div className="flex items-center gap-2.5">

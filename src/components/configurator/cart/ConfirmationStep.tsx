@@ -65,7 +65,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
     setIsProcessing(true);
     setPaymentError("");
 
-    const firstname = billingAddress.firstName || draft.shippingAddress.firstName || "Moist Foundry";
+    const firstname = billingAddress.firstName || draft.shippingAddress.firstName || "Garmops";
     const email = billingAddress.email || draft.shippingAddress.email;
     const txnid = `MF${Date.now()}`;
     const amount = RESERVATION_FEE.toFixed(2);

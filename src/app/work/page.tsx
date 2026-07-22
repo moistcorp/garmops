@@ -5,7 +5,7 @@ import { caseStudies } from '@/lib/casestudies'
 
 export const metadata: Metadata = generateMeta({
   title: 'Work',
-  description: 'Case studies from Moist Foundry — custom apparel for restaurants, events, gyms, and creative studios.',
+  description: 'Case studies from Garmops — custom apparel for restaurants, events, gyms, and creative studios.',
   path: '/work',
 })
 

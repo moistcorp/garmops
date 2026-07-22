@@ -17,7 +17,7 @@ export default function HomepageCaseStudies() {
             </p>
 
             <h2 className="text-4xl font-bold text-[#111111] tracking-tight leading-[1.05] mb-6">
-              How the best brands use Foundry
+              How the best brands use Garmops
             </h2>
 
             <p className="text-[#4a4a4a] leading-relaxed mb-10">

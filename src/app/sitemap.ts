@@ -3,7 +3,7 @@ import { products } from '@/lib/products'
 import { caseStudies } from '@/lib/casestudies'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = 'https://moistfoundry.com'
+  const base = 'https://Garmops.com'
 
   const staticPages = [
     { url: base, priority: 1.0, changeFrequency: 'weekly' as const },

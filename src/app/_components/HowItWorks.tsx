@@ -15,7 +15,7 @@ const steps = [
   {
     number: '2',
     title: 'Customise it',
-    body: 'Explore the Foundry, a real-time merch platform that allows you to choose from +2500 colours, numerous embellishments and printing techniques. Top it off with your brands woven label.',
+    body: 'Explore the Garmops, a real-time merch platform that allows you to choose from +2500 colours, numerous embellishments and printing techniques. Top it off with your brands woven label.',
     image: '/images/how-it-works-2.jpg',
   },
   {

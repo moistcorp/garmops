@@ -21,7 +21,7 @@ const accordionItems = [
   },
 ]
 
-export default function WhyMoistFoundry() {
+export default function WhyGarmops() {
   const [openIndex, setOpenIndex] = useState<number>(0)
 
   return (
@@ -32,7 +32,7 @@ export default function WhyMoistFoundry() {
           {/* LEFT — heading + accordion */}
           <div>
             <p className="text-xs text-[#595959] font-medium mb-4 tracking-widest uppercase">
-              Why Moist Foundry
+              Why Garmops
             </p>
             <h2 className="text-4xl font-bold text-[#111111] tracking-tight leading-tight mb-10">
               Merch made right,<br />in India.

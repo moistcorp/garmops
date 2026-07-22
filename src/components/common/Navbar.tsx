@@ -30,7 +30,7 @@ export default function Navbar() {
     <header className={`w-full bg-white sticky top-0 z-50 transition-shadow duration-200 ${scrolled ? 'shadow-sm' : 'border-b border-[#E5E5E5]'}`}>
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-8">
         <Link href="/" className="flex items-center shrink-0">
-          <Image src="/logo3.png" alt="Moist Foundry" width={180} height={48}
+          <Image src="/logo3.png" alt="Garmops" width={180} height={48}
             className="h-5 w-auto object-contain" priority />
         </Link>
 

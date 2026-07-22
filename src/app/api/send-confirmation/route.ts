@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     const contactEmailHtml = `
       <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto; color: #111111;">
         <div style="border-bottom: 1px solid #E5E5E5; padding-bottom: 20px; margin-bottom: 24px;">
-          <h1 style="font-size: 18px; font-weight: 700; margin: 0;">Moist Foundry</h1>
+          <h1 style="font-size: 18px; font-weight: 700; margin: 0;">Garmops</h1>
         </div>
         <p style="font-size: 15px; margin-bottom: 6px;">Hi ${firstName},</p>
         <p style="font-size: 15px; color: #555; line-height: 1.7; margin-bottom: 24px;">
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
         </div>
         <p style="font-size: 13px; color: #888; line-height: 1.7;">If you have urgent questions, reply directly to this email.</p>
         <div style="border-top: 1px solid #E5E5E5; margin-top: 32px; padding-top: 20px; font-size: 11px; color: #aaa;">
-          <p style="margin: 0;">Moist Foundry &mdash; Powered by Moist Corp</p>
+          <p style="margin: 0;">Garmops &mdash; Powered by  Corp</p>
           <p style="margin: 4px 0 0 0;">Greater Noida, Uttar Pradesh, India</p>
         </div>
       </div>
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     const configureEmailHtml = `
       <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto; color: #111111;">
         <div style="border-bottom: 1px solid #E5E5E5; padding-bottom: 20px; margin-bottom: 24px;">
-          <h1 style="font-size: 18px; font-weight: 700; margin: 0;">Moist Foundry</h1>
+          <h1 style="font-size: 18px; font-weight: 700; margin: 0;">Garmops</h1>
         </div>
         <p style="font-size: 15px; margin-bottom: 6px;">Hi ${firstName},</p>
         <p style="font-size: 15px; color: #555; line-height: 1.7; margin-bottom: 24px;">
@@ -111,18 +111,18 @@ export async function POST(req: NextRequest) {
           <p style="font-size: 11px; color: #aaa; margin: 4px 0 0 0;">Adjusted against your final invoice.</p>
         </div>
         <div style="border-top: 1px solid #E5E5E5; margin-top: 32px; padding-top: 20px; font-size: 11px; color: #aaa;">
-          <p style="margin: 0;">Moist Foundry &mdash; Powered by Moist Corp</p>
+          <p style="margin: 0;">Garmops &mdash; Powered by  Corp</p>
           <p style="margin: 4px 0 0 0;">Greater Noida, Uttar Pradesh, India</p>
         </div>
       </div>
     `
 
     await resend.emails.send({
-      from: 'Moist Foundry <moistfoundry@moistcorp.com>',
+      from: 'Garmops <Garmops@corp.com>',
       to: email,
       subject: type === 'configure'
         ? 'Slot confirmed - your configuration summary'
-        : 'We received your enquiry - Moist Foundry',
+        : 'We received your enquiry - Garmops',
       html: type === 'configure' ? configureEmailHtml : contactEmailHtml,
     })
 

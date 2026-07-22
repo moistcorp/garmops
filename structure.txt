@@ -13,7 +13,7 @@ public
 │   ├── sony.svg
 │   └── thrive.svg
 ├── downloads
-│   ├── moistfoundry-print_templates-1.0.zip
+│   ├── Garmops-print_templates-1.0.zip
 │   └── neck-label-templates.zip
 ├── file.svg
 ├── garments
@@ -83,7 +83,7 @@ src
 │   ├── _components
 │   │   ├── HomeClient.tsx
 │   │   ├── HowItWorks.tsx
-│   │   └── WhyMoistFoundry.tsx
+│   │   └── WhyGarmops.tsx
 │   ├── api
 │   │   ├── payu
 │   │   │   └── hash
