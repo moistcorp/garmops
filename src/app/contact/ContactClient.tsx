@@ -69,7 +69,7 @@ export default function ContactClient() {
                   <option value="">Select an option</option>
                   <option>T-shirts</option>
                   <option>Hoodies / Sweatshirts</option>
-                  <option>Bottoms</option>
+                  <option>Longsleeves</option>
                   <option>Tote bags</option>
                   <option>Mixed / Multiple products</option>
                   <option>Not sure yet</option>
@@ -89,8 +89,8 @@ export default function ContactClient() {
 
         <div className="flex flex-col gap-10 pt-2">
           {[
-            { label: 'Location', content: ' Corp\nGreater Noida, Uttar Pradesh\nIndia' },
-            { label: 'Email', content: 'hello@Garmops.com', isEmail: true },
+            { label: 'Location', content: ' Moist Corp\nGreater Noida, Uttar Pradesh\nIndia' },
+            { label: 'Email', content: 'hello@garmops.com', isEmail: true },
             { label: 'MOQ & Turnaround', content: '50 pieces minimum. 35-day standard production. Rush available on request.' },
           ].map(item => (
             <div key={item.label}>
