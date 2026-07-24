@@ -4,22 +4,11 @@ import TrustedBy from '@/components/home/TrustedBy'
 import HowItWorks from '@/app/_components/HowItWorks'
 import HeroScrollVideo from '@/app/HeroScrollVideo'
 import WhyGarmops from '@/app/_components/WhyGarmops'
-import Image from 'next/image'
+import EmailCapture from '@/app/_components/EmailCapture'
+import Reveal from '@/app/_components/Reveal'
 import Link from 'next/link'
 import { useState } from 'react'
-import {
-  PRODUCT_PRICES,
-  VOLUME_TIERS,
-  RUSH_TIERS,
-  calcOrder,
-  getDiscount,
-  getRushCharge,
-  DELIVERY_DAYS,
-  RUSH_DELIVERY_DAYS,
-} from '@/lib/pricing'
-import { products } from '@/lib/products'
-
-const estimatorProducts = products.map(p => ({ name: p.pricingKey, base: p.price, icon: p.icon, description: p.description }))
+import { PRODUCT_PRICES, DELIVERY_DAYS, RUSH_DELIVERY_DAYS } from '@/lib/pricing'
 
 const industries = [
   { name: 'Hotels & Restaurants', desc: 'Merchandise designed for hospitality brands, from staff apparel to retail collections and guest experiences.', image: '/industries/hotels-restaurants.jpg' },
@@ -30,274 +19,179 @@ const industries = [
   { name: 'Companies & Startups', desc: 'Custom merchandise for teams and organisations, from onboarding kits to team apparel and client gifting.', image: '/industries/companies-startups.jpg' },
 ]
 
+const faqs = [
+  { q: "What's the minimum order quantity?", a: 'Just 50 pieces per style, with volume discounts kicking in as quantity increases.' },
+  { q: 'How long does delivery take?', a: `Standard delivery takes ${DELIVERY_DAYS} days from order confirmation. Need it sooner? Rush delivery is available in ${RUSH_DELIVERY_DAYS} days.` },
+  { q: 'Do you provide GST-compliant invoices and accept company POs?', a: 'Yes to both. Every order includes a GST-compliant tax invoice with HSN codes, and we accept Purchase Orders with 50% advance on confirmation, balance due before dispatch.' },
+]
+
+// Lowest starting price across the catalog, used for the homepage pricing teaser
+const startingPrice = Math.min(...Object.values(PRODUCT_PRICES))
+
+const pricingHighlights = ['50 pc MOQ', 'GST Invoicing', `${DELIVERY_DAYS}-day delivery`]
+
 export default function HomeClient() {
-  const [qty, setQty] = useState(50)
-  const [selected, setSelected] = useState(estimatorProducts[0].name)
-  const [rush, setRush] = useState(false)
-  const [dropdownOpen, setDropdownOpen] = useState(false)
-
-  const selectedProduct = estimatorProducts.find(p => p.name === selected) ?? estimatorProducts[0]
-
-  const { discount, discountedBase, rushCharge, pricePerPiece, subtotal, gst, total } = calcOrder(selected, qty, rush)
-  const deliveryDays = rush ? RUSH_DELIVERY_DAYS : DELIVERY_DAYS
-  const rushChargeTotal = rushCharge * qty
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   return (
     <>
       {/* HERO */}
-      
+
      <HeroScrollVideo />
-
-     <HowItWorks />
-
-     <WhyGarmops />
 
      <TrustedBy />
 
-      {/* PRICING ESTIMATOR — full version matching pricing page */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid md:grid-cols-2 gap-16 items-start">
-
-            {/* Controls */}
-            <div>
-              <p className="text-xs text-[#595959] font-medium mb-4 tracking-widest uppercase">Pricing</p>
-              <h2 className="text-4xl font-bold mb-3 tracking-tight">Estimate your order</h2>
-              <p className="text-[#4a4a4a] text-sm mb-10 leading-relaxed">
-                Prices include fabric, stitching, single-color print, and neck label. Shipping quoted separately.
-              </p>
-
-              <div className="flex flex-col gap-6">
-
-                {/* Product picker */}
-                <div>
-                  <p className="text-xs font-medium text-[#595959] uppercase tracking-widest mb-3">Product</p>
-                  <div className="border border-[#E5E5E5] bg-white">
-                    {/* Selected — always visible */}
-                    <button
-                      type="button"
-                      onClick={() => setDropdownOpen(!dropdownOpen)}
-                      className="w-full flex items-center gap-4 px-4 py-4 bg-white hover:bg-[#F0F0F0] transition-colors text-left"
-                    >
-                      <div className="w-12 h-12 bg-white border border-[#E5E5E5] flex items-center justify-center shrink-0">
-                        <Image src={selectedProduct.icon} alt={selectedProduct.name} width={36} height={36} className="object-contain" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-[#111111] leading-snug">{selectedProduct.name}</p>
-                        <p className="text-xs text-[#4a4a4a] mt-0.5 line-clamp-1">{selectedProduct.description}</p>
-                      </div>
-                      <svg
-                        className={`w-4 h-4 text-[#555555] shrink-0 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}
-                        fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-
-                    {/* Options */}
-                    {dropdownOpen && (
-                      <div className="border-t border-[#E5E5E5]">
-                        {estimatorProducts.filter(p => p.name !== selected).map((p, i, arr) => (
-                          <button
-                            key={p.name}
-                            type="button"
-                            onClick={() => { setSelected(p.name); setDropdownOpen(false) }}
-                            className={`w-full flex items-center gap-4 px-4 py-3.5 hover:bg-white transition-colors text-left ${i < arr.length - 1 ? 'border-b border-[#E5E5E5]' : ''}`}
-                          >
-                            <div className="w-10 h-10 bg-white border border-[#E5E5E5] flex items-center justify-center shrink-0">
-                              <Image src={p.icon} alt={p.name} width={30} height={30} className="object-contain" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-[#111111] leading-snug">{p.name}</p>
-                              <p className="text-xs text-[#595959] mt-0.5 line-clamp-1">{p.description}</p>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Quantity slider */}
-                <div>
-                  <div className="flex justify-between items-center mb-3">
-                    <p className="text-xs font-medium text-[#595959] uppercase tracking-widest">Quantity</p>
-                    <span className="text-sm font-bold text-[#111111]">{qty} pcs</span>
-                  </div>
-                  <input type="range" min={50} max={1000} step={50} value={qty}
-                    onChange={e => setQty(Number(e.target.value))}
-                    onInput={e => setQty(Number((e.target as HTMLInputElement).value))}
-                    className="w-full accent-[#111111]" />
-                  <div className="flex justify-between text-xs text-[#666666] mt-1">
-                    <span>50 pcs</span><span>1000 pcs</span>
-                  </div>
-                </div>
-
-                {/* Rush order toggle */}
-                <div className="border border-[#E5E5E5] bg-white p-4">
-                  <div className="flex items-center justify-between mb-1">
-                    <div>
-                      <p className="text-sm font-semibold text-[#111111]">Rush order</p>
-                      <p className="text-xs text-[#4a4a4a] mt-0.5">
-                        Delivery in {RUSH_DELIVERY_DAYS} days instead of {DELIVERY_DAYS}
-                      </p>
-                    </div>
-                    <button type="button" onClick={() => setRush(!rush)}
-                      className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${rush ? 'bg-[#111111]' : 'bg-[#E5E5E5]'}`}>
-                      <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${rush ? 'left-6' : 'left-1'}`} />
-                    </button>
-                  </div>
-                  {rush && (
-                    <p className="text-xs text-[#4a4a4a] mt-2 pt-2 border-t border-[#E5E5E5]">
-                      Rush premium: +&#8377;{getRushCharge(qty)}/piece
-                      (&#8377;{rushChargeTotal.toLocaleString('en-IN')} total)
-                    </p>
-                  )}
-                </div>
-
-                {/* Volume tiers */}
-                <div>
-                  <p className="text-xs font-medium text-[#595959] uppercase tracking-widest mb-3">Volume discounts</p>
-                  <div className="flex flex-col border border-[#E5E5E5] overflow-hidden">
-                    {VOLUME_TIERS.map(t => (
-                      <div key={t.min}
-                        className={`flex justify-between text-xs px-4 py-3 border-b border-[#E5E5E5] last:border-0 transition-colors ${
-                          getDiscount(qty) === t.discount ? 'bg-[#111111] text-white' : 'text-[#555555]'
-                        }`}>
-                        <span>{t.min}{t.max === Infinity ? '+' : `\u2013${t.max}`} pcs</span>
-                        <span>{t.label}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Rush tiers — shown when rush is on */}
-                {rush && (
-                  <div>
-                    <p className="text-xs font-medium text-[#595959] uppercase tracking-widest mb-3">
-                      Rush premiums (per piece)
-                    </p>
-                    <div className="flex flex-col border border-[#E5E5E5] overflow-hidden">
-                      {RUSH_TIERS.map(t => (
-                        <div key={t.min}
-                          className={`flex justify-between text-xs px-4 py-3 border-b border-[#E5E5E5] last:border-0 transition-colors ${
-                            getRushCharge(qty) === t.charge && qty >= t.min && qty <= t.max
-                              ? 'bg-[#111111] text-white'
-                              : 'text-[#555555]'
-                          }`}>
-                          <span>{t.min}{t.max === Infinity ? '+' : `\u2013${t.max}`} pcs</span>
-                          <span>+&#8377;{t.charge}/pc</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Output */}
-            <div className="flex flex-col gap-4">
-              <div className="bg-[#111111] p-8 text-white">
-                <p className="text-xs text-white/75 uppercase tracking-widest mb-1">Estimate</p>
-                <p className="text-sm text-white/80 mb-1">{selected}</p>
-                <p className="text-xs text-white/70 mb-6">
-                  {qty} pieces &middot; {deliveryDays}-day delivery
-                </p>
-
-                <div className="flex flex-col gap-3 border-t border-white/20 pt-6">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-white/75">Base price/piece</span>
-                    <span className="text-white">&#8377;{(PRODUCT_PRICES[selected] ?? 0).toLocaleString('en-IN')}</span>
-                  </div>
-                  {discount > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-white/75">Volume discount ({(discount * 100).toFixed(0)}%)</span>
-                      <span className="text-green-400">
-                        -&#8377;{((PRODUCT_PRICES[selected] ?? 0) - discountedBase).toLocaleString('en-IN')}/pc
-                      </span>
-                    </div>
-                  )}
-                  {rush && rushCharge > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-white/75">Rush premium</span>
-                      <span className="text-white">+&#8377;{rushCharge}/pc</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between text-sm font-medium border-t border-white/10 pt-3 mt-1">
-                    <span className="text-white/80">Price per piece</span>
-                    <span className="text-white">&#8377;{pricePerPiece.toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-white/75">Subtotal ({qty} pcs)</span>
-                    <span className="text-white">&#8377;{subtotal.toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="flex justify-between text-sm border-t border-white/10 pt-3 mt-1">
-                    <span className="text-white/75">GST (5%)</span>
-                    <span className="text-white">&#8377;{gst.toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="flex justify-between text-2xl font-bold border-t border-white/20 pt-4 mt-1">
-                    <span className="text-white">Total</span>
-                    <span className="text-white">&#8377;{total.toLocaleString('en-IN')}</span>
-                  </div>
-                </div>
-
-                <div className="mt-5 pt-4 border-t border-white/10 text-xs text-white/70 flex flex-col gap-1">
-                  <span>+ Shipping quoted separately by email</span>
-                  <span>Delivery in {deliveryDays} days from order confirmation</span>
-                </div>
-              </div>
-
-              <Link href="/pricing" className="border border-[#111111] text-[#111111] text-sm font-medium px-6 py-3.5 text-center hover:bg-[#111111] hover:text-white transition-colors">
-                Full pricing details
-              </Link>
-              <Link href="/configurator" className="bg-[#111111] text-white text-sm font-medium px-6 py-3.5 text-center hover:bg-black transition-colors">
-                Start designing
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-<HomepageCaseStudies />
-
       {/* INDUSTRIES */}
       <section className="bg-white"> <div className="max-w-7xl mx-auto px-6 py-24">
-        <p className="text-xs text-[#595959] font-medium mb-4 tracking-widest uppercase">Who we work with</p>
-        <h2 className="text-4xl font-bold mb-3 tracking-tight">Premium merch for every industry</h2>
-        <p className="text-[#4a4a4a] text-sm mb-12 max-w-lg leading-relaxed">
-          From hospitality to creative agencies, Garmops delivers premium branded merchandise tailored to different industries.
-        </p>
+        <Reveal>
+          <p className="text-xs text-[#595959] font-medium mb-4 tracking-widest uppercase">Who we work with</p>
+          <h2 className="text-4xl font-bold mb-3 tracking-tight">Premium merch for every industry</h2>
+          <p className="text-[#4a4a4a] text-sm mb-12 max-w-lg leading-relaxed">
+            From hospitality to creative agencies, Garmops delivers premium branded merchandise tailored to different industries.
+          </p>
+        </Reveal>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-[#E5E5E5]">
-          {industries.map(i => (
-            <div key={i.name} className="group bg-white flex flex-col hover:bg-[#F7F7F7] transition-colors">
-              <div className="w-full h-[420px] bg-[#F7F7F7] flex items-center justify-center overflow-hidden">
-                {i.image ? (
-                  <img src={i.image} alt={i.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                ) : (
-                  <span className="text-xs text-[#111111]/20 uppercase tracking-widest">{i.name}</span>
-                )}
+          {industries.map((i, idx) => (
+            <Reveal key={i.name} delay={idx * 80}>
+              <div className="group bg-white flex flex-col hover:bg-[#F7F7F7] transition-colors">
+                <div className="relative w-full h-[420px] bg-[#F7F7F7] flex items-center justify-center overflow-hidden">
+                  {i.image ? (
+                    <img src={i.image} alt={i.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  ) : (
+                    <span className="text-xs text-[#111111]/20 uppercase tracking-widest">{i.name}</span>
+                  )}
+                  {/* Liquid glass reveal button on hover */}
+                  <div className="absolute top-4 right-4 w-10 h-10 rounded-full backdrop-blur-md bg-white/80 border border-white/60 flex items-center justify-center opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-[0_4px_16px_rgba(0,0,0,0.12)]">
+                    <svg className="w-4 h-4 text-[#111111]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M17 7H8M17 7v9" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="p-5 flex flex-col gap-1.5">
+                  <h3 className="text-sm font-semibold text-[#111111]">{i.name}</h3>
+                  <p className="text-xs text-[#4a4a4a] leading-relaxed">{i.desc}</p>
+                </div>
               </div>
-              <div className="p-5 flex flex-col gap-1.5">
-                <h3 className="text-sm font-semibold text-[#111111]">{i.name}</h3>
-                <p className="text-xs text-[#4a4a4a] leading-relaxed">{i.desc}</p>
-              </div>
-            </div>
+            </Reveal>
           ))}
         </div>
       </div>
       </section>
 
-      {/* CTA */}
-      <section className="max-w-7xl mx-auto px-6 pb-24">
-        <div className="bg-[#FFFFFF] p-12 md:p-16 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div>
-            <h2 className="text-3xl font-bold text-[#111111] mb-2 tracking-tight">Ready to build your merch?</h2>
-            <p className="text-[#4a4a4a] text-sm">Start with 50 pieces. Scale as you grow.</p>
-          </div>
-          <Link href="/configurator" className="bg-[#111111] text-white px-7 py-3.5 text-sm font-medium hover:bg-black transition-colors whitespace-nowrap">
-            Start designing
-          </Link>
+     <WhyGarmops />
+
+     <HowItWorks />
+
+<HomepageCaseStudies />
+
+      {/* PRICING TEASER — lightweight, links out to full estimator on /pricing */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <Reveal>
+            <div className="relative overflow-hidden bg-[#111111] p-10 md:p-14 flex flex-col md:flex-row items-center justify-between gap-10">
+              {/* Ambient liquid-glass orbs */}
+              <div className="pointer-events-none absolute -top-24 -right-16 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-28 left-1/3 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
+
+              <div className="relative max-w-lg">
+                <p className="text-xs text-white/60 font-medium mb-4 tracking-widest uppercase">Pricing</p>
+                <h2 className="text-3xl md:text-4xl font-bold text-white mb-3 tracking-tight">
+                  Starts at &#8377;{startingPrice.toLocaleString('en-IN')}/piece
+                </h2>
+                <p className="text-white/70 text-sm leading-relaxed mb-5">
+                  Fabric, stitching, single-color print, and neck label included. Volume discounts from 50 pieces
+                  and delivery in {DELIVERY_DAYS} days ({RUSH_DELIVERY_DAYS}-day rush available).
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {pricingHighlights.map(f => (
+                    <span key={f} className="backdrop-blur-md bg-white/10 border border-white/20 rounded-full px-3.5 py-1.5 text-xs text-white/90">
+                      {f}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="relative flex flex-col gap-3 w-full md:w-auto shrink-0">
+                <Link href="/pricing" className="bg-white text-[#111111] text-sm font-medium px-8 py-3.5 text-center hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] transition-all whitespace-nowrap">
+                  Get a detailed estimate
+                </Link>
+                <Link href="/configurator" className="backdrop-blur-md bg-white/5 border border-white/30 text-white text-sm font-medium px-8 py-3.5 text-center hover:bg-white/10 hover:scale-[1.02] active:scale-[0.98] transition-all whitespace-nowrap">
+                  Start designing
+                </Link>
+              </div>
+            </div>
+          </Reveal>
         </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="bg-white">
+        <div className="max-w-7xl mx-auto px-6 py-24">
+          <div className="grid lg:grid-cols-[300px_1fr] gap-12">
+            <Reveal>
+              <p className="text-xs text-[#595959] font-medium mb-4 tracking-widest uppercase">FAQ</p>
+              <h2 className="text-4xl font-bold mb-3 tracking-tight">Common questions</h2>
+              <p className="text-[#4a4a4a] text-sm leading-relaxed">
+                Can't find what you're looking for? <Link href="/contact" className="underline hover:text-[#111111]">Get in touch</Link>.
+              </p>
+            </Reveal>
+            <Reveal delay={100}>
+              <div className="flex flex-col border-t border-[#E5E5E5]">
+                {faqs.map((item, i) => (
+                  <div key={item.q} className="border-b border-[#E5E5E5]">
+                    <button
+                      type="button"
+                      onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                      className="w-full flex items-center justify-between gap-6 py-6 text-left"
+                    >
+                      <span className="text-base font-semibold text-[#111111]">{item.q}</span>
+                      <svg
+                        className={`w-4 h-4 text-[#555555] shrink-0 transition-transform duration-300 ${openFaq === i ? 'rotate-45' : ''}`}
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                      </svg>
+                    </button>
+                    {/* Smooth grid-based accordion expand instead of instant show/hide */}
+                    <div
+                      className={`grid transition-all duration-300 ease-in-out ${
+                        openFaq === i ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                      }`}
+                    >
+                      <div className="overflow-hidden">
+                        <p className="text-sm text-[#4a4a4a] leading-relaxed pb-6 pr-10">{item.a}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      <EmailCapture />
+
+      {/* CTA */}
+      <section className="relative overflow-hidden bg-[#111111]">
+        {/* Ambient liquid-glass orbs echoing the pricing card */}
+        <div className="pointer-events-none absolute -top-32 left-1/4 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-32 right-1/4 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
+
+        <Reveal className="relative">
+          <div className="max-w-3xl mx-auto px-6 py-28 flex flex-col items-center text-center gap-6">
+            <h2 className="text-4xl md:text-6xl font-bold text-white tracking-tight leading-[1.05]">
+              Ready to build<br />your merch?
+            </h2>
+            <p className="text-white/60 text-base">Start with 50 pieces. Scale as you grow.</p>
+            <Link
+              href="/configurator"
+              className="mt-4 bg-white text-[#111111] px-8 py-4 text-sm font-medium hover:bg-white/90 hover:scale-[1.03] active:scale-[0.98] transition-all shadow-[0_0_40px_rgba(255,255,255,0.15)]"
+            >
+              Start designing
+            </Link>
+          </div>
+        </Reveal>
       </section>
     </>
   )
