@@ -1,6 +1,15 @@
 // src/lib/configurator/pricing.ts
 
 import { products as catalogProducts } from "../products";
+import {
+  EXPRESS_DELIVERY_FEE_PER_UNIT,
+  GST_PERCENT,
+  RUSH_DELIVERY_FEE_PER_UNIT,
+  VOLUME_DISCOUNT_TIERS,
+  getVolumeDiscountAmount,
+  getVolumeDiscountPercent,
+  type VolumeDiscountTier,
+} from "../pricingRules";
 import type { Artwork, ArtworkTechnique, GarmentColour, NeckLabel } from "./types/configurator";
 
 // ============================================================
@@ -24,9 +33,15 @@ export function getBasePrice(productId: ProductId): number {
 export const CUSTOM_DYE_UNIT_INCREASE_PERCENT = 15.33;
 export const BACK_ARTWORK_UNIT_INCREASE_PERCENT = 22;
 export const NECK_LABEL_UNIT_PRICE = 25;
-export const RUSH_DELIVERY_FEE_PER_UNIT = 75;
-export const EXPRESS_DELIVERY_FEE_PER_UNIT = RUSH_DELIVERY_FEE_PER_UNIT;
-export const GST_PERCENT = 5;
+export {
+  EXPRESS_DELIVERY_FEE_PER_UNIT,
+  GST_PERCENT,
+  RUSH_DELIVERY_FEE_PER_UNIT,
+  VOLUME_DISCOUNT_TIERS,
+  getVolumeDiscountAmount,
+  getVolumeDiscountPercent,
+  type VolumeDiscountTier,
+};
 
 export const TECHNIQUE_UNIT_PRICE_DELTAS: Record<ArtworkTechnique, number> = {
   screen_print: 38,
@@ -104,36 +119,8 @@ export function getConfiguredUnitPrice(
 }
 
 // ============================================================
-// PHASE 9A (new) — artwork fees + volume discount + neck label fee
+// PHASE 9A (new) — volume discount + neck label fee
 // ============================================================
-
-// --- Volume Discount ---
-export type VolumeDiscountTier = {
-  minQty: number;
-  maxQty: number | null; // null = no upper bound
-  discountPercent: number;
-};
-
-export const VOLUME_DISCOUNT_TIERS: VolumeDiscountTier[] = [
-  { minQty: 50, maxQty: 99, discountPercent: 0 },
-  { minQty: 100, maxQty: 249, discountPercent: 7 },
-  { minQty: 250, maxQty: 499, discountPercent: 12 },
-  { minQty: 500, maxQty: 999, discountPercent: 17 },
-  { minQty: 1000, maxQty: null, discountPercent: 22 },
-];
-
-export function getVolumeDiscountPercent(totalQty: number): number {
-  if (totalQty < 50) return 0;
-  const tier = VOLUME_DISCOUNT_TIERS.find(
-    (t) => totalQty >= t.minQty && (t.maxQty === null || totalQty <= t.maxQty)
-  );
-  return tier ? tier.discountPercent : 0;
-}
-
-export function getVolumeDiscountAmount(unitPrice: number, totalQty: number): number {
-  const percent = getVolumeDiscountPercent(totalQty);
-  return (unitPrice * percent) / 100;
-}
 
 // --- Artwork Fees ---
 export const ARTWORK_PREP_FEE = 499; // flat, per artwork/side, one-time regardless of qty

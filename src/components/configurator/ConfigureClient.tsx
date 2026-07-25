@@ -28,6 +28,10 @@ import {
   clearBuildDraft,
   hasMeaningfulDraft,
 } from "@/lib/configurator/buildDraft";
+import {
+  revokeArtworkObjectUrls,
+  revokeNeckLabelObjectUrl,
+} from "@/lib/configurator/objectUrls";
 
 // ---------------------------------------------------------------------------
 // Types (local to this file)
@@ -212,9 +216,11 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       setColour(DEFAULT_COLOUR);
     }
     if (stepId === "artwork") {
+      revokeArtworkObjectUrls(artwork);
       setArtwork({});
     }
     if (stepId === "neck-label") {
+      revokeNeckLabelObjectUrl(neckLabel);
       setNeckLabel({} as NeckLabel);
     }
     setSteps((prev) =>

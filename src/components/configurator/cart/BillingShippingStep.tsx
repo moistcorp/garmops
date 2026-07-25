@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { DeliveryDatePicker } from "@/components/configurator/cart/DeliveryDatePicker";
@@ -8,18 +8,26 @@ import { AddressForm, isAddressValid } from "@/components/configurator/cart/Addr
 import { CartSummarySidebar } from "@/components/configurator/cart/CartSummarySidebar";
 import { CheckoutSteps } from "@/components/configurator/cart/CheckoutSteps";
 import { calculateTotals, createDraft, readDraft, type CartDraft, writeDraft } from "./cartDraft";
+import { formatDeliveryDate, getDeliveryLabel } from "./deliveryLabels";
 import { CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS } from "@/lib/configurator/colours";
+import { getDeliveryOptions } from "@/lib/configurator/delivery";
 
 export interface BillingShippingStepProps {
   cartId: string;
 }
 
-function formatDate(d: Date): string {
-  return d.toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+function isSameCalendarDate(a?: Date, b?: Date): boolean {
+  return (
+    !!a &&
+    !!b &&
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+function startOfDay(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
 export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
@@ -32,6 +40,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
   // returned the saved delivery date/type immediately while the server
   // markup was rendered with none, and the two didn't match.
   const [draft, setDraft] = useState<CartDraft>(() => createDraft(cartId));
+  const [dateNotice, setDateNotice] = useState<string | null>(null);
   useEffect(() => {
     const loadDraft = window.setTimeout(() => {
       setDraft(readDraft(cartId));
@@ -50,25 +59,61 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
   const extraLeadTimeDays = draft.items.some((item) => item.colour.type === "custom_dye")
     ? CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS.max
     : 0;
+  const deliveryBaseDate = useMemo(() => new Date(), []);
+  const deliveryOptions = useMemo(
+    () => getDeliveryOptions(deliveryBaseDate, extraLeadTimeDays),
+    [deliveryBaseDate, extraLeadTimeDays]
+  );
 
-  const updateDraft = (patch: Partial<CartDraft>) => {
+  const updateDraft = useCallback((patch: Partial<CartDraft>) => {
     setDraft((prev) => {
       const next = { ...prev, ...patch };
       writeDraft(cartId, next);
       return next;
     });
-  };
+  }, [cartId]);
 
   const deliveryLabel = useMemo(() => {
-    if (!selectedDeliveryDate) return "Select a delivery date";
-    const tag =
-      draft.deliveryType === "rush"
-        ? "Rush"
-        : draft.deliveryType === "standard"
-        ? "Standard"
-        : "Flexible";
-    return `${tag} - ${formatDate(selectedDeliveryDate)}`;
+    return getDeliveryLabel(selectedDeliveryDate, draft.deliveryType);
   }, [selectedDeliveryDate, draft.deliveryType]);
+
+  useEffect(() => {
+    if (!selectedDeliveryDate || !draft.deliveryType) return;
+
+    if (draft.deliveryType === "rush" && !isSameCalendarDate(selectedDeliveryDate, deliveryOptions.rush)) {
+      const timer = window.setTimeout(() => {
+        updateDraft({ selectedDeliveryDateIso: deliveryOptions.rush.toISOString() });
+        setDateNotice("Rush delivery was refreshed to the latest available date.");
+      }, 0);
+      return () => window.clearTimeout(timer);
+    }
+
+    if (
+      draft.deliveryType === "standard" &&
+      !isSameCalendarDate(selectedDeliveryDate, deliveryOptions.standard)
+    ) {
+      const timer = window.setTimeout(() => {
+        updateDraft({ selectedDeliveryDateIso: deliveryOptions.standard.toISOString() });
+        setDateNotice("Standard delivery was refreshed to the latest available date.");
+      }, 0);
+      return () => window.clearTimeout(timer);
+    }
+
+    if (
+      draft.deliveryType === "flexible" &&
+      startOfDay(selectedDeliveryDate) < startOfDay(deliveryOptions.standard)
+    ) {
+      const timer = window.setTimeout(() => {
+        updateDraft({ selectedDeliveryDateIso: undefined, deliveryType: undefined });
+        setDateNotice(
+          `Your saved flexible delivery date is no longer available. Pick a date on or after ${formatDeliveryDate(
+            deliveryOptions.standard
+          )}.`
+        );
+      }, 0);
+      return () => window.clearTimeout(timer);
+    }
+  }, [selectedDeliveryDate, draft.deliveryType, deliveryOptions.rush, deliveryOptions.standard, updateDraft]);
 
   const isValid = useMemo(() => {
     const shippingOk = isAddressValid(draft.shippingAddress);
@@ -103,15 +148,23 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
 
         <section className="rounded-lg border border-[#E5E5E5] bg-white p-5">
           <DeliveryDatePicker
+            orderConfirmedDate={deliveryBaseDate}
             extraLeadTimeDays={extraLeadTimeDays}
             onDateSelect={(date, type) => {
+              setDateNotice(null);
               updateDraft({
                 selectedDeliveryDateIso: date.toISOString(),
                 deliveryType: type,
               });
             }}
             selectedDate={selectedDeliveryDate}
+            selectedType={draft.deliveryType}
           />
+          {dateNotice && (
+            <p className="mt-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+              {dateNotice}
+            </p>
+          )}
         </section>
 
         <section className="rounded-lg border border-[#E5E5E5] bg-white p-5">

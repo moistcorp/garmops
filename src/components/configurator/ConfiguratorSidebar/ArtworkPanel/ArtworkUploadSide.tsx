@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Download, ExternalLink, Upload, X } from "lucide-react";
 import { useArtworkPosition } from "@/lib/configurator/ArtworkPositionContext";
+import { revokeObjectUrl } from "@/lib/configurator/objectUrls";
 import type {
   ArtworkFileType,
   ArtworkSide,
@@ -203,6 +204,8 @@ function VectorConversionDialog({
 
 export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSideProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const pendingObjectUrlRef = useRef<string | null>(null);
+  const importTokenRef = useRef(0);
   const { updatePosition } = useArtworkPosition();
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -212,6 +215,13 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
 
   const requiresVector =
     !!value?.technique && VECTOR_REQUIRED_TECHNIQUES.includes(value.technique) && !value.vectorized;
+
+  useEffect(() => {
+    return () => {
+      revokeObjectUrl(pendingObjectUrlRef.current ?? undefined);
+      pendingObjectUrlRef.current = null;
+    };
+  }, []);
 
   const runFakeProgress = useCallback((onDone: () => void) => {
     setProgress(0);
@@ -229,14 +239,24 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
     }, 120);
   }, []);
 
-  async function importArtwork(fileUrl: string, fileType: ArtworkFileType) {
+  async function importArtwork(fileUrl: string, fileType: ArtworkFileType, token: number) {
     const dimensions = await getDefaultArtworkDimensions(fileUrl, fileType);
+    if (token !== importTokenRef.current) {
+      revokeObjectUrl(fileUrl);
+      return;
+    }
+    if (pendingObjectUrlRef.current === fileUrl) {
+      pendingObjectUrlRef.current = null;
+    }
     updatePosition(side, {
       widthCm: dimensions.width,
       heightCm: dimensions.height,
       fromNeckCm: 5,
       fromCenterCm: 0,
     });
+    if (value?.fileUrl !== fileUrl) {
+      revokeObjectUrl(value?.fileUrl);
+    }
     onChange(makeDefaultSide(fileUrl, fileType, dimensions, value?.technique));
   }
 
@@ -257,8 +277,13 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
     setResolutionWarning(null);
 
     const fileUrl = URL.createObjectURL(file);
+    revokeObjectUrl(pendingObjectUrlRef.current ?? undefined);
+    pendingObjectUrlRef.current = fileUrl;
+    const token = importTokenRef.current + 1;
+    importTokenRef.current = token;
     if (fileType === "jpg" || fileType === "png") {
       void getImageDimensions(fileUrl).then(({ naturalWidth, naturalHeight }) => {
+        if (token !== importTokenRef.current) return;
         if (naturalWidth < 1200 || naturalHeight < 600) {
           setResolutionWarning(
             `This raster file is ${naturalWidth}x${naturalHeight}px. It may print soft at large sizes; upload a higher-res file or convert to SVG.`
@@ -267,11 +292,15 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
       });
     }
     runFakeProgress(() => {
-      void importArtwork(fileUrl, fileType);
+      void importArtwork(fileUrl, fileType, token);
     });
   }
 
   function handleRemove() {
+    importTokenRef.current += 1;
+    revokeObjectUrl(pendingObjectUrlRef.current ?? undefined);
+    pendingObjectUrlRef.current = null;
+    revokeObjectUrl(value?.fileUrl);
     onChange(undefined);
     setError(null);
     setResolutionWarning(null);
@@ -279,8 +308,12 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
   }
 
   function handleTrySample() {
+    importTokenRef.current += 1;
+    revokeObjectUrl(pendingObjectUrlRef.current ?? undefined);
+    pendingObjectUrlRef.current = null;
+    const token = importTokenRef.current;
     runFakeProgress(() => {
-      void importArtwork(SAMPLE_ARTWORK_HREF, "svg");
+      void importArtwork(SAMPLE_ARTWORK_HREF, "svg", token);
     });
   }
 

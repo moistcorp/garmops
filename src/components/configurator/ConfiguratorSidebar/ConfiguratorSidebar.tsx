@@ -10,6 +10,10 @@ import type {
   Artwork,
   NeckLabel,
 } from "@/lib/configurator/types/configurator";
+import {
+  revokeArtworkObjectUrls,
+  revokeNeckLabelObjectUrl,
+} from "@/lib/configurator/objectUrls";
 import type { GarmentView } from "@/lib/configurator/types/garment";
 
 export type AccordionStepId = "garment-colour" | "artwork" | "neck-label";
@@ -190,6 +194,18 @@ export function ConfiguratorSidebar({
   }
 
   function stubResetStep(id: AccordionStepId) {
+    if (id === "artwork") {
+      revokeArtworkObjectUrls(artwork);
+      if (!isArtworkControlled) {
+        setInternalArtwork({});
+      }
+    }
+    if (id === "neck-label") {
+      revokeNeckLabelObjectUrl(neckLabel);
+      if (!isNeckLabelControlled) {
+        setInternalNeckLabel(undefined);
+      }
+    }
     onResetStep?.(id);
     updateSteps((prev) =>
       prev.map((step) =>

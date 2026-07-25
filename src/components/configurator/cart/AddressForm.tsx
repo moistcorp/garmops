@@ -36,6 +36,99 @@ const COUNTRIES = [
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const GSTIN_RE = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
+const INDIA_PIN_RE = /^[1-9][0-9]{5}$/;
+const INDIA_MOBILE_RE = /^[6-9][0-9]{9}$/;
+const GST_STATE_CODES: Record<string, string[]> = {
+  "01": ["jammu and kashmir", "jammu kashmir", "jk"],
+  "02": ["himachal pradesh", "hp"],
+  "03": ["punjab", "pb"],
+  "04": ["chandigarh", "ch"],
+  "05": ["uttarakhand", "ut"],
+  "06": ["haryana", "hr"],
+  "07": ["delhi", "dl", "new delhi"],
+  "08": ["rajasthan", "rj"],
+  "09": ["uttar pradesh", "up"],
+  "10": ["bihar", "br"],
+  "11": ["sikkim", "sk"],
+  "12": ["arunachal pradesh", "ar"],
+  "13": ["nagaland", "nl"],
+  "14": ["manipur", "mn"],
+  "15": ["mizoram", "mz"],
+  "16": ["tripura", "tr"],
+  "17": ["meghalaya", "ml"],
+  "18": ["assam", "as"],
+  "19": ["west bengal", "wb"],
+  "20": ["jharkhand", "jh"],
+  "21": ["odisha", "orissa", "od"],
+  "22": ["chhattisgarh", "ct", "cg"],
+  "23": ["madhya pradesh", "mp"],
+  "24": ["gujarat", "gj"],
+  "25": ["daman and diu", "dd"],
+  "26": [
+    "dadra and nagar haveli",
+    "dn",
+    "dadra and nagar haveli and daman and diu",
+    "dnhdd",
+  ],
+  "27": ["maharashtra", "mh"],
+  "29": ["karnataka", "ka"],
+  "30": ["goa", "ga"],
+  "31": ["lakshadweep", "ld"],
+  "32": ["kerala", "kl"],
+  "33": ["tamil nadu", "tn"],
+  "34": ["puducherry", "pondicherry", "py"],
+  "35": ["andaman and nicobar islands", "andaman nicobar", "an"],
+  "36": ["telangana", "ts", "tg"],
+  "37": ["andhra pradesh", "ap"],
+  "38": ["ladakh", "la"],
+  "97": ["other territory", "other"],
+};
+
+function digitsOnly(value: string): string {
+  return value.replace(/\D/g, "");
+}
+
+function normalizedIndianPhone(value: string): string {
+  const digits = digitsOnly(value);
+  if (digits.length === 12 && digits.startsWith("91")) return digits.slice(2);
+  if (digits.length === 11 && digits.startsWith("0")) return digits.slice(1);
+  return digits;
+}
+
+function isPinCodeValid(zip: string): boolean {
+  return INDIA_PIN_RE.test(zip.trim());
+}
+
+function isIndianPhoneValid(phone: string): boolean {
+  return INDIA_MOBILE_RE.test(normalizedIndianPhone(phone));
+}
+
+function normalizeStateName(state: string): string {
+  return state
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function getGstinStateCode(gstin: string): string | undefined {
+  const trimmed = gstin.trim().toUpperCase();
+  return GSTIN_RE.test(trimmed) ? trimmed.slice(0, 2) : undefined;
+}
+
+function doesGstinMatchState(gstin: string, state?: string): boolean {
+  const stateCode = getGstinStateCode(gstin);
+  if (!stateCode) return false;
+  const normalizedState = normalizeStateName(state ?? "");
+  return Boolean(normalizedState && GST_STATE_CODES[stateCode]?.includes(normalizedState));
+}
+
+function isGstinValidForAddress(gstin?: string, state?: string): boolean {
+  const trimmed = gstin?.trim() ?? "";
+  if (!trimmed) return true;
+  return GSTIN_RE.test(trimmed.toUpperCase()) && doesGstinMatchState(trimmed, state);
+}
 
 export function isAddressValid(a: Address): boolean {
   return Boolean(
@@ -43,11 +136,11 @@ export function isAddressValid(a: Address): boolean {
       a.lastName.trim() &&
       a.country.trim() &&
       a.addressLine1.trim() &&
-      a.zip.trim() &&
+      isPinCodeValid(a.zip) &&
       a.city.trim() &&
       EMAIL_RE.test(a.email.trim()) &&
-      (!a.gstin?.trim() || GSTIN_RE.test(a.gstin.trim())) &&
-      a.phone.trim()
+      isGstinValidForAddress(a.gstin, a.state) &&
+      isIndianPhoneValid(a.phone)
   );
 }
 
@@ -76,6 +169,12 @@ export function AddressForm({
   const labelClass = "text-xs font-medium text-[#111111]/70 mb-1 block";
   const zipLabel = value.country === "India" ? "PIN Code" : "Zip";
   const gstin = value.gstin?.trim() ?? "";
+  const zip = value.zip.trim();
+  const phone = value.phone.trim();
+  const gstinHasValue = Boolean(gstin);
+  const gstinFormatValid = !gstinHasValue || GSTIN_RE.test(gstin.toUpperCase());
+  const gstinStateMatches = !gstinHasValue || doesGstinMatchState(gstin, value.state);
+  const stateInvalidForGstin = gstinHasValue && gstinFormatValid && !gstinStateMatches;
 
   return (
     <div className="space-y-4">
@@ -133,8 +232,11 @@ export function AddressForm({
               onChange={(e) => set("gstin", e.target.value.toUpperCase())}
               onBlur={() => markTouched("gstin")}
             />
-            {showError("gstin", Boolean(gstin) && !GSTIN_RE.test(gstin)) && (
-              <p className="text-xs text-red-600 mt-1">Enter a valid 15-character GSTIN</p>
+            {showError("gstin", gstinHasValue && !gstinFormatValid) && (
+              <p className="mt-1 text-xs text-red-600">Enter a valid 15-character GSTIN</p>
+            )}
+            {showError("gstin", gstinHasValue && gstinFormatValid && !gstinStateMatches) && (
+              <p className="mt-1 text-xs text-red-600">GSTIN state code must match the State field</p>
             )}
           </div>
         </div>
@@ -190,12 +292,16 @@ export function AddressForm({
           <label className={labelClass}>{zipLabel}</label>
           <input
             className={inputClass}
+            inputMode="numeric"
+            maxLength={6}
+            pattern="[1-9][0-9]{5}"
+            placeholder="110001"
             value={value.zip}
-            onChange={(e) => set("zip", e.target.value)}
+            onChange={(e) => set("zip", digitsOnly(e.target.value).slice(0, 6))}
             onBlur={() => markTouched("zip")}
           />
-          {showError("zip", !value.zip.trim()) && (
-            <p className="text-xs text-red-600 mt-1">Required</p>
+          {showError("zip", !isPinCodeValid(zip)) && (
+            <p className="text-xs text-red-600 mt-1">Enter a valid 6-digit PIN code</p>
           )}
         </div>
         <div>
@@ -214,12 +320,16 @@ export function AddressForm({
 
       {showState && (
         <div>
-          <label className={labelClass}>State (optional)</label>
+          <label className={labelClass}>State {gstinHasValue ? "" : "(optional)"}</label>
           <input
             className={inputClass}
             value={value.state ?? ""}
             onChange={(e) => set("state", e.target.value)}
+            onBlur={() => markTouched("state")}
           />
+          {showError("state", stateInvalidForGstin) && (
+            <p className="mt-1 text-xs text-red-600">Enter the state that matches your GSTIN</p>
+          )}
         </div>
       )}
 
@@ -241,12 +351,16 @@ export function AddressForm({
           <label className={labelClass}>Phone</label>
           <input
             className={inputClass}
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            placeholder="98765 43210"
             value={value.phone}
             onChange={(e) => set("phone", e.target.value)}
             onBlur={() => markTouched("phone")}
           />
-          {showError("phone", !value.phone.trim()) && (
-            <p className="text-xs text-red-600 mt-1">Required</p>
+          {showError("phone", !isIndianPhoneValid(phone)) && (
+            <p className="text-xs text-red-600 mt-1">Enter a valid 10-digit Indian mobile number</p>
           )}
         </div>
       </div>

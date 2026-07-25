@@ -127,6 +127,13 @@ function getNextDiscountTier(quantity: number) {
   return { neededQty: Math.max(0, next.minQty - quantity), nextPercent: next.discountPercent };
 }
 
+function getBestDiscountPercent() {
+  return VOLUME_DISCOUNT_TIERS.reduce(
+    (best, tier) => Math.max(best, tier.discountPercent),
+    0
+  );
+}
+
 function PricingBreakdown({
   productId,
   colour,
@@ -214,10 +221,12 @@ function VolumeDiscountNudge({ quantity }: { quantity: number }) {
   const nextTier = getNextDiscountTier(quantity);
 
   if (!nextTier) {
+    const bestDiscountPercent = getBestDiscountPercent();
+
     return (
       <p className="flex items-center gap-1.5 text-[11px] font-medium text-[#2E7D32]">
         <TrendingUp size={12} strokeWidth={2.4} />
-        You&rsquo;re at our best volume price — 22% off.
+        You&rsquo;re at our best volume price — {bestDiscountPercent}% off.
       </p>
     );
   }

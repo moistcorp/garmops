@@ -3,6 +3,7 @@
 import { JSX, useId, useState } from 'react';
 import Image from 'next/image';
 import { Check, Download, Plus, Trash2, Upload } from 'lucide-react';
+import { revokeObjectUrl } from '@/lib/configurator/objectUrls';
 import type {
   NeckLabel,
   NeckLabelDimensions,
@@ -94,6 +95,9 @@ export default function NeckLabelPanel({
     nextFileName?: string
   ) {
     const nextDimensions = dimensions ?? DEFAULT_DIMENSIONS;
+    if (fileUrl !== url) {
+      revokeObjectUrl(fileUrl);
+    }
     setFileUrl(url);
     setFileType(type);
     setFileName(nextFileName);
@@ -107,6 +111,7 @@ export default function NeckLabelPanel({
   }
 
   function handleRemoveArtwork() {
+    revokeObjectUrl(fileUrl);
     setFileUrl(undefined);
     setFileType(undefined);
     setFileName(undefined);

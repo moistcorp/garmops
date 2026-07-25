@@ -3,15 +3,34 @@
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
 import { ShoppingCart } from "lucide-react";
-import { readActiveCartSummary } from "@/components/configurator/cart/cartDraft";
+import {
+  CART_DRAFT_UPDATED_EVENT,
+  readActiveCartSummary,
+} from "@/components/configurator/cart/cartDraft";
 
 function getSnapshot() {
   return JSON.stringify(readActiveCartSummary());
 }
 
+function subscribe(onStoreChange: () => void) {
+  function handleStorage(event: StorageEvent) {
+    if (event.key?.startsWith("mf_configurator_cart:")) {
+      onStoreChange();
+    }
+  }
+
+  window.addEventListener(CART_DRAFT_UPDATED_EVENT, onStoreChange);
+  window.addEventListener("storage", handleStorage);
+
+  return () => {
+    window.removeEventListener(CART_DRAFT_UPDATED_EVENT, onStoreChange);
+    window.removeEventListener("storage", handleStorage);
+  };
+}
+
 export default function ProductPickerCartLink() {
   const summarySnapshot = useSyncExternalStore(
-    () => () => undefined,
+    subscribe,
     getSnapshot,
     () => "null"
   );

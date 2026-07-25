@@ -9,18 +9,21 @@ import type { GarmentView } from '@/lib/configurator/types/garment';
 import { SizeQuantityGrid, SIZES, type Size } from './SizeQuantityGrid';
 import { CartSummarySidebar } from './CartSummarySidebar';
 import { CheckoutSteps } from './CheckoutSteps';
-import { calculateTotals, createDraft, itemSubtotal, readDraft, totalUnits, writeDraft } from './cartDraft';
+import {
+  calculateTotals,
+  createDraft,
+  getCartItemDiscountPercent,
+  getCartItemUnitPrice,
+  itemSubtotal,
+  readDraft,
+  totalUnits,
+  writeDraft,
+} from './cartDraft';
 import { formatInr } from '@/lib/configurator/pricing';
 import { CUSTOM_DYE_MOQ_UNITS } from '@/lib/configurator/colours';
 import { getSizeChart } from '@/lib/sizecharts';
 import CanvasRenderer from '../GarmentPreview/CanvasRenderer';
 import { ArtworkPositionProvider } from '@/lib/configurator/ArtworkPositionContext';
-
-export interface DevelopmentCostLine {
-  label: string;
-  unitPrice: number;
-  count: number;
-}
 
 export interface CartItem {
   id: string;
@@ -31,10 +34,9 @@ export interface CartItem {
   artwork: Artwork;
   neckLabel?: NeckLabel;
   sizeQuantities: Record<Size, number>;
+  baseUnitPrice?: number;
   unitPrice: number;
   rushDelivery?: boolean;
-  artworkFees: DevelopmentCostLine[];
-  applicationFees: DevelopmentCostLine[];
 }
 
 export interface OrderReviewStepProps {
@@ -88,7 +90,12 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
           );
           const safeQty = Math.max(minimumAllowedQty, qty);
 
-          return { ...item, sizeQuantities: { ...item.sizeQuantities, [size]: safeQty } };
+          const sizeQuantities = { ...item.sizeQuantities, [size]: safeQty };
+          return {
+            ...item,
+            sizeQuantities,
+            unitPrice: getCartItemUnitPrice({ ...item, sizeQuantities }),
+          };
         }),
       };
       writeDraft(cartId, next);
@@ -179,7 +186,9 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
           const itemUnits = totalUnits(item.sizeQuantities);
           const itemMinimumUnits = item.colour.type === 'custom_dye' ? CUSTOM_DYE_MOQ_UNITS : 50;
           const sizeChart = getSizeChart(item.productId);
-          const garmentTotal = item.unitPrice * itemUnits;
+          const itemUnitPrice = getCartItemUnitPrice(item);
+          const itemDiscountPercent = getCartItemDiscountPercent(item);
+          const garmentTotal = itemUnitPrice * itemUnits;
           return (
             <section key={item.id} className="rounded-lg border border-[#E5E5E5] bg-white p-5">
               <div className="flex flex-col gap-5 md:flex-row">
@@ -268,7 +277,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                   <SizeQuantityGrid
                     value={item.sizeQuantities}
                     onChange={(size, qty) => handleQtyChange(item.id, size, qty)}
-                    unitPrice={item.unitPrice}
+                    unitPrice={itemUnitPrice}
                     minimumUnits={itemMinimumUnits}
                   />
 
@@ -306,8 +315,15 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                   <div className="rounded-md border border-[#E5E5E5] bg-[#F7F7F7] px-4 py-3 text-sm text-[#111111]">
                     <div className="flex items-center justify-between gap-4">
                       <span className="font-medium">Item total</span>
-                      <span className="font-semibold">
-                        {formatInr(item.unitPrice)} x {itemUnits} = {formatInr(garmentTotal)}
+                      <span className="flex items-center gap-2 text-right font-semibold">
+                        {itemDiscountPercent > 0 && (
+                          <span className="rounded-full bg-[#EAF7EA] px-2 py-0.5 text-[10px] font-medium text-[#1B7F36]">
+                            {itemDiscountPercent}% off
+                          </span>
+                        )}
+                        <span>
+                          {formatInr(itemUnitPrice)} x {itemUnits} = {formatInr(garmentTotal)}
+                        </span>
                       </span>
                     </div>
                   </div>

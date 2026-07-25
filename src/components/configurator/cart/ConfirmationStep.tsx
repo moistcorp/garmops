@@ -9,7 +9,16 @@ import { CheckoutSteps } from "./CheckoutSteps";
 import { PaymentMethodSelect } from "./PaymentMethodSelect";
 import { SIZES } from "./SizeQuantityGrid";
 import type { CartItem } from "./OrderReviewStep";
-import { calculateTotals, createDraft, readDraft, RESERVATION_FEE, totalUnits } from "./cartDraft";
+import {
+  calculateTotals,
+  createDraft,
+  getCartItemDiscountPercent,
+  getCartItemUnitPrice,
+  readDraft,
+  RESERVATION_FEE,
+  totalUnits,
+} from "./cartDraft";
+import { getDeliveryLabel } from "./deliveryLabels";
 import { formatInr, getUnitPriceAdjustments } from "@/lib/configurator/pricing";
 import CanvasRenderer from "../GarmentPreview/CanvasRenderer";
 import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionContext";
@@ -42,11 +51,10 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
   const { subtotal, volumeDiscount, shippingFee, gst, delivery, orderTotal, balanceDue } =
     useMemo(() => {
       const totals = calculateTotals(draft.items, draft.deliveryType);
-      const delivery = draft.selectedDeliveryDateIso
-        ? `${draft.deliveryType === "rush" ? "Rush" : draft.deliveryType ?? "standard"} - ${new Date(
-            draft.selectedDeliveryDateIso
-          ).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`
-        : "Delivery date not selected";
+      const delivery = getDeliveryLabel(
+        draft.selectedDeliveryDateIso ? new Date(draft.selectedDeliveryDateIso) : undefined,
+        draft.deliveryType
+      );
 
       return {
         subtotal: totals.subtotal,
@@ -329,6 +337,8 @@ function AddressSummary({ address }: { address: Address }) {
 
 function ProductRecapCard({ item }: { item: CartItem }) {
   const units = totalUnits(item.sizeQuantities);
+  const unitPrice = getCartItemUnitPrice(item);
+  const discountPercent = getCartItemDiscountPercent(item);
   const adjustments = getUnitPriceAdjustments(
     item.colour,
     item.artwork,
@@ -354,7 +364,8 @@ function ProductRecapCard({ item }: { item: CartItem }) {
       <div className="flex-1">
         <p className="text-sm font-medium text-[#111111]">{item.productName}</p>
         <p className="text-xs text-[#111111]/60">
-          {item.colour.name || "Bright White"} · {units} units · {formatInr(item.unitPrice)}/unit
+          {item.colour.name || "Bright White"} · {units} units · {formatInr(unitPrice)}/unit
+          {discountPercent > 0 ? ` · ${discountPercent}% off` : ""}
         </p>
         <div className="mt-2 grid grid-cols-6 gap-1 text-[10px] text-[#111111]/60">
           {SIZES.map((size) => (

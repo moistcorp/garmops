@@ -23,7 +23,15 @@ export default function PricingClient() {
   const [dropdownOpen, setDropdownOpen] = useState(false)
 
   const selectedProduct = productList.find(p => p.name === selected) ?? productList[0]
-  const { discount, discountedBase, rushCharge, pricePerPiece, subtotal, gst, total } = calcOrder(selected, qty, rush)
+  const {
+    discount,
+    discountAmountPerPiece,
+    rushCharge,
+    pricePerPiece,
+    subtotal,
+    gst,
+    total,
+  } = calcOrder(selected, qty, rush)
   const deliveryDays = rush ? RUSH_DELIVERY_DAYS : DELIVERY_DAYS
   const rushChargeTotal = rushCharge * qty
 
@@ -200,7 +208,7 @@ export default function PricingClient() {
                   <div className="flex justify-between text-sm">
                     <span className="text-white/60">Volume discount ({(discount * 100).toFixed(0)}%)</span>
                     <span className="text-white">
-                      -&#8377;{(PRODUCT_PRICES[selected] - discountedBase).toLocaleString('en-IN')}/pc
+                      -&#8377;{Math.round(discountAmountPerPiece).toLocaleString('en-IN')}/pc
                     </span>
                   </div>
                 )}

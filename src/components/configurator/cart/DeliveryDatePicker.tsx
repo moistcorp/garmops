@@ -8,6 +8,7 @@ export interface DeliveryDatePickerProps {
   extraLeadTimeDays?: number;
   onDateSelect: (date: Date, type: "rush" | "standard" | "flexible") => void;
   selectedDate?: Date;
+  selectedType?: "rush" | "standard" | "flexible";
 }
 
 function formatDate(d: Date): string {
@@ -25,14 +26,20 @@ function toInputValue(d: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+function fromInputValue(value: string): Date {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
 export function DeliveryDatePicker({
   orderConfirmedDate,
   extraLeadTimeDays = 0,
   onDateSelect,
   selectedDate,
+  selectedType,
 }: DeliveryDatePickerProps) {
-  const [baseDate] = useState<Date>(orderConfirmedDate ?? new Date());
-  const [showCalendar, setShowCalendar] = useState(false);
+  const baseDate = useMemo(() => orderConfirmedDate ?? new Date(), [orderConfirmedDate]);
+  const [userCalendarOpen, setUserCalendarOpen] = useState(false);
   const [calendarError, setCalendarError] = useState<string | null>(null);
 
   const options = useMemo(
@@ -50,8 +57,11 @@ export function DeliveryDatePicker({
   const isSame = (a?: Date, b?: Date) =>
     !!a && !!b && a.toDateString() === b.toDateString();
 
+  const isFlexibleSelected = selectedType === "flexible" && !!selectedDate;
+  const showCalendar = isFlexibleSelected || userCalendarOpen;
+
   const handleFlexiblePick = (dateStr: string) => {
-    const picked = new Date(dateStr);
+    const picked = fromInputValue(dateStr);
     if (!options.flexible(picked)) {
       setCalendarError(
         `Pick a date on or after ${formatDate(options.standard)}.`
@@ -71,9 +81,9 @@ export function DeliveryDatePicker({
       <div className="flex flex-col sm:flex-row gap-3">
         <button
           type="button"
-          className={chipClass(isSame(selectedDate, options.rush))}
+          className={chipClass(selectedType === "rush" || (!selectedType && isSame(selectedDate, options.rush)))}
           onClick={() => {
-            setShowCalendar(false);
+            setUserCalendarOpen(false);
             onDateSelect(options.rush, "rush");
           }}
         >
@@ -85,9 +95,11 @@ export function DeliveryDatePicker({
 
         <button
           type="button"
-          className={chipClass(isSame(selectedDate, options.standard))}
+          className={chipClass(
+            selectedType === "standard" || (!selectedType && isSame(selectedDate, options.standard))
+          )}
           onClick={() => {
-            setShowCalendar(false);
+            setUserCalendarOpen(false);
             onDateSelect(options.standard, "standard");
           }}
         >
@@ -99,11 +111,13 @@ export function DeliveryDatePicker({
 
         <button
           type="button"
-          className={chipClass(showCalendar)}
-          onClick={() => setShowCalendar((s) => !s)}
+          className={chipClass(isFlexibleSelected || showCalendar)}
+          onClick={() => setUserCalendarOpen((s) => !s)}
         >
           <span className="block text-sm font-medium">Flexible</span>
-          <span className="block text-xs opacity-70">Pick another date</span>
+          <span className="block text-xs opacity-70">
+            {isFlexibleSelected ? formatDate(selectedDate) : "Pick another date"}
+          </span>
         </button>
       </div>
 
@@ -112,6 +126,7 @@ export function DeliveryDatePicker({
           <input
             type="date"
             min={toInputValue(options.standard)}
+            value={isFlexibleSelected ? toInputValue(selectedDate) : ""}
             className="rounded-md border border-[#E5E5E5] bg-white px-3 py-2 text-sm text-[#111111] focus:border-[var(--color-teal)] focus:outline-none"
             onChange={(e) => handleFlexiblePick(e.target.value)}
           />
