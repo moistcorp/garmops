@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { products } from '@/lib/products'
 import type { Metadata } from 'next'
 import { generateMeta } from '@/lib/seo'
@@ -39,7 +40,7 @@ export default function Products() {
               className="group bg-white flex flex-col overflow-hidden rounded-2xl border border-[#ECE7DF] shadow-[0_4px_16px_rgba(22,33,43,0.04)] hover:shadow-[0_12px_30px_rgba(22,33,43,0.08)] hover:border-[var(--color-teal)] transition-all duration-300">
               <div className="relative w-full aspect-[3/4] bg-[var(--color-cream-soft)] flex items-center justify-center overflow-hidden">
                 {p.image ? (
-                  <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <Image src={p.image} alt={p.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                 ) : (
                   <span className="text-xs text-[#111111]/20 uppercase tracking-wide">Product photo</span>
                 )}

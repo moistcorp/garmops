@@ -7,6 +7,7 @@ import WhyGarmops from '@/app/_components/WhyGarmops'
 import EmailCapture from '@/app/_components/EmailCapture'
 import Reveal from '@/app/_components/Reveal'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState } from 'react'
 import { PRODUCT_PRICES, DELIVERY_DAYS, RUSH_DELIVERY_DAYS } from '@/lib/pricing'
 
@@ -56,7 +57,7 @@ export default function HomeClient() {
               <div className="group flex flex-col bg-white rounded-2xl border border-[#ECE7DF] overflow-hidden shadow-[0_4px_16px_rgba(22,33,43,0.04)] hover:shadow-[0_12px_30px_rgba(22,33,43,0.08)] hover:border-[var(--color-teal)] transition-all duration-300">
                 <div className="relative w-full h-[380px] bg-[var(--color-cream-soft)] flex items-center justify-center overflow-hidden">
                   {i.image ? (
-                    <img src={i.image} alt={i.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <Image src={i.image} alt={i.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
                     <span className="text-xs text-[#111111]/20 uppercase tracking-widest">{i.name}</span>
                   )}
@@ -138,7 +139,7 @@ export default function HomeClient() {
               <p className="text-xs text-[#595959] font-medium mb-4 tracking-widest uppercase">FAQ</p>
               <h2 className="text-4xl font-bold mb-3 tracking-tight">Common <span className="text-[var(--color-teal)]">questions</span></h2>
               <p className="text-[#4a4a4a] text-sm leading-relaxed">
-                Can't find what you're looking for? <Link href="/contact" className="underline hover:text-[var(--color-teal)]">Get in touch</Link>.
+                Can&apos;t find what you&apos;re looking for? <Link href="/contact" className="underline hover:text-[var(--color-teal)]">Get in touch</Link>.
               </p>
             </Reveal>
             <Reveal delay={100}>

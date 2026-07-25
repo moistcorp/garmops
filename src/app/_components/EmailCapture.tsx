@@ -44,7 +44,7 @@ export default function EmailCapture() {
           <div className="w-full mt-2">
             {status === 'success' ? (
               <p className="text-sm font-medium text-[var(--color-teal)] border border-[var(--color-teal)]/30 bg-[var(--color-teal)]/5 rounded-full px-5 py-3 inline-block">
-                Thanks — you're on the list.
+                Thanks — you&apos;re on the list.
               </p>
             ) : (
               <form onSubmit={handleSubmit} className="flex items-center gap-2 bg-white border border-[#ECE7DF] rounded-full pl-6 pr-2 py-2 max-w-sm mx-auto shadow-[0_2px_10px_rgba(22,33,43,0.04)]">

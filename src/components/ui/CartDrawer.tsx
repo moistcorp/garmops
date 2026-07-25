@@ -1,5 +1,6 @@
 'use client'
 import { useCartStore } from '@/lib/store'
+import Image from 'next/image'
 import Link from 'next/link'
 
 export default function CartDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -30,9 +31,9 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
           ) : (
             items.map(item => (
               <div key={`${item.id}-${item.size}`} className="flex gap-4 items-start border-b border-[#ECE7DF] pb-4">
-                <div className="w-14 h-14 bg-[var(--color-cream-soft)] rounded-xl shrink-0 flex items-center justify-center overflow-hidden">
+                <div className="relative w-14 h-14 bg-[var(--color-cream-soft)] rounded-xl shrink-0 flex items-center justify-center overflow-hidden">
                   {item.image ? (
-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                    <Image src={item.image} alt={item.name} fill sizes="56px" className="object-cover" />
                   ) : (
                     <span className="text-[10px] text-[#111111]/20">IMG</span>
                   )}

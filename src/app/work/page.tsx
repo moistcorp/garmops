@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { generateMeta } from '@/lib/seo'
+import Image from 'next/image'
 import Link from 'next/link'
 import { caseStudies } from '@/lib/casestudies'
 
@@ -28,12 +29,14 @@ export default function Work() {
         <Link href={`/work/${caseStudies[0].slug}`} className="group block">
           <div className="grid md:grid-cols-2 gap-0 overflow-hidden rounded-2xl border border-[#ECE7DF] bg-white shadow-[0_4px_16px_rgba(22,33,43,0.04)] hover:border-[var(--color-teal)] hover:shadow-[0_12px_30px_rgba(22,33,43,0.08)] transition-all duration-300">
             {/* Image */}
-            <div className="aspect-video md:aspect-auto bg-[var(--color-cream-soft)] flex items-center justify-center min-h-64 overflow-hidden">
+            <div className="relative aspect-video md:aspect-auto bg-[var(--color-cream-soft)] flex items-center justify-center min-h-64 overflow-hidden">
               {caseStudies[0].coverImage ? (
-                <img
+                <Image
                   src={caseStudies[0].coverImage}
                   alt={caseStudies[0].client}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               ) : (
                 <span className="text-xs text-[#111111]/20 uppercase tracking-widest">
@@ -82,12 +85,14 @@ export default function Work() {
               className="group bg-white flex flex-col overflow-hidden rounded-2xl border border-[#ECE7DF] shadow-[0_4px_16px_rgba(22,33,43,0.04)] hover:shadow-[0_12px_30px_rgba(22,33,43,0.08)] hover:border-[var(--color-teal)] transition-all duration-300"
             >
               {/* Image */}
-              <div className="w-full aspect-video bg-[var(--color-cream-soft)] flex items-center justify-center overflow-hidden">
+              <div className="relative w-full aspect-video bg-[var(--color-cream-soft)] flex items-center justify-center overflow-hidden">
                 {cs.coverImage ? (
-                  <img
+                  <Image
                     src={cs.coverImage}
                     alt={cs.client}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 ) : (
                   <span className="text-xs text-[#111111]/20 uppercase tracking-widest">{cs.client}</span>

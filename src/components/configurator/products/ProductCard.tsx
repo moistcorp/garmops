@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
@@ -42,16 +43,20 @@ export default function ProductCard({ product }: { product: Product }) {
     >
       <div className="relative aspect-[3/4] w-full overflow-hidden bg-white">
         {/* Default: flat-lay image */}
-        <img
+        <Image
           src={product.defaultImage}
           alt={product.name}
-          className="absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ease-in-out group-hover:opacity-0"
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          className="object-cover transition-opacity duration-300 ease-in-out group-hover:opacity-0"
         />
         {/* Hover: on-model lifestyle image, crossfades in */}
-        <img
+        <Image
           src={product.hoverImage}
           alt={`${product.name} on model`}
-          className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100"
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          className="object-cover opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100"
         />
 
         {/* Hover overlay actions */}

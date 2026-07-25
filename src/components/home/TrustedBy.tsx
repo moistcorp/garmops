@@ -1,5 +1,7 @@
 'use client'
 
+import Image from 'next/image'
+
 const brands = [
   { name: 'Sony', logo: '/brands/sony.svg' },
   { name: 'ASICS', logo: '/brands/asics.svg' },
@@ -38,11 +40,14 @@ export default function TrustedBy() {
                   key={`${brand.name}-${index}`}
                   className="flex-shrink-0 mx-8 md:mx-14"
                 >
-                  <img
-                 src={brand.logo}
-                alt={brand.name}
-                className="h-8 w-auto opacity-80 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0"
-                />
+                  <Image
+                    src={brand.logo}
+                    alt={brand.name}
+                    width={120}
+                    height={32}
+                    className="h-8 w-auto opacity-80 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0"
+                    unoptimized
+                  />
                 </div>
               ))}
 

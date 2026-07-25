@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { caseStudies } from '@/lib/casestudies'
 
 // Featured testimonial for the homepage pull-quote — pulled from a real case study
@@ -78,10 +79,12 @@ export default function HomepageCaseStudies() {
 
                     {cs.coverImage ? (
 
-                      <img
+                      <Image
                         src={cs.coverImage}
                         alt={cs.client}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                        fill
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-700"
                       />
 
                     ) : (

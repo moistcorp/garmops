@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { ArrowLeft, Link2 } from "lucide-react";
 
@@ -46,7 +47,7 @@ export function ConfiguratorHeader({
         aria-label="Garmops home"
         className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center"
       >
-        <img src="/logo3.png" alt="Garmops" className="h-9 w-auto object-contain" />
+        <Image src="/logo3.png" alt="Garmops" width={180} height={48} className="h-9 w-auto object-contain" />
       </Link>
 
       <div className="flex items-center gap-2.5">

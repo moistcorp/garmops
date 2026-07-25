@@ -1,6 +1,7 @@
 'use client';
 
 import { JSX, useId, useState } from 'react';
+import Image from 'next/image';
 import { Check, Download, Plus, Trash2, Upload } from 'lucide-react';
 import type {
   NeckLabel,
@@ -197,7 +198,7 @@ export default function NeckLabelPanel({
           <div className="flex min-h-[112px] items-center gap-4 rounded-2xl border border-[#D9D9D9] bg-white px-4 py-4">
             <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#D9D9D9] bg-[#F7F7F7]">
               {source === 'sample' ? (
-                <img src={SAMPLE_ARTWORK_HREF} alt="" className="h-full w-full object-contain p-2" />
+                <Image src={SAMPLE_ARTWORK_HREF} alt="" width={64} height={64} className="h-full w-full object-contain p-2" unoptimized />
               ) : (
                 <span className="text-[10px] font-semibold uppercase text-[#111111]/45">
                   {fileType ?? 'file'}

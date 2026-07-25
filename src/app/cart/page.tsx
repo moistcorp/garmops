@@ -1,5 +1,6 @@
 'use client'
 import { useCartStore } from '@/lib/store'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -29,9 +30,9 @@ export default function Cart() {
         <div className="lg:col-span-2 flex flex-col gap-4">
           {items.map(item => (
             <div key={`${item.id}-${item.size}`} className="bg-white rounded-2xl border border-[#ECE7DF] p-5 flex gap-5 items-start shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
-              <div className="w-20 h-20 bg-[var(--color-cream-soft)] rounded-xl shrink-0 flex items-center justify-center overflow-hidden">
+              <div className="relative w-20 h-20 bg-[var(--color-cream-soft)] rounded-xl shrink-0 flex items-center justify-center overflow-hidden">
                 {item.image ? (
-                  <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                  <Image src={item.image} alt={item.name} fill sizes="80px" className="object-cover" />
                 ) : (
                   <span className="text-xs text-[#111111]/20">IMG</span>
                 )}

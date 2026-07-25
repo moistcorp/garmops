@@ -1,4 +1,5 @@
 'use client'
+import Image from 'next/image'
 import Link from 'next/link'
 import { CaseStudy } from '@/lib/casestudies'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
@@ -39,9 +40,9 @@ export default function WorkDetailClient({
             </div>
 
             {/* Cover image */}
-            <div className="w-full aspect-video bg-[var(--color-cream-soft)] rounded-2xl flex items-center justify-center mb-12 overflow-hidden">
+            <div className="relative w-full aspect-video bg-[var(--color-cream-soft)] rounded-2xl flex items-center justify-center mb-12 overflow-hidden">
               {cs.coverImage ? (
-                <img src={cs.coverImage} alt={cs.client} className="w-full h-full object-cover" />
+                <Image src={cs.coverImage} alt={cs.client} fill sizes="(max-width: 1024px) 100vw, 66vw" className="object-cover" />
               ) : (
                 <span className="text-xs text-[#111111]/20 uppercase tracking-widest">{cs.client}</span>
               )}
@@ -79,8 +80,8 @@ export default function WorkDetailClient({
                 </h2>
                 <p className="text-[#111111]/60 leading-relaxed text-sm">{section.body}</p>
                 {section.image && (
-                  <div className="mt-6 w-full aspect-video bg-[var(--color-cream-soft)] rounded-2xl overflow-hidden">
-                    <img src={section.image} alt={section.heading} className="w-full h-full object-cover" />
+                  <div className="relative mt-6 w-full aspect-video bg-[var(--color-cream-soft)] rounded-2xl overflow-hidden">
+                    <Image src={section.image} alt={section.heading} fill sizes="(max-width: 1024px) 100vw, 66vw" className="object-cover" />
                   </div>
                 )}
               </div>
@@ -181,12 +182,14 @@ export default function WorkDetailClient({
                   href={`/work/${cs.slug}`}
                   className="group bg-white flex flex-col overflow-hidden rounded-2xl border border-[#ECE7DF] shadow-[0_4px_16px_rgba(22,33,43,0.04)] hover:border-[var(--color-teal)] hover:shadow-[0_12px_30px_rgba(22,33,43,0.08)] transition-all duration-300"
                 >
-                  <div className="w-full aspect-video bg-[var(--color-cream-soft)] flex items-center justify-center overflow-hidden">
+                  <div className="relative w-full aspect-video bg-[var(--color-cream-soft)] flex items-center justify-center overflow-hidden">
                     {cs.coverImage ? (
-                      <img
+                      <Image
                         src={cs.coverImage}
                         alt={cs.client}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        fill
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     ) : (
                       <span className="text-xs text-[#111111]/20 uppercase tracking-widest">{cs.client}</span>
