@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export interface RecentColourEntry {
   type: "signature" | "custom_dye";
@@ -38,9 +38,23 @@ function writeJson<T>(key: string, value: T) {
  *  Custom Dye), persisted across visits so returning buyers see their
  *  choices at the top of the panel instead of re-scrolling to find them. */
 export function useRecentColours() {
-  const [recent, setRecent] = useState<RecentColourEntry[]>(() =>
-    readJson<RecentColourEntry[]>(RECENT_KEY, [])
-  );
+  // Deterministic empty state for the first render (server AND client) —
+  // reading localStorage inside the useState initializer returned the
+  // real, already-saved list on the client's first render but not on the
+  // server's, so the two didn't match and React threw a hydration error
+  // (recent.length > 0 renders an extra "Recently Viewed" block). The real
+  // list is loaded right after mount instead, mirroring the same fix
+  // applied to the cart/build drafts elsewhere in this codebase.
+  const [recent, setRecent] = useState<RecentColourEntry[]>([]);
+
+  useEffect(() => {
+    // One-time hydration from localStorage on mount — not a derived/
+    // cascading update, so react-hooks/set-state-in-effect's general
+    // guidance doesn't apply here (see PaymentSuccessClient for the same
+    // pattern/rationale).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setRecent(readJson<RecentColourEntry[]>(RECENT_KEY, []));
+  }, []);
 
   const addRecent = useCallback((entry: RecentColourEntry) => {
     setRecent((prev) => {
@@ -57,9 +71,17 @@ export function useRecentColours() {
 /** Tracks starred Pantone codes so a buyer building multiple products can
  *  jump straight back to a colour they've already dye-matched before. */
 export function useFavouritePantones() {
-  const [favourites, setFavourites] = useState<string[]>(() =>
-    readJson<string[]>(FAVOURITES_KEY, [])
-  );
+  // Same deterministic-empty-then-hydrate pattern as useRecentColours above
+  // — favourites also reorders the rendered Pantone grid, so hydrating it
+  // from localStorage during the initial render caused the same mismatch.
+  const [favourites, setFavourites] = useState<string[]>([]);
+
+  useEffect(() => {
+    // One-time hydration from localStorage on mount — see useRecentColours
+    // above for the same rationale.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFavourites(readJson<string[]>(FAVOURITES_KEY, []));
+  }, []);
 
   const toggleFavourite = useCallback((code: string) => {
     setFavourites((prev) => {

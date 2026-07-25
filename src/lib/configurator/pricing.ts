@@ -119,27 +119,8 @@ export function getConfiguredUnitPrice(
 }
 
 // ============================================================
-// PHASE 9A (new) — volume discount + neck label fee
+// PHASE 9A — volume discount
 // ============================================================
-
-// --- Artwork Fees ---
-export const ARTWORK_PREP_FEE = 499; // flat, per artwork/side, one-time regardless of qty
-export const ARTWORK_APPLICATION_FEE = 299; // flat, per technique per side
-
-export function getArtworkPrepFee(artworkSideCount: number): number {
-  return ARTWORK_PREP_FEE * artworkSideCount;
-}
-
-export function getArtworkApplicationFee(techniqueSideCount: number): number {
-  return ARTWORK_APPLICATION_FEE * techniqueSideCount;
-}
-
-// --- Neck Label Fee ---
-export const NECK_LABEL_FEE = 199; // flat, per confirmed label
-
-export function getNeckLabelFee(labelCount: number): number {
-  return NECK_LABEL_FEE * labelCount;
-}
 
 export function formatInr(amount: number): string {
   return new Intl.NumberFormat("en-IN", {

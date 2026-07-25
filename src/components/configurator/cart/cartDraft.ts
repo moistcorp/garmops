@@ -1,7 +1,6 @@
 import {
   GST_PERCENT,
   RUSH_DELIVERY_FEE_PER_UNIT,
-  getBasePrice,
   getConfiguredUnitPrice,
   getVolumeDiscountAmount,
   getVolumeDiscountPercent,
@@ -450,7 +449,16 @@ export function calculateTotals(
     const unitDiscount = getCartItemBaseUnitPrice(item) - getCartItemUnitPrice(item);
     return sum + unitDiscount * itemUnits;
   }, 0);
-  const shippingFee = deliveryType === "rush" ? RUSH_DELIVERY_FEE_PER_UNIT * totalQuantity : 0;
+  // Units whose baseUnitPrice already has RUSH_DELIVERY_FEE_PER_UNIT baked in
+  // (see pricing.ts's getUnitPriceAdjustments) must not be charged again here.
+  const rushAlreadyPricedUnits = items.reduce(
+    (sum, item) => sum + (item.rushDelivery ? totalUnits(item.sizeQuantities) : 0),
+    0
+  );
+  const shippingFee =
+    deliveryType === "rush"
+      ? RUSH_DELIVERY_FEE_PER_UNIT * Math.max(0, totalQuantity - rushAlreadyPricedUnits)
+      : 0;
   const hasRushDelivery =
     deliveryType === "rush" || items.some((item) => item.rushDelivery === true);
   const subtotal = garmentSubtotal;
