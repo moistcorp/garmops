@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { products } from '@/lib/products'
+import { createPaymentToken, type PaymentKind } from '@/lib/payu'
 
 const RESERVATION_AMOUNT = '499.00'
 const MAX_ITEM_QUANTITY = 100
+const MAX_CHECKOUT_ITEMS = 50
 
 type CheckoutItem = {
   id?: unknown
@@ -11,10 +13,15 @@ type CheckoutItem = {
   quantity?: unknown
 }
 
-function getCheckoutAmount(items: CheckoutItem[]): string | null {
-  if (!Array.isArray(items) || items.length === 0 || items.length > 50) return null
+function getCheckoutDetails(
+  items: CheckoutItem[]
+): { amount: string; productinfo: string } | null {
+  if (!Array.isArray(items) || items.length === 0 || items.length > MAX_CHECKOUT_ITEMS) {
+    return null
+  }
 
   let subtotal = 0
+  const descriptions: string[] = []
   for (const item of items) {
     const product = products.find(candidate => candidate.id === item.id)
     const quantity = Number(item.quantity)
@@ -29,10 +36,14 @@ function getCheckoutAmount(items: CheckoutItem[]): string | null {
       return null
     }
     subtotal += product.price * quantity
+    descriptions.push(`${product.name} (${item.size}) x${quantity}`)
   }
 
   const shipping = subtotal >= 2000 ? 0 : 99
-  return (subtotal + shipping).toFixed(2)
+  return {
+    amount: (subtotal + shipping).toFixed(2),
+    productinfo: descriptions.join(', ').slice(0, 500),
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -40,16 +51,38 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const { txnid, amount, productinfo, firstname, email, items } = body
 
-    // Validate inputs
-    if (!txnid || !amount || !productinfo || !firstname || !email) {
+    if (
+      typeof txnid !== 'string' ||
+      typeof amount !== 'string' ||
+      typeof productinfo !== 'string' ||
+      typeof firstname !== 'string' ||
+      typeof email !== 'string' ||
+      !txnid ||
+      !amount ||
+      !productinfo.trim() ||
+      !firstname.trim() ||
+      !email.trim()
+    ) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    const verifiedAmount = Array.isArray(items)
-      ? getCheckoutAmount(items)
-      : amount === RESERVATION_AMOUNT
-        ? RESERVATION_AMOUNT
-        : null
+    if (
+      txnid.length > 64 ||
+      productinfo.length > 500 ||
+      firstname.length > 60 ||
+      email.length > 254 ||
+      firstname.includes('|') ||
+      productinfo.includes('|')
+    ) {
+      return NextResponse.json({ error: 'Invalid payment details' }, { status: 400 })
+    }
+
+    const checkout = Array.isArray(items) ? getCheckoutDetails(items) : null
+    const kind: PaymentKind = checkout ? 'sample-cart' : 'configurator'
+    const verifiedAmount = checkout?.amount ?? (
+      !Array.isArray(items) && amount === RESERVATION_AMOUNT ? RESERVATION_AMOUNT : null
+    )
+    const verifiedProductInfo = checkout?.productinfo ?? productinfo.trim()
 
     if (!verifiedAmount || amount !== verifiedAmount) {
       return NextResponse.json({ error: 'Invalid amount' }, { status: 400 })
@@ -66,6 +99,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid transaction ID' }, { status: 400 })
     }
 
+    const udf1 = createPaymentToken(txnid, verifiedAmount, kind)
+    if (!udf1) {
+      return NextResponse.json(
+        { error: 'Payment signing is not configured' },
+        { status: 503 }
+      )
+    }
+
     const key = process.env.PAYU_MERCHANT_KEY
     const salt = process.env.PAYU_SALT
 
@@ -75,6 +116,8 @@ export async function POST(req: NextRequest) {
           mockPayment: true,
           amount: verifiedAmount,
           txnid,
+          productinfo: verifiedProductInfo,
+          udf1,
         })
       }
       return NextResponse.json(
@@ -83,10 +126,34 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const hashString = `${key}|${txnid}|${verifiedAmount}|${productinfo}|${firstname}|${email}|||||||||||${salt}`
+    const hashString = [
+      key,
+      txnid,
+      verifiedAmount,
+      verifiedProductInfo,
+      firstname.trim(),
+      email.trim(),
+      udf1,
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      salt,
+    ].join('|')
     const hash = crypto.createHash('sha512').update(hashString).digest('hex')
 
-    return NextResponse.json({ hash, key, amount: verifiedAmount })
+    return NextResponse.json({
+      hash,
+      key,
+      amount: verifiedAmount,
+      productinfo: verifiedProductInfo,
+      udf1,
+    })
   } catch {
     return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }

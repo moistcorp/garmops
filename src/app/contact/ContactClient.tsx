@@ -14,13 +14,22 @@ export default function ContactClient() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (submitting) return
     setSubmitting(true)
     setSubmitError('')
     try {
       const response = await fetch('/api/send-confirmation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, type: 'contact' })
+        body: JSON.stringify({
+          name: form.name,
+          company: form.company,
+          email: form.email,
+          phone: form.phone,
+          type: 'contact',
+          enquiryType: form.type,
+          message: form.message,
+        })
       })
       if (!response.ok) throw new Error('Request failed')
       setSubmitted(true)
@@ -48,30 +57,30 @@ export default function ContactClient() {
       <section className="max-w-7xl mx-auto px-6 pb-24 grid md:grid-cols-2 gap-16">
         <div>
           {submitted ? (
-            <div className="bg-[var(--color-navy)] text-white rounded-3xl p-10">
+            <div role="status" className="bg-[var(--color-navy)] text-white rounded-3xl p-10">
               <h2 className="text-2xl font-bold mb-2">We&apos;ve got your request.</h2>
               <p className="text-white/50 text-sm">Our team will reach out within 24 hours with a detailed quote.</p>
             </div>
           ) : (
-            <form onSubmit={submit} className="flex flex-col gap-4">
+            <form onSubmit={submit} aria-busy={submitting} className="flex flex-col gap-4">
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="contact-name" className="text-xs font-medium text-[#111111]/60 uppercase tracking-wide">Full name *</label>
-                  <input id="contact-name" name="name" autoComplete="name" required onChange={handle} className={inputClass} placeholder="Rahul Sharma" />
+                  <input id="contact-name" name="name" autoComplete="name" maxLength={120} required onChange={handle} className={inputClass} placeholder="Rahul Sharma" />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="contact-company" className="text-xs font-medium text-[#111111]/60 uppercase tracking-wide">Company *</label>
-                  <input id="contact-company" name="company" autoComplete="organization" required onChange={handle} className={inputClass} placeholder="Your Brand" />
+                  <input id="contact-company" name="company" autoComplete="organization" maxLength={120} required onChange={handle} className={inputClass} placeholder="Your Brand" />
                 </div>
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="contact-email" className="text-xs font-medium text-[#111111]/60 uppercase tracking-wide">Email *</label>
-                  <input id="contact-email" name="email" type="email" autoComplete="email" required onChange={handle} className={inputClass} placeholder="you@company.com" />
+                  <input id="contact-email" name="email" type="email" autoComplete="email" maxLength={320} required onChange={handle} className={inputClass} placeholder="you@company.com" />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="contact-phone" className="text-xs font-medium text-[#111111]/60 uppercase tracking-wide">Phone</label>
-                  <input id="contact-phone" name="phone" type="tel" autoComplete="tel" onChange={handle} className={inputClass} placeholder="+91 98765 43210" />
+                  <input id="contact-phone" name="phone" type="tel" autoComplete="tel" maxLength={40} onChange={handle} className={inputClass} placeholder="+91 98765 43210" />
                 </div>
               </div>
               <div className="flex flex-col gap-1.5">
@@ -88,7 +97,7 @@ export default function ContactClient() {
               </div>
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="contact-message" className="text-xs font-medium text-[#111111]/60 uppercase tracking-wide">Tell us more</label>
-                <textarea id="contact-message" name="message" rows={5} onChange={handle} className={`${inputClass} resize-none`}
+                <textarea id="contact-message" name="message" rows={5} maxLength={2000} onChange={handle} className={`${inputClass} resize-none`}
                   placeholder="Quantity, timeline, any specific requirements..." />
               </div>
               {submitError && <p role="alert" className="text-sm text-red-700">{submitError}</p>}

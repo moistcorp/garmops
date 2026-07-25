@@ -6,7 +6,7 @@ import { generateMeta } from '@/lib/seo'
 
 export const metadata: Metadata = generateMeta({
   title: 'Products',
-  description: 'Shop Garmops\'s own line — designed and manufactured in-house. Heavyweight tees, hoodies, sweatpants, and more.',
+  description: 'Shop Garmops\'s own line — designed and manufactured in-house. Heavyweight tees, hoodies, sweatshirts, polos, and totes.',
   path: '/products',
 })
 

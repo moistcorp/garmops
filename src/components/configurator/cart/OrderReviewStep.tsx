@@ -22,8 +22,10 @@ import {
 import { formatInr } from '@/lib/configurator/pricing';
 import { CUSTOM_DYE_MOQ_UNITS } from '@/lib/configurator/colours';
 import { getSizeChart } from '@/lib/sizecharts';
+import { getProduct } from '@/lib/configurator/products';
 import CanvasRenderer from '../GarmentPreview/CanvasRenderer';
 import { ArtworkPositionProvider } from '@/lib/configurator/ArtworkPositionContext';
+import { restoreConfigurationUploads } from '@/lib/configurator/objectUrls';
 
 export interface CartItem {
   id: string;
@@ -61,11 +63,26 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
   useEffect(() => {
     let cancelled = false;
 
-    Promise.resolve().then(() => {
+    void Promise.resolve().then(async () => {
       if (cancelled) return;
       const realDraft = readDraft(cartId);
-      setDraft(realDraft);
-      setActiveView(Object.fromEntries(realDraft.items.map((item) => [item.id, 'front'])));
+      const items = await Promise.all(
+        realDraft.items.map(async (item) => {
+          const uploads = await restoreConfigurationUploads(
+            item.artwork,
+            item.neckLabel
+          );
+          return {
+            ...item,
+            artwork: uploads.artwork,
+            neckLabel: uploads.neckLabel,
+          };
+        })
+      );
+      if (cancelled) return;
+      const restoredDraft = { ...realDraft, items };
+      setDraft(restoredDraft);
+      setActiveView(Object.fromEntries(items.map((item) => [item.id, 'front'])));
       setDraftLoaded(true);
     });
 
@@ -104,7 +121,10 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
   }
 
   function handleEdit(item: CartItem) {
-    router.push(`/configurator/build/${encodeURIComponent(item.productId)}`);
+    const query = new URLSearchParams({ cartId, itemId: item.id });
+    router.push(
+      `/configurator/build/${encodeURIComponent(item.productId)}?${query.toString()}`
+    );
   }
 
   function handleDelete(itemId: string) {
@@ -131,6 +151,13 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
 
   const totals = calculateTotals(items);
   const cartUnitCount = items.reduce((sum, item) => sum + totalUnits(item.sizeQuantities), 0);
+  const cartIsValid =
+    items.length > 0 &&
+    items.every((item) => {
+      const minimumUnits =
+        item.colour.type === 'custom_dye' ? CUSTOM_DYE_MOQ_UNITS : 50;
+      return totalUnits(item.sizeQuantities) >= minimumUnits;
+    });
 
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -185,6 +212,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
           const selectedView = activeView[item.id] ?? 'front';
           const itemUnits = totalUnits(item.sizeQuantities);
           const itemMinimumUnits = item.colour.type === 'custom_dye' ? CUSTOM_DYE_MOQ_UNITS : 50;
+          const itemSizes = getProduct(item.productId)?.sizes ?? SIZES;
           const sizeChart = getSizeChart(item.productId);
           const itemUnitPrice = getCartItemUnitPrice(item);
           const itemDiscountPercent = getCartItemDiscountPercent(item);
@@ -279,6 +307,8 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                     onChange={(size, qty) => handleQtyChange(item.id, size, qty)}
                     unitPrice={itemUnitPrice}
                     minimumUnits={itemMinimumUnits}
+                    sizes={itemSizes}
+                    idPrefix={item.id}
                   />
 
                   {sizeChart && (
@@ -348,7 +378,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
         total={totals.total}
         onNext={handleNext}
         nextLabel="Next: Invoice & Shipping"
-        nextDisabled={cartUnitCount < 50}
+        nextDisabled={!cartIsValid || cartUnitCount < 50}
       />
     </div>
   );

@@ -20,6 +20,7 @@ import {
 } from "./cartDraft";
 import { formatDeliveryLabel } from "@/lib/configurator/delivery";
 import { formatInr } from "@/lib/configurator/pricing";
+import { CUSTOM_DYE_MOQ_UNITS } from "@/lib/configurator/colours";
 import CanvasRenderer from "../GarmentPreview/CanvasRenderer";
 import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionContext";
 
@@ -70,12 +71,40 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
   const billingAddress = draft.sameAsShipping ? draft.shippingAddress : draft.billingAddress;
 
   const handlePayment = async () => {
-    setIsProcessing(true);
     setPaymentError("");
 
-    const firstname = billingAddress.firstName || draft.shippingAddress.firstName || "Garmops";
-    const email = billingAddress.email || draft.shippingAddress.email;
-    const txnid = `MF${Date.now()}`;
+    const hasValidItems =
+      draft.items.length > 0 &&
+      draft.items.every((item) => {
+        const minimum = item.colour.type === "custom_dye" ? CUSTOM_DYE_MOQ_UNITS : 50;
+        return totalUnits(item.sizeQuantities) >= minimum;
+      });
+    const firstname = (billingAddress.firstName || draft.shippingAddress.firstName).trim();
+    const email = (billingAddress.email || draft.shippingAddress.email).trim();
+    const hasAddress = [
+      billingAddress.addressLine1,
+      billingAddress.city,
+      billingAddress.zip,
+      billingAddress.country,
+    ].every((value) => value.trim().length > 0);
+
+    if (
+      !hasValidItems ||
+      !firstname ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
+      !hasAddress ||
+      !draft.deliveryType ||
+      !draft.selectedDeliveryDateIso
+    ) {
+      setPaymentError(
+        "Your order or billing details are incomplete. Return to the previous steps and review them."
+      );
+      return;
+    }
+
+    setIsProcessing(true);
+    const randomSuffix = crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
+    const txnid = `MF${Date.now().toString(36)}${randomSuffix}`;
     const amount = RESERVATION_FEE.toFixed(2);
     const productinfo = `Reservation fee - ${draft.items
       .map((item) => `${item.productName} x${totalUnits(item.sizeQuantities)}`)
@@ -89,8 +118,16 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
       });
 
       const payment = await res.json();
-      if (!res.ok) {
+      if (
+        !res.ok ||
+        payment.amount !== amount ||
+        typeof payment.productinfo !== "string" ||
+        typeof payment.udf1 !== "string"
+      ) {
         throw new Error(payment.error || "Unable to start payment");
+      }
+      if (!payment.mockPayment && (!payment.hash || !payment.key)) {
+        throw new Error("PayU returned an invalid payment response");
       }
 
       window.localStorage.setItem(
@@ -101,6 +138,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
           txnid,
           name: `${billingAddress.firstName} ${billingAddress.lastName}`.trim(),
           email,
+          amount,
           product: draft.items.map((item) => item.productName).join(", "),
           color: draft.items.map((item) => item.colour.name || "Bright White").join(", "),
           technique: "Configurator order",
@@ -131,14 +169,13 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
       );
 
       if (payment.mockPayment) {
-        window.location.assign(`/payment/success?txnid=${encodeURIComponent(txnid)}&mock=1`);
+        window.location.assign(
+          `/api/payu/callback?token=${encodeURIComponent(payment.udf1)}`
+        );
         return;
       }
 
       const { hash, key } = payment;
-      if (!hash || !key || payment.amount !== amount) {
-        throw new Error("PayU returned an invalid payment response");
-      }
 
       const payuForm = document.createElement("form");
       payuForm.method = "POST";
@@ -152,7 +189,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
         key,
         txnid,
         amount,
-        productinfo,
+        productinfo: payment.productinfo,
         firstname,
         lastname: billingAddress.lastName,
         email,
@@ -163,8 +200,9 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
         zipcode: billingAddress.zip,
         country: billingAddress.country,
         hash,
-        surl: `${window.location.origin}/payment/success`,
-        furl: `${window.location.origin}/payment/failure`,
+        udf1: payment.udf1,
+        surl: `${window.location.origin}/api/payu/callback`,
+        furl: `${window.location.origin}/api/payu/callback`,
       };
 
       Object.entries(fields).forEach(([name, value]) => {

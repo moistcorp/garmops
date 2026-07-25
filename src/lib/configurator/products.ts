@@ -33,7 +33,7 @@ export const products: Product[] = catalogProducts.map((product) => {
     id: product.slug,
     name: product.pricingKey,
     defaultImage: flatlay,
-    hoverImage: flatlay,
+    hoverImage: product.image ?? flatlay,
     description: product.description,
     gsm: product.gsm,
     details: product.details,

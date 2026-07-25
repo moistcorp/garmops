@@ -31,7 +31,9 @@ export function generateMeta({
       description: fullDescription,
       url,
       siteName: siteConfig.name,
-      images: [{ url: ogImage, width: 1200, height: 630, alt: fullTitle }],
+      // Catalog and case-study images use different aspect ratios. Omitting
+      // invented dimensions lets crawlers inspect each image accurately.
+      images: [{ url: ogImage, alt: fullTitle }],
       type: 'website',
       locale: 'en_IN',
     },

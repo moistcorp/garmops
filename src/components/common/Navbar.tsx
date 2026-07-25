@@ -44,7 +44,7 @@ export default function Navbar() {
       >
         <div className="px-6 py-3 flex items-center justify-between gap-8">
           <Link href="/" className="flex items-center shrink-0">
-            <Image src="/logo3.png" alt="Garmops" width={180} height={48}
+            <Image src="/logo3.png" alt="Garmops" width={908} height={114}
               className="h-5 w-auto object-contain" priority />
           </Link>
 
@@ -54,6 +54,7 @@ export default function Navbar() {
               const isActive = pathname === l.href || pathname.startsWith(l.href + '/')
               return (
                 <Link key={l.href} href={l.href}
+                  aria-current={isActive ? 'page' : undefined}
                   className={`transition-colors text-xs tracking-wide ${
                     isActive
                       ? 'text-[var(--color-teal)] font-semibold'
@@ -102,15 +103,19 @@ export default function Navbar() {
         {/* Mobile menu */}
         {open && (
           <nav id="mobile-navigation" aria-label="Mobile navigation" className="md:hidden px-6 pb-6 flex flex-col gap-1 border-t border-[#ECE7DF] pt-4">
-            {links.map(l => (
-              <Link key={l.href} href={l.href}
-                onClick={() => setOpen(false)}
-                className={`py-2.5 text-sm border-b border-[var(--color-cream-soft)] ${
-                  pathname === l.href ? 'text-[var(--color-teal)] font-semibold' : 'text-[#111111]/60'
-                }`}>
-                {l.label}
-              </Link>
-            ))}
+            {links.map(l => {
+              const isActive = pathname === l.href || pathname.startsWith(l.href + '/')
+              return (
+                <Link key={l.href} href={l.href}
+                  aria-current={isActive ? 'page' : undefined}
+                  onClick={() => setOpen(false)}
+                  className={`py-2.5 text-sm border-b border-[var(--color-cream-soft)] ${
+                    isActive ? 'text-[var(--color-teal)] font-semibold' : 'text-[#111111]/60'
+                  }`}>
+                  {l.label}
+                </Link>
+              )
+            })}
             <Link href="/configurator"
               onClick={() => setOpen(false)}
               className="mt-3 bg-[var(--color-teal)] text-white px-5 py-3 rounded-full text-center text-sm font-medium">

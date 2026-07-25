@@ -149,10 +149,14 @@ export default function HomeClient() {
                     <button
                       type="button"
                       onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                      id={`homepage-faq-button-${i}`}
+                      aria-expanded={openFaq === i}
+                      aria-controls={`homepage-faq-panel-${i}`}
                       className="w-full flex items-center justify-between gap-6 py-6 text-left"
                     >
                       <span className="text-base font-semibold text-[#111111]">{item.q}</span>
                       <svg
+                        aria-hidden="true"
                         className={`w-4 h-4 shrink-0 transition-all duration-300 ${openFaq === i ? 'rotate-45 text-[var(--color-teal)]' : 'text-[#555555]'}`}
                         fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
                       >
@@ -161,6 +165,10 @@ export default function HomeClient() {
                     </button>
                     {/* Smooth grid-based accordion expand instead of instant show/hide */}
                     <div
+                      id={`homepage-faq-panel-${i}`}
+                      role="region"
+                      aria-labelledby={`homepage-faq-button-${i}`}
+                      aria-hidden={openFaq !== i}
                       className={`grid transition-all duration-300 ease-in-out ${
                         openFaq === i ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
                       }`}

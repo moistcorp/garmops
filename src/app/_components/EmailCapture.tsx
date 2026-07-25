@@ -1,9 +1,8 @@
 'use client'
 import { useState, FormEvent } from 'react'
 
-// Replace with your Formspree form ID after creating a free form at https://formspree.io
-// Example: 'https://formspree.io/f/xyzabc12'
-const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mnqvkwqj'
+const FORMSPREE_ENDPOINT =
+  process.env.NEXT_PUBLIC_FORMSPREE_ENDPOINT ?? 'https://formspree.io/f/mnqvkwqj'
 
 export default function EmailCapture() {
   const [email, setEmail] = useState('')
@@ -43,16 +42,29 @@ export default function EmailCapture() {
 
           <div className="w-full mt-2">
             {status === 'success' ? (
-              <p className="text-sm font-medium text-[var(--color-teal)] border border-[var(--color-teal)]/30 bg-[var(--color-teal)]/5 rounded-full px-5 py-3 inline-block">
+              <p
+                role="status"
+                className="text-sm font-medium text-[var(--color-teal)] border border-[var(--color-teal)]/30 bg-[var(--color-teal)]/5 rounded-full px-5 py-3 inline-block"
+              >
                 Thanks — you&apos;re on the list.
               </p>
             ) : (
-              <form onSubmit={handleSubmit} className="flex items-center gap-2 bg-white border border-[#ECE7DF] rounded-full pl-6 pr-2 py-2 max-w-sm mx-auto shadow-[0_2px_10px_rgba(22,33,43,0.04)]">
+              <form
+                onSubmit={handleSubmit}
+                aria-busy={status === 'loading'}
+                className="flex items-center gap-2 bg-white border border-[#ECE7DF] rounded-full pl-6 pr-2 py-2 max-w-sm mx-auto shadow-[0_2px_10px_rgba(22,33,43,0.04)]"
+              >
                 <input
                   type="email"
+                  name="email"
+                  autoComplete="email"
+                  maxLength={320}
                   required
                   value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  onChange={e => {
+                    setEmail(e.target.value)
+                    if (status === 'error') setStatus('idle')
+                  }}
                   placeholder="you@company.com"
                   aria-label="Email address"
                   className="flex-1 bg-transparent text-sm font-medium text-[#111111] placeholder:text-[#B5B5B5] focus:outline-none py-1.5 min-w-0"
@@ -67,7 +79,9 @@ export default function EmailCapture() {
               </form>
             )}
             {status === 'error' && (
-              <p className="text-xs text-red-600 mt-3">Something went wrong — please try again.</p>
+              <p role="alert" className="text-xs text-red-600 mt-3">
+                Something went wrong — please try again.
+              </p>
             )}
           </div>
         </div>

@@ -21,7 +21,12 @@ import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionConte
 import { getProduct } from "@/lib/configurator/products";
 import { formatInr, getBasePrice } from "@/lib/configurator/pricing";
 import { CUSTOM_DYE_MOQ_UNITS } from "@/lib/configurator/colours";
-import { upsertConfiguredCartItem } from "./cart/cartDraft";
+import {
+  readDraft,
+  totalUnits,
+  upsertConfiguredCartItem,
+  type ConfiguredCartItemInput,
+} from "./cart/cartDraft";
 import {
   readBuildDraft,
   writeBuildDraft,
@@ -29,6 +34,7 @@ import {
   hasMeaningfulDraft,
 } from "@/lib/configurator/buildDraft";
 import {
+  restoreConfigurationUploads,
   revokeArtworkObjectUrls,
   revokeNeckLabelObjectUrl,
 } from "@/lib/configurator/objectUrls";
@@ -47,6 +53,62 @@ const POSITION_LABELS: Record<NeckLabel["position"], string> = {
   below_neck_tape: "Below neck tape",
   on_neck_tape: "On neck tape",
 };
+
+const FALLBACK_PRODUCT_ID = "regular-fit-tee-200gsm";
+const VECTOR_REQUIRED_TECHNIQUES = new Set([
+  "screen_print",
+  "puff_print",
+  "embroidery",
+  "reflective_heat_transfer",
+]);
+
+function safeQuantity(value: unknown, minimum = 50): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed)
+    ? Math.max(minimum, Math.floor(parsed))
+    : minimum;
+}
+
+function stepsForConfiguration(
+  colour: GarmentColour,
+  artwork: Artwork,
+  neckLabel?: NeckLabel
+): AccordionStepState[] {
+  const colourSummary = colour.name
+    ? `${colour.type === "signature" ? "Signature" : "Custom Dye"} — ${colour.name}`
+    : null;
+  const artworkSummary = [
+    artwork.front?.technique &&
+      `Front — ${TECHNIQUE_LABELS[artwork.front.technique]}`,
+    artwork.back?.technique &&
+      `Back — ${TECHNIQUE_LABELS[artwork.back.technique]}`,
+  ]
+    .filter(Boolean)
+    .join(", ");
+  const labelSummary =
+    neckLabel?.dimensions && neckLabel.position
+      ? `${neckLabel.dimensions.replace("x", "×")}mm — ${POSITION_LABELS[neckLabel.position]}`
+      : null;
+
+  return INITIAL_STEPS.map((step) => {
+    if (step.id === "garment-colour") {
+      return { ...step, confirmed: colour.confirmed, summary: colourSummary };
+    }
+    if (step.id === "artwork") {
+      const confirmed = Boolean(
+        (artwork.front || artwork.back) &&
+          (!artwork.front || artwork.front.confirmed) &&
+          (!artwork.back || artwork.back.confirmed)
+      );
+      return { ...step, confirmed, summary: artworkSummary || null };
+    }
+    return {
+      ...step,
+      confirmed: neckLabel?.confirmed === true,
+      summary: labelSummary,
+    };
+  });
+}
 
 function getCtaLabel(openStep: AccordionStepId | null): string {
   switch (openStep) {
@@ -92,8 +154,10 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const product = getProduct(configId);
-  const productId = product?.id ?? "tshirt-classic";
+  const productId = product?.id ?? FALLBACK_PRODUCT_ID;
   const productName = product?.name ?? "Classic Tee";
+  const editCartId = searchParams.get("cartId");
+  const editItemId = searchParams.get("itemId");
   const isToteProduct = productId.includes("tote");
   let unitBasePrice: number | undefined;
   try {
@@ -145,41 +209,103 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   // lifetime, since configId is a route param and the component remounts
   // when it changes.
   useEffect(() => {
-    const sharedDesign = searchParams.get("design");
-    if (sharedDesign) {
-      try {
-        const parsed = JSON.parse(decodeURIComponent(escape(atob(sharedDesign))));
-        if (parsed?.colour && parsed?.artwork && parsed?.steps) {
-          /* eslint-disable react-hooks/set-state-in-effect */
-          setColour(parsed.colour);
-          setArtwork(parsed.artwork);
-          setNeckLabel((parsed.neckLabel ?? {}) as NeckLabel);
-          setSteps(parsed.steps);
-          setQuantity(parsed.quantity ?? 50);
-          setDraftRestored(true);
+    let cancelled = false;
+
+    void (async () => {
+      const applyRestoredConfiguration = async (
+        restoredColour: GarmentColour,
+        restoredArtwork: Artwork,
+        restoredNeckLabel: NeckLabel | undefined,
+        restoredQuantity: unknown
+      ) => {
+        const uploads = await restoreConfigurationUploads(
+          restoredArtwork,
+          restoredNeckLabel
+        );
+        if (cancelled) return;
+        setColour(restoredColour);
+        setArtwork(uploads.artwork);
+        setNeckLabel((uploads.neckLabel ?? {}) as NeckLabel);
+        setSteps(
+          stepsForConfiguration(
+            restoredColour,
+            uploads.artwork,
+            uploads.neckLabel
+          )
+        );
+        setQuantity(
+          safeQuantity(
+            restoredQuantity,
+            restoredColour.type === "custom_dye" ? CUSTOM_DYE_MOQ_UNITS : 50
+          )
+        );
+        setDraftRestored(true);
+      };
+
+      const sharedDesign = searchParams.get("design");
+      if (sharedDesign) {
+        try {
+          const parsed = JSON.parse(
+            decodeURIComponent(escape(atob(sharedDesign)))
+          ) as Partial<{
+            colour: GarmentColour;
+            artwork: Artwork;
+            neckLabel: NeckLabel;
+            quantity: unknown;
+          }>;
+          if (
+            parsed.colour &&
+            (parsed.colour.type === "signature" ||
+              parsed.colour.type === "custom_dye") &&
+            parsed.artwork &&
+            typeof parsed.artwork === "object"
+          ) {
+            await applyRestoredConfiguration(
+              parsed.colour,
+              parsed.artwork,
+              parsed.neckLabel,
+              parsed.quantity
+            );
+            hasHydrated.current = true;
+            return;
+          }
+        } catch {
+          // Ignore malformed shared-design payloads and fall back to local state.
+        }
+      }
+
+      if (editCartId && editItemId) {
+        const item = readDraft(editCartId).items.find(
+          (candidate) => candidate.id === editItemId
+        );
+        if (item && item.productId === productId) {
+          await applyRestoredConfiguration(
+            item.colour,
+            item.artwork,
+            item.neckLabel,
+            totalUnits(item.sizeQuantities)
+          );
           hasHydrated.current = true;
-          /* eslint-enable react-hooks/set-state-in-effect */
           return;
         }
-      } catch {
-        // Ignore malformed shared-design payloads and fall back to local draft restore.
       }
-    }
 
-    const draft = readBuildDraft(configId);
-    if (hasMeaningfulDraft(draft) && draft) {
-      // Restoring a localStorage draft is a one-time sync from an external
-      // system (browser storage) on mount, not state derived from props —
-      // the usual reason to avoid setState-in-effect doesn't apply here.
-      setColour(draft.colour);
-      setArtwork(draft.artwork);
-      setNeckLabel(draft.neckLabel);
-      setSteps(draft.steps);
-      setQuantity(draft.quantity);
-      setDraftRestored(true);
-    }
-    hasHydrated.current = true;
-  }, [configId, searchParams]);
+      const draft = readBuildDraft(configId);
+      if (hasMeaningfulDraft(draft) && draft) {
+        await applyRestoredConfiguration(
+          draft.colour,
+          draft.artwork,
+          draft.neckLabel,
+          draft.quantity
+        );
+      }
+      hasHydrated.current = true;
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [configId, editCartId, editItemId, productId, searchParams]);
 
   // Debounced autosave — writes the in-progress build to localStorage
   // shortly after any change, so a refresh or closed tab doesn't lose
@@ -236,7 +362,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   }
 
   function setSafeQuantity(next: number) {
-    setQuantity(Math.max(minimumQuantity, next));
+    setQuantity(safeQuantity(next, minimumQuantity));
   }
 
   function applyExpandedStepChange(next: AccordionStepId | null) {
@@ -275,6 +401,8 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   }
 
   function handleCtaClick() {
+    setCtaErrorMessage(null);
+
     if (expandedStepId === "garment-colour") {
       if (!colour.name) {
         showCtaError("Choose a garment colour before confirming.");
@@ -304,11 +432,21 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       const allUploadedSidesReady =
         (!artwork.front || Boolean(artwork.front.technique)) &&
         (!artwork.back || Boolean(artwork.back.technique));
+      const sideNeedingVector = (["front", "back"] as const).find((side) => {
+        const candidate = artwork[side];
+        return Boolean(
+          candidate?.technique &&
+            VECTOR_REQUIRED_TECHNIQUES.has(candidate.technique) &&
+            !candidate.vectorized
+        );
+      });
 
-      if (!hasAnySide || !allUploadedSidesReady) {
+      if (!hasAnySide || !allUploadedSidesReady || sideNeedingVector) {
         showCtaError(
           !hasAnySide
             ? "Upload artwork for at least one side."
+            : sideNeedingVector
+              ? `Upload vector artwork for the ${sideNeedingVector} side before confirming.`
             : "Choose a technique for each uploaded artwork."
         );
         return;
@@ -342,11 +480,16 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
 
     if (expandedStepId === "neck-label") {
       const isReady = Boolean(
-        neckLabel?.fileUrl && neckLabel?.dimensions && neckLabel?.position
+        neckLabel?.fileUrl &&
+          neckLabel?.dimensions &&
+          neckLabel?.position &&
+          (neckLabel.position !== "below_neck_tape" || neckLabel.stitch)
       );
 
       if (!isReady) {
-        showCtaError("Upload label artwork and choose dimensions/position first.");
+        showCtaError(
+          "Upload label artwork and choose its dimensions, position, and stitch first."
+        );
         return;
       }
 
@@ -374,7 +517,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       return;
     }
 
-    upsertConfiguredCartItem(configId, {
+    const cartInput: ConfiguredCartItemInput = {
       productId,
       productName,
       previewImage: product?.defaultImage ?? "/flatlays/regulartee.webp",
@@ -383,12 +526,16 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       neckLabel: neckLabel?.fileUrl ? neckLabel : undefined,
       quantity,
       rushDelivery: false,
+    };
+    const targetCartId = upsertConfiguredCartItem(configId, cartInput, {
+      cartId: editCartId ?? undefined,
+      itemId: editItemId ?? undefined,
     });
     // The in-progress build draft's job is done now that it's been handed
     // off to the cart draft — clear it so a stale autosave doesn't resurface
     // if the customer starts a fresh build under the same configId later.
     clearBuildDraft(configId);
-    router.push(`/configurator/cart/${encodeURIComponent(configId)}/review`);
+    router.push(`/configurator/cart/${encodeURIComponent(targetCartId)}/review`);
   }
 
   return (
@@ -397,6 +544,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         <ConfiguratorHeader
           configId={configId}
           productName={productName}
+          designPayload={{ colour, artwork, neckLabel, steps, quantity }}
         />
 
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 px-4 pb-4 lg:grid-cols-[360px_minmax(0,1fr)_310px] lg:px-5">

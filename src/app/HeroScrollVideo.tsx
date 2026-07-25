@@ -86,7 +86,7 @@ export default function HeroScrollVideo() {
             alt="Custom merch made in India"
             fill
             className="object-cover"
-            sizes="50vw"
+            sizes="(max-width: 1023px) 100vw, 50vw"
             priority
           />
           <div className="absolute bottom-8 left-8 bg-white/95 backdrop-blur-sm rounded-2xl px-5 py-4 shadow-[0_8px_30px_rgba(22,33,43,0.12)] z-10">

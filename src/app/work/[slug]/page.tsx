@@ -20,6 +20,7 @@ export async function generateMetadata({
     title: `${cs.client} — ${cs.title}`,
     description: cs.excerpt,
     path: `/work/${cs.slug}`,
+    image: cs.coverImage ?? undefined,
   })
 }
 

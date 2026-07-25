@@ -5,7 +5,14 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/api/', '/payment/', '/checkout/'],
+      disallow: [
+        '/api/',
+        '/payment/',
+        '/cart',
+        '/checkout',
+        '/configurator/build/',
+        '/configurator/cart/',
+      ],
     },
     sitemap: 'https://garmops.com/sitemap.xml',
   }

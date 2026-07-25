@@ -28,6 +28,10 @@ export interface ArtworkGuidelines {
 
 export interface ArtworkSide {
   fileUrl: string;
+  /** IndexedDB key for user uploads. `fileUrl` is a document-scoped object URL
+   * and is recreated from this key when a saved draft is restored. */
+  fileKey?: string;
+  fileName?: string;
   fileType: ArtworkFileType;
   vectorized: boolean;
   technique?: ArtworkTechnique;
@@ -53,6 +57,9 @@ export type NeckLabelFileType = 'svg' | 'ai';
 
 export interface NeckLabel {
   fileUrl: string; // .svg or .ai only
+  /** IndexedDB key used to recreate an uploaded file after a reload. */
+  fileKey?: string;
+  fileName?: string;
   fileType?: NeckLabelFileType; // drives whether the live preview can rasterize the file (svg) or must show a placeholder (ai — browsers can't render it)
   source?: 'upload' | 'sample';
   dimensions: NeckLabelDimensions;

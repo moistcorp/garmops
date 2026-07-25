@@ -1,9 +1,9 @@
 'use client';
 
-import { JSX, useId, useState } from 'react';
+import { JSX, useId, useRef, useState } from 'react';
 import Image from 'next/image';
 import { Check, Download, Plus, Trash2, Upload } from 'lucide-react';
-import { revokeObjectUrl } from '@/lib/configurator/objectUrls';
+import { persistUploadedFile, revokeObjectUrl } from '@/lib/configurator/objectUrls';
 import type {
   NeckLabel,
   NeckLabelDimensions,
@@ -25,6 +25,7 @@ const DEFAULT_POSITION: NeckLabelPosition = 'below_neck_tape';
 const ACCEPTED_FILE_TYPES = '.svg,.ai';
 const DIMENSION_OPTIONS: NeckLabelDimensions[] = ['50x18', '60x20', '65x15', '45x45'];
 const DEFAULT_DIMENSIONS: NeckLabelDimensions = '50x18';
+const MAX_FILE_BYTES = 4.5 * 1024 * 1024;
 const TEMPLATE_HREF = '/downloads/neck-label-templates.zip';
 // A real, renderable sample (the template zip is .ai-only and can't be
 // rasterized in a browser preview) — used by "Try sample artwork" so the
@@ -60,16 +61,23 @@ export default function NeckLabelPanel({
   isToteProduct = false,
 }: NeckLabelPanelProps): JSX.Element {
   const uploadInputId = useId();
+  const uploadInputRef = useRef<HTMLInputElement>(null);
+  const importTokenRef = useRef(0);
   const [fileUrl, setFileUrl] = useState<string | undefined>(value?.fileUrl);
+  const [fileKey, setFileKey] = useState<string | undefined>(value?.fileKey);
   const [fileType, setFileType] = useState<NeckLabelFileType | undefined>(value?.fileType);
-  const [fileName, setFileName] = useState<string | undefined>();
+  const [fileName, setFileName] = useState<string | undefined>(value?.fileName);
   const [source, setSource] = useState<NeckLabel['source']>(value?.source);
   const [dimensions, setDimensions] = useState<NeckLabelDimensions | undefined>(value?.dimensions);
   const [position, setPosition] = useState<NeckLabelPosition>(value?.position ?? DEFAULT_POSITION);
   const [stitch, setStitch] = useState<NeckLabelStitch | undefined>(value?.stitch);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [persistenceWarning, setPersistenceWarning] = useState<string | null>(null);
 
   function emit(next: {
     fileUrl?: string;
+    fileKey?: string;
+    fileName?: string;
     fileType?: NeckLabelFileType;
     source?: NeckLabel['source'];
     dimensions?: NeckLabelDimensions;
@@ -79,6 +87,8 @@ export default function NeckLabelPanel({
     if (!next.fileUrl || !next.dimensions) return;
     onChange?.({
       fileUrl: next.fileUrl,
+      fileKey: next.fileKey,
+      fileName: next.fileName,
       fileType: next.fileType,
       source: next.source,
       dimensions: next.dimensions,
@@ -92,18 +102,29 @@ export default function NeckLabelPanel({
     url: string,
     type?: NeckLabelFileType,
     nextSource: NeckLabel['source'] = 'upload',
-    nextFileName?: string
+    nextFileName?: string,
+    nextFileKey?: string
   ) {
     const nextDimensions = dimensions ?? DEFAULT_DIMENSIONS;
     if (fileUrl !== url) {
       revokeObjectUrl(fileUrl);
     }
     setFileUrl(url);
+    setFileKey(nextFileKey);
     setFileType(type);
     setFileName(nextFileName);
     setSource(nextSource);
     setDimensions(nextDimensions);
-    emit({ fileUrl: url, fileType: type, source: nextSource, dimensions: nextDimensions, position, stitch });
+    emit({
+      fileUrl: url,
+      fileKey: nextFileKey,
+      fileName: nextFileName,
+      fileType: type,
+      source: nextSource,
+      dimensions: nextDimensions,
+      position,
+      stitch,
+    });
   }
 
   function handleSampleArtwork() {
@@ -112,29 +133,34 @@ export default function NeckLabelPanel({
 
   function handleRemoveArtwork() {
     revokeObjectUrl(fileUrl);
+    importTokenRef.current += 1;
     setFileUrl(undefined);
+    setFileKey(undefined);
     setFileType(undefined);
     setFileName(undefined);
     setSource(undefined);
     setDimensions(undefined);
+    setUploadError(null);
+    setPersistenceWarning(null);
+    if (uploadInputRef.current) uploadInputRef.current.value = '';
     onClear?.();
   }
 
   function handleDimensionsSelected(next: NeckLabelDimensions) {
     setDimensions(next);
-    emit({ fileUrl, fileType, source, dimensions: next, position, stitch });
+    emit({ fileUrl, fileKey, fileName, fileType, source, dimensions: next, position, stitch });
   }
 
   function handlePositionChange(next: NeckLabelPosition) {
     const nextStitch = next === 'on_neck_tape' ? undefined : stitch;
     setPosition(next);
     setStitch(nextStitch);
-    emit({ fileUrl, fileType, source, dimensions, position: next, stitch: nextStitch });
+    emit({ fileUrl, fileKey, fileName, fileType, source, dimensions, position: next, stitch: nextStitch });
   }
 
   function handleStitchChange(next: NeckLabelStitch) {
     setStitch(next);
-    emit({ fileUrl, fileType, source, dimensions, position, stitch: next });
+    emit({ fileUrl, fileKey, fileName, fileType, source, dimensions, position, stitch: next });
   }
 
   const alreadyConfigured = value?.confirmed === true;
@@ -188,6 +214,7 @@ export default function NeckLabelPanel({
 
       <div className="group relative">
         <input
+          ref={uploadInputRef}
           id={uploadInputId}
           type="file"
           accept={ACCEPTED_FILE_TYPES}
@@ -195,8 +222,40 @@ export default function NeckLabelPanel({
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (!file) return;
+            const nextFileType = fileTypeFromName(file.name);
+            if (!nextFileType) {
+              setUploadError('Unsupported file type. Upload an .svg or .ai file.');
+              e.currentTarget.value = '';
+              return;
+            }
+            if (file.size > MAX_FILE_BYTES) {
+              setUploadError('File is too large. Maximum size is 4.5MB.');
+              e.currentTarget.value = '';
+              return;
+            }
+            setUploadError(null);
+            setPersistenceWarning(null);
+            const token = importTokenRef.current + 1;
+            importTokenRef.current = token;
             const url = URL.createObjectURL(file);
-            handleFileSelected(url, fileTypeFromName(file.name), 'upload', file.name);
+            void persistUploadedFile(file).then((nextFileKey) => {
+              if (token !== importTokenRef.current) {
+                revokeObjectUrl(url);
+                return;
+              }
+              if (!nextFileKey) {
+                setPersistenceWarning(
+                  'This browser could not save the upload for reload recovery. Keep this tab open or try a different browser.'
+                );
+              }
+              handleFileSelected(
+                url,
+                nextFileType,
+                'upload',
+                file.name,
+                nextFileKey
+              );
+            });
           }}
         />
         {fileUrl ? (
@@ -259,6 +318,13 @@ export default function NeckLabelPanel({
           </>
         )}
       </div>
+
+      {uploadError && <p className="text-xs text-red-600">{uploadError}</p>}
+      {persistenceWarning && (
+        <p className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">
+          {persistenceWarning}
+        </p>
+      )}
 
       <div>
         <div className="mb-2 text-xs font-bold text-[#111111]">Position</div>

@@ -6,11 +6,14 @@ export type SizeRow = {
   waist?: string
   inseam?: string
   sleeve?: string
+  handles?: string
 }
 
 export type SizeChart = {
   sizes: SizeRow[]
   note?: string
+  chestLabel?: string
+  lengthLabel?: string
 }
 
 export const SIZE_CHARTS: Record<string, SizeChart> = {
@@ -83,8 +86,10 @@ export const SIZE_CHARTS: Record<string, SizeChart> = {
 
   'tote': {
     note: 'One size. All measurements in cm.',
+    chestLabel: 'Width',
+    lengthLabel: 'Height',
     sizes: [
-      { size: 'One Size', chest: '38cm', length: '42cm', shoulder: '24cm handles' },
+      { size: 'One Size', chest: '38cm', length: '42cm', handles: '24cm' },
     ],
   },
 }

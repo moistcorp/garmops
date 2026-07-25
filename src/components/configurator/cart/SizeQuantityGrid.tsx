@@ -1,14 +1,16 @@
 import { formatInr } from "@/lib/configurator/pricing";
 
-export type Size = 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL';
+export type Size = string;
 
-export const SIZES: Size[] = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+export const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'] as const;
 
 export interface SizeQuantityGridProps {
   value: Record<Size, number>;
   onChange: (size: Size, qty: number) => void;
   unitPrice: number;
   minimumUnits?: number;
+  sizes?: readonly Size[];
+  idPrefix?: string;
 }
 
 export function SizeQuantityGrid({
@@ -16,12 +18,17 @@ export function SizeQuantityGrid({
   onChange,
   unitPrice,
   minimumUnits = 50,
+  sizes = SIZES,
+  idPrefix = "item",
 }: SizeQuantityGridProps) {
-  const totalUnits = SIZES.reduce((sum, size) => sum + (value[size] || 0), 0);
+  const totalUnits = sizes.reduce((sum, size) => sum + (value[size] || 0), 0);
+  const columnsClass = sizes.length === 1 ? "grid-cols-1" : "grid-cols-6";
+  const inputId = (size: Size) =>
+    `qty-${idPrefix}-${size.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
   function handleInputChange(size: Size, raw: string) {
-    const parsed = parseInt(raw, 10);
-    const safe = Number.isNaN(parsed) || parsed < 0 ? 0 : parsed;
+    const parsed = Number(raw);
+    const safe = Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : 0;
     onChange(size, safe);
   }
 
@@ -31,15 +38,15 @@ export function SizeQuantityGrid({
         <span>Minimum {minimumUnits} units</span>
         <span className="font-medium text-[#111111]">{totalUnits} units</span>
       </div>
-      <div className="grid grid-cols-6 gap-px overflow-hidden rounded-md border border-[#E5E5E5] bg-[#E5E5E5]">
-        {SIZES.map((size) => (
+      <div className={`grid ${columnsClass} gap-px overflow-hidden rounded-md border border-[#E5E5E5] bg-[#E5E5E5]`}>
+        {sizes.map((size) => (
           <div key={size} className="bg-[#F7F7F7] px-2 py-2 text-center text-xs font-medium tracking-wide text-[#111111]">
             {size}
           </div>
         ))}
-        {SIZES.map((size) => (
+        {sizes.map((size) => (
           <div key={`${size}-input`} className="bg-white px-1.5 py-1.5">
-            <label className="sr-only" htmlFor={`qty-${size}`}>
+            <label className="sr-only" htmlFor={inputId(size)}>
               Quantity for size {size}
             </label>
             <div className="flex h-9 items-center justify-between rounded-md bg-[#F7F7F7] px-1">
@@ -53,7 +60,7 @@ export function SizeQuantityGrid({
                 −
               </button>
               <input
-                id={`qty-${size}`}
+                id={inputId(size)}
                 type="number"
                 inputMode="numeric"
                 min={0}

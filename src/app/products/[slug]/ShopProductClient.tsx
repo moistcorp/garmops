@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Product } from '@/lib/products'
-import { useCartStore } from '@/lib/store'
+import { MAX_SAMPLE_ITEM_QUANTITY, useCartStore } from '@/lib/store'
 import Link from 'next/link'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import { getSizeChart } from '@/lib/sizecharts'
@@ -156,8 +156,9 @@ export default function ShopProductClient({
                 <span className="w-8 text-center font-medium">{quantity}</span>
                 <button
                   type="button"
-                  onClick={() => setQuantity(q => q + 1)}
-                  className="w-10 h-10 rounded-full border border-[#E5E5E5] hover:border-[var(--color-teal)] hover:text-[var(--color-teal)] transition-colors flex items-center justify-center text-lg"
+                  onClick={() => setQuantity(q => Math.min(MAX_SAMPLE_ITEM_QUANTITY, q + 1))}
+                  disabled={quantity >= MAX_SAMPLE_ITEM_QUANTITY}
+                  className="w-10 h-10 rounded-full border border-[#E5E5E5] hover:border-[var(--color-teal)] hover:text-[var(--color-teal)] transition-colors flex items-center justify-center text-lg disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   +
                 </button>
@@ -245,8 +246,8 @@ export default function ShopProductClient({
                     <thead>
                       <tr className="bg-[var(--color-cream-soft)]">
                         <th className="text-left px-4 py-3 font-medium text-[#111111]/50">Size</th>
-                        <th className="text-left px-4 py-3 font-medium text-[#111111]/50">Chest</th>
-                        <th className="text-left px-4 py-3 font-medium text-[#111111]/50">Length</th>
+                        <th className="text-left px-4 py-3 font-medium text-[#111111]/50">{sizeChart.chestLabel ?? 'Chest'}</th>
+                        <th className="text-left px-4 py-3 font-medium text-[#111111]/50">{sizeChart.lengthLabel ?? 'Length'}</th>
                         {sizeChart.sizes[0].shoulder && (
                           <th className="text-left px-4 py-3 font-medium text-[#111111]/50">Shoulder</th>
                         )}
@@ -255,6 +256,12 @@ export default function ShopProductClient({
                         )}
                         {sizeChart.sizes[0].inseam && (
                           <th className="text-left px-4 py-3 font-medium text-[#111111]/50">Inseam</th>
+                        )}
+                        {sizeChart.sizes[0].sleeve && (
+                          <th className="text-left px-4 py-3 font-medium text-[#111111]/50">Sleeve</th>
+                        )}
+                        {sizeChart.sizes[0].handles && (
+                          <th className="text-left px-4 py-3 font-medium text-[#111111]/50">Handles</th>
                         )}
                       </tr>
                     </thead>
@@ -273,6 +280,12 @@ export default function ShopProductClient({
                           {row.inseam && (
                             <td className="px-4 py-3 text-[#111111]/60">{row.inseam}</td>
                           )}
+                          {row.sleeve && (
+                            <td className="px-4 py-3 text-[#111111]/60">{row.sleeve}</td>
+                          )}
+                          {row.handles && (
+                            <td className="px-4 py-3 text-[#111111]/60">{row.handles}</td>
+                          )}
                         </tr>
                       ))}
                     </tbody>
@@ -285,7 +298,7 @@ export default function ShopProductClient({
             )}
 
             <p className="text-xs text-[#111111]/40">
-              Free shipping above &#8377;2000. Ships within 7 days.
+              Free shipping above &#8377;2000. Dispatches within 24 hours.
             </p>
           </div>
         </div>

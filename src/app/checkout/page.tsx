@@ -119,9 +119,12 @@ export default function Checkout() {
     setLoading(true)
     setError('')
 
-    const txnid = 'MF' + Date.now()
+    const randomSuffix = crypto.getRandomValues(new Uint32Array(1))[0].toString(36)
+    const txnid = `MF${Date.now().toString(36)}${randomSuffix}`
     const amount = grandTotal.toFixed(2)
     const productinfo = items.map(i => `${i.name} (${i.size}) x${i.quantity}`).join(', ')
+    const firstname = form.firstname.trim()
+    const email = form.email.trim()
 
     try {
       const res = await fetch('/api/payu/hash', {
@@ -131,33 +134,55 @@ export default function Checkout() {
           txnid,
           amount,
           productinfo,
-          firstname: form.firstname,
-          email: form.email,
+          firstname,
+          email,
           items: items.map(item => ({ id: item.id, size: item.size, quantity: item.quantity })),
         })
       })
       const payment = await res.json()
-      if (!res.ok || payment.amount !== amount) {
+      if (
+        !res.ok ||
+        payment.amount !== amount ||
+        typeof payment.productinfo !== 'string' ||
+        typeof payment.udf1 !== 'string'
+      ) {
         throw new Error(payment.error ?? 'Could not initialize payment')
+      }
+      if (!payment.mockPayment && (!payment.hash || !payment.key)) {
+        throw new Error('PayU returned an invalid payment response')
       }
 
       localStorage.setItem('mf_pending_order', JSON.stringify({
         kind: 'sample-cart',
         mockPayment: Boolean(payment.mockPayment),
-        name: `${form.firstname} ${form.lastname}`.trim(),
-        email: form.email,
+        name: `${firstname} ${form.lastname.trim()}`.trim(),
+        email,
         txnid,
+        amount,
+        items: items.map(item => ({
+          name: item.name,
+          size: item.size,
+          quantity: item.quantity,
+          lineTotal: item.price * item.quantity,
+        })),
+        shippingAddress: [
+          form.address.trim(),
+          cityValue.trim(),
+          selectedState.trim(),
+          form.pincode.trim(),
+          selectedCountry,
+        ].filter(Boolean).join(', '),
+        retryHref: '/checkout',
       }))
 
       if (payment.mockPayment) {
-        window.location.assign(`/payment/success?txnid=${encodeURIComponent(txnid)}&mock=1`)
+        window.location.assign(
+          `/api/payu/callback?token=${encodeURIComponent(payment.udf1)}`
+        )
         return
       }
 
       const { hash, key } = payment
-      if (!hash || !key) {
-        throw new Error('PayU returned an invalid payment response')
-      }
 
       const payuForm = document.createElement('form')
       payuForm.method = 'POST'
@@ -167,10 +192,10 @@ export default function Checkout() {
           : 'https://test.payu.in/_payment')
 
       const fields: Record<string, string> = {
-        key, txnid, amount, productinfo,
-        firstname: form.firstname,
+        key, txnid, amount, productinfo: payment.productinfo,
+        firstname,
         lastname: form.lastname,
-        email: form.email,
+        email,
         phone: `${countryCode}${form.phone}`,
         address1: form.address,
         city: cityValue || selectedCity,
@@ -178,8 +203,9 @@ export default function Checkout() {
         zipcode: form.pincode,
         country: selectedCountry,
         hash,
-        surl: `${window.location.origin}/payment/success`,
-        furl: `${window.location.origin}/payment/failure`,
+        udf1: payment.udf1,
+        surl: `${window.location.origin}/api/payu/callback`,
+        furl: `${window.location.origin}/api/payu/callback`,
       }
 
       Object.entries(fields).forEach(([k, v]) => {

@@ -241,6 +241,7 @@ export function ConfiguratorSidebar({
             />
           ) : step.id === "neck-label" ? (
             <NeckLabelPanel
+              key={neckLabel?.fileUrl ?? "empty-neck-label"}
               value={neckLabel}
               onChange={handleNeckLabelChange}
               onClear={handleNeckLabelClear}

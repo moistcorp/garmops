@@ -14,10 +14,10 @@ export function CartPageHeader() {
           <Image
             src="/logo3.png"
             alt="Garmops"
-            width={180}
-            height={48}
+            width={908}
+            height={114}
             className="block h-5 w-auto object-contain"
-            priority
+            preload
           />
         </Link>
         <span aria-hidden="true" />

@@ -7,7 +7,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-10 text-sm text-[#111111]/50">
         <div>
           <Link href="/">
-            <Image src="/logo3.png" alt="Garmops" width={120} height={36} className="h-8 w-auto object-contain mb-3" />
+            <Image src="/logo3.png" alt="Garmops" width={908} height={114} className="h-8 w-auto object-contain mb-3" />
           </Link>
           <div className="flex flex-wrap gap-2 mt-3">
             <span className="text-xs text-[#111111]/50 bg-white border border-[#ECE7DF] rounded-full px-3 py-1">GST Compliant</span>

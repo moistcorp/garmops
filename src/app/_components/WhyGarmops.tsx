@@ -52,6 +52,9 @@ export default function WhyGarmops() {
                   <button
                     type="button"
                     onClick={() => setOpenIndex(openIndex === i ? -1 : i)}
+                    id={`why-garmops-button-${i}`}
+                    aria-expanded={openIndex === i}
+                    aria-controls={`why-garmops-panel-${i}`}
                     className="w-full flex items-center justify-between py-5 text-left gap-4"
                   >
                     <span className={`text-base font-semibold leading-snug transition-colors ${openIndex === i ? 'text-[var(--color-teal)]' : 'text-[#111111]/60'}`}>
@@ -59,6 +62,7 @@ export default function WhyGarmops() {
                     </span>
                     <span className={`shrink-0 w-5 h-5 flex items-center justify-center transition-colors ${openIndex === i ? 'text-[var(--color-teal)]' : 'text-[#666666]'}`}>
                       <svg
+                        aria-hidden="true"
                         className={`w-4 h-4 transition-transform duration-200 ${openIndex === i ? 'rotate-180' : ''}`}
                         fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
                       >
@@ -67,7 +71,12 @@ export default function WhyGarmops() {
                     </span>
                   </button>
                   {openIndex === i && (
-                    <p className="pb-5 text-sm text-[#4a4a4a] leading-relaxed -mt-1">
+                    <p
+                      id={`why-garmops-panel-${i}`}
+                      role="region"
+                      aria-labelledby={`why-garmops-button-${i}`}
+                      className="pb-5 text-sm text-[#4a4a4a] leading-relaxed -mt-1"
+                    >
                       {item.body}
                     </p>
                   )}
@@ -82,7 +91,8 @@ export default function WhyGarmops() {
               <Image
                 key={item.image}
                 src={item.image}
-                alt={item.alt}
+                alt={openIndex === i ? item.alt : ''}
+                aria-hidden={openIndex !== i}
                 fill
                 className={`object-cover transition-opacity duration-300 ease-in-out ${
                   openIndex === i ? 'opacity-100' : 'opacity-0'

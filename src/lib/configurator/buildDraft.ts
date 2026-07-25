@@ -13,6 +13,44 @@ import type { AccordionStepState } from "@/components/configurator/ConfiguratorS
 
 const STORAGE_PREFIX = "mf_configurator_build:";
 const DRAFT_VERSION = 1;
+const STEP_IDS = new Set(["garment-colour", "artwork", "neck-label"]);
+const ARTWORK_FILE_TYPES = new Set(["jpg", "png", "svg", "ai"]);
+const ARTWORK_TECHNIQUES = new Set([
+  "screen_print",
+  "dtg",
+  "dtf",
+  "reflective_heat_transfer",
+  "puff_print",
+  "embroidery",
+]);
+const PRINT_AREAS = new Set(["XS", "S", "M", "L", "XL", "XXL"]);
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function finiteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function isArtworkSide(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  return (
+    typeof value.fileUrl === "string" &&
+    ARTWORK_FILE_TYPES.has(String(value.fileType)) &&
+    (value.technique === undefined ||
+      ARTWORK_TECHNIQUES.has(String(value.technique))) &&
+    finiteNumber(value.width) &&
+    finiteNumber(value.height) &&
+    finiteNumber(value.fromNeck) &&
+    finiteNumber(value.fromCenter) &&
+    PRINT_AREAS.has(String(value.printArea)) &&
+    isRecord(value.guidelines) &&
+    typeof value.guidelines.maximumArea === "boolean" &&
+    typeof value.guidelines.leftChest === "boolean" &&
+    typeof value.confirmed === "boolean"
+  );
+}
 
 export interface BuildDraft {
   version: number;
@@ -42,23 +80,45 @@ export function readBuildDraft(configId: string): BuildDraft | null {
 
     const parsed = JSON.parse(raw) as Partial<BuildDraft>;
     if (
-      typeof parsed !== "object" ||
-      parsed === null ||
-      !parsed.colour ||
-      !parsed.artwork ||
-      !parsed.steps
+      !isRecord(parsed) ||
+      parsed.version !== DRAFT_VERSION ||
+      !isRecord(parsed.colour) ||
+      (parsed.colour.type !== "signature" &&
+        parsed.colour.type !== "custom_dye") ||
+      typeof parsed.colour.name !== "string" ||
+      typeof parsed.colour.hex !== "string" ||
+      typeof parsed.colour.confirmed !== "boolean" ||
+      !isRecord(parsed.artwork) ||
+      (parsed.artwork.front !== undefined &&
+        !isArtworkSide(parsed.artwork.front)) ||
+      (parsed.artwork.back !== undefined &&
+        !isArtworkSide(parsed.artwork.back)) ||
+      !Array.isArray(parsed.steps) ||
+      !parsed.steps.every(
+        (step) =>
+          isRecord(step) &&
+          STEP_IDS.has(String(step.id)) &&
+          typeof step.title === "string" &&
+          (step.summary === null || typeof step.summary === "string") &&
+          typeof step.confirmed === "boolean"
+      )
     ) {
       return null;
     }
 
+    const quantity =
+      finiteNumber(parsed.quantity) && parsed.quantity > 0
+        ? Math.floor(parsed.quantity)
+        : 50;
+
     return {
-      version: parsed.version ?? DRAFT_VERSION,
+      version: DRAFT_VERSION,
       savedAt: parsed.savedAt ?? new Date().toISOString(),
-      colour: parsed.colour,
-      artwork: parsed.artwork,
+      colour: parsed.colour as GarmentColour,
+      artwork: parsed.artwork as Artwork,
       neckLabel: (parsed.neckLabel ?? {}) as NeckLabel,
-      steps: parsed.steps,
-      quantity: parsed.quantity ?? 50,
+      steps: parsed.steps as AccordionStepState[],
+      quantity,
     };
   } catch {
     // Corrupted/unparseable draft — treat as if none exists rather than

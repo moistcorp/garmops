@@ -1,5 +1,5 @@
 'use client'
-import { useCartStore } from '@/lib/store'
+import { MAX_SAMPLE_ITEM_QUANTITY, useCartStore } from '@/lib/store'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -52,7 +52,8 @@ export default function Cart() {
                   <span className="w-6 text-center text-sm">{item.quantity}</span>
                   <button type="button"
                     onClick={() => updateQuantity(item.id, item.size, item.quantity + 1)}
-                    className="w-7 h-7 rounded-full border border-[#E5E5E5] text-sm hover:border-[var(--color-teal)] hover:text-[var(--color-teal)] transition-colors flex items-center justify-center">
+                    disabled={item.quantity >= MAX_SAMPLE_ITEM_QUANTITY}
+                    className="w-7 h-7 rounded-full border border-[#E5E5E5] text-sm hover:border-[var(--color-teal)] hover:text-[var(--color-teal)] transition-colors flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-40">
                     +
                   </button>
                 </div>

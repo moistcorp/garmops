@@ -18,7 +18,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "font-src 'self'",
               "img-src 'self' data: blob: https:",
-              "connect-src 'self' https://api.resend.com https://secure.payu.in https://test.payu.in",
+              "connect-src 'self' https://api.resend.com https://formspree.io https://secure.payu.in https://test.payu.in",
               "frame-src https://secure.payu.in https://test.payu.in",
             ].join('; '),
           },

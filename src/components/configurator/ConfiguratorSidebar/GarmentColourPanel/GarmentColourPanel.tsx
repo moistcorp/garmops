@@ -96,7 +96,9 @@ export default function GarmentColourPanel({ value, onChange, unitBasePrice }: G
         <div className="flex items-center justify-between gap-2 rounded-md bg-[#F7F7F7] px-3 py-2">
           <div>
             <h3 className="text-sm font-semibold text-[#111111]">Signature</h3>
-            <p className="text-xs text-[#111111]/55">Ready stock — no MOQ, standard lead time</p>
+            <p className="text-xs text-[#111111]/55">
+              Ready stock — 50-unit order minimum, standard lead time
+            </p>
           </div>
           <span className="shrink-0 rounded-full bg-[#EAF5EA] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#2E7D32]">
             Included
@@ -115,7 +117,7 @@ export default function GarmentColourPanel({ value, onChange, unitBasePrice }: G
           <div>
             <h3 className="text-sm font-semibold text-[#111111]">Custom Dye</h3>
             <p className="text-xs text-[#111111]/55">
-              Match your garment colour to thousands of unique references.
+              Choose from the currently available dye-to-match references.
             </p>
           </div>
           <span className="shrink-0 rounded-full bg-[#F5E6C8] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#8A6212]">

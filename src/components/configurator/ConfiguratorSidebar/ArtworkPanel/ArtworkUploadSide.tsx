@@ -2,8 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Download, ExternalLink, Upload, X } from "lucide-react";
-import { useArtworkPosition } from "@/lib/configurator/ArtworkPositionContext";
-import { revokeObjectUrl } from "@/lib/configurator/objectUrls";
+import {
+  clampDim,
+  useArtworkPosition,
+} from "@/lib/configurator/ArtworkPositionContext";
+import {
+  persistUploadedFile,
+  revokeObjectUrl,
+} from "@/lib/configurator/objectUrls";
 import type {
   ArtworkFileType,
   ArtworkSide,
@@ -41,10 +47,14 @@ function makeDefaultSide(
   fileUrl: string,
   fileType: ArtworkFileType,
   dimensions: { width: number; height: number },
-  technique?: ArtworkTechnique
+  technique?: ArtworkTechnique,
+  fileKey?: string,
+  fileName?: string
 ): ArtworkSide {
   return {
     fileUrl,
+    fileKey,
+    fileName,
     fileType,
     vectorized: fileType === "svg" || fileType === "ai",
     technique,
@@ -82,7 +92,7 @@ async function getDefaultArtworkDimensions(
       const ratio = naturalHeight / naturalWidth;
       return {
         width: DEFAULT_ARTWORK_WIDTH_CM,
-        height: Math.max(1, Math.round(DEFAULT_ARTWORK_WIDTH_CM * ratio * 10) / 10),
+        height: clampDim(DEFAULT_ARTWORK_WIDTH_CM * ratio),
       };
     }
   } catch {
@@ -206,10 +216,13 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
   const inputRef = useRef<HTMLInputElement>(null);
   const pendingObjectUrlRef = useRef<string | null>(null);
   const importTokenRef = useRef(0);
+  const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const progressDoneTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { updatePosition } = useArtworkPosition();
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resolutionWarning, setResolutionWarning] = useState<string | null>(null);
+  const [persistenceWarning, setPersistenceWarning] = useState<string | null>(null);
   const [progress, setProgress] = useState<number | null>(null); // null = not uploading
   const [showConversionGuide, setShowConversionGuide] = useState(false);
 
@@ -218,28 +231,51 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
 
   useEffect(() => {
     return () => {
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+      if (progressDoneTimerRef.current) clearTimeout(progressDoneTimerRef.current);
       revokeObjectUrl(pendingObjectUrlRef.current ?? undefined);
       pendingObjectUrlRef.current = null;
     };
   }, []);
 
-  const runFakeProgress = useCallback((onDone: () => void) => {
+  const clearFakeProgress = useCallback(() => {
+    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+    if (progressDoneTimerRef.current) clearTimeout(progressDoneTimerRef.current);
+    progressIntervalRef.current = null;
+    progressDoneTimerRef.current = null;
+  }, []);
+
+  const runFakeProgress = useCallback((token: number, onDone: () => void) => {
+    clearFakeProgress();
     setProgress(0);
     let pct = 0;
-    const interval = setInterval(() => {
+    progressIntervalRef.current = setInterval(() => {
+      if (token !== importTokenRef.current) {
+        clearFakeProgress();
+        return;
+      }
       pct += 20;
       setProgress(Math.min(pct, 100));
       if (pct >= 100) {
-        clearInterval(interval);
-        setTimeout(() => {
+        if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+        progressDoneTimerRef.current = setTimeout(() => {
+          progressDoneTimerRef.current = null;
+          if (token !== importTokenRef.current) return;
           setProgress(null);
           onDone();
         }, 200);
       }
     }, 120);
-  }, []);
+  }, [clearFakeProgress]);
 
-  async function importArtwork(fileUrl: string, fileType: ArtworkFileType, token: number) {
+  async function importArtwork(
+    fileUrl: string,
+    fileType: ArtworkFileType,
+    token: number,
+    fileKey?: string,
+    fileName?: string
+  ) {
     const dimensions = await getDefaultArtworkDimensions(fileUrl, fileType);
     if (token !== importTokenRef.current) {
       revokeObjectUrl(fileUrl);
@@ -257,7 +293,16 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
     if (value?.fileUrl !== fileUrl) {
       revokeObjectUrl(value?.fileUrl);
     }
-    onChange(makeDefaultSide(fileUrl, fileType, dimensions, value?.technique));
+    onChange(
+      makeDefaultSide(
+        fileUrl,
+        fileType,
+        dimensions,
+        value?.technique,
+        fileKey,
+        fileName
+      )
+    );
   }
 
   function handleFiles(files: FileList | null) {
@@ -275,6 +320,7 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
     }
     setError(null);
     setResolutionWarning(null);
+    setPersistenceWarning(null);
 
     const fileUrl = URL.createObjectURL(file);
     revokeObjectUrl(pendingObjectUrlRef.current ?? undefined);
@@ -282,37 +328,55 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
     const token = importTokenRef.current + 1;
     importTokenRef.current = token;
     if (fileType === "jpg" || fileType === "png") {
-      void getImageDimensions(fileUrl).then(({ naturalWidth, naturalHeight }) => {
+      void getImageDimensions(fileUrl)
+        .then(({ naturalWidth, naturalHeight }) => {
+          if (token !== importTokenRef.current) return;
+          if (naturalWidth < 1200 || naturalHeight < 600) {
+            setResolutionWarning(
+              `This raster file is ${naturalWidth}x${naturalHeight}px. It may print soft at large sizes; upload a higher-res file or convert to SVG.`
+            );
+          }
+        })
+        .catch(() => {
+          if (token === importTokenRef.current) {
+            setError("This image could not be read. Try exporting it again.");
+          }
+        });
+    }
+    const persistedFile = persistUploadedFile(file);
+    runFakeProgress(token, () => {
+      void persistedFile.then((fileKey) => {
         if (token !== importTokenRef.current) return;
-        if (naturalWidth < 1200 || naturalHeight < 600) {
-          setResolutionWarning(
-            `This raster file is ${naturalWidth}x${naturalHeight}px. It may print soft at large sizes; upload a higher-res file or convert to SVG.`
+        if (!fileKey) {
+          setPersistenceWarning(
+            "This browser could not save the upload for reload recovery. Keep this tab open or try a different browser."
           );
         }
+        void importArtwork(fileUrl, fileType, token, fileKey, file.name);
       });
-    }
-    runFakeProgress(() => {
-      void importArtwork(fileUrl, fileType, token);
     });
   }
 
   function handleRemove() {
     importTokenRef.current += 1;
+    clearFakeProgress();
     revokeObjectUrl(pendingObjectUrlRef.current ?? undefined);
     pendingObjectUrlRef.current = null;
     revokeObjectUrl(value?.fileUrl);
     onChange(undefined);
     setError(null);
     setResolutionWarning(null);
+    setPersistenceWarning(null);
     setProgress(null);
   }
 
   function handleTrySample() {
     importTokenRef.current += 1;
+    clearFakeProgress();
     revokeObjectUrl(pendingObjectUrlRef.current ?? undefined);
     pendingObjectUrlRef.current = null;
     const token = importTokenRef.current;
-    runFakeProgress(() => {
+    runFakeProgress(token, () => {
       void importArtwork(SAMPLE_ARTWORK_HREF, "svg", token);
     });
   }
@@ -331,7 +395,7 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
   }
 
   const isPending = progress !== null;
-  const filename = value?.fileUrl.split("/").pop() ?? "";
+  const filename = value?.fileName ?? value?.fileUrl.split("/").pop() ?? "";
 
   return (
     <div className="flex flex-col gap-3">
@@ -448,6 +512,11 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
       {resolutionWarning && (
         <p className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">
           {resolutionWarning}
+        </p>
+      )}
+      {persistenceWarning && (
+        <p className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">
+          {persistenceWarning}
         </p>
       )}
 
