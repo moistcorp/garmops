@@ -291,6 +291,27 @@ export function OrderBar({
     };
   }, [ctaErrorNonce]);
 
+  // Free-typing draft for the quantity field — kept as text so the customer
+  // can clear it and type a new number without every keystroke snapping
+  // back to minQuantity. Re-synced from the committed `quantity` whenever it
+  // changes from elsewhere (the +/- buttons, or a parent-level reset) using
+  // React's render-time "adjust state when a prop changes" pattern; the
+  // draft is only clamped back to minQuantity on blur/Enter, not per-keystroke.
+  const [quantityDraft, setQuantityDraft] = useState(String(quantity));
+  const [lastSyncedQuantity, setLastSyncedQuantity] = useState(quantity);
+  if (quantity !== lastSyncedQuantity) {
+    setLastSyncedQuantity(quantity);
+    setQuantityDraft(String(quantity));
+  }
+
+  function commitQuantityDraft(raw: string) {
+    const trimmed = raw.trim();
+    const parsed = Number(trimmed);
+    const next =
+      trimmed !== "" && Number.isFinite(parsed) ? Math.floor(parsed) : minQuantity;
+    onQuantityChange(Math.max(minQuantity, next));
+  }
+
   return (
     <div className="grid gap-3 rounded-2xl border border-[#ECE7DF] bg-white p-3 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
       <div className="grid min-h-11 grid-cols-2 gap-4 text-xs">
@@ -341,12 +362,21 @@ export function OrderBar({
             </button>
             <input
               id="configurator-quantity"
-              type="number"
-              min={minQuantity}
-              value={quantity}
-              onChange={(e) =>
-                onQuantityChange(Math.max(minQuantity, Number(e.target.value) || minQuantity))
-              }
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={quantityDraft}
+              onChange={(e) => {
+                const raw = e.target.value;
+                if (/^[0-9]*$/.test(raw)) setQuantityDraft(raw);
+              }}
+              onBlur={() => commitQuantityDraft(quantityDraft)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  commitQuantityDraft(quantityDraft);
+                  e.currentTarget.blur();
+                }
+              }}
               className="h-full w-12 bg-transparent text-center text-sm font-medium text-[#111111] outline-none"
             />
             <button
