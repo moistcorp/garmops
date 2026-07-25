@@ -3,7 +3,7 @@ import { products } from '@/lib/products'
 import { caseStudies } from '@/lib/casestudies'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = 'https://Garmops.com'
+  const base = 'https://garmops.com'
 
   const staticPages = [
     { url: base, priority: 1.0, changeFrequency: 'weekly' as const },
@@ -28,7 +28,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
   changeFrequency: 'monthly' as const,
 }))
 
-return [...staticPages, ...productPages, ...workPages]
-
-  return [...staticPages, ...productPages]
+  return [...staticPages, ...productPages, ...workPages]
 }

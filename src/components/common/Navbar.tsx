@@ -26,6 +26,19 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  useEffect(() => {
+    setOpen(false)
+  }, [pathname])
+
+  useEffect(() => {
+    if (!open) return
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('keydown', closeOnEscape)
+    return () => document.removeEventListener('keydown', closeOnEscape)
+  }, [open])
+
   return (
     <header className="w-full sticky top-0 z-50 px-4 pt-4 pb-3">
       <div
@@ -82,7 +95,7 @@ export default function Navbar() {
                 </span>
               )}
             </Link>
-            <button className="flex flex-col gap-1.5 p-1" onClick={() => setOpen(!open)} aria-label="Menu">
+            <button className="flex flex-col gap-1.5 p-1" onClick={() => setOpen(!open)} aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} aria-controls="mobile-navigation">
               <span className={`block w-5 h-0.5 bg-[#111111] transition-transform ${open ? 'rotate-45 translate-y-2' : ''}`} />
               <span className={`block w-5 h-0.5 bg-[#111111] transition-opacity ${open ? 'opacity-0' : ''}`} />
               <span className={`block w-5 h-0.5 bg-[#111111] transition-transform ${open ? '-rotate-45 -translate-y-2' : ''}`} />
@@ -92,7 +105,7 @@ export default function Navbar() {
 
         {/* Mobile menu */}
         {open && (
-          <div className="md:hidden px-6 pb-6 flex flex-col gap-1 border-t border-[#ECE7DF] pt-4">
+          <nav id="mobile-navigation" aria-label="Mobile navigation" className="md:hidden px-6 pb-6 flex flex-col gap-1 border-t border-[#ECE7DF] pt-4">
             {links.map(l => (
               <Link key={l.href} href={l.href}
                 onClick={() => setOpen(false)}
@@ -107,7 +120,7 @@ export default function Navbar() {
               className="mt-3 bg-[var(--color-teal)] text-white px-5 py-3 rounded-full text-center text-sm font-medium">
               Start designing
             </Link>
-          </div>
+          </nav>
         )}
       </div>
     </header>

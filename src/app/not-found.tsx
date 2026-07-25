@@ -13,8 +13,8 @@ export default function NotFound() {
           <Link href="/" className="bg-[var(--color-teal)] text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-[var(--color-teal-dark)] transition-colors">
             Back to home
           </Link>
-          <Link href="/catalogue" className="border border-[var(--color-teal)] text-[var(--color-teal)] px-6 py-3 rounded-full text-sm font-medium hover:bg-[var(--color-teal)] hover:text-white transition-colors">
-            View catalogue
+          <Link href="/products" className="border border-[var(--color-teal)] text-[var(--color-teal)] px-6 py-3 rounded-full text-sm font-medium hover:bg-[var(--color-teal)] hover:text-white transition-colors">
+            View products
           </Link>
         </div>
       </div>

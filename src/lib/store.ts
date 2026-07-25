@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { createJSONStorage, persist } from 'zustand/middleware'
 
 export type CartItem = {
   id: number
@@ -18,7 +19,7 @@ type CartStore = {
   total: () => number
 }
 
-export const useCartStore = create<CartStore>((set, get) => ({
+export const useCartStore = create<CartStore>()(persist((set, get) => ({
   items: [],
 
   addItem: (item) => {
@@ -55,4 +56,9 @@ export const useCartStore = create<CartStore>((set, get) => ({
   clearCart: () => set({ items: [] }),
 
   total: () => get().items.reduce((sum, i) => sum + i.price * i.quantity, 0),
+}), {
+  name: 'garmops-sample-cart',
+  storage: createJSONStorage(() => localStorage),
+  partialize: state => ({ items: state.items }),
+  skipHydration: true,
 }))

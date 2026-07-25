@@ -1,5 +1,5 @@
 export default function WhatsAppButton() {
-  const phone = '919971510083' // replace with your WhatsApp number with country code, no +
+  const phone = '918800711169'
   const message = 'Hi, I found Garmops and would like to know more about custom apparel.'
   const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
 
@@ -8,7 +8,7 @@ export default function WhatsAppButton() {
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-6 right-6 z-50 bg-[#25D366] text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+      className="fixed bottom-4 right-4 z-40 bg-[#25D366] text-white w-12 h-12 sm:bottom-6 sm:right-6 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
       aria-label="Chat on WhatsApp"
     >
       <svg width="28" height="28" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">

@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/api/', '/payment/', '/checkout/'],
     },
-    sitemap: 'https://Garmops.com/sitemap.xml',
+    sitemap: 'https://garmops.com/sitemap.xml',
   }
 }

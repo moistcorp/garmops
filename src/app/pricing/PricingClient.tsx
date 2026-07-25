@@ -135,6 +135,9 @@ export default function PricingClient() {
                 <button
                   type="button"
                   onClick={() => setRush(!rush)}
+                  role="switch"
+                  aria-checked={rush}
+                  aria-label="Rush order"
                   className={`relative w-11 h-6 rounded-full transition-colors ${rush ? 'bg-[var(--color-teal)]' : 'bg-[#E5E5E5]'}`}
                 >
                   <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${rush ? 'left-6' : 'left-1'}`} />

@@ -4,6 +4,8 @@ import { useState } from 'react'
 
 export default function ContactClient() {
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
   const [form, setForm] = useState({ name: '', company: '', email: '', phone: '', type: '', message: '' })
 
   const handle = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -12,12 +14,21 @@ export default function ContactClient() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await fetch('/api/send-confirmation', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: form.name, email: form.email, type: 'contact' })
-    })
-    setSubmitted(true)
+    setSubmitting(true)
+    setSubmitError('')
+    try {
+      const response = await fetch('/api/send-confirmation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, type: 'contact' })
+      })
+      if (!response.ok) throw new Error('Request failed')
+      setSubmitted(true)
+    } catch {
+      setSubmitError('We could not send your request. Please try again or email hello@garmops.com.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const inputClass = "border border-[#E5E5E5] bg-white px-4 py-3 rounded-xl text-sm focus:outline-none focus:border-[var(--color-teal)] transition-colors"
@@ -43,29 +54,29 @@ export default function ContactClient() {
             </div>
           ) : (
             <form onSubmit={submit} className="flex flex-col gap-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-medium text-[#111111]/60 uppercase tracking-wide">Full name *</label>
-                  <input name="name" required onChange={handle} className={inputClass} placeholder="Rahul Sharma" />
+                  <label htmlFor="contact-name" className="text-xs font-medium text-[#111111]/60 uppercase tracking-wide">Full name *</label>
+                  <input id="contact-name" name="name" autoComplete="name" required onChange={handle} className={inputClass} placeholder="Rahul Sharma" />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-medium text-[#111111]/60 uppercase tracking-wide">Company *</label>
-                  <input name="company" required onChange={handle} className={inputClass} placeholder="Your Brand" />
+                  <label htmlFor="contact-company" className="text-xs font-medium text-[#111111]/60 uppercase tracking-wide">Company *</label>
+                  <input id="contact-company" name="company" autoComplete="organization" required onChange={handle} className={inputClass} placeholder="Your Brand" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-medium text-[#111111]/60 uppercase tracking-wide">Email *</label>
-                  <input name="email" type="email" required onChange={handle} className={inputClass} placeholder="you@company.com" />
+                  <label htmlFor="contact-email" className="text-xs font-medium text-[#111111]/60 uppercase tracking-wide">Email *</label>
+                  <input id="contact-email" name="email" type="email" autoComplete="email" required onChange={handle} className={inputClass} placeholder="you@company.com" />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-medium text-[#111111]/60 uppercase tracking-wide">Phone</label>
-                  <input name="phone" onChange={handle} className={inputClass} placeholder="+91 98765 43210" />
+                  <label htmlFor="contact-phone" className="text-xs font-medium text-[#111111]/60 uppercase tracking-wide">Phone</label>
+                  <input id="contact-phone" name="phone" type="tel" autoComplete="tel" onChange={handle} className={inputClass} placeholder="+91 98765 43210" />
                 </div>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-[#111111]/60 uppercase tracking-wide">What are you looking for? *</label>
-                <select name="type" required onChange={handle} className={inputClass}>
+                <label htmlFor="contact-type" className="text-xs font-medium text-[#111111]/60 uppercase tracking-wide">What are you looking for? *</label>
+                <select id="contact-type" name="type" required onChange={handle} className={inputClass}>
                   <option value="">Select an option</option>
                   <option>T-shirts</option>
                   <option>Hoodies / Sweatshirts</option>
@@ -76,12 +87,13 @@ export default function ContactClient() {
                 </select>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-[#111111]/60 uppercase tracking-wide">Tell us more</label>
-                <textarea name="message" rows={5} onChange={handle} className={`${inputClass} resize-none`}
+                <label htmlFor="contact-message" className="text-xs font-medium text-[#111111]/60 uppercase tracking-wide">Tell us more</label>
+                <textarea id="contact-message" name="message" rows={5} onChange={handle} className={`${inputClass} resize-none`}
                   placeholder="Quantity, timeline, any specific requirements..." />
               </div>
-              <button type="submit" className="bg-[var(--color-teal)] text-white px-6 py-3.5 rounded-full text-sm font-medium hover:bg-[var(--color-teal-dark)] transition-colors">
-                Submit request
+              {submitError && <p role="alert" className="text-sm text-red-700">{submitError}</p>}
+              <button type="submit" disabled={submitting} className="bg-[var(--color-teal)] text-white px-6 py-3.5 rounded-full text-sm font-medium hover:bg-[var(--color-teal-dark)] transition-colors disabled:cursor-not-allowed disabled:opacity-60">
+                {submitting ? 'Sending…' : 'Submit request'}
               </button>
             </form>
           )}
