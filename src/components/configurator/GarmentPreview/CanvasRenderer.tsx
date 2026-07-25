@@ -41,6 +41,7 @@ const LEFT_CHEST_FROM_CENTER_CM = 9;
 // against the real garment art if the label looks under/oversized or
 // misaligned with the collar/tape.
 const NECK_LABEL_VIEWS = ["front", "neck"] as const;
+const SAMPLE_NECK_LABEL_HREF = "/garments/neck-label-sample.svg";
 type NeckLabelView = (typeof NECK_LABEL_VIEWS)[number];
 
 const NECK_LABEL_PX_PER_MM: Record<NeckLabelView, number> = {
@@ -130,7 +131,11 @@ function isRenderableImage(fileUrl?: string, fileType?: ArtworkSide["fileType"])
 // PostScript/PDF content inside an <img>, so we key off the tracked
 // fileType instead and only ever try to render actual .svg files.
 function isRenderableNeckLabel(neckLabel: NeckLabel): boolean {
-  return neckLabel.fileType === "svg" && Boolean(neckLabel.fileUrl);
+  return (
+    neckLabel.fileType === "svg" &&
+    Boolean(neckLabel.fileUrl) &&
+    (neckLabel.fileUrl !== SAMPLE_NECK_LABEL_HREF || neckLabel.source === "sample")
+  );
 }
 
 function ArtworkPreview({ side }: { side: ArtworkSide }) {
@@ -210,7 +215,7 @@ function NeckLabelPreview({ neckLabel }: { neckLabel: NeckLabel }) {
           height={h * 0.8}
           preserveAspectRatio="xMidYMid meet"
         />
-      ) : (
+      ) : neckLabel.fileUrl === SAMPLE_NECK_LABEL_HREF ? null : (
         <text
           x={w / 2}
           y={h / 2}
@@ -271,7 +276,7 @@ export default function CanvasRenderer({
   artwork,
   neckLabel,
   interactive = true,
-  className = "aspect-square h-[min(78dvh,820px)] max-h-[820px] max-w-full rounded-lg bg-[#F7F7F7]",
+  className = "aspect-square h-[min(78dvh,820px)] max-h-[820px] max-w-full rounded-lg bg-white",
 }: CanvasRendererProps) {
   const { positions, updatePosition } = useArtworkPosition();
   const dragOrigin = useRef<DragOrigin | null>(null);

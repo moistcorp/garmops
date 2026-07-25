@@ -30,7 +30,7 @@ export default function HowItWorks() {
       <section className="max-w-7xl mx-auto px-6 pt-20 pb-16">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">The process</p>
         <h1 className="text-5xl font-bold text-[#111111] max-w-xl leading-tight mb-6 tracking-tight">
-          From brief to delivery
+          From brief to <span className="text-[var(--color-teal)]">delivery</span>
         </h1>
         <p className="text-[#111111]/50 max-w-lg text-lg">
           A straightforward process built around your timeline. No back-and-forth, no surprises.
@@ -49,7 +49,7 @@ export default function HowItWorks() {
         </div>
       </section>
 
-      <section className="bg-[#F7F7F7] py-20">
+      <section className="bg-[var(--color-cream)] py-20">
         <div className="max-w-7xl mx-auto px-6">
           <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">FAQ</p>
           <h2 className="text-4xl font-bold text-[#111111] mb-12 tracking-tight">Common questions</h2>
@@ -67,7 +67,7 @@ export default function HowItWorks() {
       <section className="max-w-7xl mx-auto px-6 py-20 text-center">
         <h2 className="text-4xl font-bold mb-4 tracking-tight">Ready to start?</h2>
         <p className="text-[#111111]/50 mb-8 text-sm">Configure your order in minutes. We&apos;ll take it from there.</p>
-        <Link href="/configurator" className="inline-block bg-[#111111] text-white px-8 py-4 hover:bg-black transition text-sm font-medium">
+        <Link href="/configurator" className="inline-block bg-[var(--color-teal)] text-white px-8 py-4 rounded-full hover:bg-[var(--color-teal-dark)] transition text-sm font-medium">
           Start designing
         </Link>
       </section>

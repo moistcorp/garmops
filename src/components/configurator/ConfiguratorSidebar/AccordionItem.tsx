@@ -62,7 +62,9 @@ export function AccordionItem({
 
   return (
     <div
-      className={`flex min-h-0 flex-col overflow-hidden rounded-lg border border-[#E5E5E5] bg-white ${
+      className={`flex min-h-0 flex-col overflow-hidden rounded-2xl border bg-white shadow-[0_4px_16px_rgba(22,33,43,0.04)] ${
+        expanded ? "border-[var(--color-teal)]" : "border-[#ECE7DF]"
+      } ${
         expanded ? "flex-1" : "shrink-0"
       }`}
     >
@@ -81,21 +83,21 @@ export function AccordionItem({
 
         <span className="flex shrink-0 items-center gap-1.5">
           {status === "empty" && (
-            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-[#E5E5E5]">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-cream-soft)]">
               <Plus size={17} strokeWidth={2.2} />
             </span>
           )}
           {status === "editable" && (
-            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-[#E5E5E5]">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-cream-soft)] text-[var(--color-teal)]">
               <Edit2 size={16} strokeWidth={2.2} />
             </span>
           )}
           {status === "confirmed" && (
             <>
-              <span className="flex h-8 w-8 items-center justify-center rounded-md bg-[#EAF5EA] text-[#2E7D32]">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-teal)]/10 text-[var(--color-teal)]">
                 <Check size={17} strokeWidth={2.4} />
               </span>
-              <span className="flex h-8 w-8 items-center justify-center rounded-md bg-[#E5E5E5]">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-cream-soft)] text-[var(--color-teal)]">
                 <Edit2 size={16} strokeWidth={2.2} />
               </span>
               <span
@@ -108,7 +110,7 @@ export function AccordionItem({
                   }
                 }}
                 aria-label={`Remove ${title} selection`}
-                className="flex h-8 w-8 items-center justify-center rounded-md bg-[#E5E5E5] text-[#C62828]"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-cream-soft)] text-[#C62828]"
               >
                 <Trash2 size={16} strokeWidth={2.2} />
               </span>
@@ -121,7 +123,7 @@ export function AccordionItem({
           needing to measure content, and without an abrupt snap. */}
       <div
         className={`grid transition-[grid-template-rows] duration-200 ease-in-out ${
-          confirmingDelete && expanded && confirmed ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+          confirmingDelete && confirmed ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
         }`}
       >
         <div className="overflow-hidden">
@@ -134,7 +136,7 @@ export function AccordionItem({
                 ref={cancelButtonRef}
                 type="button"
                 onClick={handleCancelDelete}
-                className="flex h-7 items-center gap-1 rounded-md border border-[#E5E5E5] bg-white px-2 text-xs font-semibold text-[#111111]/70 hover:border-[#111111] hover:text-[#111111]"
+                className="flex h-7 items-center gap-1 rounded-full border border-[#E5E5E5] bg-white px-2 text-xs font-semibold text-[#111111]/70 hover:border-[var(--color-teal)] hover:text-[var(--color-teal)]"
               >
                 <X size={13} strokeWidth={2.4} />
                 Cancel
@@ -153,7 +155,7 @@ export function AccordionItem({
       </div>
 
       {expanded && (
-        <div className="min-h-0 flex-1 overflow-y-auto border-t border-[#E5E5E5] bg-white px-4 py-4">
+        <div className="min-h-0 flex-1 overflow-y-auto border-t border-[#ECE7DF] bg-white px-4 py-4">
           {children}
         </div>
       )}

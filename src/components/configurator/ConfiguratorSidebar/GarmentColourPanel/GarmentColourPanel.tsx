@@ -76,7 +76,7 @@ export default function GarmentColourPanel({ value, onChange, unitBasePrice }: G
                   aria-pressed={isActive}
                   title={entry.name}
                   className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-colors ${
-                    isActive ? "border-[#111111] ring-1 ring-[#111111]" : "border-[#E5E5E5]"
+                    isActive ? "border-[var(--color-teal)] ring-1 ring-[var(--color-teal)]" : "border-[#E5E5E5]"
                   }`}
                 >
                   <span

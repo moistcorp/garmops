@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import type { Product } from "@/lib/configurator/products";
@@ -19,9 +20,26 @@ function getDisplayPrice(productId: Product["id"]): string {
 export default function ProductCard({ product }: { product: Product }) {
   const priceLabel = getDisplayPrice(product.id);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const router = useRouter();
+  const configuratorHref = `/configurator/build/${product.id}`;
+
+  function openConfigurator() {
+    router.push(configuratorHref);
+  }
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-lg bg-white">
+    <div
+      role="link"
+      tabIndex={0}
+      onClick={openConfigurator}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openConfigurator();
+        }
+      }}
+      className="group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-[#ECE7DF] bg-white shadow-[0_4px_16px_rgba(22,33,43,0.04)] transition-all duration-300 hover:border-[var(--color-teal)] hover:shadow-[0_12px_30px_rgba(22,33,43,0.08)]"
+    >
       <div className="relative aspect-[3/4] w-full overflow-hidden bg-white">
         {/* Default: flat-lay image */}
         <img
@@ -40,15 +58,18 @@ export default function ProductCard({ product }: { product: Product }) {
         <div className="absolute inset-0 flex items-center justify-center gap-3 bg-[#111111]/0 opacity-0 transition-all duration-300 ease-in-out group-hover:bg-[#111111]/40 group-hover:opacity-100">
           <button
             type="button"
-            onClick={() => setDetailsOpen((open) => !open)}
+            onClick={(event) => {
+              event.stopPropagation();
+              setDetailsOpen((open) => !open);
+            }}
             aria-expanded={detailsOpen}
-            className="rounded-md bg-white/90 px-4 py-2 text-sm font-medium text-[#111111] hover:bg-white"
+            className="rounded-full bg-white/90 px-4 py-2 text-sm font-medium text-[#111111] hover:bg-white"
           >
             See product details
           </button>
           <Link
-            href={`/configurator/build/${product.id}`}
-            className="rounded-md bg-[#111111] px-4 py-2 text-sm font-medium text-white hover:bg-[#111111]/90"
+            href={configuratorHref}
+            className="rounded-full bg-[var(--color-teal)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-teal-dark)]"
           >
             Customize
           </Link>
@@ -63,10 +84,13 @@ export default function ProductCard({ product }: { product: Product }) {
           </div>
           <button
             type="button"
-            onClick={() => setDetailsOpen((open) => !open)}
+            onClick={(event) => {
+              event.stopPropagation();
+              setDetailsOpen((open) => !open);
+            }}
             aria-expanded={detailsOpen}
             aria-label={`${detailsOpen ? "Hide" : "Show"} details for ${product.name}`}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-[#E5E5E5] text-[#111111]/60 hover:border-[#111111] hover:text-[#111111]"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#E5E5E5] text-[#111111]/60 hover:border-[var(--color-teal)] hover:text-[var(--color-teal)]"
           >
             <ChevronDown
               size={15}
@@ -76,7 +100,7 @@ export default function ProductCard({ product }: { product: Product }) {
           </button>
         </div>
         {detailsOpen && (
-          <div className="mt-3 space-y-3 border-t border-[#E5E5E5] pt-3 text-xs text-[#111111]/65">
+          <div className="mt-3 space-y-3 border-t border-[#ECE7DF] pt-3 text-xs text-[#111111]/65">
             <p className="leading-relaxed">{product.description}</p>
             <div className="grid grid-cols-2 gap-2">
               <div>

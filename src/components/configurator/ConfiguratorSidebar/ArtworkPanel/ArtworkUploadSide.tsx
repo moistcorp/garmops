@@ -123,7 +123,7 @@ function VectorConversionDialog({
           type="button"
           onClick={onClose}
           aria-label="Close convert artwork guide"
-          className="absolute right-[-14px] top-[-14px] flex h-9 w-9 items-center justify-center rounded-full bg-[#333333] text-white shadow-lg transition-colors hover:bg-[#111111]"
+          className="absolute right-[-14px] top-[-14px] flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-navy)] text-white shadow-lg transition-colors hover:bg-[var(--color-navy-soft)]"
         >
           <X size={18} strokeWidth={2.4} />
         </button>
@@ -158,7 +158,7 @@ function VectorConversionDialog({
               <button
                 type="button"
                 onClick={onOpenConverter}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111111] px-5 text-sm font-bold text-white transition-colors hover:bg-[#333333]"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[var(--color-teal)] px-5 text-sm font-bold text-white transition-colors hover:bg-[var(--color-teal-dark)]"
               >
                 Access Converter
                 <ExternalLink size={15} strokeWidth={2.3} />
@@ -188,7 +188,7 @@ function VectorConversionDialog({
               <button
                 type="button"
                 onClick={onUploadToStudio}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111111] px-5 text-sm font-bold text-white transition-colors hover:bg-[#333333]"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[var(--color-teal)] px-5 text-sm font-bold text-white transition-colors hover:bg-[var(--color-teal-dark)]"
               >
                 Upload to Studio
                 <Upload size={15} strokeWidth={2.3} />
@@ -338,7 +338,7 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
           }}
           onClick={() => inputRef.current?.click()}
           className={`group relative flex cursor-pointer flex-col items-center justify-center gap-1 border border-dashed px-4 py-8 text-center transition-colors ${
-            dragging ? "border-[#111111] bg-[#111111]/5" : "border-[#E5E5E5]"
+            dragging ? "border-[var(--color-teal)] bg-[var(--color-teal)]/10" : "border-[#E5E5E5]"
           }`}
         >
           <p className="text-sm text-[#111111]">Drag and drop artwork, or click to browse</p>
@@ -360,7 +360,7 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
               e.stopPropagation();
               handleTrySample();
             }}
-            className="pointer-events-none absolute bottom-2 right-2 rounded-full border border-[#111111] bg-[#F7F7F7] px-2 py-0.5 text-[10px] uppercase tracking-wide opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100"
+            className="pointer-events-none absolute bottom-2 right-2 rounded-full border border-[var(--color-teal)] bg-[var(--color-cream-soft)] px-2 py-0.5 text-[10px] uppercase tracking-wide text-[var(--color-teal)] opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100"
           >
             + Try sample artwork
           </button>
@@ -376,7 +376,7 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
               {isPending && (
                 <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-[#E5E5E5]">
                   <div
-                    className="h-full bg-[#111111] transition-all"
+                    className="h-full bg-[var(--color-teal)] transition-all"
                     style={{ width: `${progress}%` }}
                   />
                 </div>

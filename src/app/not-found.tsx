@@ -10,10 +10,10 @@ export default function NotFound() {
           The page you&apos;re looking for doesn&apos;t exist or has been moved.
         </p>
         <div className="flex gap-3 justify-center">
-          <Link href="/" className="bg-[#111111] text-white px-6 py-3 text-sm font-medium hover:bg-black transition-colors">
+          <Link href="/" className="bg-[var(--color-teal)] text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-[var(--color-teal-dark)] transition-colors">
             Back to home
           </Link>
-          <Link href="/catalogue" className="border border-[#111111] text-[#111111] px-6 py-3 text-sm font-medium hover:bg-[#111111] hover:text-white transition-colors">
+          <Link href="/catalogue" className="border border-[var(--color-teal)] text-[var(--color-teal)] px-6 py-3 rounded-full text-sm font-medium hover:bg-[var(--color-teal)] hover:text-white transition-colors">
             View catalogue
           </Link>
         </div>

@@ -51,8 +51,8 @@ export function TechniqueSelect({ value, onChange }: TechniqueSelectProps) {
               aria-pressed={selected}
               className={`min-h-[58px] rounded-md border px-3 py-2 text-left transition-colors ${
                 selected
-                  ? "border-[#111111] bg-[#111111] text-white"
-                  : "border-[#E5E5E5] bg-white text-[#111111] hover:border-[#111111]"
+                  ? "border-[var(--color-teal)] bg-[var(--color-teal)] text-white"
+                  : "border-[#E5E5E5] bg-white text-[#111111] hover:border-[var(--color-teal)]"
               }`}
             >
               <span className="block text-xs font-semibold leading-tight">

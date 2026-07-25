@@ -43,8 +43,8 @@ export function DeliveryDatePicker({
   const chipClass = (active: boolean) =>
     `flex-1 rounded-md border px-4 py-3 text-left transition-colors ${
       active
-        ? "border-[#111111] bg-[#111111] text-[#F7F7F7]"
-        : "border-[#E5E5E5] bg-[#F7F7F7] text-[#111111] hover:border-[#111111]"
+        ? "border-[var(--color-teal)] bg-[var(--color-teal)] text-white"
+        : "border-[#E5E5E5] bg-[#F7F7F7] text-[#111111] hover:border-[var(--color-teal)]"
     }`;
 
   const isSame = (a?: Date, b?: Date) =>
@@ -112,7 +112,7 @@ export function DeliveryDatePicker({
           <input
             type="date"
             min={toInputValue(options.standard)}
-            className="rounded-md border border-[#E5E5E5] bg-white px-3 py-2 text-sm text-[#111111] focus:border-[#111111] focus:outline-none"
+            className="rounded-md border border-[#E5E5E5] bg-white px-3 py-2 text-sm text-[#111111] focus:border-[var(--color-teal)] focus:outline-none"
             onChange={(e) => handleFlexiblePick(e.target.value)}
           />
           {calendarError && (

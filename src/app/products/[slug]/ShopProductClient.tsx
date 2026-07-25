@@ -1,5 +1,5 @@
 'use client'
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Product } from '@/lib/products'
 import { useCartStore } from '@/lib/store'
@@ -77,7 +77,7 @@ export default function ShopProductClient({
           {/* Image */}
           <div className="relative">
             {product.image ? (
-              <div className="aspect-[3/4] overflow-hidden">
+              <div className="aspect-[3/4] overflow-hidden rounded-2xl border border-[#ECE7DF] shadow-[0_8px_30px_rgba(22,33,43,0.06)]">
                 <img
                   src={product.image}
                   alt={product.name}
@@ -85,7 +85,7 @@ export default function ShopProductClient({
                 />
               </div>
             ) : (
-              <div className="aspect-[3/4] bg-[#F7F7F7] flex items-center justify-center">
+              <div className="aspect-[3/4] bg-[var(--color-cream-soft)] rounded-2xl border border-[#ECE7DF] flex items-center justify-center">
                 <span className="text-xs text-[#111111]/20 uppercase tracking-wide">Product photo</span>
               </div>
             )}
@@ -125,8 +125,8 @@ export default function ShopProductClient({
                       onClick={() => { setSelectedSize(s); setError('') }}
                       className={`w-12 h-12 text-sm border transition-colors ${
                         selectedSize === s
-                          ? 'bg-[#111111] text-white border-[#111111]'
-                          : 'border-[#E5E5E5] text-[#111111] hover:border-[#111111]'
+                          ? 'bg-[var(--color-teal)] text-white border-[var(--color-teal)]'
+                          : 'border-[#E5E5E5] text-[#111111] hover:border-[var(--color-teal)] hover:text-[var(--color-teal)]'
                       }`}
                     >
                       {s}
@@ -146,7 +146,7 @@ export default function ShopProductClient({
                 <button
                   type="button"
                   onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                  className="w-10 h-10 border border-[#E5E5E5] hover:border-[#111111] transition-colors flex items-center justify-center text-lg"
+                  className="w-10 h-10 rounded-full border border-[#E5E5E5] hover:border-[var(--color-teal)] hover:text-[var(--color-teal)] transition-colors flex items-center justify-center text-lg"
                 >
                   -
                 </button>
@@ -154,7 +154,7 @@ export default function ShopProductClient({
                 <button
                   type="button"
                   onClick={() => setQuantity(q => q + 1)}
-                  className="w-10 h-10 border border-[#E5E5E5] hover:border-[#111111] transition-colors flex items-center justify-center text-lg"
+                  className="w-10 h-10 rounded-full border border-[#E5E5E5] hover:border-[var(--color-teal)] hover:text-[var(--color-teal)] transition-colors flex items-center justify-center text-lg"
                 >
                   +
                 </button>
@@ -166,14 +166,14 @@ export default function ShopProductClient({
               <button
                 type="button"
                 onClick={handleBuyNow}
-                className="w-full rounded-md bg-[#111111] text-white py-4 text-sm font-medium hover:bg-black transition-colors"
+                className="w-full rounded-full bg-[var(--color-teal)] text-white py-4 text-sm font-medium hover:bg-[var(--color-teal-dark)] transition-colors"
               >
                 Buy now
               </button>
               <button
                 type="button"
                 onClick={handleAdd}
-                className="w-full rounded-md border border-[#111111] text-[#111111] py-4 text-sm font-medium hover:bg-[#111111] hover:text-white transition-colors"
+                className="w-full rounded-full border border-[var(--color-teal)] text-[var(--color-teal)] py-4 text-sm font-medium hover:bg-[var(--color-teal)] hover:text-white transition-colors"
               >
                 {added ? 'Added to cart' : 'Add to cart'}
               </button>
@@ -181,8 +181,8 @@ export default function ShopProductClient({
   href="/configurator"
   className="
     w-full
-    rounded-md
-    bg-[#111111]
+    rounded-full
+    bg-[var(--color-teal)]
     py-4
     text-center
     text-sm
@@ -192,7 +192,7 @@ export default function ShopProductClient({
     transition-all
     duration-300
     hover:-translate-y-0.5
-    hover:bg-black
+    hover:bg-[var(--color-teal-dark)]
     hover:shadow-xl
     active:translate-y-0
   "
@@ -237,10 +237,10 @@ export default function ShopProductClient({
                 <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-3">
                   Size chart
                 </p>
-                <div className="border border-[#E5E5E5] overflow-hidden">
+                <div className="border border-[#ECE7DF] rounded-2xl overflow-hidden">
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="bg-[#F7F7F7]">
+                      <tr className="bg-[var(--color-cream-soft)]">
                         <th className="text-left px-4 py-3 font-medium text-[#111111]/50">Size</th>
                         <th className="text-left px-4 py-3 font-medium text-[#111111]/50">Chest</th>
                         <th className="text-left px-4 py-3 font-medium text-[#111111]/50">Length</th>
@@ -290,18 +290,18 @@ export default function ShopProductClient({
 
       {/* Related */}
       {related.length > 0 && (
-        <section className="max-w-7xl mx-auto px-6 pb-24 border-t border-[#E5E5E5] pt-16">
+        <section className="max-w-7xl mx-auto px-6 pb-24 border-t border-[#ECE7DF] pt-16">
           <h2 className="text-xs font-medium uppercase tracking-widest text-[#111111]/40 mb-8">
             More in {product.category}
           </h2>
-          <div className="grid md:grid-cols-3 gap-px bg-[#E5E5E5]">
+          <div className="grid md:grid-cols-3 gap-6">
             {related.map(p => (
               <Link
                 key={p.id}
-                href={`/shop/${p.slug}`}
-                className="group bg-white flex flex-col hover:bg-[#F7F7F7] transition-colors"
+                href={`/products/${p.slug}`}
+                className="group bg-white flex flex-col overflow-hidden rounded-2xl border border-[#ECE7DF] shadow-[0_4px_16px_rgba(22,33,43,0.04)] hover:border-[var(--color-teal)] hover:shadow-[0_12px_30px_rgba(22,33,43,0.08)] transition-all duration-300"
               >
-                <div className="w-full aspect-[3/4] bg-[#F7F7F7] flex items-center justify-center overflow-hidden">
+                <div className="w-full aspect-[3/4] bg-[var(--color-cream-soft)] flex items-center justify-center overflow-hidden">
                   {p.image ? (
                     <img
                       src={p.image}

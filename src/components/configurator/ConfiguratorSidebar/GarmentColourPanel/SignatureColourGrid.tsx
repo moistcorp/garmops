@@ -1,7 +1,6 @@
 "use client";
 
 import type { SignatureColour } from "@/lib/configurator/colours";
-import SwatchHoverPreview from "./SwatchHoverPreview";
 
 interface SignatureColourGridProps {
   colours: SignatureColour[];
@@ -26,11 +25,10 @@ export default function SignatureColourGrid({
             aria-pressed={isActive}
             className={`group relative flex items-center gap-2 rounded-full border px-2 py-1.5 text-left text-sm transition-colors ${
               isActive
-                ? "border-[#111111] bg-white"
+                ? "border-[var(--color-teal)] bg-white"
                 : "border-[#E5E5E5] bg-transparent hover:bg-[#E5E5E5]/40"
             }`}
           >
-            <SwatchHoverPreview hex={colour.hex} label={colour.name} />
             <span
               className="h-6 w-6 shrink-0 rounded-full border border-[#E5E5E5]"
               style={{ backgroundColor: colour.hex }}

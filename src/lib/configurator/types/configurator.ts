@@ -54,6 +54,7 @@ export type NeckLabelFileType = 'svg' | 'ai';
 export interface NeckLabel {
   fileUrl: string; // .svg or .ai only
   fileType?: NeckLabelFileType; // drives whether the live preview can rasterize the file (svg) or must show a placeholder (ai — browsers can't render it)
+  source?: 'upload' | 'sample';
   dimensions: NeckLabelDimensions;
   position: NeckLabelPosition;
   stitch?: NeckLabelStitch; // only present/relevant when position = 'below_neck_tape'

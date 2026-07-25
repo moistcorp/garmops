@@ -25,7 +25,7 @@ export default function StitchSelect({ value, onChange }: StitchSelectProps): JS
             aria-pressed={selected}
             className={`min-h-11 rounded-lg px-3 py-2 text-sm font-bold transition-colors ${
               selected
-                ? 'bg-[#111111] text-white'
+                ? 'bg-[var(--color-teal)] text-white'
                 : 'bg-white shadow-[inset_0_0_0_1px_#D9D9D9] text-[#111111]/75 hover:text-[#111111]'
             }`}
           >

@@ -35,7 +35,7 @@ export default function PositionSelect({
             aria-pressed={selected}
             className={`min-h-12 rounded-lg px-4 py-3 text-left text-sm font-bold transition-colors ${
               selected
-                ? 'bg-[#111111] text-white'
+                ? 'bg-[var(--color-teal)] text-white'
                 : 'bg-white shadow-[inset_0_0_0_1px_#D9D9D9] text-[#111111]/75 hover:text-[#111111]'
             }`}
           >

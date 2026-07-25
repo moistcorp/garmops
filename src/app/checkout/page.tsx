@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
 import { useCartStore } from '@/lib/store'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 const countryCodes = [
@@ -46,8 +45,8 @@ const indianCities: Record<string, string[]> = {
   'Kerala': ['Thiruvananthapuram', 'Kochi', 'Kozhikode', 'Thrissur'],
 }
 
-const selectClass = "border border-[#E5E5E5] bg-white px-4 py-3 text-sm focus:outline-none focus:border-[#111111] transition-colors appearance-none w-full cursor-pointer"
-const inputClass = "border border-[#E5E5E5] bg-white px-4 py-3 text-sm focus:outline-none focus:border-[#111111] transition-colors w-full"
+const selectClass = "border border-[#E5E5E5] bg-white px-4 py-3 rounded-xl text-sm focus:outline-none focus:border-[var(--color-teal)] transition-colors appearance-none w-full cursor-pointer"
+const inputClass = "border border-[#E5E5E5] bg-white px-4 py-3 rounded-xl text-sm focus:outline-none focus:border-[var(--color-teal)] transition-colors w-full"
 const labelClass = "text-xs font-medium text-[#111111]/50 uppercase tracking-wide mb-1.5 block"
 
 function SelectWrapper({ children }: { children: React.ReactNode }) {
@@ -64,8 +63,7 @@ function SelectWrapper({ children }: { children: React.ReactNode }) {
 }
 
 export default function Checkout() {
-  const { items, total, clearCart } = useCartStore()
-  const router = useRouter()
+  const { items, total } = useCartStore()
   const cartTotal = total()
   const shipping = cartTotal >= 2000 ? 0 : 99
   const grandTotal = cartTotal + shipping
@@ -94,7 +92,7 @@ export default function Checkout() {
     return (
       <div className="max-w-7xl mx-auto px-6 py-24 text-center">
         <h1 className="text-3xl font-bold mb-4 tracking-tight">Nothing to checkout</h1>
-        <Link href="/shop" className="inline-block bg-[#111111] text-white px-6 py-3 text-sm font-medium hover:bg-black transition">
+        <Link href="/shop" className="inline-block bg-[var(--color-teal)] text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-[var(--color-teal-dark)] transition">
           Back to shop
         </Link>
       </div>
@@ -200,7 +198,7 @@ export default function Checkout() {
                     <select
                       value={countryCode}
                       onChange={e => setCountryCode(e.target.value)}
-                      className="border border-[#E5E5E5] border-r-0 bg-white pl-3 pr-8 py-3 text-sm focus:outline-none focus:border-[#111111] transition-colors appearance-none cursor-pointer shrink-0"
+                      className="border border-[#E5E5E5] border-r-0 bg-white pl-3 pr-8 py-3 rounded-l-xl text-sm focus:outline-none focus:border-[var(--color-teal)] transition-colors appearance-none cursor-pointer shrink-0"
                       style={{ minWidth: 90 }}
                     >
                       {countryCodes.map(c => (
@@ -215,7 +213,7 @@ export default function Checkout() {
                     type="tel"
                     value={form.phone}
                     onChange={handle}
-                    className="border border-[#E5E5E5] bg-white px-4 py-3 text-sm focus:outline-none focus:border-[#111111] transition-colors flex-1"
+                    className="border border-[#E5E5E5] bg-white px-4 py-3 rounded-r-xl text-sm focus:outline-none focus:border-[var(--color-teal)] transition-colors flex-1"
                     placeholder="98765 43210"
                   />
                 </div>
@@ -341,16 +339,16 @@ export default function Checkout() {
           </div>
 
           {error && (
-            <p className="text-sm text-red-500 border border-red-200 bg-red-50 px-4 py-3">{error}</p>
+            <p className="text-sm text-red-500 border border-red-200 bg-red-50 px-4 py-3 rounded-xl">{error}</p>
           )}
         </div>
 
         {/* Order summary */}
         <div className="flex flex-col gap-4">
-          <div className="border border-[#E5E5E5] p-6 flex flex-col gap-4">
+          <div className="rounded-2xl border border-[#ECE7DF] bg-white p-6 flex flex-col gap-4 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
             <p className="text-sm font-semibold">Order summary</p>
 
-            <div className="flex flex-col gap-3 border-t border-[#E5E5E5] pt-4">
+            <div className="flex flex-col gap-3 border-t border-[#ECE7DF] pt-4">
               {items.map(item => (
                 <div key={`${item.id}-${item.size}`} className="flex justify-between text-xs">
                   <span className="text-[#111111]/60 leading-snug pr-2">
@@ -363,7 +361,7 @@ export default function Checkout() {
               ))}
             </div>
 
-            <div className="flex flex-col gap-2 text-sm border-t border-[#E5E5E5] pt-4">
+            <div className="flex flex-col gap-2 text-sm border-t border-[#ECE7DF] pt-4">
               <div className="flex justify-between">
                 <span className="text-[#111111]/50">Subtotal</span>
                 <span>&#8377;{cartTotal.toLocaleString('en-IN')}</span>
@@ -379,7 +377,7 @@ export default function Checkout() {
               )}
             </div>
 
-            <div className="flex justify-between font-bold text-base border-t border-[#E5E5E5] pt-4">
+            <div className="flex justify-between font-bold text-base border-t border-[#ECE7DF] pt-4">
               <span>Total</span>
               <span>&#8377;{grandTotal.toLocaleString('en-IN')}</span>
             </div>
@@ -388,7 +386,7 @@ export default function Checkout() {
               type="button"
               onClick={handlePayment}
               disabled={loading}
-              className="w-full bg-[#111111] text-white py-3.5 text-sm font-medium hover:bg-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-[var(--color-teal)] text-white py-3.5 rounded-full text-sm font-medium hover:bg-[var(--color-teal-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">

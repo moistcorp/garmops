@@ -174,7 +174,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
           <button
             type="button"
             onClick={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping`)}
-            className="inline-flex items-center gap-2 self-start rounded-md border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[#111111] hover:text-[#111111] sm:self-auto"
+            className="inline-flex items-center gap-2 self-start rounded-md border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-teal)] hover:text-[#111111] sm:self-auto"
           >
             <ArrowLeft size={16} strokeWidth={2.2} />
             Back to Invoice & Shipping
@@ -239,7 +239,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
               type="checkbox"
               checked={termsAccepted}
               onChange={(e) => setTermsAccepted(e.target.checked)}
-              className="mt-0.5 h-4 w-4 accent-[#111111]"
+              className="mt-0.5 h-4 w-4 accent-[var(--color-teal)]"
             />
             Agree to terms & conditions
           </label>
@@ -288,7 +288,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
           onClick={handlePayment}
           className={`flex w-full items-center justify-center gap-2 rounded-lg py-3 text-sm font-medium transition-colors ${
             termsAccepted && !isProcessing
-              ? "bg-[#111111] text-white hover:bg-[#111111]/90"
+              ? "bg-[var(--color-teal)] text-white hover:bg-[var(--color-teal-dark)]"
               : "bg-[#E5E5E5] text-[#111111]/40 cursor-not-allowed"
           }`}
         >

@@ -118,7 +118,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   // Lifted (7B) so the CTA/confirm flow can validate fileUrl/dimensions/
   // position and build the summary string, mirroring the artwork lift above.
   const [neckLabel, setNeckLabel] = useState<NeckLabel>({} as NeckLabel);
-  const shareDraft = { colour, artwork, neckLabel, steps, quantity };
   const configuredUnitCost = computeConfiguredUnitCost(
     productId,
     colour,
@@ -168,14 +167,12 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       // Restoring a localStorage draft is a one-time sync from an external
       // system (browser storage) on mount, not state derived from props —
       // the usual reason to avoid setState-in-effect doesn't apply here.
-      /* eslint-disable react-hooks/set-state-in-effect */
       setColour(draft.colour);
       setArtwork(draft.artwork);
       setNeckLabel(draft.neckLabel);
       setSteps(draft.steps);
       setQuantity(draft.quantity);
       setDraftRestored(true);
-      /* eslint-enable react-hooks/set-state-in-effect */
     }
     hasHydrated.current = true;
   }, [configId, searchParams]);
@@ -472,14 +469,14 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                   <button
                     type="button"
                     onClick={discardUnsavedChanges}
-                    className="min-h-11 rounded-md border border-[#111111] px-3 text-sm font-semibold text-[#111111] hover:bg-[#F7F7F7]"
+                    className="min-h-11 rounded-full border border-[var(--color-teal)] px-3 text-sm font-semibold text-[var(--color-teal)] hover:bg-[var(--color-teal)] hover:text-white"
                   >
                     Discard Changes
                   </button>
                   <button
                     type="button"
                     onClick={keepEditing}
-                    className="min-h-11 rounded-md bg-[#111111] px-3 text-sm font-semibold text-white hover:opacity-90"
+                    className="min-h-11 rounded-full bg-[var(--color-teal)] px-3 text-sm font-semibold text-white hover:bg-[var(--color-teal-dark)]"
                   >
                     Keep Editing
                   </button>
@@ -488,7 +485,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
             </div>
           )}
 
-          <main className="order-1 relative flex min-h-0 min-w-0 flex-col items-center justify-center overflow-hidden rounded-lg border border-[#E5E5E5] bg-[#F7F7F7] lg:order-2">
+          <main className="order-1 relative flex min-h-0 min-w-0 flex-col items-center justify-center overflow-hidden rounded-2xl border border-[#ECE7DF] bg-white lg:order-2">
             <GarmentPreview
               activeView={activeView}
               onViewChange={setActiveView}
@@ -503,7 +500,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
           </main>
 
           <aside className="order-3 flex min-h-0 min-w-0 flex-col justify-between gap-3 overflow-hidden">
-            <div className="rounded-lg border border-[#E5E5E5] bg-white p-4">
+            <div className="rounded-2xl border border-[#ECE7DF] bg-white p-4 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-[#111111]/45">
                 Studio Summary
               </p>

@@ -149,6 +149,13 @@ export function ConfiguratorSidebar({
     onNeckLabelChange?.(next);
   }
 
+  function handleNeckLabelClear() {
+    if (!isNeckLabelControlled) {
+      setInternalNeckLabel(undefined);
+    }
+    stubResetStep("neck-label");
+  }
+
   // Uncontrolled fallback — preserves Phase 4 standalone behaviour when no
   // expandedStepId prop is passed in.
   const [internalExpandedStepId, setInternalExpandedStepId] =
@@ -220,6 +227,7 @@ export function ConfiguratorSidebar({
             <NeckLabelPanel
               value={neckLabel}
               onChange={handleNeckLabelChange}
+              onClear={handleNeckLabelClear}
               isToteProduct={isToteProduct}
             />
           ) : (
@@ -232,14 +240,14 @@ export function ConfiguratorSidebar({
                 <button
                   type="button"
                   onClick={() => stubConfirmStep(step.id)}
-                  className="border border-[#111111] px-3 py-1 text-xs uppercase tracking-wide hover:bg-[#111111] hover:text-[#F7F7F7]"
+                  className="rounded-full border border-[var(--color-teal)] px-3 py-1 text-xs uppercase tracking-wide text-[var(--color-teal)] hover:bg-[var(--color-teal)] hover:text-white"
                 >
                   Simulate confirm
                 </button>
                 <button
                   type="button"
                   onClick={() => stubResetStep(step.id)}
-                  className="border border-[#E5E5E5] px-3 py-1 text-xs uppercase tracking-wide text-[#111111]/60 hover:border-[#111111] hover:text-[#111111]"
+                  className="rounded-full border border-[#E5E5E5] px-3 py-1 text-xs uppercase tracking-wide text-[#111111]/60 hover:border-[var(--color-teal)] hover:text-[var(--color-teal)]"
                 >
                   Reset
                 </button>

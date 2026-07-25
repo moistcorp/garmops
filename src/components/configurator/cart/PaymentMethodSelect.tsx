@@ -21,17 +21,17 @@ export function PaymentMethodSelect({ value, onChange }: PaymentMethodSelectProp
         aria-pressed={selected}
         className={`w-full text-left flex items-center justify-between gap-4 rounded-lg border px-4 py-3 transition-colors ${
           selected
-            ? "border-[#111111] bg-white"
-            : "border-[#E5E5E5] bg-[#F7F7F7] hover:border-[#111111]"
+            ? "border-[var(--color-teal)] bg-white"
+            : "border-[#E5E5E5] bg-[#F7F7F7] hover:border-[var(--color-teal)]"
         }`}
       >
         <div className="flex items-center gap-3">
           <span
             className={`inline-flex h-4 w-4 items-center justify-center rounded-full border ${
-              selected ? "border-[#111111]" : "border-[#E5E5E5]"
+              selected ? "border-[var(--color-teal)]" : "border-[#E5E5E5]"
             }`}
           >
-            {selected && <span className="h-2 w-2 rounded-full bg-[#111111]" />}
+            {selected && <span className="h-2 w-2 rounded-full bg-[var(--color-teal)]" />}
           </span>
           <div>
             <p className="text-sm font-medium text-[#111111]">PayU</p>

@@ -1,7 +1,7 @@
 'use client';
 
 import { JSX, useId, useState } from 'react';
-import { Download, Plus, Upload } from 'lucide-react';
+import { Check, Download, Plus, Trash2, Upload } from 'lucide-react';
 import type {
   NeckLabel,
   NeckLabelDimensions,
@@ -15,6 +15,7 @@ import StitchSelect from './StitchSelect';
 export interface NeckLabelPanelProps {
   value?: NeckLabel;
   onChange?: (neckLabel: NeckLabel) => void;
+  onClear?: () => void;
   isToteProduct?: boolean;
 }
 
@@ -53,11 +54,14 @@ function DimensionPreview({ option }: { option: NeckLabelDimensions }) {
 export default function NeckLabelPanel({
   value,
   onChange,
+  onClear,
   isToteProduct = false,
 }: NeckLabelPanelProps): JSX.Element {
   const uploadInputId = useId();
   const [fileUrl, setFileUrl] = useState<string | undefined>(value?.fileUrl);
   const [fileType, setFileType] = useState<NeckLabelFileType | undefined>(value?.fileType);
+  const [fileName, setFileName] = useState<string | undefined>();
+  const [source, setSource] = useState<NeckLabel['source']>(value?.source);
   const [dimensions, setDimensions] = useState<NeckLabelDimensions | undefined>(value?.dimensions);
   const [position, setPosition] = useState<NeckLabelPosition>(value?.position ?? DEFAULT_POSITION);
   const [stitch, setStitch] = useState<NeckLabelStitch | undefined>(value?.stitch);
@@ -65,6 +69,7 @@ export default function NeckLabelPanel({
   function emit(next: {
     fileUrl?: string;
     fileType?: NeckLabelFileType;
+    source?: NeckLabel['source'];
     dimensions?: NeckLabelDimensions;
     position: NeckLabelPosition;
     stitch?: NeckLabelStitch;
@@ -73,6 +78,7 @@ export default function NeckLabelPanel({
     onChange?.({
       fileUrl: next.fileUrl,
       fileType: next.fileType,
+      source: next.source,
       dimensions: next.dimensions,
       position: next.position,
       stitch: next.stitch,
@@ -80,33 +86,49 @@ export default function NeckLabelPanel({
     });
   }
 
-  function handleFileSelected(url: string, type?: NeckLabelFileType) {
+  function handleFileSelected(
+    url: string,
+    type?: NeckLabelFileType,
+    nextSource: NeckLabel['source'] = 'upload',
+    nextFileName?: string
+  ) {
     const nextDimensions = dimensions ?? DEFAULT_DIMENSIONS;
     setFileUrl(url);
     setFileType(type);
+    setFileName(nextFileName);
+    setSource(nextSource);
     setDimensions(nextDimensions);
-    emit({ fileUrl: url, fileType: type, dimensions: nextDimensions, position, stitch });
+    emit({ fileUrl: url, fileType: type, source: nextSource, dimensions: nextDimensions, position, stitch });
   }
 
   function handleSampleArtwork() {
-    handleFileSelected(SAMPLE_ARTWORK_HREF, 'svg');
+    handleFileSelected(SAMPLE_ARTWORK_HREF, 'svg', 'sample');
+  }
+
+  function handleRemoveArtwork() {
+    setFileUrl(undefined);
+    setFileType(undefined);
+    setFileName(undefined);
+    setSource(undefined);
+    setDimensions(undefined);
+    onClear?.();
   }
 
   function handleDimensionsSelected(next: NeckLabelDimensions) {
     setDimensions(next);
-    emit({ fileUrl, fileType, dimensions: next, position, stitch });
+    emit({ fileUrl, fileType, source, dimensions: next, position, stitch });
   }
 
   function handlePositionChange(next: NeckLabelPosition) {
     const nextStitch = next === 'on_neck_tape' ? undefined : stitch;
     setPosition(next);
     setStitch(nextStitch);
-    emit({ fileUrl, fileType, dimensions, position: next, stitch: nextStitch });
+    emit({ fileUrl, fileType, source, dimensions, position: next, stitch: nextStitch });
   }
 
   function handleStitchChange(next: NeckLabelStitch) {
     setStitch(next);
-    emit({ fileUrl, fileType, dimensions, position, stitch: next });
+    emit({ fileUrl, fileType, source, dimensions, position, stitch: next });
   }
 
   const alreadyConfigured = value?.confirmed === true;
@@ -151,7 +173,7 @@ export default function NeckLabelPanel({
         <a
           href={TEMPLATE_HREF}
           download
-          className="inline-flex h-10 items-center gap-2 rounded-full border border-[#111111] px-4 text-xs font-bold text-[#111111] hover:bg-[#111111] hover:text-white"
+          className="inline-flex h-10 items-center gap-2 rounded-full border border-[var(--color-teal)] px-4 text-xs font-bold text-[var(--color-teal)] hover:bg-[var(--color-teal)] hover:text-white"
         >
           Download Templates
           <Download size={15} strokeWidth={2.2} />
@@ -168,31 +190,68 @@ export default function NeckLabelPanel({
             const file = e.target.files?.[0];
             if (!file) return;
             const url = URL.createObjectURL(file);
-            handleFileSelected(url, fileTypeFromName(file.name));
+            handleFileSelected(url, fileTypeFromName(file.name), 'upload', file.name);
           }}
         />
-        <button
-          type="button"
-          onClick={handleSampleArtwork}
-          className="absolute right-3 top-3 z-10 inline-flex h-8 items-center gap-1.5 rounded-full bg-[#333333] px-3 text-xs font-bold text-white opacity-0 pointer-events-none transition-opacity duration-150 hover:bg-[#111111] group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100"
-        >
-          <Plus size={13} strokeWidth={2.4} />
-          Try sample artwork
-        </button>
-        <label
-          htmlFor={uploadInputId}
-          className="flex min-h-[112px] cursor-pointer flex-col items-center justify-center gap-2 border border-dashed border-[#111111]/20 bg-white px-4 py-5 text-center hover:border-[#111111]/40"
-        >
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F7F7]">
-            <Upload size={17} strokeWidth={2.1} />
-          </span>
-          <span className="text-xs font-bold text-[#111111]">
-            {fileUrl ? 'Artwork selected' : `Upload ${isToteProduct ? 'bag label' : 'neck label'} artwork`}
-          </span>
-          <span className="text-xs text-[#111111]/55">
-            Supports .svg and .ai files up to 4.5MB
-          </span>
-        </label>
+        {fileUrl ? (
+          <div className="flex min-h-[112px] items-center gap-4 rounded-2xl border border-[#D9D9D9] bg-white px-4 py-4">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#D9D9D9] bg-[#F7F7F7]">
+              {source === 'sample' ? (
+                <img src={SAMPLE_ARTWORK_HREF} alt="" className="h-full w-full object-contain p-2" />
+              ) : (
+                <span className="text-[10px] font-semibold uppercase text-[#111111]/45">
+                  {fileType ?? 'file'}
+                </span>
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-3">
+                <p className="truncate text-sm font-bold text-[#111111]">
+                  {source === 'sample'
+                    ? `NeckLabel-${(dimensions ?? DEFAULT_DIMENSIONS).replace('x', 'x')}.ai`
+                    : fileName ?? `${isToteProduct ? 'BagLabel' : 'NeckLabel'}.${fileType ?? 'ai'}`}
+                </p>
+                <Check size={18} strokeWidth={2.4} className="shrink-0 text-[#16A34A]" />
+              </div>
+              <div className="mt-5 h-2.5 overflow-hidden rounded-full bg-[#E5E5E5]">
+                <div className="h-full w-full rounded-full bg-[#16A34A]" />
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleRemoveArtwork}
+              aria-label={`Remove ${isToteProduct ? 'bag label' : 'neck label'} artwork`}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#FF1F1F] transition-colors hover:bg-[#FFF1F1]"
+            >
+              <Trash2 size={21} strokeWidth={1.8} />
+            </button>
+          </div>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={handleSampleArtwork}
+              className="absolute right-3 top-3 z-10 inline-flex h-8 items-center gap-1.5 rounded-full bg-[var(--color-navy)] px-3 text-xs font-bold text-white opacity-0 pointer-events-none transition-opacity duration-150 hover:bg-[var(--color-navy-soft)] group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100"
+            >
+              <Plus size={13} strokeWidth={2.4} />
+              Try sample artwork
+            </button>
+            <label
+              htmlFor={uploadInputId}
+              className="flex min-h-[112px] cursor-pointer flex-col items-center justify-center gap-2 border border-dashed border-[#111111]/20 bg-white px-4 py-5 text-center hover:border-[var(--color-teal)]/40"
+            >
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F7F7]">
+                <Upload size={17} strokeWidth={2.1} />
+              </span>
+              <span className="text-xs font-bold text-[#111111]">
+                Upload {isToteProduct ? 'bag label' : 'neck label'} artwork
+              </span>
+              <span className="text-xs text-[#111111]/55">
+                Supports .svg and .ai files up to 4.5MB
+              </span>
+            </label>
+          </>
+        )}
       </div>
 
       <div>

@@ -25,9 +25,9 @@ export function CheckoutSteps({ currentStep }: CheckoutStepsProps) {
               <span
                 className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] ${
                   isCurrent
-                    ? "border-[#111111] bg-[#111111] text-white"
+                    ? "border-[var(--color-teal)] bg-[var(--color-teal)] text-white"
                     : isComplete
-                    ? "border-[#111111] text-[#111111]"
+                    ? "border-[var(--color-teal)] text-[var(--color-teal)]"
                     : "border-[#E5E5E5] text-[#111111]/45"
                 }`}
               >

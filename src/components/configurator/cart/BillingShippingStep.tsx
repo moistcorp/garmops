@@ -94,7 +94,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
           <button
             type="button"
             onClick={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/review`)}
-            className="inline-flex items-center gap-2 self-start rounded-md border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[#111111] hover:text-[#111111] sm:self-auto"
+            className="inline-flex items-center gap-2 self-start rounded-md border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-teal)] hover:text-[#111111] sm:self-auto"
           >
             <ArrowLeft size={16} strokeWidth={2.2} />
             Back to Order Summary

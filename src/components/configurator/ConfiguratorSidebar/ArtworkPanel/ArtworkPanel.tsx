@@ -194,8 +194,8 @@ export function ArtworkPanel({ value, onChange, onViewChange }: ArtworkPanelProp
         aria-expanded={isOpen}
         className={`flex items-center justify-center gap-1.5 self-start border px-3 py-1 text-xs uppercase tracking-wide transition-colors ${
           isOpen
-            ? "border-[#111111] bg-[#111111] text-[#F7F7F7]"
-            : "border-[#E5E5E5] text-[#111111]/70 hover:border-[#111111] hover:text-[#111111]"
+            ? "border-[var(--color-teal)] bg-[var(--color-teal)] text-white"
+            : "border-[#E5E5E5] text-[#111111]/70 hover:border-[var(--color-teal)] hover:text-[var(--color-teal)]"
         }`}
       >
         <SlidersHorizontal size={13} strokeWidth={2.2} />
@@ -207,7 +207,7 @@ export function ArtworkPanel({ value, onChange, onViewChange }: ArtworkPanelProp
   function renderAdjustPanel(side: Side, current: ArtworkSide) {
     if (adjustingSide !== side) return null;
     return (
-      <div className="flex flex-col gap-4 border border-[#E5E5E5] bg-[#F7F7F7] p-3">
+      <div className="flex flex-col gap-4 rounded-2xl border border-[#ECE7DF] bg-[var(--color-cream-soft)] p-3">
         <p className="text-xs text-[#111111]/55">
           Drag or resize the box directly on the {SIDE_LABELS[side].toLowerCase()} preview, or use
           the controls below for precise placement.
@@ -234,7 +234,7 @@ export function ArtworkPanel({ value, onChange, onViewChange }: ArtworkPanelProp
     if (current?.confirmed) {
       return (
         <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between border border-[#E5E5E5] px-3 py-2">
+          <div className="flex items-center justify-between rounded-xl border border-[#ECE7DF] bg-white px-3 py-2">
             <span className="text-xs text-[#111111]/60">
               {SIDE_LABELS[side]} — {techniqueLabel(current.technique)}
             </span>
@@ -289,7 +289,7 @@ export function ArtworkPanel({ value, onChange, onViewChange }: ArtworkPanelProp
               type="button"
               disabled={!current.technique}
               onClick={() => handleConfirm(side)}
-              className="self-start border border-[#111111] px-3 py-1 text-xs uppercase tracking-wide text-[#111111] hover:bg-[#111111] hover:text-[#F7F7F7] disabled:cursor-not-allowed disabled:border-[#E5E5E5] disabled:text-[#111111]/40 disabled:hover:bg-transparent disabled:hover:text-[#111111]/40"
+              className="self-start rounded-full border border-[var(--color-teal)] px-3 py-1 text-xs uppercase tracking-wide text-[var(--color-teal)] hover:bg-[var(--color-teal)] hover:text-white disabled:cursor-not-allowed disabled:border-[#E5E5E5] disabled:text-[#111111]/40 disabled:hover:bg-transparent disabled:hover:text-[#111111]/40"
             >
               Confirm {SIDE_LABELS[side]}
             </button>

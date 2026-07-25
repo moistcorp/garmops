@@ -283,7 +283,7 @@ export function OrderBar({
   }, [ctaErrorNonce]);
 
   return (
-    <div className="grid gap-3 rounded-lg border border-[#E5E5E5] bg-white p-3 shadow-sm">
+    <div className="grid gap-3 rounded-2xl border border-[#ECE7DF] bg-white p-3 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
       <div className="grid min-h-11 grid-cols-2 gap-4 text-xs">
         <div className="min-w-0">
           <div className="font-semibold leading-tight text-[#111111]">Unit Cost</div>
@@ -320,13 +320,13 @@ export function OrderBar({
           <label htmlFor="configurator-quantity" className="whitespace-nowrap text-xs font-semibold text-[#111111]">
             Quantity
           </label>
-          <div className="flex h-10 min-w-0 items-center justify-between rounded-md bg-[#F7F7F7] px-3">
+          <div className="flex h-10 min-w-0 items-center justify-between rounded-full bg-[var(--color-cream-soft)] px-3">
             <button
               type="button"
               aria-label="Decrease quantity"
               disabled={quantity <= minQuantity}
               onClick={() => onQuantityChange(Math.max(minQuantity, quantity - 1))}
-              className="flex h-7 w-7 items-center justify-center rounded-md text-lg leading-none text-[#111111]/80 hover:bg-white disabled:cursor-not-allowed disabled:text-[#111111]/25"
+              className="flex h-7 w-7 items-center justify-center rounded-full text-lg leading-none text-[#111111]/80 hover:bg-white disabled:cursor-not-allowed disabled:text-[#111111]/25"
             >
               −
             </button>
@@ -344,7 +344,7 @@ export function OrderBar({
               type="button"
               aria-label="Increase quantity"
               onClick={() => onQuantityChange(quantity + 1)}
-              className="flex h-7 w-7 items-center justify-center rounded-md text-lg leading-none text-[#111111]/80 hover:bg-white"
+              className="flex h-7 w-7 items-center justify-center rounded-full text-lg leading-none text-[#111111]/80 hover:bg-white"
             >
               +
             </button>
@@ -353,10 +353,10 @@ export function OrderBar({
           <button
             type="button"
             onClick={onCtaClick}
-            className={`min-h-10 w-32 rounded-md px-4 text-sm font-semibold text-white transition-all hover:opacity-90 ${
+            className={`min-h-10 w-32 rounded-full px-4 text-sm font-semibold text-white transition-all hover:opacity-90 ${
               flashError
                 ? "bg-[#C62828] ring-2 ring-[#C62828]/40 ring-offset-2"
-                : "bg-[#111111]"
+                : "bg-[var(--color-teal)] hover:bg-[var(--color-teal-dark)]"
             }`}
           >
             {ctaLabel}

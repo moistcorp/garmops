@@ -140,7 +140,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             <button
               type="button"
               onClick={() => router.push('/configurator')}
-              className="inline-flex items-center gap-2 rounded-md border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[#111111] hover:text-[#111111]"
+              className="inline-flex items-center gap-2 rounded-md border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-teal)] hover:text-[#111111]"
             >
               <ArrowLeft size={16} strokeWidth={2.2} />
               Back to configurator
@@ -148,7 +148,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             <button
               type="button"
               onClick={handleAddAnotherProduct}
-              className="inline-flex items-center gap-2 rounded-md border border-[#111111] px-4 py-2 text-sm font-medium text-[#111111] hover:bg-[#111111] hover:text-white"
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--color-teal)] px-4 py-2 text-sm font-medium text-[var(--color-teal)] hover:bg-[var(--color-teal)] hover:text-white"
             >
               <Plus size={16} strokeWidth={2.2} />
               Add another product
@@ -167,7 +167,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             <button
               type="button"
               onClick={handleAddAnotherProduct}
-              className="mt-5 rounded-md bg-[#111111] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+              className="mt-5 rounded-md bg-[var(--color-teal)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
             >
               Add product
             </button>
@@ -207,7 +207,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                         }
                         className={`rounded border px-2 py-1 text-xs capitalize ${
                           selectedView === view
-                            ? 'border-[#111111] bg-[#111111] text-white'
+                            ? 'border-[var(--color-teal)] bg-[var(--color-teal)] text-white'
                             : 'border-[#E5E5E5] text-[#111111]/70 hover:text-[#111111]'
                         }`}
                       >

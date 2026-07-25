@@ -54,7 +54,7 @@ export default function PaymentFailurePage() {
         )}
 
         {/* Important notice */}
-        <div className="bg-amber-50 border border-amber-200 p-4 text-xs text-amber-800 text-left leading-relaxed mb-6">
+        <div className="bg-[var(--color-cream)] border border-[#ECE7DF] rounded-2xl p-4 text-xs text-[#111111]/70 text-left leading-relaxed mb-6">
           <p className="font-semibold mb-1">Important — please read before retrying</p>
           <p>
             If an amount was deducted from your bank account, <strong>do not retry payment</strong>.
@@ -67,7 +67,7 @@ export default function PaymentFailurePage() {
 
         <div className="flex flex-col gap-3">
           <Link href={retryHref}
-            className="w-full bg-[#111111] text-white py-3.5 text-sm font-medium hover:bg-black transition-colors flex items-center justify-center gap-2">
+            className="w-full bg-[var(--color-teal)] text-white py-3.5 rounded-full text-sm font-medium hover:bg-[var(--color-teal-dark)] transition-colors flex items-center justify-center gap-2">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M23 4v6h-6" /><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
             </svg>
@@ -75,7 +75,7 @@ export default function PaymentFailurePage() {
           </Link>
 
           <Link href="/"
-            className="w-full border border-[#E5E5E5] text-[#111111] py-3.5 text-sm font-medium hover:border-[#111111] transition-colors flex items-center justify-center">
+            className="w-full border border-[var(--color-teal)] text-[var(--color-teal)] py-3.5 rounded-full text-sm font-medium hover:bg-[var(--color-teal)] hover:text-white transition-colors flex items-center justify-center">
             Back to home
           </Link>
 

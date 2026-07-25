@@ -20,7 +20,7 @@ export default function ContactClient() {
     setSubmitted(true)
   }
 
-  const inputClass = "border border-[#E5E5E5] bg-white px-4 py-3 text-sm focus:outline-none focus:border-[#111111] transition-colors"
+  const inputClass = "border border-[#E5E5E5] bg-white px-4 py-3 rounded-xl text-sm focus:outline-none focus:border-[var(--color-teal)] transition-colors"
 
   return (
     <>
@@ -37,7 +37,7 @@ export default function ContactClient() {
       <section className="max-w-7xl mx-auto px-6 pb-24 grid md:grid-cols-2 gap-16">
         <div>
           {submitted ? (
-            <div className="bg-[#111111] text-white p-10">
+            <div className="bg-[var(--color-navy)] text-white rounded-3xl p-10">
               <h2 className="text-2xl font-bold mb-2">We&apos;ve got your request.</h2>
               <p className="text-white/50 text-sm">Our team will reach out within 24 hours with a detailed quote.</p>
             </div>
@@ -80,7 +80,7 @@ export default function ContactClient() {
                 <textarea name="message" rows={5} onChange={handle} className={`${inputClass} resize-none`}
                   placeholder="Quantity, timeline, any specific requirements..." />
               </div>
-              <button type="submit" className="bg-[#111111] text-white px-6 py-3.5 text-sm font-medium hover:bg-black transition-colors">
+              <button type="submit" className="bg-[var(--color-teal)] text-white px-6 py-3.5 rounded-full text-sm font-medium hover:bg-[var(--color-teal-dark)] transition-colors">
                 Submit request
               </button>
             </form>
@@ -104,7 +104,7 @@ export default function ContactClient() {
           ))}
           <div>
             <p className="text-xs font-medium text-[#111111]/40 mb-2 uppercase tracking-widest">Or start directly</p>
-            <Link href="/configurator" className="inline-block border border-[#111111] text-[#111111] px-5 py-2.5 text-sm hover:bg-[#111111] hover:text-white transition-colors">
+            <Link href="/configurator" className="inline-block border border-[var(--color-teal)] text-[var(--color-teal)] px-5 py-2.5 rounded-full text-sm hover:bg-[var(--color-teal)] hover:text-white transition-colors">
               Open the configurator
             </Link>
           </div>

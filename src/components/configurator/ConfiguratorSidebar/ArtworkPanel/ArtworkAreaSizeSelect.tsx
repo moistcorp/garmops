@@ -42,8 +42,8 @@ export function ArtworkAreaSizeSelect(props?: ArtworkAreaSizeSelectProps): JSX.E
               onClick={() => handleChange(size)}
               className={`rounded-md border px-2 py-2 text-left text-xs transition-colors ${
                 selected
-                  ? 'border-[#111111] bg-[#111111] text-white'
-                  : 'border-[#E5E5E5] bg-white text-[#111111] hover:border-[#111111]'
+                  ? 'border-[var(--color-teal)] bg-[var(--color-teal)] text-white'
+                  : 'border-[#E5E5E5] bg-white text-[#111111] hover:border-[var(--color-teal)]'
               }`}
             >
               <span className="block font-semibold">{size}</span>

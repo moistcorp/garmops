@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 export interface RecentColourEntry {
   type: "signature" | "custom_dye";
@@ -38,11 +38,9 @@ function writeJson<T>(key: string, value: T) {
  *  Custom Dye), persisted across visits so returning buyers see their
  *  choices at the top of the panel instead of re-scrolling to find them. */
 export function useRecentColours() {
-  const [recent, setRecent] = useState<RecentColourEntry[]>([]);
-
-  useEffect(() => {
-    setRecent(readJson<RecentColourEntry[]>(RECENT_KEY, []));
-  }, []);
+  const [recent, setRecent] = useState<RecentColourEntry[]>(() =>
+    readJson<RecentColourEntry[]>(RECENT_KEY, [])
+  );
 
   const addRecent = useCallback((entry: RecentColourEntry) => {
     setRecent((prev) => {
@@ -59,11 +57,9 @@ export function useRecentColours() {
 /** Tracks starred Pantone codes so a buyer building multiple products can
  *  jump straight back to a colour they've already dye-matched before. */
 export function useFavouritePantones() {
-  const [favourites, setFavourites] = useState<string[]>([]);
-
-  useEffect(() => {
-    setFavourites(readJson<string[]>(FAVOURITES_KEY, []));
-  }, []);
+  const [favourites, setFavourites] = useState<string[]>(() =>
+    readJson<string[]>(FAVOURITES_KEY, [])
+  );
 
   const toggleFavourite = useCallback((code: string) => {
     setFavourites((prev) => {

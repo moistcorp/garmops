@@ -53,11 +53,11 @@ export function ConfiguratorHeader({
         <Link
           href="/configurator"
           aria-label="Back to grid"
-          className="flex h-9 w-9 items-center justify-center rounded-md border border-[#E5E5E5] bg-white transition-colors hover:bg-[#F7F7F7]"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-[#ECE7DF] bg-white transition-colors hover:border-[var(--color-teal)] hover:text-[var(--color-teal)]"
         >
           <ArrowLeft size={17} strokeWidth={2} />
         </Link>
-        <span className="hidden rounded-md border border-[#E5E5E5] bg-white px-3 py-1.5 text-sm font-semibold text-[#111111]/70 sm:inline">
+        <span className="hidden rounded-full border border-[#ECE7DF] bg-white px-3 py-1.5 text-sm font-semibold text-[#111111]/70 sm:inline">
           {productName}
         </span>
       </div>
@@ -67,11 +67,11 @@ export function ConfiguratorHeader({
           type="button"
           onClick={handleShareClick}
           aria-label="Copy shareable link"
-          className="relative flex items-center gap-2 rounded-md border border-transparent px-2.5 py-1.5 text-sm font-semibold transition-colors hover:border-[#E5E5E5] hover:bg-white"
+          className="relative flex items-center gap-2 rounded-full border border-transparent px-2.5 py-1.5 text-sm font-semibold transition-colors hover:border-[var(--color-teal)] hover:bg-white hover:text-[var(--color-teal)]"
         >
           <Link2 size={16} strokeWidth={2.4} />
           {justCopied ? "Copied!" : "Share"}
-          <span className="ml-1.5 flex h-7 w-7 items-center justify-center rounded-md border border-[#E5E5E5] bg-[#F7F7F7] text-sm font-medium text-[#111111]/45">
+          <span className="ml-1.5 flex h-7 w-7 items-center justify-center rounded-full border border-[#ECE7DF] bg-[var(--color-cream-soft)] text-sm font-medium text-[#111111]/45">
             {shareCount}
           </span>
         </button>

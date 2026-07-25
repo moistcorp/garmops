@@ -50,14 +50,14 @@ export default function PricingClient() {
               <label className="text-xs font-medium text-[#111111]/50 uppercase tracking-widest block mb-3">
                 Select product
               </label>
-              <div className="border border-[#E5E5E5]">
+              <div className="overflow-hidden rounded-2xl border border-[#ECE7DF] bg-white shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
                 {/* Selected product — always visible */}
                 <button
                   type="button"
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="w-full flex items-center gap-4 px-4 py-4 bg-[#F7F7F7] hover:bg-[#F0F0F0] transition-colors text-left"
+                  className="w-full flex items-center gap-4 px-4 py-4 bg-[var(--color-cream-soft)] hover:bg-[var(--color-cream)] transition-colors text-left"
                 >
-                  <div className="w-12 h-12 bg-white border border-[#E5E5E5] flex items-center justify-center shrink-0">
+                  <div className="w-12 h-12 bg-white border border-[#ECE7DF] rounded-xl flex items-center justify-center shrink-0">
                     <Image src={selectedProduct.icon} alt={selectedProduct.name} width={36} height={36} className="object-contain" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -74,15 +74,15 @@ export default function PricingClient() {
 
                 {/* Dropdown options */}
                 {dropdownOpen && (
-                  <div className="border-t border-[#E5E5E5]">
+                  <div className="border-t border-[#ECE7DF]">
                     {productList.filter(p => p.name !== selected).map((p, i, arr) => (
                       <button
                         key={p.name}
                         type="button"
                         onClick={() => { setSelected(p.name); setDropdownOpen(false) }}
-                        className={`w-full flex items-center gap-4 px-4 py-3.5 hover:bg-[#F7F7F7] transition-colors text-left ${i < arr.length - 1 ? 'border-b border-[#E5E5E5]' : ''}`}
+                        className={`w-full flex items-center gap-4 px-4 py-3.5 hover:bg-[var(--color-cream)] transition-colors text-left ${i < arr.length - 1 ? 'border-b border-[#ECE7DF]' : ''}`}
                       >
-                        <div className="w-10 h-10 bg-[#F7F7F7] border border-[#E5E5E5] flex items-center justify-center shrink-0">
+                        <div className="w-10 h-10 bg-[var(--color-cream-soft)] border border-[#ECE7DF] rounded-lg flex items-center justify-center shrink-0">
                           <Image src={p.icon} alt={p.name} width={30} height={30} className="object-contain" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -108,7 +108,7 @@ export default function PricingClient() {
                 type="range" min={50} max={1000} step={50} value={qty}
                 onChange={e => setQty(Number(e.target.value))}
                 onInput={e => setQty(Number((e.target as HTMLInputElement).value))}
-                className="w-full accent-[#111111]"
+                className="w-full accent-[var(--color-teal)]"
               />
               <div className="flex justify-between text-xs text-[#111111]/30 mt-1">
                 <span>50 pcs</span><span>1000 pcs</span>
@@ -116,7 +116,7 @@ export default function PricingClient() {
             </div>
 
             {/* Rush order toggle */}
-            <div className="border border-[#E5E5E5] p-4">
+            <div className="rounded-2xl border border-[#ECE7DF] bg-white p-4 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
               <div className="flex items-center justify-between mb-1">
                 <div>
                   <p className="text-sm font-semibold text-[#111111]">Rush order</p>
@@ -127,13 +127,13 @@ export default function PricingClient() {
                 <button
                   type="button"
                   onClick={() => setRush(!rush)}
-                  className={`relative w-11 h-6 rounded-full transition-colors ${rush ? 'bg-[#111111]' : 'bg-[#E5E5E5]'}`}
+                  className={`relative w-11 h-6 rounded-full transition-colors ${rush ? 'bg-[var(--color-teal)]' : 'bg-[#E5E5E5]'}`}
                 >
                   <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${rush ? 'left-6' : 'left-1'}`} />
                 </button>
               </div>
               {rush && (
-                <p className="text-xs text-[#111111]/50 mt-2 pt-2 border-t border-[#E5E5E5]">
+                <p className="text-xs text-[#111111]/50 mt-2 pt-2 border-t border-[#ECE7DF]">
                   Rush premium: +&#8377;{getRushCharge(qty)}/piece (&#8377;{rushChargeTotal.toLocaleString('en-IN')} total)
                 </p>
               )}
@@ -144,12 +144,12 @@ export default function PricingClient() {
               <p className="text-xs font-medium text-[#111111]/50 uppercase tracking-widest mb-3">
                 Volume discounts
               </p>
-              <div className="flex flex-col border border-[#E5E5E5] overflow-hidden">
+              <div className="flex flex-col rounded-2xl border border-[#ECE7DF] overflow-hidden shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
                 {VOLUME_TIERS.map(t => (
                   <div
                     key={t.min}
-                    className={`flex justify-between text-xs px-4 py-3 border-b border-[#E5E5E5] last:border-0 transition-colors ${
-                      getDiscount(qty) === t.discount ? 'bg-[#111111] text-white' : 'text-[#111111]/40'
+                    className={`flex justify-between text-xs px-4 py-3 border-b border-[#ECE7DF] last:border-0 transition-colors ${
+                      getDiscount(qty) === t.discount ? 'bg-[var(--color-teal)] text-white' : 'text-[#111111]/40'
                     }`}
                   >
                     <span>{t.min}{t.max === Infinity ? '+' : `–${t.max}`} pcs</span>
@@ -165,13 +165,13 @@ export default function PricingClient() {
                 <p className="text-xs font-medium text-[#111111]/50 uppercase tracking-widest mb-3">
                   Rush premiums (per piece)
                 </p>
-                <div className="flex flex-col border border-[#E5E5E5] overflow-hidden">
+                <div className="flex flex-col rounded-2xl border border-[#ECE7DF] overflow-hidden shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
                   {RUSH_TIERS.map(t => (
                     <div
                       key={t.min}
-                      className={`flex justify-between text-xs px-4 py-3 border-b border-[#E5E5E5] last:border-0 transition-colors ${
+                      className={`flex justify-between text-xs px-4 py-3 border-b border-[#ECE7DF] last:border-0 transition-colors ${
                         getRushCharge(qty) === t.charge && qty >= t.min && qty <= t.max
-                          ? 'bg-[#111111] text-white'
+                          ? 'bg-[var(--color-teal)] text-white'
                           : 'text-[#111111]/40'
                       }`}
                     >
@@ -186,7 +186,7 @@ export default function PricingClient() {
 
           {/* Output */}
           <div className="flex flex-col gap-4">
-            <div className="bg-[#111111] p-8 text-white">
+            <div className="bg-[var(--color-navy)] rounded-3xl p-8 text-white">
               <p className="text-xs text-white/50 mb-1 uppercase tracking-widest">Estimate for</p>
               <p className="text-base font-semibold mb-1">{selected}</p>
               <p className="text-xs text-white/40 mb-6">{qty} pieces &middot; {deliveryDays}-day delivery</p>
@@ -199,7 +199,7 @@ export default function PricingClient() {
                 {discount > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-white/60">Volume discount ({(discount * 100).toFixed(0)}%)</span>
-                    <span className="text-green-400">
+                    <span className="text-white">
                       -&#8377;{(PRODUCT_PRICES[selected] - discountedBase).toLocaleString('en-IN')}/pc
                     </span>
                   </div>
@@ -246,13 +246,13 @@ export default function PricingClient() {
 
             <Link
               href="/contact"
-              className="bg-[#111111] text-white text-sm font-medium px-6 py-4 text-center hover:bg-black transition"
+              className="bg-[var(--color-teal)] text-white text-sm font-medium px-6 py-4 rounded-full text-center hover:bg-[var(--color-teal-dark)] transition"
             >
               Get a firm quote
             </Link>
             <Link
               href="/configurator"
-              className="border border-[#111111] text-[#111111] text-sm font-medium px-6 py-4 text-center hover:bg-[#111111] hover:text-white transition"
+              className="border border-[var(--color-teal)] text-[var(--color-teal)] text-sm font-medium px-6 py-4 rounded-full text-center hover:bg-[var(--color-teal)] hover:text-white transition"
             >
               Start designing instead
             </Link>
@@ -261,7 +261,7 @@ export default function PricingClient() {
       </section>
 
       {/* What's included */}
-      <section className="bg-[#F7F7F7] border-t border-[#E5E5E5] py-16">
+      <section className="bg-[var(--color-cream)] border-t border-[#ECE7DF] py-16">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-2xl font-bold mb-2 tracking-tight">What&apos;s included in every order</h2>
           <p className="text-[#111111]/50 text-sm mb-8">All prices already include the following. No surprises at invoice.</p>
@@ -272,14 +272,14 @@ export default function PricingClient() {
               { title: 'Neck label', desc: 'Basic neck label included. Woven/custom labels quoted separately' },
               { title: 'QA & packing', desc: 'Every piece inspected and individually packed before dispatch' },
             ].map(i => (
-              <div key={i.title} className="border border-[#E5E5E5] bg-white p-5">
+              <div key={i.title} className="rounded-2xl border border-[#ECE7DF] bg-white p-5 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
                 <p className="font-semibold text-sm mb-1">{i.title}</p>
                 <p className="text-xs text-[#111111]/50 leading-relaxed">{i.desc}</p>
               </div>
             ))}
           </div>
 
-          <div className="mt-6 border border-[#E5E5E5] bg-white p-5">
+          <div className="mt-6 rounded-2xl border border-[#ECE7DF] bg-white p-5 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
             <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-3">Not included — quoted separately</p>
             <div className="grid md:grid-cols-3 gap-4 text-xs text-[#111111]/60">
               <p>Multi-color screen print (additional per color)</p>

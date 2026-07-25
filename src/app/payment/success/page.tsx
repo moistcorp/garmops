@@ -1,11 +1,10 @@
 'use client'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 export default function PaymentSuccessPage() {
   const searchParams = useSearchParams()
-  const [emailSent, setEmailSent] = useState(false)
   const hasSent = useRef(false)
 
   useEffect(() => {
@@ -40,7 +39,6 @@ export default function PaymentSuccessPage() {
           }),
         })
           .then(() => {
-            setEmailSent(true)
             // Clear pending order and configurator progress
             localStorage.removeItem('mf_pending_order')
             localStorage.removeItem('mf_configurator_v2')
@@ -70,8 +68,8 @@ export default function PaymentSuccessPage() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-6">
       <div className="max-w-md w-full text-center">
-        <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5">
+        <div className="w-16 h-16 bg-[var(--color-teal)]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="stroke-[var(--color-teal)]" strokeWidth="2.5">
             <polyline points="20 6 9 17 4 12" />
           </svg>
         </div>
@@ -93,7 +91,7 @@ export default function PaymentSuccessPage() {
           </p>
         )}
 
-        <div className="bg-[#F7F7F7] border border-[#E5E5E5] p-5 text-xs text-left text-[#111111]/60 leading-relaxed mb-8">
+        <div className="bg-[var(--color-cream)] border border-[#ECE7DF] rounded-2xl p-5 text-xs text-left text-[#111111]/60 leading-relaxed mb-8">
           <p className="font-medium text-[#111111] mb-2">What happens next</p>
           <ul className="flex flex-col gap-1.5">
             <li>· Our team will review your order and send a proforma invoice within 24 hours</li>
@@ -104,7 +102,7 @@ export default function PaymentSuccessPage() {
 
         <Link
           href="/"
-          className="inline-block bg-[#111111] text-white px-8 py-3 text-sm font-medium hover:bg-black transition-colors"
+          className="inline-block bg-[var(--color-teal)] text-white px-8 py-3 rounded-full text-sm font-medium hover:bg-[var(--color-teal-dark)] transition-colors"
         >
           Back to home
         </Link>

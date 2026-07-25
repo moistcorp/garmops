@@ -86,7 +86,7 @@ export function CartSummarySidebar({
           type="button"
           onClick={onNext}
           disabled={nextDisabled}
-          className="mt-5 w-full rounded-md bg-[#111111] py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:cursor-not-allowed disabled:bg-[#E5E5E5] disabled:text-[#111111]/40"
+          className="mt-5 w-full rounded-full bg-[var(--color-teal)] py-2.5 text-sm font-medium text-white hover:bg-[var(--color-teal-dark)] disabled:cursor-not-allowed disabled:bg-[#E5E5E5] disabled:text-[#111111]/40"
         >
           {nextLabel}
         </button>
