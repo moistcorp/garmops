@@ -10,6 +10,7 @@ import type {
   Artwork,
   NeckLabel,
 } from "@/lib/configurator/types/configurator";
+import { SIGNATURE_COLOURS } from "@/lib/configurator/colours";
 import {
   revokeArtworkObjectUrls,
   revokeNeckLabelObjectUrl,
@@ -70,10 +71,17 @@ export const INITIAL_STEPS: AccordionStepState[] = [
   { id: "neck-label", title: "Neck Label", summary: null, confirmed: false },
 ];
 
+// Bright White is the preselected default so every product opens with a
+// valid, ready-to-checkout colour instead of nothing — but `confirmed`
+// stays false so the accordion shows it without a green checkmark until
+// the customer actually opens the step and confirms a colour themselves.
+const DEFAULT_SIGNATURE_COLOUR =
+  SIGNATURE_COLOURS.find((c) => c.name === "Bright White") ?? SIGNATURE_COLOURS[0];
+
 export const DEFAULT_COLOUR: GarmentColour = {
   type: "signature",
-  name: "",
-  hex: "#F7F7F7",
+  name: DEFAULT_SIGNATURE_COLOUR.name,
+  hex: DEFAULT_SIGNATURE_COLOUR.hex,
   confirmed: false,
 };
 
@@ -225,6 +233,7 @@ export function ConfiguratorSidebar({
           expanded={expandedStepId === step.id}
           onToggle={() => toggleStep(step.id)}
           onDelete={() => stubResetStep(step.id)}
+          hideDelete={step.id === "garment-colour"}
         >
           {step.id === "garment-colour" ? (
             <GarmentColourPanel

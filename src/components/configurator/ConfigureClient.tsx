@@ -176,7 +176,14 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   // Lifted so the live preview (below) and the sidebar's Garment Colour step
   // read/write the same colour — was a disconnected placeholder pre-5B.
   const [colour, setColour] = useState<GarmentColour>(DEFAULT_COLOUR);
-  const [steps, setSteps] = useState<AccordionStepState[]>(INITIAL_STEPS);
+  // Derived from DEFAULT_COLOUR (not the blank INITIAL_STEPS) so the
+  // Garment Colour accordion already reads "Signature — Bright White" on
+  // first open — still unconfirmed, so no checkmark until the customer
+  // actually confirms a colour themselves. Draft/edit/shared-design restores
+  // overwrite this shortly after via stepsForConfiguration.
+  const [steps, setSteps] = useState<AccordionStepState[]>(() =>
+    stepsForConfiguration(DEFAULT_COLOUR, {}, undefined)
+  );
   const buildProgress = getBuildProgress(steps);
 
   // Lifted (6D-2) so the CTA/confirm flow can read per-side confirmed state
@@ -510,12 +517,11 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       return;
     }
 
-    const missingStep = steps.find((step) => !step.confirmed);
-    if (missingStep) {
-      showCtaError(`Confirm ${missingStep.title} before adding to cart.`);
-      applyExpandedStepChange(missingStep.id);
-      return;
-    }
+    // Previously required every step (colour/artwork/neck label) to be
+    // explicitly confirmed before Add To Cart would proceed. The customer
+    // can now add to cart straight away with whatever is currently set —
+    // including the untouched defaults (Bright White colour, no artwork,
+    // no neck label) — without opening or confirming any accordion step.
 
     const cartInput: ConfiguredCartItemInput = {
       productId,

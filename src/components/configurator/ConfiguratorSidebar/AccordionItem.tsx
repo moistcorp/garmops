@@ -12,6 +12,11 @@ export interface AccordionItemProps {
   expanded: boolean;
   onToggle: () => void;
   onDelete: () => void;
+  /** Suppresses the trash/reset control entirely — used for steps like
+   *  Garment Colour where there's always a valid value (a colour is always
+   *  selected, just possibly unconfirmed) so "remove this selection" isn't
+   *  a meaningful action. */
+  hideDelete?: boolean;
   children: ReactNode;
 }
 
@@ -27,6 +32,7 @@ export function AccordionItem({
   expanded,
   onToggle,
   onDelete,
+  hideDelete = false,
   children,
 }: AccordionItemProps) {
   const status = getStatus(summary, confirmed);
@@ -100,20 +106,22 @@ export function AccordionItem({
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-cream-soft)] text-[var(--color-teal)]">
                 <Edit2 size={16} strokeWidth={2.2} />
               </span>
-              <span
-                role="button"
-                tabIndex={0}
-                onClick={handleTrashClick}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    handleTrashClick(e);
-                  }
-                }}
-                aria-label={`Remove ${title} selection`}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-cream-soft)] text-[#C62828]"
-              >
-                <Trash2 size={16} strokeWidth={2.2} />
-              </span>
+              {!hideDelete && (
+                <span
+                  role="button"
+                  tabIndex={0}
+                  onClick={handleTrashClick}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      handleTrashClick(e);
+                    }
+                  }}
+                  aria-label={`Remove ${title} selection`}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-cream-soft)] text-[#C62828]"
+                >
+                  <Trash2 size={16} strokeWidth={2.2} />
+                </span>
+              )}
             </>
           )}
         </span>
@@ -123,7 +131,7 @@ export function AccordionItem({
           needing to measure content, and without an abrupt snap. */}
       <div
         className={`grid transition-[grid-template-rows] duration-200 ease-in-out ${
-          confirmingDelete && confirmed ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+          confirmingDelete && confirmed && !hideDelete ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
         }`}
       >
         <div className="overflow-hidden">
