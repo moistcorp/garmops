@@ -15,7 +15,7 @@ export default function Cart() {
     <div className="max-w-7xl mx-auto px-6 py-24 text-center">
       <h1 className="text-3xl font-bold mb-4 tracking-tight">Your cart is empty</h1>
       <p className="text-[#111111]/50 text-sm mb-8">Add some items from the shop to continue.</p>
-      <Link href="/shop" className="inline-block bg-[var(--color-teal)] text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-[var(--color-teal-dark)] transition">
+      <Link href="/products" className="inline-block bg-[var(--color-teal)] text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-[var(--color-teal-dark)] transition">
         Back to shop
       </Link>
     </div>
@@ -94,7 +94,7 @@ export default function Cart() {
             >
               Proceed to checkout
             </button>
-            <Link href="/shop" className="text-xs text-center text-[#111111]/40 hover:text-[#111111] transition-colors">
+            <Link href="/products" className="text-xs text-center text-[#111111]/40 hover:text-[#111111] transition-colors">
               Continue shopping
             </Link>
           </div>

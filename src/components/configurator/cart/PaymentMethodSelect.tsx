@@ -19,7 +19,7 @@ export function PaymentMethodSelect({ value, onChange }: PaymentMethodSelectProp
         type="button"
         onClick={() => onChange(PAYU_METHOD_ID)}
         aria-pressed={selected}
-        className={`w-full text-left flex items-center justify-between gap-4 rounded-lg border px-4 py-3 transition-colors ${
+        className={`w-full text-left flex items-center justify-between gap-4 rounded-full border px-5 py-3 transition-colors ${
           selected
             ? "border-[var(--color-teal)] bg-white"
             : "border-[#E5E5E5] bg-[#F7F7F7] hover:border-[var(--color-teal)]"

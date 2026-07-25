@@ -377,7 +377,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
     upsertConfiguredCartItem(configId, {
       productId,
       productName,
-      previewImage: product?.defaultImage ?? "/mock/tshirt-preview.png",
+      previewImage: product?.defaultImage ?? "/flatlays/regulartee.webp",
       colour,
       artwork,
       neckLabel: neckLabel?.fileUrl ? neckLabel : undefined,

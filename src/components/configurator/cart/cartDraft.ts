@@ -17,7 +17,7 @@ import { SIZES } from "./SizeQuantityGrid";
 const STORAGE_PREFIX = "mf_configurator_cart:";
 const ACTIVE_CART_KEY = `${STORAGE_PREFIX}active`;
 const ACTIVE_CART_ID_KEY = `${STORAGE_PREFIX}active_id`;
-export const CART_DRAFT_UPDATED_EVENT = "garmops:cart-draft-updated";
+export const CART_DRAFT_UPDATED_EVENT = "mf-cart-updated";
 
 export const RESERVATION_FEE = 499;
 
@@ -45,7 +45,7 @@ export const emptyAddress: Address = {
   phone: "",
   poNumber: "",
   orderNotes: "",
-  receiveEmails: true,
+  receiveEmails: false,
 };
 
 export interface CartDraft {
@@ -54,6 +54,7 @@ export interface CartDraft {
   billingAddress: Address;
   sameAsShipping: boolean;
   selectedDeliveryDateIso?: string;
+  orderConfirmedDateIso?: string;
   deliveryType?: "rush" | "standard" | "flexible";
   promoCode: string;
 }
@@ -74,11 +75,11 @@ export function createCartItems(cartId: string): CartItem[] {
       id: "item-1",
       productId,
       productName: product?.name ?? "Classic T-Shirt",
-      previewImage: product?.defaultImage ?? "/mock/tshirt-preview.png",
+      previewImage: product?.defaultImage ?? "/flatlays/regulartee.webp",
       colour: { type: "signature", name: "Jet Black", hex: "#111111", confirmed: true },
       artwork: {
         front: {
-          fileUrl: "/mock/artwork-front.svg",
+          fileUrl: "/garments/artwork-sample.svg",
           fileType: "svg",
           vectorized: true,
           technique: "screen_print",

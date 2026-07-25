@@ -4,6 +4,10 @@ import WorkDetailClient from './WorkDetailClient'
 import { generateMeta } from '@/lib/seo'
 import type { Metadata } from 'next'
 
+export function generateStaticParams() {
+  return caseStudies.map(caseStudy => ({ slug: caseStudy.slug }))
+}
+
 export async function generateMetadata({
   params,
 }: {

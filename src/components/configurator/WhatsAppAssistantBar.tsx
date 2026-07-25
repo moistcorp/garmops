@@ -6,7 +6,7 @@ interface WhatsAppAssistantBarProps {
 }
 
 // Business WhatsApp number (wa.me format: country code + number, digits only).
-const WHATSAPP_BUSINESS_NUMBER = "919971510083";
+const WHATSAPP_BUSINESS_NUMBER = "918800711169";
 
 export function WhatsAppAssistantBar({ configId, productName }: WhatsAppAssistantBarProps) {
   const messageText = productName

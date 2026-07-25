@@ -22,7 +22,7 @@ export function generateMeta({
   const ogImage = image ?? siteConfig.ogImage
 
   return {
-    title: fullTitle,
+    title: title ?? 'Custom Apparel, Made to Order',
     description: fullDescription,
     metadataBase: new URL(siteConfig.url),
     alternates: { canonical: url },

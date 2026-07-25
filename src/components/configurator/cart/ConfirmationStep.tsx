@@ -18,8 +18,8 @@ import {
   RESERVATION_FEE,
   totalUnits,
 } from "./cartDraft";
-import { getDeliveryLabel } from "./deliveryLabels";
-import { formatInr, getUnitPriceAdjustments } from "@/lib/configurator/pricing";
+import { formatDeliveryLabel } from "@/lib/configurator/delivery";
+import { formatInr } from "@/lib/configurator/pricing";
 import CanvasRenderer from "../GarmentPreview/CanvasRenderer";
 import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionContext";
 
@@ -51,9 +51,9 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
   const { subtotal, volumeDiscount, shippingFee, gst, delivery, orderTotal, balanceDue } =
     useMemo(() => {
       const totals = calculateTotals(draft.items, draft.deliveryType);
-      const delivery = getDeliveryLabel(
-        draft.selectedDeliveryDateIso ? new Date(draft.selectedDeliveryDateIso) : undefined,
-        draft.deliveryType
+      const delivery = formatDeliveryLabel(
+        draft.deliveryType,
+        draft.selectedDeliveryDateIso ? new Date(draft.selectedDeliveryDateIso) : undefined
       );
 
       return {
@@ -88,15 +88,16 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
         body: JSON.stringify({ txnid, amount, productinfo, firstname, email }),
       });
 
+      const payment = await res.json();
       if (!res.ok) {
-        throw new Error("Unable to start payment");
+        throw new Error(payment.error || "Unable to start payment");
       }
-
-      const { hash, key } = await res.json();
 
       window.localStorage.setItem(
         "mf_pending_order",
         JSON.stringify({
+          kind: "configurator",
+          mockPayment: Boolean(payment.mockPayment),
           txnid,
           name: `${billingAddress.firstName} ${billingAddress.lastName}`.trim(),
           email,
@@ -129,9 +130,23 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
         })
       );
 
+      if (payment.mockPayment) {
+        window.location.assign(`/payment/success?txnid=${encodeURIComponent(txnid)}&mock=1`);
+        return;
+      }
+
+      const { hash, key } = payment;
+      if (!hash || !key || payment.amount !== amount) {
+        throw new Error("PayU returned an invalid payment response");
+      }
+
       const payuForm = document.createElement("form");
       payuForm.method = "POST";
-      payuForm.action = process.env.NEXT_PUBLIC_PAYU_BASE_URL ?? "https://secure.payu.in/_payment";
+      payuForm.action =
+        process.env.NEXT_PUBLIC_PAYU_BASE_URL ??
+        (process.env.NODE_ENV === "production"
+          ? "https://secure.payu.in/_payment"
+          : "https://test.payu.in/_payment");
 
       const fields: Record<string, string> = {
         key,
@@ -162,8 +177,12 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
 
       document.body.appendChild(payuForm);
       payuForm.submit();
-    } catch {
-      setPaymentError("Could not start PayU payment. Please try again.");
+    } catch (error) {
+      setPaymentError(
+        error instanceof Error
+          ? error.message
+          : "Could not start PayU payment. Please try again."
+      );
       setIsProcessing(false);
     }
   };
@@ -171,7 +190,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-6">
-        <CheckoutSteps currentStep="payment" />
+        <CheckoutSteps currentStep="payment" cartId={cartId} />
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-[#111111]/50">
@@ -182,7 +201,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
           <button
             type="button"
             onClick={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping`)}
-            className="inline-flex items-center gap-2 self-start rounded-md border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-teal)] hover:text-[#111111] sm:self-auto"
+            className="inline-flex items-center gap-2 self-start rounded-full border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-teal)] hover:text-[#111111] sm:self-auto"
           >
             <ArrowLeft size={16} strokeWidth={2.2} />
             Back to Invoice & Shipping
@@ -294,7 +313,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
           type="button"
           disabled={!termsAccepted || isProcessing}
           onClick={handlePayment}
-          className={`flex w-full items-center justify-center gap-2 rounded-lg py-3 text-sm font-medium transition-colors ${
+          className={`flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm font-medium transition-colors ${
             termsAccepted && !isProcessing
               ? "bg-[var(--color-teal)] text-white hover:bg-[var(--color-teal-dark)]"
               : "bg-[#E5E5E5] text-[#111111]/40 cursor-not-allowed"
@@ -339,12 +358,6 @@ function ProductRecapCard({ item }: { item: CartItem }) {
   const units = totalUnits(item.sizeQuantities);
   const unitPrice = getCartItemUnitPrice(item);
   const discountPercent = getCartItemDiscountPercent(item);
-  const adjustments = getUnitPriceAdjustments(
-    item.colour,
-    item.artwork,
-    item.neckLabel,
-    item.rushDelivery
-  );
 
   return (
     <div className="flex gap-4 border border-[#E5E5E5] rounded-lg p-4">
@@ -375,20 +388,6 @@ function ProductRecapCard({ item }: { item: CartItem }) {
             </div>
           ))}
         </div>
-        {adjustments.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {adjustments.map((adjustment) => (
-              <span
-                key={adjustment.label}
-                className="rounded-full border border-[#E5E5E5] px-2 py-1 text-[10px] text-[#111111]/60"
-              >
-                {adjustment.amount
-                  ? `${adjustment.label} +${formatInr(adjustment.amount)}`
-                  : `${adjustment.label} +${adjustment.percent}%`}
-              </span>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );

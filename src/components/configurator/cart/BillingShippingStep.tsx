@@ -8,26 +8,11 @@ import { AddressForm, isAddressValid } from "@/components/configurator/cart/Addr
 import { CartSummarySidebar } from "@/components/configurator/cart/CartSummarySidebar";
 import { CheckoutSteps } from "@/components/configurator/cart/CheckoutSteps";
 import { calculateTotals, createDraft, readDraft, type CartDraft, writeDraft } from "./cartDraft";
-import { formatDeliveryDate, getDeliveryLabel } from "./deliveryLabels";
+import { formatDeliveryLabel } from "@/lib/configurator/delivery";
 import { CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS } from "@/lib/configurator/colours";
-import { getDeliveryOptions } from "@/lib/configurator/delivery";
 
 export interface BillingShippingStepProps {
   cartId: string;
-}
-
-function isSameCalendarDate(a?: Date, b?: Date): boolean {
-  return (
-    !!a &&
-    !!b &&
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
-}
-
-function startOfDay(date: Date): Date {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
 export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
@@ -40,7 +25,6 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
   // returned the saved delivery date/type immediately while the server
   // markup was rendered with none, and the two didn't match.
   const [draft, setDraft] = useState<CartDraft>(() => createDraft(cartId));
-  const [dateNotice, setDateNotice] = useState<string | null>(null);
   useEffect(() => {
     const loadDraft = window.setTimeout(() => {
       setDraft(readDraft(cartId));
@@ -59,10 +43,9 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
   const extraLeadTimeDays = draft.items.some((item) => item.colour.type === "custom_dye")
     ? CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS.max
     : 0;
-  const deliveryBaseDate = useMemo(() => new Date(), []);
-  const deliveryOptions = useMemo(
-    () => getDeliveryOptions(deliveryBaseDate, extraLeadTimeDays),
-    [deliveryBaseDate, extraLeadTimeDays]
+  const deliveryBaseDate = useMemo(
+    () => draft.orderConfirmedDateIso ? new Date(draft.orderConfirmedDateIso) : undefined,
+    [draft.orderConfirmedDateIso]
   );
 
   const updateDraft = useCallback((patch: Partial<CartDraft>) => {
@@ -74,46 +57,8 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
   }, [cartId]);
 
   const deliveryLabel = useMemo(() => {
-    return getDeliveryLabel(selectedDeliveryDate, draft.deliveryType);
+    return formatDeliveryLabel(draft.deliveryType, selectedDeliveryDate);
   }, [selectedDeliveryDate, draft.deliveryType]);
-
-  useEffect(() => {
-    if (!selectedDeliveryDate || !draft.deliveryType) return;
-
-    if (draft.deliveryType === "rush" && !isSameCalendarDate(selectedDeliveryDate, deliveryOptions.rush)) {
-      const timer = window.setTimeout(() => {
-        updateDraft({ selectedDeliveryDateIso: deliveryOptions.rush.toISOString() });
-        setDateNotice("Rush delivery was refreshed to the latest available date.");
-      }, 0);
-      return () => window.clearTimeout(timer);
-    }
-
-    if (
-      draft.deliveryType === "standard" &&
-      !isSameCalendarDate(selectedDeliveryDate, deliveryOptions.standard)
-    ) {
-      const timer = window.setTimeout(() => {
-        updateDraft({ selectedDeliveryDateIso: deliveryOptions.standard.toISOString() });
-        setDateNotice("Standard delivery was refreshed to the latest available date.");
-      }, 0);
-      return () => window.clearTimeout(timer);
-    }
-
-    if (
-      draft.deliveryType === "flexible" &&
-      startOfDay(selectedDeliveryDate) < startOfDay(deliveryOptions.standard)
-    ) {
-      const timer = window.setTimeout(() => {
-        updateDraft({ selectedDeliveryDateIso: undefined, deliveryType: undefined });
-        setDateNotice(
-          `Your saved flexible delivery date is no longer available. Pick a date on or after ${formatDeliveryDate(
-            deliveryOptions.standard
-          )}.`
-        );
-      }, 0);
-      return () => window.clearTimeout(timer);
-    }
-  }, [selectedDeliveryDate, draft.deliveryType, deliveryOptions.rush, deliveryOptions.standard, updateDraft]);
 
   const isValid = useMemo(() => {
     const shippingOk = isAddressValid(draft.shippingAddress);
@@ -128,7 +73,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-6">
-        <CheckoutSteps currentStep="shipping" />
+        <CheckoutSteps currentStep="shipping" cartId={cartId} />
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-[#111111]/50">
@@ -139,7 +84,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
           <button
             type="button"
             onClick={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/review`)}
-            className="inline-flex items-center gap-2 self-start rounded-md border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-teal)] hover:text-[#111111] sm:self-auto"
+            className="inline-flex items-center gap-2 self-start rounded-full border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-teal)] hover:text-[#111111] sm:self-auto"
           >
             <ArrowLeft size={16} strokeWidth={2.2} />
             Back to Order Summary
@@ -151,20 +96,15 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
             orderConfirmedDate={deliveryBaseDate}
             extraLeadTimeDays={extraLeadTimeDays}
             onDateSelect={(date, type) => {
-              setDateNotice(null);
               updateDraft({
                 selectedDeliveryDateIso: date.toISOString(),
                 deliveryType: type,
+                orderConfirmedDateIso: draft.orderConfirmedDateIso ?? new Date().toISOString(),
               });
             }}
             selectedDate={selectedDeliveryDate}
             selectedType={draft.deliveryType}
           />
-          {dateNotice && (
-            <p className="mt-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-              {dateNotice}
-            </p>
-          )}
         </section>
 
         <section className="rounded-lg border border-[#E5E5E5] bg-white p-5">

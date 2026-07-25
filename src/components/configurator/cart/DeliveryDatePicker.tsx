@@ -48,7 +48,7 @@ export function DeliveryDatePicker({
   );
 
   const chipClass = (active: boolean) =>
-    `flex-1 rounded-md border px-4 py-3 text-left transition-colors ${
+    `flex-1 rounded-full border px-5 py-3 text-left transition-colors ${
       active
         ? "border-[var(--color-teal)] bg-[var(--color-teal)] text-white"
         : "border-[#E5E5E5] bg-[#F7F7F7] text-[#111111] hover:border-[var(--color-teal)]"
@@ -57,8 +57,12 @@ export function DeliveryDatePicker({
   const isSame = (a?: Date, b?: Date) =>
     !!a && !!b && a.toDateString() === b.toDateString();
 
-  const isFlexibleSelected = selectedType === "flexible" && !!selectedDate;
+  const matchesRush = isSame(selectedDate, options.rush);
+  const matchesStandard = isSame(selectedDate, options.standard);
+  const isFlexibleSelected = !!selectedDate && !matchesRush && !matchesStandard;
   const showCalendar = isFlexibleSelected || userCalendarOpen;
+  const savedFlexibleDateInvalid =
+    isFlexibleSelected && !options.flexible(selectedDate);
 
   const handleFlexiblePick = (dateStr: string) => {
     const picked = fromInputValue(dateStr);
@@ -81,7 +85,7 @@ export function DeliveryDatePicker({
       <div className="flex flex-col sm:flex-row gap-3">
         <button
           type="button"
-          className={chipClass(selectedType === "rush" || (!selectedType && isSame(selectedDate, options.rush)))}
+          className={chipClass(matchesRush && (selectedType === "rush" || !selectedType))}
           onClick={() => {
             setUserCalendarOpen(false);
             onDateSelect(options.rush, "rush");
@@ -96,7 +100,7 @@ export function DeliveryDatePicker({
         <button
           type="button"
           className={chipClass(
-            selectedType === "standard" || (!selectedType && isSame(selectedDate, options.standard))
+            matchesStandard && (selectedType === "standard" || !selectedType)
           )}
           onClick={() => {
             setUserCalendarOpen(false);
@@ -111,7 +115,7 @@ export function DeliveryDatePicker({
 
         <button
           type="button"
-          className={chipClass(isFlexibleSelected || showCalendar)}
+          className={chipClass(isFlexibleSelected)}
           onClick={() => setUserCalendarOpen((s) => !s)}
         >
           <span className="block text-sm font-medium">Flexible</span>
@@ -126,12 +130,18 @@ export function DeliveryDatePicker({
           <input
             type="date"
             min={toInputValue(options.standard)}
-            value={isFlexibleSelected ? toInputValue(selectedDate) : ""}
+            value={selectedDate ? toInputValue(selectedDate) : ""}
             className="rounded-md border border-[#E5E5E5] bg-white px-3 py-2 text-sm text-[#111111] focus:border-[var(--color-teal)] focus:outline-none"
             onChange={(e) => handleFlexiblePick(e.target.value)}
           />
           {calendarError && (
             <p className="text-xs text-red-600">{calendarError}</p>
+          )}
+          {!calendarError && savedFlexibleDateInvalid && (
+            <p className="text-xs text-red-600">
+              Your saved date is no longer available. Pick a date on or after{" "}
+              {formatDate(options.standard)}.
+            </p>
           )}
         </div>
       )}

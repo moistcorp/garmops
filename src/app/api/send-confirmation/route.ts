@@ -1,8 +1,6 @@
 import { Resend } from 'resend'
 import { NextRequest, NextResponse } from 'next/server'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 // Simple in-memory rate limiter — resets on server restart
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
 
@@ -24,6 +22,12 @@ function sanitize(str: string): string {
 
 export async function POST(req: NextRequest) {
   try {
+    const apiKey = process.env.RESEND_API_KEY
+    if (!apiKey) {
+      return NextResponse.json({ error: 'Email service is not configured' }, { status: 503 })
+    }
+    const resend = new Resend(apiKey)
+
     const ip = req.headers.get('x-forwarded-for') ?? 'unknown'
     if (isRateLimited(ip)) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
@@ -64,7 +68,7 @@ export async function POST(req: NextRequest) {
         </div>
         <p style="font-size: 13px; color: #888; line-height: 1.7;">If you have urgent questions, reply directly to this email.</p>
         <div style="border-top: 1px solid #E5E5E5; margin-top: 32px; padding-top: 20px; font-size: 11px; color: #aaa;">
-          <p style="margin: 0;">Garmops &mdash; Powered by  Corp</p>
+          <p style="margin: 0;">Garmops &mdash; Powered by Moist Corp</p>
           <p style="margin: 4px 0 0 0;">Greater Noida, Uttar Pradesh, India</p>
         </div>
       </div>
@@ -111,7 +115,7 @@ export async function POST(req: NextRequest) {
           <p style="font-size: 11px; color: #aaa; margin: 4px 0 0 0;">Adjusted against your final invoice.</p>
         </div>
         <div style="border-top: 1px solid #E5E5E5; margin-top: 32px; padding-top: 20px; font-size: 11px; color: #aaa;">
-          <p style="margin: 0;">Garmops &mdash; Powered by  Corp</p>
+          <p style="margin: 0;">Garmops &mdash; Powered by Moist Corp</p>
           <p style="margin: 4px 0 0 0;">Greater Noida, Uttar Pradesh, India</p>
         </div>
       </div>

@@ -1,11 +1,15 @@
 'use client'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { useCartStore } from '@/lib/store'
 
 export default function PaymentSuccessPage() {
   const searchParams = useSearchParams()
+  const isMockPayment = searchParams.get('mock') === '1'
   const hasSent = useRef(false)
+  const clearCart = useCartStore(state => state.clearCart)
+  const [orderSummary, setOrderSummary] = useState({ name: '', email: '', txnid: '' })
 
   useEffect(() => {
     if (hasSent.current) return
@@ -16,6 +20,21 @@ export default function PaymentSuccessPage() {
       const raw = localStorage.getItem('mf_pending_order')
       if (raw) {
         const order = JSON.parse(raw)
+        const summary = {
+          name: order.name ?? '',
+          email: order.email ?? '',
+          txnid: order.txnid ?? searchParams.get('txnid') ?? '',
+        }
+        queueMicrotask(() => setOrderSummary(summary))
+        if (order.kind === 'sample-cart') {
+          clearCart()
+          localStorage.removeItem('mf_pending_order')
+          return
+        }
+        if (order.mockPayment) {
+          localStorage.removeItem('mf_pending_order')
+          return
+        }
         fetch('/api/send-confirmation', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -49,21 +68,16 @@ export default function PaymentSuccessPage() {
     } catch (err) {
       console.error('Could not retrieve order from storage:', err)
     }
-  }, [])
-
-  // Try to get name/email from stored order for display
-  let name = ''
-  let email = ''
-  let txnid = searchParams.get('txnid') ?? ''
-  try {
-    const raw = localStorage.getItem('mf_pending_order')
-    if (raw) {
-      const o = JSON.parse(raw)
-      name = o.name ?? ''
-      email = o.email ?? ''
-      txnid = o.txnid ?? txnid
+    const fallbackTxnid = searchParams.get('txnid') ?? ''
+    if (fallbackTxnid) {
+      queueMicrotask(() => setOrderSummary(summary => ({
+        ...summary,
+        txnid: summary.txnid || fallbackTxnid,
+      })))
     }
-  } catch {/* ignore */}
+  }, [clearCart, searchParams])
+
+  const { name, email, txnid } = orderSummary
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-6">
@@ -74,7 +88,14 @@ export default function PaymentSuccessPage() {
           </svg>
         </div>
 
-        <h1 className="text-3xl font-bold text-[#111111] mb-3 tracking-tight">Payment successful</h1>
+        <h1 className="text-3xl font-bold text-[#111111] mb-3 tracking-tight">
+          {isMockPayment ? 'Reservation flow complete' : 'Payment successful'}
+        </h1>
+        {isMockPayment && (
+          <p className="mb-4 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-medium text-amber-800">
+            Development preview — no payment was charged.
+          </p>
+        )}
         <p className="text-[#111111]/60 mb-2 text-sm">
           {name ? `Thanks ${name.split(' ')[0]}!` : 'Thank you!'} Your production slot has been reserved.
         </p>

@@ -60,7 +60,7 @@ export default function PaymentFailurePage() {
             If an amount was deducted from your bank account, <strong>do not retry payment</strong>.
             Bank transactions can take up to <strong>6 hours</strong> to sync with our records.
             If the deduction does not reflect as a successful booking within 6 hours, contact us at{' '}
-            <a href="mailto:hello@Garmops.com" className="underline font-medium">hello@Garmops.com</a>
+            <a href="mailto:hello@garmops.com" className="underline font-medium">hello@garmops.com</a>
             {' '}and we will resolve it.
           </p>
         </div>
@@ -79,7 +79,7 @@ export default function PaymentFailurePage() {
             Back to home
           </Link>
 
-          <a href="mailto:hello@Garmops.com"
+          <a href="mailto:hello@garmops.com"
             className="text-xs text-[#111111]/40 hover:text-[#111111] transition-colors mt-1">
             Need help? Email us →
           </a>

@@ -6,6 +6,10 @@ function addDays(date: Date, days: number): Date {
   return result;
 }
 
+function startOfDay(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
 export type DeliveryOptions = {
   rush: Date;
   standard: Date;
@@ -19,6 +23,30 @@ export function getDeliveryOptions(orderConfirmedDate: Date, extraLeadTimeDays =
   return {
     rush,
     standard,
-    flexible: (customDate: Date) => customDate >= standard,
+    flexible: (customDate: Date) => startOfDay(customDate) >= startOfDay(standard),
   };
+}
+
+export function formatDate(date: Date): string {
+  return date.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+export function formatDeliveryLabel(
+  deliveryType?: "rush" | "standard" | "flexible",
+  date?: Date
+): string {
+  if (!date) return "Select a delivery date";
+
+  const typeLabel =
+    deliveryType === "rush"
+      ? "Rush"
+      : deliveryType === "standard"
+        ? "Standard"
+        : "Flexible";
+
+  return `${typeLabel} - ${formatDate(date)}`;
 }

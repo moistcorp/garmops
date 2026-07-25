@@ -101,7 +101,7 @@ export default function ContactClient() {
 
         <div className="flex flex-col gap-10 pt-2">
           {[
-            { label: 'Location', content: ' Moist Corp\nGreater Noida, Uttar Pradesh\nIndia' },
+            { label: 'Location', content: 'Moist Corp\nGreater Noida, Uttar Pradesh\nIndia' },
             { label: 'Email', content: 'hello@garmops.com', isEmail: true },
             { label: 'MOQ & Turnaround', content: '50 pieces minimum. 35-day standard production. Rush available on request.' },
           ].map(item => (

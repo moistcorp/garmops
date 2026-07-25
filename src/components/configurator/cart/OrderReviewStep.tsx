@@ -135,7 +135,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-6">
-        <CheckoutSteps currentStep="summary" />
+        <CheckoutSteps currentStep="summary" cartId={cartId} />
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-[#111111]/50">
@@ -147,7 +147,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             <button
               type="button"
               onClick={() => router.push('/configurator')}
-              className="inline-flex items-center gap-2 rounded-md border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-teal)] hover:text-[#111111]"
+              className="inline-flex items-center gap-2 rounded-full border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-teal)] hover:text-[#111111]"
             >
               <ArrowLeft size={16} strokeWidth={2.2} />
               Back to configurator
@@ -174,7 +174,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             <button
               type="button"
               onClick={handleAddAnotherProduct}
-              className="mt-5 rounded-md bg-[var(--color-teal)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+              className="mt-5 rounded-full bg-[var(--color-teal)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
             >
               Add product
             </button>
@@ -240,7 +240,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                       <button
                         type="button"
                         onClick={() => handleEdit(item)}
-                        className="rounded-md border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:text-[#111111]"
+                        className="rounded-full border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-teal)] hover:text-[#111111]"
                       >
                         Edit
                       </button>
@@ -266,7 +266,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                         <button
                           type="button"
                           onClick={() => setPendingDeleteItemId(item.id)}
-                          className="rounded-md border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:text-[#111111]"
+                          className="rounded-full border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-teal)] hover:text-[#111111]"
                         >
                           Delete
                         </button>

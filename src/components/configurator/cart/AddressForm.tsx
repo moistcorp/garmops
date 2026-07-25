@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 
 export interface Address {
   firstName: string;
@@ -124,10 +124,10 @@ function doesGstinMatchState(gstin: string, state?: string): boolean {
   return Boolean(normalizedState && GST_STATE_CODES[stateCode]?.includes(normalizedState));
 }
 
-function isGstinValidForAddress(gstin?: string, state?: string): boolean {
+function isGstinValid(gstin?: string): boolean {
   const trimmed = gstin?.trim() ?? "";
   if (!trimmed) return true;
-  return GSTIN_RE.test(trimmed.toUpperCase()) && doesGstinMatchState(trimmed, state);
+  return GSTIN_RE.test(trimmed.toUpperCase());
 }
 
 export function isAddressValid(a: Address): boolean {
@@ -139,7 +139,7 @@ export function isAddressValid(a: Address): boolean {
       isPinCodeValid(a.zip) &&
       a.city.trim() &&
       EMAIL_RE.test(a.email.trim()) &&
-      isGstinValidForAddress(a.gstin, a.state) &&
+      isGstinValid(a.gstin) &&
       isIndianPhoneValid(a.phone)
   );
 }
@@ -154,6 +154,8 @@ export function AddressForm({
   showNotes = true,
 }: AddressFormProps) {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const formId = useId();
+  const id = (field: string) => `${formId}-${field}`;
 
   const set = <K extends keyof Address>(key: K, val: Address[K]) => {
     onChange({ ...value, [key]: val });
@@ -174,7 +176,8 @@ export function AddressForm({
   const gstinHasValue = Boolean(gstin);
   const gstinFormatValid = !gstinHasValue || GSTIN_RE.test(gstin.toUpperCase());
   const gstinStateMatches = !gstinHasValue || doesGstinMatchState(gstin, value.state);
-  const stateInvalidForGstin = gstinHasValue && gstinFormatValid && !gstinStateMatches;
+  const stateInvalidForGstin =
+    gstinHasValue && gstinFormatValid && Boolean(value.state?.trim()) && !gstinStateMatches;
 
   return (
     <div className="space-y-4">
@@ -184,10 +187,12 @@ export function AddressForm({
         </h3>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
-          <label className={labelClass}>First name</label>
+          <label htmlFor={id("firstName")} className={labelClass}>First name</label>
           <input
+            id={id("firstName")}
+            autoComplete="given-name"
             className={inputClass}
             value={value.firstName}
             onChange={(e) => set("firstName", e.target.value)}
@@ -198,8 +203,10 @@ export function AddressForm({
           )}
         </div>
         <div>
-          <label className={labelClass}>Last name</label>
+          <label htmlFor={id("lastName")} className={labelClass}>Last name</label>
           <input
+            id={id("lastName")}
+            autoComplete="family-name"
             className={inputClass}
             value={value.lastName}
             onChange={(e) => set("lastName", e.target.value)}
@@ -214,16 +221,19 @@ export function AddressForm({
       {showCompany && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
-            <label className={labelClass}>Company</label>
+            <label htmlFor={id("company")} className={labelClass}>Company</label>
             <input
+              id={id("company")}
+              autoComplete="organization"
               className={inputClass}
               value={value.company ?? ""}
               onChange={(e) => set("company", e.target.value)}
             />
           </div>
           <div>
-            <label className={labelClass}>GSTIN (optional)</label>
+            <label htmlFor={id("gstin")} className={labelClass}>GSTIN (optional)</label>
             <input
+              id={id("gstin")}
               className={inputClass}
               value={value.gstin ?? ""}
               maxLength={15}
@@ -235,16 +245,20 @@ export function AddressForm({
             {showError("gstin", gstinHasValue && !gstinFormatValid) && (
               <p className="mt-1 text-xs text-red-600">Enter a valid 15-character GSTIN</p>
             )}
-            {showError("gstin", gstinHasValue && gstinFormatValid && !gstinStateMatches) && (
-              <p className="mt-1 text-xs text-red-600">GSTIN state code must match the State field</p>
+            {stateInvalidForGstin && (
+              <p className="mt-1 text-xs text-amber-700">
+                GSTIN state code doesn&apos;t match the address state — double check this.
+              </p>
             )}
           </div>
         </div>
       )}
 
       <div>
-        <label className={labelClass}>Country</label>
+        <label htmlFor={id("country")} className={labelClass}>Country</label>
         <select
+          id={id("country")}
+          autoComplete="country-name"
           className={inputClass}
           value={value.country}
           onChange={(e) => set("country", e.target.value)}
@@ -266,8 +280,10 @@ export function AddressForm({
       </div>
 
       <div>
-        <label className={labelClass}>Address line 1</label>
+        <label htmlFor={id("addressLine1")} className={labelClass}>Address line 1</label>
         <input
+          id={id("addressLine1")}
+          autoComplete="address-line1"
           className={inputClass}
           value={value.addressLine1}
           onChange={(e) => set("addressLine1", e.target.value)}
@@ -279,18 +295,22 @@ export function AddressForm({
       </div>
 
       <div>
-        <label className={labelClass}>Address line 2 (optional)</label>
+        <label htmlFor={id("addressLine2")} className={labelClass}>Address line 2 (optional)</label>
         <input
+          id={id("addressLine2")}
+          autoComplete="address-line2"
           className={inputClass}
           value={value.addressLine2 ?? ""}
           onChange={(e) => set("addressLine2", e.target.value)}
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
-          <label className={labelClass}>{zipLabel}</label>
+          <label htmlFor={id("zip")} className={labelClass}>{zipLabel}</label>
           <input
+            id={id("zip")}
+            autoComplete="postal-code"
             className={inputClass}
             inputMode="numeric"
             maxLength={6}
@@ -305,8 +325,10 @@ export function AddressForm({
           )}
         </div>
         <div>
-          <label className={labelClass}>City</label>
+          <label htmlFor={id("city")} className={labelClass}>City</label>
           <input
+            id={id("city")}
+            autoComplete="address-level2"
             className={inputClass}
             value={value.city}
             onChange={(e) => set("city", e.target.value)}
@@ -320,23 +342,24 @@ export function AddressForm({
 
       {showState && (
         <div>
-          <label className={labelClass}>State {gstinHasValue ? "" : "(optional)"}</label>
+          <label htmlFor={id("state")} className={labelClass}>State {gstinHasValue ? "" : "(optional)"}</label>
           <input
+            id={id("state")}
+            autoComplete="address-level1"
             className={inputClass}
             value={value.state ?? ""}
             onChange={(e) => set("state", e.target.value)}
             onBlur={() => markTouched("state")}
           />
-          {showError("state", stateInvalidForGstin) && (
-            <p className="mt-1 text-xs text-red-600">Enter the state that matches your GSTIN</p>
-          )}
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
-          <label className={labelClass}>Email</label>
+          <label htmlFor={id("email")} className={labelClass}>Email</label>
           <input
+            id={id("email")}
+            autoComplete="email"
             className={inputClass}
             type="email"
             value={value.email}
@@ -348,8 +371,9 @@ export function AddressForm({
           )}
         </div>
         <div>
-          <label className={labelClass}>Phone</label>
+          <label htmlFor={id("phone")} className={labelClass}>Phone</label>
           <input
+            id={id("phone")}
             className={inputClass}
             type="tel"
             inputMode="tel"
@@ -367,8 +391,9 @@ export function AddressForm({
 
       {showPO && (
         <div>
-          <label className={labelClass}>PO Number (optional)</label>
+          <label htmlFor={id("poNumber")} className={labelClass}>PO Number (optional)</label>
           <input
+            id={id("poNumber")}
             className={inputClass}
             value={value.poNumber ?? ""}
             onChange={(e) => set("poNumber", e.target.value)}
@@ -378,8 +403,9 @@ export function AddressForm({
 
       {showNotes && (
         <div>
-          <label className={labelClass}>Order notes (optional)</label>
+          <label htmlFor={id("orderNotes")} className={labelClass}>Order notes (optional)</label>
           <textarea
+            id={id("orderNotes")}
             className={inputClass}
             rows={3}
             value={value.orderNotes ?? ""}

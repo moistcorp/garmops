@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next'
 import { products } from '@/lib/products'
 import { caseStudies } from '@/lib/casestudies'
+import { journalPosts } from '@/lib/journal'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = 'https://garmops.com'
@@ -23,10 +24,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }))
 
   const workPages = caseStudies.map(cs => ({
-  url: `${base}/work/${cs.slug}`,
-  priority: 0.7,
-  changeFrequency: 'monthly' as const,
-}))
+    url: `${base}/work/${cs.slug}`,
+    priority: 0.7,
+    changeFrequency: 'monthly' as const,
+  }))
 
-  return [...staticPages, ...productPages, ...workPages]
+  const journalPages = journalPosts.map(post => ({
+    url: `${base}/journal/${post.slug}`,
+    priority: 0.6,
+    changeFrequency: 'monthly' as const,
+  }))
+
+  return [...staticPages, ...productPages, ...workPages, ...journalPages]
 }

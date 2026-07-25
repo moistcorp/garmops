@@ -28,7 +28,7 @@ export default function Footer() {
 
         <div className="flex flex-col gap-2">
           <span className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-1">Contact</span>
-          <a href="https://moistcorp.com" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-teal)] transition-colors"> Moist Corp</a>
+          <a href="https://moistcorp.com" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-teal)] transition-colors">Moist Corp</a>
           <a href="mailto:hello@garmops.com" className="hover:text-[var(--color-teal)] transition-colors">hello@garmops.com</a>
           <a href="tel:+918800711169" className="hover:text-[var(--color-teal)] transition-colors">+91-8800711169</a>
           <div className="flex items-center gap-3 mt-2">
