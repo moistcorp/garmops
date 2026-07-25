@@ -1,6 +1,5 @@
 'use client'
 import HomepageCaseStudies from '@/components/home/HomepageCaseStudies'
-import TrustedBy from '@/components/home/TrustedBy'
 import HowItWorks from '@/app/_components/HowItWorks'
 import HeroScrollVideo from '@/app/HeroScrollVideo'
 import WhyGarmops from '@/app/_components/WhyGarmops'
@@ -39,8 +38,6 @@ export default function HomeClient() {
       {/* HERO */}
 
      <HeroScrollVideo />
-
-     <TrustedBy />
 
       {/* INDUSTRIES */}
       <section className="bg-[var(--color-cream)]"> <div className="max-w-7xl mx-auto px-6 py-24">
