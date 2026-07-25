@@ -42,27 +42,33 @@ export default function HomeClient() {
      <TrustedBy />
 
       {/* INDUSTRIES */}
-      <section className="bg-white"> <div className="max-w-7xl mx-auto px-6 py-24">
+      <section className="bg-[var(--color-cream)]"> <div className="max-w-7xl mx-auto px-6 py-24">
         <Reveal>
           <p className="text-xs text-[#595959] font-medium mb-4 tracking-widest uppercase">Who we work with</p>
-          <h2 className="text-4xl font-bold mb-3 tracking-tight">Premium merch for every industry</h2>
+          <h2 className="text-4xl font-bold mb-3 tracking-tight">Premium merch for every <span className="text-[var(--color-teal)]">industry</span></h2>
           <p className="text-[#4a4a4a] text-sm mb-12 max-w-lg leading-relaxed">
             From hospitality to creative agencies, Garmops delivers premium branded merchandise tailored to different industries.
           </p>
         </Reveal>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-[#E5E5E5]">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {industries.map((i, idx) => (
             <Reveal key={i.name} delay={idx * 80}>
-              <div className="group bg-white flex flex-col hover:bg-[#F7F7F7] transition-colors">
-                <div className="relative w-full h-[420px] bg-[#F7F7F7] flex items-center justify-center overflow-hidden">
+              <div className="group flex flex-col bg-white rounded-2xl border border-[#ECE7DF] overflow-hidden shadow-[0_4px_16px_rgba(22,33,43,0.04)] hover:shadow-[0_12px_30px_rgba(22,33,43,0.08)] hover:border-[var(--color-teal)] transition-all duration-300">
+                <div className="relative w-full h-[380px] bg-[var(--color-cream-soft)] flex items-center justify-center overflow-hidden">
                   {i.image ? (
                     <img src={i.image} alt={i.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
                     <span className="text-xs text-[#111111]/20 uppercase tracking-widest">{i.name}</span>
                   )}
+                  {/* Pill tag overlay, Nugget-style */}
+                  <div className="absolute top-4 left-4 z-10">
+                    <span className="bg-white/90 backdrop-blur-md rounded-full px-3.5 py-1.5 text-xs font-medium text-[#111111] shadow-sm">
+                      {i.name}
+                    </span>
+                  </div>
                   {/* Liquid glass reveal button on hover */}
                   <div className="absolute top-4 right-4 w-10 h-10 rounded-full backdrop-blur-md bg-white/80 border border-white/60 flex items-center justify-center opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-[0_4px_16px_rgba(0,0,0,0.12)]">
-                    <svg className="w-4 h-4 text-[#111111]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <svg className="w-4 h-4 text-[var(--color-teal)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M17 7H8M17 7v9" />
                     </svg>
                   </div>
@@ -88,9 +94,9 @@ export default function HomeClient() {
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <Reveal>
-            <div className="relative overflow-hidden bg-[#111111] p-10 md:p-14 flex flex-col md:flex-row items-center justify-between gap-10">
+            <div className="relative overflow-hidden bg-[var(--color-navy)] rounded-3xl p-10 md:p-14 flex flex-col md:flex-row items-center justify-between gap-10">
               {/* Ambient liquid-glass orbs */}
-              <div className="pointer-events-none absolute -top-24 -right-16 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
+              <div className="pointer-events-none absolute -top-24 -right-16 w-72 h-72 bg-[var(--color-teal)]/20 rounded-full blur-3xl" />
               <div className="pointer-events-none absolute -bottom-28 left-1/3 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
 
               <div className="relative max-w-lg">
@@ -112,10 +118,10 @@ export default function HomeClient() {
               </div>
 
               <div className="relative flex flex-col gap-3 w-full md:w-auto shrink-0">
-                <Link href="/pricing" className="bg-white text-[#111111] text-sm font-medium px-8 py-3.5 text-center hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] transition-all whitespace-nowrap">
+                <Link href="/pricing" className="bg-white text-[var(--color-navy)] text-sm font-medium px-8 py-3.5 rounded-full text-center hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] transition-all whitespace-nowrap">
                   Get a detailed estimate
                 </Link>
-                <Link href="/configurator" className="backdrop-blur-md bg-white/5 border border-white/30 text-white text-sm font-medium px-8 py-3.5 text-center hover:bg-white/10 hover:scale-[1.02] active:scale-[0.98] transition-all whitespace-nowrap">
+                <Link href="/configurator" className="backdrop-blur-md bg-white/5 border border-white/30 text-white text-sm font-medium px-8 py-3.5 rounded-full text-center hover:bg-white/10 hover:scale-[1.02] active:scale-[0.98] transition-all whitespace-nowrap">
                   Start designing
                 </Link>
               </div>
@@ -130,9 +136,9 @@ export default function HomeClient() {
           <div className="grid lg:grid-cols-[300px_1fr] gap-12">
             <Reveal>
               <p className="text-xs text-[#595959] font-medium mb-4 tracking-widest uppercase">FAQ</p>
-              <h2 className="text-4xl font-bold mb-3 tracking-tight">Common questions</h2>
+              <h2 className="text-4xl font-bold mb-3 tracking-tight">Common <span className="text-[var(--color-teal)]">questions</span></h2>
               <p className="text-[#4a4a4a] text-sm leading-relaxed">
-                Can't find what you're looking for? <Link href="/contact" className="underline hover:text-[#111111]">Get in touch</Link>.
+                Can't find what you're looking for? <Link href="/contact" className="underline hover:text-[var(--color-teal)]">Get in touch</Link>.
               </p>
             </Reveal>
             <Reveal delay={100}>
@@ -146,7 +152,7 @@ export default function HomeClient() {
                     >
                       <span className="text-base font-semibold text-[#111111]">{item.q}</span>
                       <svg
-                        className={`w-4 h-4 text-[#555555] shrink-0 transition-transform duration-300 ${openFaq === i ? 'rotate-45' : ''}`}
+                        className={`w-4 h-4 shrink-0 transition-all duration-300 ${openFaq === i ? 'rotate-45 text-[var(--color-teal)]' : 'text-[#555555]'}`}
                         fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -171,28 +177,6 @@ export default function HomeClient() {
       </section>
 
       <EmailCapture />
-
-      {/* CTA */}
-      <section className="relative overflow-hidden bg-[#111111]">
-        {/* Ambient liquid-glass orbs echoing the pricing card */}
-        <div className="pointer-events-none absolute -top-32 left-1/4 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-32 right-1/4 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
-
-        <Reveal className="relative">
-          <div className="max-w-3xl mx-auto px-6 py-28 flex flex-col items-center text-center gap-6">
-            <h2 className="text-4xl md:text-6xl font-bold text-white tracking-tight leading-[1.05]">
-              Ready to build<br />your merch?
-            </h2>
-            <p className="text-white/60 text-base">Start with 50 pieces. Scale as you grow.</p>
-            <Link
-              href="/configurator"
-              className="mt-4 bg-white text-[#111111] px-8 py-4 text-sm font-medium hover:bg-white/90 hover:scale-[1.03] active:scale-[0.98] transition-all shadow-[0_0_40px_rgba(255,255,255,0.15)]"
-            >
-              Start designing
-            </Link>
-          </div>
-        </Reveal>
-      </section>
     </>
   )
 }

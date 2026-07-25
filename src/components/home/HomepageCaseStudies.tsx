@@ -3,6 +3,14 @@
 import Link from 'next/link'
 import { caseStudies } from '@/lib/casestudies'
 
+// Featured testimonial for the homepage pull-quote — pulled from a real case study
+// rather than invented copy, matching the specific-outcome quotes Nugget uses.
+const featuredTestimonial = caseStudies.find(cs => cs.testimonial)?.testimonial
+
+function initials(name: string) {
+  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+}
+
 export default function HomepageCaseStudies() {
   return (
     <section className="py-24 bg-white">
@@ -44,7 +52,7 @@ export default function HomepageCaseStudies() {
                 className="group"
               >
 
-                <div className="overflow-hidden rounded-xl border border-[#E5E5E5] hover:border-[#111111] transition-all duration-300 bg-white">
+                <div className="overflow-hidden rounded-xl border border-[#ECE7DF] hover:border-[var(--color-teal)] hover:shadow-[0_12px_30px_rgba(22,33,43,0.08)] transition-all duration-300 bg-white">
 
                   {/* Image */}
 
@@ -128,6 +136,26 @@ export default function HomepageCaseStudies() {
           </div>
 
         </div>
+
+        {/* Pull-quote testimonial */}
+        {featuredTestimonial && (
+          <div className="mt-20 pt-16 border-t border-[#ECE7DF]">
+            <div className="max-w-3xl">
+              <p className="text-2xl md:text-3xl font-semibold text-[#111111] tracking-tight leading-snug mb-8">
+                &ldquo;{featuredTestimonial.quote}&rdquo;
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-full bg-[var(--color-teal)] text-white flex items-center justify-center text-sm font-semibold shrink-0">
+                  {initials(featuredTestimonial.author)}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-[#111111]">{featuredTestimonial.author}</p>
+                  <p className="text-xs text-[#666666]">{featuredTestimonial.role}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </section>

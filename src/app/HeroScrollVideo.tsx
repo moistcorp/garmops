@@ -44,12 +44,12 @@ export default function HeroScrollVideo() {
     <>
       {/* HERO */}
       <section className="grid lg:grid-cols-2 min-h-[90vh]">
-        <div className="flex flex-col justify-center px-8 md:px-16 py-20 lg:py-0 bg-white">
+        <div className="flex flex-col justify-center px-8 md:px-16 py-20 lg:py-0 bg-[var(--color-cream)]">
           <p className="text-xs text-[#595959] font-medium mb-6 tracking-widest uppercase">
             Custom apparel for businesses
           </p>
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-[#111111] leading-[1.05] tracking-tight mb-6">
-            Custom merch<br />for your<br />business
+            Custom merch<br />for your<br /><span className="text-[var(--color-teal)]">business</span>
           </h1>
           <p className="text-base text-[#4a4a4a] max-w-sm mb-10 leading-relaxed">
             From design to delivery: premium custom merch, made in India. Create, customise and place your order in just a few simple steps.
@@ -71,16 +71,16 @@ export default function HeroScrollVideo() {
             </div>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Link href="/configurator" className="bg-[#111111] text-white px-8 py-4 text-sm font-medium hover:bg-black transition-colors">
+            <Link href="/configurator" className="bg-[var(--color-teal)] text-white px-8 py-4 rounded-full text-sm font-medium hover:bg-[var(--color-teal-dark)] transition-colors">
               Start designing
             </Link>
-            <Link href="/products" className="border border-[#111111]/20 text-[#111111] px-8 py-4 text-sm font-medium hover:border-[#111111] transition-colors">
+            <Link href="/products" className="border border-[#111111]/20 text-[#111111] px-8 py-4 rounded-full text-sm font-medium hover:border-[#111111] transition-colors">
               View catalogue
             </Link>
           </div>
         </div>
 
-        <div className="relative bg-[#F7F7F7] flex items-center justify-center min-h-64 lg:min-h-full overflow-hidden">
+        <div className="relative bg-[var(--color-cream-soft)] flex items-center justify-center min-h-64 lg:min-h-full overflow-hidden">
           <Image
             src="/hero.jpg"
             alt="Custom merch made in India"
@@ -89,7 +89,7 @@ export default function HeroScrollVideo() {
             sizes="50vw"
             priority
           />
-          <div className="absolute bottom-8 left-8 bg-white border border-[#E5E5E5] px-5 py-4 shadow-sm z-10">
+          <div className="absolute bottom-8 left-8 bg-white/95 backdrop-blur-sm rounded-2xl px-5 py-4 shadow-[0_8px_30px_rgba(22,33,43,0.12)] z-10">
             <p className="text-xs text-[#595959] uppercase tracking-widest mb-1">Starting from</p>
             <p className="text-2xl font-bold text-[#111111]">&#8377;350</p>
             <p className="text-xs text-[#4a4a4a]">per piece &middot; MOQ 50</p>

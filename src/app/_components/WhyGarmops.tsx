@@ -54,10 +54,10 @@ export default function WhyGarmops() {
                     onClick={() => setOpenIndex(openIndex === i ? -1 : i)}
                     className="w-full flex items-center justify-between py-5 text-left gap-4"
                   >
-                    <span className={`text-base font-semibold leading-snug transition-colors ${openIndex === i ? 'text-[#111111]' : 'text-[#111111]/60'}`}>
+                    <span className={`text-base font-semibold leading-snug transition-colors ${openIndex === i ? 'text-[var(--color-teal)]' : 'text-[#111111]/60'}`}>
                       {item.title}
                     </span>
-                    <span className="shrink-0 w-5 h-5 flex items-center justify-center text-[#666666]">
+                    <span className={`shrink-0 w-5 h-5 flex items-center justify-center transition-colors ${openIndex === i ? 'text-[var(--color-teal)]' : 'text-[#666666]'}`}>
                       <svg
                         className={`w-4 h-4 transition-transform duration-200 ${openIndex === i ? 'rotate-180' : ''}`}
                         fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
@@ -77,7 +77,7 @@ export default function WhyGarmops() {
           </div>
 
           {/* RIGHT — dynamic image, crossfades with active section */}
-          <div className="relative w-full aspect-square border border-[#E5E5E5] overflow-hidden rounded-2xl">
+          <div className="relative w-full aspect-square border border-[#ECE7DF] overflow-hidden rounded-2xl shadow-[0_8px_30px_rgba(22,33,43,0.06)]">
             {accordionItems.map((item, i) => (
               <Image
                 key={item.image}

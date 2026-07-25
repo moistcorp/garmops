@@ -13,7 +13,7 @@ export default function TrustedBy() {
   const marquee = [...brands, ...brands]
 
   return (
-    <section className="bg-white py-10 overflow-hidden">
+    <section className="bg-[var(--color-cream)] py-10 overflow-hidden">
 
       <div className="max-w-7xl mx-auto px-6">
 
@@ -26,10 +26,10 @@ export default function TrustedBy() {
           <div className="relative flex-1 overflow-hidden">
 
             {/* left fade */}
-            <div className="absolute left-0 top-0 h-full w-20 bg-gradient-to-r from-white to-transparent z-10" />
+            <div className="absolute left-0 top-0 h-full w-20 bg-gradient-to-r from-[var(--color-cream)] to-transparent z-10" />
 
             {/* right fade */}
-            <div className="absolute right-0 top-0 h-full w-20 bg-gradient-to-l from-white to-transparent z-10" />
+            <div className="absolute right-0 top-0 h-full w-20 bg-gradient-to-l from-[var(--color-cream)] to-transparent z-10" />
 
             <div className="marquee flex items-center">
 

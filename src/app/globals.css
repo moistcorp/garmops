@@ -24,6 +24,17 @@ body {
   --font-sans: var(--font-inter);
 }
 
+/* Homepage/header/footer accent palette, inspired by nugget.com.
+   Used via arbitrary-value Tailwind classes, e.g. bg-[var(--color-cream)] */
+:root {
+  --color-cream: #FAF8F5;
+  --color-cream-soft: #F3F0EA;
+  --color-teal: #4F8B92;
+  --color-teal-dark: #3F7178;
+  --color-navy: #16212B;
+  --color-navy-soft: #1D2A36;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

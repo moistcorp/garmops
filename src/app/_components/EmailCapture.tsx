@@ -43,11 +43,11 @@ export default function EmailCapture() {
 
           <div className="w-full mt-2">
             {status === 'success' ? (
-              <p className="text-sm font-medium text-[#111111] border-b border-[#111111] pb-3 inline-block">
+              <p className="text-sm font-medium text-[var(--color-teal)] border border-[var(--color-teal)]/30 bg-[var(--color-teal)]/5 rounded-full px-5 py-3 inline-block">
                 Thanks — you're on the list.
               </p>
             ) : (
-              <form onSubmit={handleSubmit} className="flex items-center gap-4 border-b border-[#111111] pb-3 max-w-sm mx-auto">
+              <form onSubmit={handleSubmit} className="flex items-center gap-2 bg-white border border-[#ECE7DF] rounded-full pl-6 pr-2 py-2 max-w-sm mx-auto shadow-[0_2px_10px_rgba(22,33,43,0.04)]">
                 <input
                   type="email"
                   required
@@ -55,12 +55,12 @@ export default function EmailCapture() {
                   onChange={e => setEmail(e.target.value)}
                   placeholder="you@company.com"
                   aria-label="Email address"
-                  className="flex-1 bg-transparent text-base font-medium text-[#111111] placeholder:text-[#B5B5B5] focus:outline-none py-1 min-w-0 text-center"
+                  className="flex-1 bg-transparent text-sm font-medium text-[#111111] placeholder:text-[#B5B5B5] focus:outline-none py-1.5 min-w-0"
                 />
                 <button
                   type="submit"
                   disabled={status === 'loading'}
-                  className="text-sm font-medium text-[#111111] underline underline-offset-4 hover:text-[#595959] transition-colors whitespace-nowrap disabled:opacity-50"
+                  className="text-sm font-medium text-white bg-[var(--color-teal)] hover:bg-[var(--color-teal-dark)] transition-colors whitespace-nowrap disabled:opacity-50 rounded-full px-5 py-2.5"
                 >
                   {status === 'loading' ? 'Submitting…' : 'Subscribe'}
                 </button>

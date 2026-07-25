@@ -153,7 +153,7 @@ export default function HowItWorks() {
                 </div>
                 <div style={{ height: '1px', background: '#E5E5E5', marginBottom: '10px', overflow: 'hidden' }}>
                   {active === i && (
-                    <div style={{ height: '100%', background: '#111111', width: `${progress}%` }} />
+                    <div style={{ height: '100%', background: 'var(--color-teal)', width: `${progress}%` }} />
                   )}
                 </div>
                 <p style={{ fontSize: '13px', color: '#4a4a4a', lineHeight: 1.6, margin: 0 }}>{step.body}</p>
@@ -206,10 +206,10 @@ export default function HowItWorks() {
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '12px', fontWeight: 700, color: isActive ? '#111111' : '#666666' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: isActive ? 'var(--color-teal)' : '#666666' }}>
                         {step.number}.
                       </span>
-                      <span style={{ fontSize: '20px', fontWeight: 700, color: isActive ? '#111111' : '#555555', lineHeight: 1.2 }}>
+                      <span style={{ fontSize: '20px', fontWeight: 700, color: isActive ? 'var(--color-teal)' : '#555555', lineHeight: 1.2 }}>
                         {step.title}
                       </span>
                     </div>
@@ -219,7 +219,7 @@ export default function HowItWorks() {
                       </p>
                     </div>
                     <div style={{ height: '1px', background: '#E5E5E5', marginTop: '4px', overflow: 'hidden' }}>
-                      {isActive && <div style={{ height: '100%', background: '#111111', width: `${progress}%` }} />}
+                      {isActive && <div style={{ height: '100%', background: 'var(--color-teal)', width: `${progress}%` }} />}
                     </div>
                   </button>
                 )
