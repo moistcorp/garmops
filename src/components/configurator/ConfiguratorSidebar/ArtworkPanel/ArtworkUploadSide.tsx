@@ -18,7 +18,7 @@ import type {
 
 const ACCEPTED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".svg", ".ai"];
 const MAX_FILE_BYTES = 4.5 * 1024 * 1024;
-const SAMPLE_ARTWORK_HREF = "/garments/artwork-sample.svg";
+const SAMPLE_ARTWORK_HREF = "/garments/neck-label-sample.svg";
 const PRINT_TEMPLATES_HREF = "/downloads/Garmops-print_templates-1.0.zip";
 const VECTORIZER_HREF = "https://vectorizer.ai/";
 const DEFAULT_ARTWORK_WIDTH_CM = 20;

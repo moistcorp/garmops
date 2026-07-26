@@ -117,8 +117,17 @@ function getGarmentFolder(productId: ProductId): string | null {
 }
 
 function assetPath(productId: ProductId, view: GarmentView, layer: string): string {
-  const folder = getGarmentFolder(productId);
-  return folder ? `/garments/${folder}/${view}/${layer}.png` : "";
+  const garmentFolder = getGarmentFolder(productId);
+  if (!garmentFolder) return "";
+
+  // Both hoodie styles use the same neck artwork, so keep only one copy.
+  const assetFolder =
+    view === "neck" && garmentFolder === "regular-fit-hoodie"
+      ? "boxy-fit-hoodie"
+      : garmentFolder;
+  const extension = layer === "mask" ? "png" : "webp";
+
+  return `/garments/${assetFolder}/${view}/${layer}.${extension}`;
 }
 
 function isRenderableImage(fileUrl?: string, fileType?: ArtworkSide["fileType"]): boolean {

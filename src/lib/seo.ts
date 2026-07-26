@@ -2,7 +2,7 @@ export const siteConfig = {
   name: 'Garmops',
   description: 'Small batch custom apparel for brands, cafes, and companies. MOQ 50 pieces. Ships in 35 days. Manufactured in India.',
   url: 'https://garmops.com',
-  ogImage: '/hero.jpg',
+  ogImage: '/products/boxy-fit-tee-260gsm.jpg',
 }
 
 export function generateMeta({

@@ -82,7 +82,7 @@ export default function HeroScrollVideo() {
 
         <div className="relative bg-[var(--color-cream-soft)] flex items-center justify-center min-h-64 lg:min-h-full overflow-hidden">
           <Image
-            src="/hero.jpg"
+            src="/products/boxy-fit-tee-260gsm.jpg"
             alt="Custom merch made in India"
             fill
             className="object-cover"
@@ -120,7 +120,7 @@ export default function HeroScrollVideo() {
               muted
               loop
               playsInline
-              preload="auto"
+              preload="metadata"
               webkit-playsinline="true"
             />
           </div>
