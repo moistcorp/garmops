@@ -106,9 +106,6 @@ export default function NeckLabelPanel({
     nextFileKey?: string
   ) {
     const nextDimensions = dimensions ?? DEFAULT_DIMENSIONS;
-    if (fileUrl !== url) {
-      revokeObjectUrl(fileUrl);
-    }
     setFileUrl(url);
     setFileKey(nextFileKey);
     setFileType(type);
@@ -132,7 +129,6 @@ export default function NeckLabelPanel({
   }
 
   function handleRemoveArtwork() {
-    revokeObjectUrl(fileUrl);
     importTokenRef.current += 1;
     setFileUrl(undefined);
     setFileKey(undefined);

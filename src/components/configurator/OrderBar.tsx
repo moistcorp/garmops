@@ -125,9 +125,10 @@ export function OrderBar({
   ctaErrorMessage,
   ctaErrorNonce,
 }: OrderBarProps) {
-  const displayUnitCost =
-    unitCost ??
-    formatInr(computeConfiguredUnitCost(productId, colour, artwork, neckLabel, quantity));
+  const configuredSummary = getConfiguredPricingSummary(
+    productId, colour, artwork, neckLabel, quantity
+  );
+  const displayUnitCost = unitCost ?? formatInr(configuredSummary.discountedUnitPrice);
   const extraLeadTimeDays =
     colour?.type === "custom_dye" ? CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS.max : 0;
   const displayDeliveryDate = deliveryDate ?? computeDeliveryDate(extraLeadTimeDays);
@@ -184,7 +185,7 @@ export function OrderBar({
 
   return (
     <div className="grid gap-3 rounded-[28px] border border-[#ECE7DF] bg-white p-3 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
-      <div className="grid min-h-11 grid-cols-2 gap-4 text-xs">
+      <div className="grid min-h-11 grid-cols-3 gap-3 text-xs" aria-live="polite">
         <div className="min-w-0">
           <div className="font-semibold leading-tight text-[#111111]">Unit Cost</div>
           <div className="mt-1 flex flex-wrap items-center gap-1.5">
@@ -204,6 +205,10 @@ export function OrderBar({
         <div className="min-w-0">
           <div className="font-semibold leading-tight text-[#111111]">Target Delivery</div>
           <div className="mt-1 font-semibold text-[#111111]/70">{displayDeliveryDate}</div>
+        </div>
+        <div className="min-w-0 text-right">
+          <div className="font-semibold leading-tight text-[#111111]">Est. total incl. GST</div>
+          <div className="mt-1 font-semibold text-[#111111]/80">{formatInr(configuredSummary.total)}</div>
         </div>
       </div>
 

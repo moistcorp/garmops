@@ -100,6 +100,7 @@ function createEmptyPreferences(): ProjectPreferences {
 
 export interface CartDraft {
   items: CartItem[];
+  projectName: string;
   companyInformation: CompanyInformation;
   projectContact: ProjectContact;
   shippingInformation: ShippingInformation;
@@ -119,6 +120,7 @@ export function createCartItems(cartId: string): CartItem[] {
 export function createDraft(cartId: string): CartDraft {
   return {
     items: createCartItems(cartId),
+    projectName: "",
     companyInformation: createEmptyCompany(),
     projectContact: createEmptyProjectContact(),
     shippingInformation: createEmptyShipping(),
@@ -405,6 +407,7 @@ function normalizeDraft(value: unknown, cartId: string): CartDraft {
 
   return {
     items,
+    projectName: asString(value.projectName),
     ...procurement,
     selectedDeliveryDateIso: asOptionalString(value.selectedDeliveryDateIso),
     orderConfirmedDateIso: asOptionalString(value.orderConfirmedDateIso),
@@ -425,8 +428,8 @@ export function readDraft(cartId: string): CartDraft {
   }
 }
 
-export function writeDraft(cartId: string, draft: CartDraft): void {
-  if (typeof window === "undefined") return;
+export function writeDraft(cartId: string, draft: CartDraft): boolean {
+  if (typeof window === "undefined") return false;
   try {
     const serialized = JSON.stringify(draft);
     window.localStorage.setItem(ACTIVE_CART_ID_KEY, cartId);
@@ -440,9 +443,11 @@ export function writeDraft(cartId: string, draft: CartDraft): void {
       })
     );
     scheduleUploadCleanup();
+    return true;
   } catch {
     // Storage can be unavailable or full. The caller's in-memory state should
     // remain usable even when persistence is not.
+    return false;
   }
 }
 
@@ -535,7 +540,7 @@ export function upsertConfiguredCartItem(
   suggestedCartId: string,
   input: ConfiguredCartItemInput,
   options: UpsertConfiguredCartItemOptions = {}
-): string {
+): string | null {
   const cartId = options.cartId ?? readActiveCartId() ?? suggestedCartId;
   const draft = readDraft(cartId);
   const product = getProduct(input.productId);
@@ -579,8 +584,8 @@ export function upsertConfiguredCartItem(
         )
       : [configuredItem, ...draft.items];
 
-  writeDraft(cartId, { ...draft, items });
-  return cartId;
+  const saved = writeDraft(cartId, { ...draft, items });
+  return saved ? cartId : null;
 }
 
 export function totalUnits(sizeQuantities: Record<Size, number>): number {

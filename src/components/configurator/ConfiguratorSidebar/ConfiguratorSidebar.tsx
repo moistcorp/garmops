@@ -105,12 +105,16 @@ export function ConfiguratorSidebar({
 
   function resetStep(id: AccordionStepId) {
     if (id === "artwork") {
-      revokeArtworkObjectUrls(artwork);
-      if (controlledArtwork === undefined) setInternalArtwork({});
+      if (controlledArtwork === undefined) {
+        revokeArtworkObjectUrls(artwork);
+        setInternalArtwork({});
+      }
     }
     if (id === "neck-label") {
-      revokeNeckLabelObjectUrl(neckLabel);
-      if (controlledNeckLabel === undefined) setInternalNeckLabel(undefined);
+      if (controlledNeckLabel === undefined) {
+        revokeNeckLabelObjectUrl(neckLabel);
+        setInternalNeckLabel(undefined);
+      }
     }
     onResetStep?.(id);
     updateSteps((current) =>

@@ -135,8 +135,8 @@ export function readBuildDraft(configId: string): BuildDraft | null {
 export function writeBuildDraft(
   configId: string,
   draft: Omit<BuildDraft, "version" | "savedAt">
-): void {
-  if (typeof window === "undefined") return;
+): boolean {
+  if (typeof window === "undefined") return false;
 
   try {
     const payload: BuildDraft = {
@@ -146,9 +146,11 @@ export function writeBuildDraft(
     };
     window.localStorage.setItem(storageKey(configId), JSON.stringify(payload));
     scheduleUploadCleanup();
+    return true;
   } catch {
-    // Ignore quota/availability errors — autosave is a convenience, not a
-    // requirement for the configurator to keep working.
+    // The caller surfaces a non-blocking recovery message. The active in-memory
+    // configuration remains usable even when browser storage is unavailable.
+    return false;
   }
 }
 

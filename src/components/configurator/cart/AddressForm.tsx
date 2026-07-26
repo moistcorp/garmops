@@ -196,6 +196,7 @@ export function AddressForm({
 }: AddressFormProps) {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [lookupStatus, setLookupStatus] = useState<LookupStatus>("idle");
+  const [lookupNonce, setLookupNonce] = useState(0);
   const generatedId = useId();
   const formId = idPrefix ?? generatedId;
   const id = (field: string) => `${formId}-${field}`;
@@ -249,7 +250,7 @@ export function AddressForm({
       });
 
     return () => controller.abort();
-  }, [value.zip]);
+  }, [value.zip, lookupNonce]);
 
   const set = <K extends keyof Address>(key: K, val: Address[K]) => {
     onChange({ ...value, [key]: val });
@@ -340,7 +341,10 @@ export function AddressForm({
           {lookupStatus === "loading" && <p className="mt-1 text-xs text-[#111111]/50">Finding city and state…</p>}
           {lookupStatus === "success" && <p className="mt-1 text-xs text-[var(--color-teal-dark)]">City and state filled from PIN code.</p>}
           {(lookupStatus === "not-found" || lookupStatus === "error") && (
-            <p className="mt-1 text-xs text-amber-700">We could not auto-fill this PIN code. Enter city and state manually.</p>
+            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-amber-700">
+              <span>We could not auto-fill this PIN code. Enter city and state manually.</span>
+              <button type="button" onClick={() => { lastLookedUpPin.current = ""; setLookupNonce((value) => value + 1); }} className="font-semibold underline underline-offset-2">Retry lookup</button>
+            </div>
           )}
         </div>
         <div>

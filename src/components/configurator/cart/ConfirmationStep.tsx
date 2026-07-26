@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Building2,
+  CheckCircle2,
   CreditCard,
   FileText,
   LoaderCircle,
@@ -36,6 +37,8 @@ import { getProduct } from "@/lib/configurator/products";
 import { RESERVATION_FEE } from "@/lib/configurator/reservation";
 import CanvasRenderer from "../GarmentPreview/CanvasRenderer";
 import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionContext";
+import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
+import { ActionFeedback } from "../ActionFeedback";
 
 export interface ConfirmationStepProps {
   cartId: string;
@@ -163,12 +166,23 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
     const email = projectContact.email.trim();
 
     if (!hasValidItems || procurementMissing.length > 0 || !deliveryComplete) {
+      trackConfiguratorEvent("checkout_validation_error", {
+        cart_id: cartId,
+        invalid_items: !hasValidItems,
+        missing_fields: procurementMissing.length,
+        delivery_incomplete: !deliveryComplete,
+      });
       setPaymentError(
         "Your order or company details are incomplete. Return to the previous step and review them."
       );
       return;
     }
 
+    trackConfiguratorEvent("payment_started", {
+      cart_id: cartId,
+      reservation_fee: RESERVATION_FEE,
+      item_count: draft.items.length,
+    });
     setIsProcessing(true);
     const randomSuffix = crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
     const txnid = `MF${Date.now().toString(36)}${randomSuffix}`;
@@ -208,6 +222,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
           name: `${projectContact.firstName} ${projectContact.lastName}`.trim(),
           email,
           amount,
+          projectName: draft.projectName,
           companyName: draft.companyInformation.name,
           companyGstin: draft.companyInformation.gstin,
           companyWebsite: draft.companyInformation.website,
@@ -321,6 +336,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
           : "Could not start PayU payment. Please try again."
       );
       setIsProcessing(false);
+      trackConfiguratorEvent("payment_failed", { cart_id: cartId, error: error instanceof Error ? error.message : "unknown" });
     }
   };
 
@@ -336,11 +352,12 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-6">
-        <CheckoutSteps currentStep="payment" />
+        <CheckoutSteps currentStep="payment" cartId={cartId} firstProductId={draft.items[0]?.productId} firstItemId={draft.items[0]?.id} />
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-[#111111]/50">Cart {cartId}</p>
             <h1 className="text-2xl font-semibold text-[#111111]">Review & Payment</h1>
+            {draft.projectName && <p className="mt-1 text-sm font-medium text-[#111111]/60">{draft.projectName}</p>}
           </div>
           <button
             type="button"
@@ -438,19 +455,24 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
           </div>
         </section>
 
-        <section className="rounded-lg border border-[#E5E5E5] bg-white p-5">
+        <section className="rounded-lg border border-[var(--color-teal)]/25 bg-[var(--color-teal)]/5 p-5">
           <div className="flex items-start gap-3">
-            <span className="rounded-full bg-[var(--color-teal)]/10 p-2 text-[var(--color-teal-dark)]">
-              <CreditCard size={18} />
-            </span>
-            <div>
-              <h3 className="text-sm font-semibold text-[#111111]">Secure payment through PayU</h3>
-              <p className="mt-1 text-sm leading-relaxed text-[#111111]/60">
-                Continue once to choose UPI, card or net banking on PayU. No payment-method selection is needed here.
-              </p>
-              <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-[#111111]/65">
-                <ShieldCheck size={14} className="text-[var(--color-teal-dark)]" />
-                Your project is reviewed before production begins
+            <span className="rounded-full bg-white p-2 text-[var(--color-teal-dark)]"><ShieldCheck size={18} /></span>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-sm font-semibold text-[#111111]">What happens after reservation?</h3>
+              <div className="mt-3 grid gap-2 text-xs leading-relaxed text-[#111111]/65 sm:grid-cols-2">
+                {[
+                  "A merch specialist checks artwork and production feasibility.",
+                  "Final pricing and shipping are confirmed before the balance is due.",
+                  `${formatInr(RESERVATION_FEE)} is credited in full against the final invoice.`,
+                  "Production starts only after your final approval and agreed payment terms.",
+                ].map((item) => (
+                  <p key={item} className="flex items-start gap-2"><CheckCircle2 size={14} className="mt-0.5 shrink-0 text-[var(--color-teal-dark)]" />{item}</p>
+                ))}
+              </div>
+              <div className="mt-4 flex items-center gap-2 border-t border-[var(--color-teal)]/20 pt-3 text-xs font-medium text-[#111111]/65">
+                <CreditCard size={15} className="text-[var(--color-teal-dark)]" />
+                Secure payment through PayU using UPI, card or net banking.
               </div>
             </div>
           </div>
@@ -517,7 +539,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
         {!termsAccepted && (
           <p className="text-center text-xs text-[#111111]/55">Accept the reservation terms to continue.</p>
         )}
-        {paymentError && <p role="alert" className="text-xs font-medium text-[#C62828]">{paymentError}</p>}
+        {paymentError && <ActionFeedback tone="error" title="Payment could not be opened" detail={`${paymentError} Your project details are safe.`} actionLabel="Try payment again" onAction={handlePayment} onDismiss={() => setPaymentError("")} />}
       </div>
     </div>
   );

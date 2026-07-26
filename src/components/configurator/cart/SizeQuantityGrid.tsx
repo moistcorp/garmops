@@ -13,6 +13,22 @@ export interface SizeQuantityGridProps {
   idPrefix?: string;
 }
 
+const ALLOCATION_PRESETS = {
+  recommended: [0.1, 0.25, 0.3, 0.2, 0.1, 0.05],
+  equal: [1, 1, 1, 1, 1, 1],
+  larger: [0.04, 0.12, 0.24, 0.3, 0.2, 0.1],
+} as const;
+
+function splitByWeights(total: number, sizeCount: number, weights: readonly number[]): number[] {
+  const active = weights.slice(0, sizeCount);
+  const weightTotal = active.reduce((sum, value) => sum + value, 0) || 1;
+  const result = active.map((weight) => Math.floor((total * weight) / weightTotal));
+  let remainder = total - result.reduce((sum, value) => sum + value, 0);
+  let index = 0;
+  while (remainder > 0) { result[index % result.length] += 1; remainder -= 1; index += 1; }
+  return result;
+}
+
 export function SizeQuantityGrid({
   value,
   onChange,
@@ -32,12 +48,26 @@ export function SizeQuantityGrid({
     onChange(size, safe);
   }
 
+  function applyPreset(weights: readonly number[]) {
+    const targetTotal = Math.max(minimumUnits, totalUnits);
+    const quantities = splitByWeights(targetTotal, sizes.length, weights);
+    sizes.forEach((size, index) => onChange(size, quantities[index] ?? 0));
+  }
+
   return (
     <div className="w-full">
       <div className="mb-2 flex items-center justify-end gap-3 text-xs text-[#111111]/60">
         <span>Minimum {minimumUnits} units</span>
         <span className="font-medium text-[#111111]">{totalUnits} units</span>
       </div>
+      {sizes.length > 1 && (
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-[#111111]/45">Quick allocation</span>
+          <button type="button" onClick={() => applyPreset(ALLOCATION_PRESETS.recommended)} className="rounded-full border border-[#E5E5E5] px-2.5 py-1 text-[11px] font-semibold text-[#111111]/65 hover:border-[var(--color-teal)]">Recommended mix</button>
+          <button type="button" onClick={() => applyPreset(ALLOCATION_PRESETS.equal)} className="rounded-full border border-[#E5E5E5] px-2.5 py-1 text-[11px] font-semibold text-[#111111]/65 hover:border-[var(--color-teal)]">Equal split</button>
+          <button type="button" onClick={() => applyPreset(ALLOCATION_PRESETS.larger)} className="rounded-full border border-[#E5E5E5] px-2.5 py-1 text-[11px] font-semibold text-[#111111]/65 hover:border-[var(--color-teal)]">More L–XXL</button>
+        </div>
+      )}
       <div className={`grid ${columnsClass} gap-px overflow-hidden rounded-md border border-[#E5E5E5] bg-[#E5E5E5]`}>
         {sizes.map((size) => (
           <div key={size} className="bg-[#F7F7F7] px-2 py-2 text-center text-xs font-medium tracking-wide text-[#111111]">

@@ -16,6 +16,7 @@ import { DeliveryDatePicker } from "@/components/configurator/cart/DeliveryDateP
 import {
   AddressForm,
   doesGstinMatchState,
+  digitsOnly,
   isEmailValid,
   isGstinValid,
   isIndianPhoneValid,
@@ -37,6 +38,8 @@ import { calculateTotals, createDraft, readDraft, type CartDraft, writeDraft } f
 import { formatDeliveryLabel, isDeliverySelectionValid } from "@/lib/configurator/delivery";
 import { CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS } from "@/lib/configurator/colours";
 import { persistUploadedFile } from "@/lib/configurator/objectUrls";
+import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
+import { ActionFeedback } from "@/components/configurator/ActionFeedback";
 
 export interface BillingShippingStepProps {
   cartId: string;
@@ -47,6 +50,34 @@ const INPUT_CLASS =
 const LABEL_CLASS = "mb-1 block text-xs font-medium text-[#111111]/70";
 const PO_MAX_BYTES = 3 * 1024 * 1024;
 const PO_TYPES = ["application/pdf", "image/jpeg", "image/png"];
+
+function formatIndianPhone(value: string): string {
+  let digits = digitsOnly(value);
+  if (digits.startsWith("91") && digits.length > 10) digits = digits.slice(2);
+  if (digits.startsWith("0") && digits.length > 10) digits = digits.slice(1);
+  digits = digits.slice(0, 10);
+  return digits.length > 5 ? `${digits.slice(0, 5)} ${digits.slice(5)}` : digits;
+}
+
+function cleanGstin(value: string): string {
+  return value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 15);
+}
+
+const FIELD_ID_MAP: Record<string, string> = {
+  "company.name": "company-name",
+  "company.industry": "company-industry",
+  "company.gstin": "company-gstin",
+  "company.website": "company-website",
+  "contact.firstName": "contact-first-name",
+  "contact.lastName": "contact-last-name",
+  "contact.email": "contact-email",
+  "contact.phone": "contact-phone",
+  "contact.department": "contact-department",
+  "shipping.recipientName": "shipping-recipient",
+  "billing.entity": "billing-entity",
+  "billing.accountsPayableEmail": "billing-email",
+  "billing.gstin": "billing-gstin",
+};
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
@@ -78,6 +109,9 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
   const [isDraftReady, setIsDraftReady] = useState(false);
   const [poUploadStatus, setPoUploadStatus] = useState<"idle" | "saving">("idle");
   const [poUploadError, setPoUploadError] = useState("");
+  const [validationFeedback, setValidationFeedback] = useState<string | null>(null);
+  const [storageSaveError, setStorageSaveError] = useState<string | null>(null);
+  const formStartedRef = useRef(false);
 
   useEffect(() => {
     const loadDraft = window.setTimeout(() => {
@@ -106,15 +140,32 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
     [draft.orderConfirmedDateIso]
   );
 
-  const updateDraft = useCallback((patch: Partial<CartDraft>) => {
-    setDraft((previous) => {
-      const next = { ...previous, ...patch };
-      writeDraft(cartId, next);
-      return next;
+  const markFormStarted = useCallback(() => {
+    if (formStartedRef.current) return;
+    formStartedRef.current = true;
+    trackConfiguratorEvent("company_form_started", { cart_id: cartId });
+  }, [cartId]);
+
+  const persistCartDraft = useCallback((next: CartDraft) => {
+    const saved = writeDraft(cartId, next);
+    window.queueMicrotask(() => {
+      setStorageSaveError(saved
+        ? null
+        : "This browser could not save the latest checkout changes. Keep this tab open and try again before continuing.");
     });
   }, [cartId]);
 
+  const updateDraft = useCallback((patch: Partial<CartDraft>) => {
+    markFormStarted();
+    setDraft((previous) => {
+      const next = { ...previous, ...patch };
+      persistCartDraft(next);
+      return next;
+    });
+  }, [markFormStarted, persistCartDraft]);
+
   const updateCompany = useCallback((companyInformation: CompanyInformation) => {
+    markFormStarted();
     setDraft((previous) => {
       const previousCompany = previous.companyInformation;
       const previousBilling = previous.billingInformation;
@@ -130,12 +181,13 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
             : previousBilling.gstin,
       };
       const next = { ...previous, companyInformation, billingInformation };
-      writeDraft(cartId, next);
+      persistCartDraft(next);
       return next;
     });
-  }, [cartId]);
+  }, [markFormStarted, persistCartDraft]);
 
   const updateContact = useCallback((projectContact: ProjectContact) => {
+    markFormStarted();
     setDraft((previous) => {
       const oldName = `${previous.projectContact.firstName} ${previous.projectContact.lastName}`.trim();
       const nextName = `${projectContact.firstName} ${projectContact.lastName}`.trim();
@@ -156,10 +208,10 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
             : previous.billingInformation.accountsPayableEmail,
       };
       const next = { ...previous, projectContact, shippingInformation, billingInformation };
-      writeDraft(cartId, next);
+      persistCartDraft(next);
       return next;
     });
-  }, [cartId]);
+  }, [markFormStarted, persistCartDraft]);
 
   const updateShipping = useCallback((shippingInformation: ShippingInformation) => {
     updateDraft({ shippingInformation });
@@ -205,8 +257,31 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
     return `Complete ${missingLabels.length} required field${missingLabels.length === 1 ? "" : "s"} to continue: ${visible}${remainder > 0 ? ` and ${remainder} more` : ""}.`;
   }, [isDraftReady, missingLabels]);
 
+  const focusFirstMissingField = () => {
+    const first = procurementMissing[0];
+    const addressKey = first?.key.split(".").slice(-1)[0];
+    const addressPrefix = first?.key.startsWith("shipping.address")
+      ? "shipping-address"
+      : first?.key.startsWith("billing.address")
+        ? "billing-address"
+        : first?.key.startsWith("company.address")
+          ? "company-address"
+          : undefined;
+    const targetId = first ? FIELD_ID_MAP[first.key] ?? (addressPrefix && addressKey ? `${addressPrefix}-${addressKey}` : undefined) : "delivery-target";
+    if (targetId) {
+      const element = document.getElementById(targetId);
+      element?.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (element instanceof HTMLElement) window.setTimeout(() => element.focus(), 350);
+    }
+  };
+
   const handleNext = () => {
-    if (!isValid) return;
+    if (!isValid) {
+      setValidationFeedback(missingMessage ?? "Complete the required fields to continue.");
+      trackConfiguratorEvent("checkout_validation_error", { cart_id: cartId, missing_count: missingLabels.length, first_missing: missingLabels[0] ?? null });
+      focusFirstMissingField();
+      return;
+    }
     router.push(`/configurator/cart/${encodeURIComponent(cartId)}/confirmation`);
   };
 
@@ -261,7 +336,9 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-6">
-        <CheckoutSteps currentStep="shipping" />
+        <CheckoutSteps currentStep="shipping" cartId={cartId} firstProductId={draft.items[0]?.productId} firstItemId={draft.items[0]?.id} />
+        {validationFeedback && <ActionFeedback tone="error" title="More information is required" detail={validationFeedback} onDismiss={() => setValidationFeedback(null)} />}
+        {storageSaveError && <ActionFeedback tone="error" title="Checkout autosave is unavailable" detail={storageSaveError} onDismiss={() => setStorageSaveError(null)} />}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-[#111111]/50">Cart {cartId}</p>
@@ -321,7 +398,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
                 autoCapitalize="characters"
                 placeholder="27ABCDE1234F1Z5"
                 value={draft.companyInformation.gstin}
-                onChange={(event) => updateCompany({ ...draft.companyInformation, gstin: event.target.value.toUpperCase() })}
+                onChange={(event) => updateCompany({ ...draft.companyInformation, gstin: cleanGstin(event.target.value) })}
               />
               {!isGstinValid(draft.companyInformation.gstin) && (
                 <p className="mt-1 text-xs text-red-600">Enter a valid 15-character GSTIN.</p>
@@ -419,7 +496,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
                 className={INPUT_CLASS}
                 placeholder="98765 43210"
                 value={draft.projectContact.phone}
-                onChange={(event) => updateContact({ ...draft.projectContact, phone: event.target.value })}
+                onChange={(event) => updateContact({ ...draft.projectContact, phone: formatIndianPhone(event.target.value) })}
               />
               {draft.projectContact.phone && !isIndianPhoneValid(draft.projectContact.phone) && (
                 <p className="mt-1 text-xs text-red-600">Enter a valid 10-digit Indian mobile number.</p>
@@ -560,7 +637,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
               <input
                 id="billing-email"
                 type="email"
-                autoComplete="email"
+                autoComplete="section-billing email"
                 className={INPUT_CLASS}
                 placeholder="accounts@company.com"
                 value={draft.billingInformation.accountsPayableEmail}
@@ -579,7 +656,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
                 autoCapitalize="characters"
                 placeholder="27ABCDE1234F1Z5"
                 value={draft.billingInformation.gstin}
-                onChange={(event) => updateBilling({ ...draft.billingInformation, gstin: event.target.value.toUpperCase() })}
+                onChange={(event) => updateBilling({ ...draft.billingInformation, gstin: cleanGstin(event.target.value) })}
               />
               {!isGstinValid(draft.billingInformation.gstin) && (
                 <p className="mt-1 text-xs text-red-600">Enter a valid 15-character GSTIN.</p>
@@ -634,6 +711,8 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
                     <p className="text-xs text-[#111111]/50">{formatFileSize(draft.billingInformation.purchaseOrder.fileSize)} · attached to the reservation notification</p>
                   </div>
                 </div>
+                <div className="flex shrink-0 items-center gap-1">
+                  <button type="button" onClick={() => poInputRef.current?.click()} className="rounded-full border border-[#E5E5E5] px-2.5 py-1 text-[11px] font-semibold text-[#111111]/65 hover:bg-white">Replace</button>
                 <button
                   type="button"
                   aria-label="Remove purchase order"
@@ -642,6 +721,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
                 >
                   <X size={16} />
                 </button>
+                </div>
               </div>
             ) : (
               <button
@@ -666,11 +746,13 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
             <textarea
               id="project-notes"
               rows={3}
+              maxLength={1000}
               className={INPUT_CLASS}
               placeholder="Event date, packing instructions, approval requirements or anything our team should know"
               value={draft.projectPreferences.orderNotes}
               onChange={(event) => updatePreferences({ ...draft.projectPreferences, orderNotes: event.target.value })}
             />
+            <p className="mt-1 text-right text-[11px] text-[#111111]/45">{draft.projectPreferences.orderNotes.length}/1000</p>
           </div>
           <label className="mt-4 flex items-center gap-2 text-xs text-[#111111]/75">
             <input
@@ -699,6 +781,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
         nextLabel="Next: Review & Payment"
         nextDisabled={!isValid}
         disabledMessage={missingMessage}
+        onDisabledNext={handleNext}
       />
     </div>
   );

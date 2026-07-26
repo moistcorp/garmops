@@ -1,13 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle2, SlidersHorizontal, Trash2 } from "lucide-react";
+import { CheckCircle2, Copy, MapPin, RotateCcw, SlidersHorizontal, Trash2 } from "lucide-react";
 import { ArtworkUploadSide } from "./ArtworkUploadSide";
 import { TechniqueSelect, TECHNIQUE_LABELS } from "./TechniqueSelect";
 import { PositionControls } from "./PositionControls";
-import { GuidelinesToggles } from "./GuidelinesToggles";
+import { GuidelinesToggles, LEFT_CHEST_DIMENSIONS } from "./GuidelinesToggles";
 import { ArtworkAreaSizeSelect } from "./ArtworkAreaSizeSelect";
-import { useArtworkPosition } from "@/lib/configurator/ArtworkPositionContext";
+import {
+  clampDim,
+  DEFAULT_POSITION_STATE,
+  useArtworkPosition,
+  type PositionControlsState,
+} from "@/lib/configurator/ArtworkPositionContext";
 import { PRINT_AREA_SIZE_CHART } from "@/lib/configurator/sizecharts";
 import type {
   Artwork,
@@ -16,6 +21,7 @@ import type {
   PrintAreaSize,
 } from "@/lib/configurator/types/configurator";
 import type { GarmentView } from "@/lib/configurator/types/garment";
+import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 
 export interface ArtworkPanelProps {
   value?: Artwork;
@@ -31,12 +37,36 @@ const SIDE_LABELS: Record<Side, string> = {
   back: "Back",
 };
 
+const LEFT_CHEST_FROM_CENTER_CM = 9;
+const RECOMMENDED_ARTWORK_WIDTH_CM = 20;
+
+function fitWithin(
+  current: ArtworkSide,
+  maxWidth: number,
+  maxHeight: number,
+  preferredWidth: number = RECOMMENDED_ARTWORK_WIDTH_CM
+): Pick<PositionControlsState, "widthCm" | "heightCm"> {
+  const ratio = current.width > 0 && current.height > 0 ? current.width / current.height : 1;
+  let width = Math.min(preferredWidth, maxWidth);
+  let height = width / ratio;
+
+  if (height > maxHeight) {
+    height = maxHeight;
+    width = height * ratio;
+  }
+
+  return {
+    widthCm: clampDim(width, 1, maxWidth),
+    heightCm: clampDim(height, 1, maxHeight),
+  };
+}
+
 export function ArtworkPanel({ value, onChange, onViewChange }: ArtworkPanelProps = {}) {
   const [internalArtwork, setInternalArtwork] = useState<Artwork>(value ?? {});
   const isControlled = value !== undefined;
   const artwork = isControlled ? value : internalArtwork;
   const [adjustingSide, setAdjustingSide] = useState<Side | null>(null);
-  const { positions } = useArtworkPosition();
+  const { positions, updatePosition } = useArtworkPosition();
 
   function commit(next: Artwork) {
     if (!isControlled) setInternalArtwork(next);
@@ -114,6 +144,108 @@ export function ArtworkPanel({ value, onChange, onViewChange }: ArtworkPanelProp
     });
   }
 
+  function applyPlacement(
+    side: Side,
+    partial: Partial<PositionControlsState>,
+    artworkOverrides: Partial<ArtworkSide> = {}
+  ) {
+    const current = artwork[side];
+    if (!current) return;
+
+    const nextPosition = { ...positions[side], ...partial };
+    updatePosition(side, partial);
+    commit({
+      ...artwork,
+      [side]: {
+        ...current,
+        width: nextPosition.widthCm,
+        height: nextPosition.heightCm,
+        fromNeck: nextPosition.fromNeckCm,
+        fromCenter: nextPosition.fromCenterCm,
+        ...artworkOverrides,
+      },
+    });
+    onViewChange?.(side);
+  }
+
+  function restoreRecommendedPlacement(side: Side) {
+    const current = artwork[side];
+    if (!current) return;
+    const printArea = PRINT_AREA_SIZE_CHART[current.printArea];
+    const fitted = fitWithin(current, printArea.width, printArea.height);
+
+    applyPlacement(
+      side,
+      {
+        ...DEFAULT_POSITION_STATE,
+        ...fitted,
+        fromNeckCm: 5,
+        fromCenterCm: 0,
+      },
+      {
+        guidelines: {
+          ...current.guidelines,
+          maximumArea: true,
+          leftChest: false,
+        },
+      }
+    );
+    trackConfiguratorEvent("artwork_placement_reset", { side });
+  }
+
+  function applyLeftChestPreset(side: Side) {
+    const current = artwork[side];
+    if (!current) return;
+    const fitted = fitWithin(
+      current,
+      LEFT_CHEST_DIMENSIONS.width,
+      LEFT_CHEST_DIMENSIONS.height,
+      LEFT_CHEST_DIMENSIONS.width
+    );
+
+    applyPlacement(
+      side,
+      {
+        ...fitted,
+        alignH: null,
+        alignV: null,
+        aspectLocked: true,
+        fromNeckCm: 5,
+        fromCenterCm: LEFT_CHEST_FROM_CENTER_CM,
+      },
+      {
+        guidelines: {
+          ...current.guidelines,
+          maximumArea: true,
+          leftChest: true,
+        },
+      }
+    );
+    trackConfiguratorEvent("artwork_left_chest_applied", { side });
+  }
+
+  function copyFrontArtworkToBack() {
+    const front = artwork.front;
+    if (!front || artwork.back) return;
+
+    const back: ArtworkSide = {
+      ...front,
+      guidelines: { ...front.guidelines },
+      confirmed: false,
+    };
+    commit({ ...artwork, back });
+    updatePosition("back", {
+      widthCm: front.width,
+      heightCm: front.height,
+      fromNeckCm: front.fromNeck,
+      fromCenterCm: front.fromCenter,
+      aspectLocked: true,
+    });
+    setAdjustingSide("back");
+    onViewChange?.("back");
+    trackConfiguratorEvent("artwork_copied_to_back");
+  }
+
   function renderAdjustPanel(side: Side, current: ArtworkSide) {
     if (adjustingSide !== side) return null;
     return (
@@ -125,6 +257,24 @@ export function ArtworkPanel({ value, onChange, onViewChange }: ArtworkPanelProp
           value={current.printArea}
           onChange={(size) => handlePrintAreaChange(side, size)}
         />
+        <div className="flex flex-wrap gap-2" aria-label={`${SIDE_LABELS[side]} placement presets`}>
+          <button
+            type="button"
+            onClick={() => restoreRecommendedPlacement(side)}
+            className="inline-flex items-center gap-1.5 rounded-full border border-[#DED8CE] bg-white px-3 py-1.5 text-xs font-semibold text-[#111111]/70 hover:border-[var(--color-teal)] hover:text-[var(--color-teal)]"
+          >
+            <RotateCcw size={13} strokeWidth={2.2} />
+            Restore recommended centre
+          </button>
+          <button
+            type="button"
+            onClick={() => applyLeftChestPreset(side)}
+            className="inline-flex items-center gap-1.5 rounded-full border border-[#DED8CE] bg-white px-3 py-1.5 text-xs font-semibold text-[#111111]/70 hover:border-[var(--color-teal)] hover:text-[var(--color-teal)]"
+          >
+            <MapPin size={13} strokeWidth={2.2} />
+            Apply left-chest preset
+          </button>
+        </div>
         <PositionControls />
         <GuidelinesToggles
           printAreaDimensions={PRINT_AREA_SIZE_CHART[current.printArea]}
@@ -193,13 +343,23 @@ export function ArtworkPanel({ value, onChange, onViewChange }: ArtworkPanelProp
                 <SlidersHorizontal size={13} strokeWidth={2.2} />
                 {adjustingSide === side ? "Close adjustments" : "Adjust size & placement"}
               </button>
+              {side === "front" && !artwork.back && (
+                <button
+                  type="button"
+                  onClick={copyFrontArtworkToBack}
+                  className="flex items-center gap-1.5 rounded-full border border-[#E5E5E5] px-3 py-1.5 text-xs font-semibold text-[#111111]/70 hover:border-[var(--color-teal)] hover:text-[var(--color-teal)]"
+                >
+                  <Copy size={13} strokeWidth={2.2} />
+                  Copy to back
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => handleSideChange(side, undefined)}
                 className="flex items-center gap-1.5 rounded-full border border-[#F0DADA] px-3 py-1.5 text-xs font-semibold text-[#A63A3A] hover:bg-[#FFF5F5]"
               >
                 <Trash2 size={13} strokeWidth={2.2} />
-                Remove {SIDE_LABELS[side].toLowerCase()}
+                Clear {SIDE_LABELS[side].toLowerCase()} side
               </button>
             </div>
             {renderAdjustPanel(side, current)}

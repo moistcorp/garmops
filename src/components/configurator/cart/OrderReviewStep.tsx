@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Download, LoaderCircle, Plus } from 'lucide-react';
+import { ArrowLeft, Copy, Download, LoaderCircle, Plus, Tag } from 'lucide-react';
 import type { ProductId } from '@/lib/configurator/pricing';
 import type { GarmentColour, Artwork, NeckLabel } from '@/lib/configurator/types/configurator';
 import type { GarmentView } from '@/lib/configurator/types/garment';
@@ -27,6 +27,8 @@ import { ArtworkPositionProvider } from '@/lib/configurator/ArtworkPositionConte
 import { restoreConfigurationUploads } from '@/lib/configurator/objectUrls';
 import { generateApprovalPdf } from '@/lib/configurator/approvalPdf';
 import { RESERVATION_FEE } from '@/lib/configurator/reservation';
+import { ActionFeedback, type ActionFeedbackTone } from '../ActionFeedback';
+import { trackConfiguratorEvent } from '@/lib/configurator/analytics';
 
 export interface CartItem {
   id: string;
@@ -61,31 +63,46 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
   const [pendingDeleteItemId, setPendingDeleteItemId] = useState<string | null>(null);
   const [draftLoaded, setDraftLoaded] = useState(false);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+  const [feedback, setFeedback] = useState<{ tone: ActionFeedbackTone; title: string; detail?: string } | null>(null);
+
+  function persistCartDraft(next: typeof draft) {
+    const saved = writeDraft(cartId, next);
+    if (!saved) {
+      window.queueMicrotask(() => setFeedback({
+        tone: 'error',
+        title: 'Cart autosave is unavailable',
+        detail: 'Your latest edits are still visible in this tab. Keep it open and try again before continuing.',
+      }));
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
 
     void Promise.resolve().then(async () => {
       if (cancelled) return;
-      const realDraft = readDraft(cartId);
-      const items = await Promise.all(
-        realDraft.items.map(async (item) => {
-          const uploads = await restoreConfigurationUploads(
-            item.artwork,
-            item.neckLabel
-          );
-          return {
-            ...item,
-            artwork: uploads.artwork,
-            neckLabel: uploads.neckLabel,
-          };
-        })
-      );
-      if (cancelled) return;
-      const restoredDraft = { ...realDraft, items };
-      setDraft(restoredDraft);
-      setActiveView(Object.fromEntries(items.map((item) => [item.id, 'front'])));
-      setDraftLoaded(true);
+      try {
+        const realDraft = readDraft(cartId);
+        const items = await Promise.all(
+          realDraft.items.map(async (item) => {
+            const uploads = await restoreConfigurationUploads(item.artwork, item.neckLabel);
+            return { ...item, artwork: uploads.artwork, neckLabel: uploads.neckLabel };
+          })
+        );
+        if (cancelled) return;
+        const restoredDraft = { ...realDraft, items };
+        setDraft(restoredDraft);
+        setActiveView(Object.fromEntries(items.map((item) => [item.id, 'front'])));
+        const updatedMessage = window.sessionStorage.getItem('garmops:cart-update');
+        if (updatedMessage) {
+          window.sessionStorage.removeItem('garmops:cart-update');
+          setFeedback({ tone: 'success', title: updatedMessage });
+        }
+      } catch {
+        if (!cancelled) setFeedback({ tone: 'error', title: 'Could not restore the cart', detail: 'Your browser draft may be unavailable. Reload once or return to the configurator.' });
+      } finally {
+        if (!cancelled) setDraftLoaded(true);
+      }
     });
 
     return () => {
@@ -117,8 +134,22 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
           };
         }),
       };
-      writeDraft(cartId, next);
+      persistCartDraft(next);
       return next;
+    });
+    trackConfiguratorEvent("size_allocation_edited", { cart_id: cartId, item_id: itemId, size, quantity: qty });
+  }
+
+
+  function handleProjectNameChange(projectName: string) {
+    setDraft((previous) => {
+      const next = { ...previous, projectName: projectName.slice(0, 120) };
+      persistCartDraft(next);
+      return next;
+    });
+    trackConfiguratorEvent("cart_item_updated", {
+      cart_id: cartId,
+      change: "project_name",
     });
   }
 
@@ -132,7 +163,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
   function handleDelete(itemId: string) {
     setDraft((prev) => {
       const next = { ...prev, items: prev.items.filter((item) => item.id !== itemId) };
-      writeDraft(cartId, next);
+      persistCartDraft(next);
       return next;
     });
     setActiveView((prev) => {
@@ -141,6 +172,68 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
       return next;
     });
     setPendingDeleteItemId(null);
+  }
+
+  function handleDuplicate(item: CartItem) {
+    const duplicate: CartItem = {
+      ...item,
+      id: typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${item.id}-copy-${Date.now()}`,
+      productName: `${item.productName} (Copy)`,
+      sizeQuantities: { ...item.sizeQuantities },
+      artwork: {
+        front: item.artwork.front ? { ...item.artwork.front } : undefined,
+        back: item.artwork.back ? { ...item.artwork.back } : undefined,
+      },
+      neckLabel: item.neckLabel ? { ...item.neckLabel } : undefined,
+    };
+    setDraft((previous) => {
+      const next = { ...previous, items: [...previous.items, duplicate] };
+      persistCartDraft(next);
+      return next;
+    });
+    setActiveView((previous) => ({ ...previous, [duplicate.id]: "front" }));
+    setFeedback({ tone: "success", title: "Product duplicated", detail: "Adjust the copy without rebuilding the design from scratch." });
+    trackConfiguratorEvent("cart_item_duplicated", { cart_id: cartId, product_id: item.productId });
+  }
+
+  function handleRemoveNeckLabel(itemId: string) {
+    setDraft((previous) => {
+      const nextItems = previous.items.map((item) => {
+        if (item.id !== itemId) return item;
+        const updated = { ...item, neckLabel: undefined, baseUnitPrice: undefined };
+        return { ...updated, unitPrice: getCartItemUnitPrice(updated) };
+      });
+      const next = { ...previous, items: nextItems };
+      persistCartDraft(next);
+      return next;
+    });
+    setFeedback({ tone: "success", title: "Custom label removed", detail: "The product will use the standard label unless you add one again in Studio." });
+    trackConfiguratorEvent("cart_item_updated", { cart_id: cartId, item_id: itemId, change: "neck_label_removed" });
+  }
+
+
+  function handleRemoveArtworkSide(itemId: string, side: "front" | "back") {
+    setDraft((previous) => {
+      const nextItems = previous.items.map((item) => {
+        if (item.id !== itemId) return item;
+        const artwork = { ...item.artwork, [side]: undefined };
+        const updated = { ...item, artwork, baseUnitPrice: undefined };
+        return { ...updated, unitPrice: getCartItemUnitPrice(updated) };
+      });
+      const next = { ...previous, items: nextItems };
+      persistCartDraft(next);
+      return next;
+    });
+    setFeedback({
+      tone: "success",
+      title: `${side === "front" ? "Front" : "Back"} artwork removed`,
+      detail: "The estimate has been recalculated. You can add it again from Edit design.",
+    });
+    trackConfiguratorEvent("cart_item_updated", {
+      cart_id: cartId,
+      item_id: itemId,
+      change: `${side}_artwork_removed`,
+    });
   }
 
   function handleAddAnotherProduct() {
@@ -154,6 +247,8 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
   async function handleDownloadApprovalPdf() {
     if (!items.length) return;
     setIsDownloadingPdf(true);
+    setFeedback({ tone: 'loading', title: 'Preparing approval PDF…', detail: 'Adding previews, sizes, pricing and reservation details.' });
+    trackConfiguratorEvent('approval_pdf_started', { source: 'cart', cart_id: cartId });
     try {
       const previewDataUrls: Record<string, string | undefined> = {};
       items.forEach((item) => {
@@ -168,7 +263,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
       });
       await generateApprovalPdf({
         projectReference: cartId,
-        documentTitle: 'Merch Approval Proposal',
+        documentTitle: draft.projectName.trim() || 'Merch Approval Proposal',
         items: items.map((item) => ({
           id: item.id,
           productName: item.productName,
@@ -199,6 +294,11 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
         previewDataUrls,
         filename: `Garmops-Approval-${cartId}.pdf`,
       });
+      setFeedback({ tone: 'success', title: 'Approval PDF downloaded', detail: 'This dated version can be forwarded for internal approval.' });
+      trackConfiguratorEvent('approval_pdf_downloaded', { source: 'cart', cart_id: cartId });
+    } catch {
+      setFeedback({ tone: 'error', title: 'Could not create the PDF', detail: 'Your cart is safe. Check the connection and try again.', });
+      trackConfiguratorEvent('approval_pdf_failed', { source: 'cart', cart_id: cartId });
     } finally {
       setIsDownloadingPdf(false);
     }
@@ -217,7 +317,23 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-6">
-        <CheckoutSteps currentStep="summary" />
+        <CheckoutSteps currentStep="summary" cartId={cartId} firstProductId={items[0]?.productId} firstItemId={items[0]?.id} />
+        {feedback && <ActionFeedback {...feedback} onDismiss={feedback.tone === 'loading' ? undefined : () => setFeedback(null)} actionLabel={feedback.tone === 'error' ? 'Retry PDF' : undefined} onAction={feedback.tone === 'error' ? handleDownloadApprovalPdf : undefined} />}
+        <section className="rounded-xl border border-[#ECE7DF] bg-white p-4">
+          <label htmlFor="project-name" className="text-xs font-semibold uppercase tracking-wide text-[#111111]/55">
+            Project name (optional)
+          </label>
+          <input
+            id="project-name"
+            type="text"
+            maxLength={120}
+            value={draft.projectName}
+            onChange={(event) => handleProjectNameChange(event.target.value)}
+            placeholder="Example: Employee Onboarding Kit — Q4"
+            className="mt-2 min-h-11 w-full rounded-xl border border-[#E5E5E5] bg-[#F7F7F7] px-3 text-sm text-[#111111] placeholder:text-[#111111]/35 focus:border-[var(--color-teal)] focus:outline-none"
+          />
+          <p className="mt-1 text-xs text-[#111111]/50">Shown on the approval PDF and final project review.</p>
+        </section>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-[#111111]/50">
@@ -356,14 +472,18 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                         {item.colour.name} · {itemUnits} units
                       </p>
                     </div>
-                    <div className="flex shrink-0 gap-2">
+                    <div className="flex max-w-[420px] shrink-0 flex-wrap justify-end gap-2">
                       <button
                         type="button"
                         onClick={() => handleEdit(item)}
                         className="rounded-full border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-teal)] hover:text-[#111111]"
                       >
-                        Edit
+                        Edit design
                       </button>
+                      <button type="button" onClick={() => handleDuplicate(item)} className="inline-flex items-center gap-1 rounded-full border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-teal)]"><Copy size={13} /> Duplicate</button>
+                      {item.artwork.front && <button type="button" onClick={() => handleRemoveArtworkSide(item.id, "front")} className="rounded-full border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-teal)]">Remove front print</button>}
+                      {item.artwork.back && <button type="button" onClick={() => handleRemoveArtworkSide(item.id, "back")} className="rounded-full border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-teal)]">Remove back print</button>}
+                      {item.neckLabel && <button type="button" onClick={() => handleRemoveNeckLabel(item.id)} className="inline-flex items-center gap-1 rounded-full border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-teal)]"><Tag size={13} /> Remove label</button>}
                       {pendingDeleteItemId === item.id ? (
                         <div className="flex items-center gap-2 rounded-md border border-[#E5E5E5] px-2 py-1.5 text-xs text-[#111111]/70">
                           <span>Remove this item?</span>

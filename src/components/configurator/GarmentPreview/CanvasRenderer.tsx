@@ -2,7 +2,7 @@
 "use client";
 
 import { useRef } from "react";
-import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
+import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
 import type { ProductId } from "@/lib/configurator/pricing";
 import type {
   Artwork,
@@ -90,6 +90,7 @@ interface CanvasRendererProps {
   interactive?: boolean;
   className?: string;
   style?: CSSProperties;
+  showProductionGuides?: boolean;
 }
 
 const CANVAS_SIZE = CANVAS_PX;
@@ -290,6 +291,7 @@ export default function CanvasRenderer({
   interactive = true,
   className = "aspect-square h-[min(78dvh,820px)] max-h-[820px] max-w-full rounded-lg bg-[#F5F5F5]",
   style,
+  showProductionGuides = true,
 }: CanvasRendererProps) {
   const { positions, updatePosition } = useArtworkPosition();
   const dragOrigin = useRef<DragOrigin | null>(null);
@@ -339,8 +341,8 @@ export default function CanvasRenderer({
   const printAreaDims = activeArtwork
     ? PRINT_AREA_SIZE_CHART[activeArtwork.printArea]
     : undefined;
-  const showMaxArea = interactive && showBox && !!activeArtwork?.guidelines.maximumArea && !!printAreaDims;
-  const showLeftChest = interactive && showBox && !!activeArtwork?.guidelines.leftChest;
+  const showMaxArea = showProductionGuides && interactive && showBox && !!activeArtwork?.guidelines.maximumArea && !!printAreaDims;
+  const showLeftChest = showProductionGuides && interactive && showBox && !!activeArtwork?.guidelines.leftChest;
 
   const maxAreaWidthPx = printAreaDims ? printAreaDims.width * PX_PER_CM_X : 0;
   const maxAreaHeightPx = printAreaDims ? printAreaDims.height * PX_PER_CM_Y : 0;
@@ -388,6 +390,31 @@ export default function CanvasRenderer({
     );
   };
 
+  const handleCanvasKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (!interactive || !activeArtwork || !DRAGGABLE_VIEWS.includes(view)) return;
+    const step = event.shiftKey ? 1 : 0.5;
+    if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
+      event.preventDefault();
+      if (event.altKey) {
+        const delta = event.key === "ArrowLeft" || event.key === "ArrowDown" ? -step : step;
+        updatePosition(view, resizeWithAspect(boxState, "width", boxState.widthCm + delta));
+        return;
+      }
+      updatePosition(view, {
+        fromCenterCm: event.key === "ArrowLeft"
+          ? clampDim(boxState.fromCenterCm - step, MIN_OFFSET)
+          : event.key === "ArrowRight"
+            ? clampDim(boxState.fromCenterCm + step, MIN_OFFSET)
+            : boxState.fromCenterCm,
+        fromNeckCm: event.key === "ArrowUp"
+          ? clampDim(boxState.fromNeckCm - step, MIN_OFFSET)
+          : event.key === "ArrowDown"
+            ? clampDim(boxState.fromNeckCm + step, MIN_OFFSET)
+            : boxState.fromNeckCm,
+      });
+    }
+  };
+
   const handlePointerUp = () => {
     dragOrigin.current = null;
     window.removeEventListener("pointermove", handlePointerMove);
@@ -412,7 +439,14 @@ export default function CanvasRenderer({
   };
 
   return (
-    <div ref={canvasRef} className={`relative overflow-hidden ${className}`} style={style}>
+    <div
+      ref={canvasRef}
+      className={`relative overflow-hidden ${className}`}
+      style={style}
+      tabIndex={interactive && activeArtwork ? 0 : undefined}
+      onKeyDown={handleCanvasKeyDown}
+      aria-label={activeArtwork ? `${view} garment preview. Use arrow keys to move artwork; Alt plus arrow keys resize it.` : `${view} garment preview`}
+    >
       {!garmentFolder && (
         <div className="absolute inset-0 z-30 flex items-center justify-center bg-[#F7F7F7] p-6 text-center text-sm font-semibold text-[#C62828]">
           Preview assets are not mapped for this product.
@@ -484,6 +518,13 @@ export default function CanvasRenderer({
             height: `${(maxAreaHeightPx / CANVAS_SIZE.height) * 100}%`,
           }}
         />
+      )}
+
+      {showProductionGuides && interactive && showBox && activeArtwork && (
+        <>
+          <div aria-hidden="true" className="pointer-events-none absolute bottom-[12%] left-1/2 top-[20%] z-[14] border-l border-dashed border-[#111111]/20" />
+          <span className="pointer-events-none absolute left-1/2 top-[18%] z-[14] -translate-x-1/2 rounded-full bg-white/85 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[#111111]/45">Centre line</span>
+        </>
       )}
 
       {showLeftChest && (

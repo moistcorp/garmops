@@ -6,6 +6,7 @@ import type {
   ArtworkTechnique,
 } from "@/lib/configurator/types/configurator";
 import { formatInr, TECHNIQUE_UNIT_PRICE_DELTAS } from "@/lib/configurator/pricing";
+import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 
 export interface TechniqueSelectProps {
   value?: ArtworkTechnique;
@@ -60,7 +61,7 @@ export function TechniqueSelect({ value, fileType, onChange }: TechniqueSelectPr
 
       <button
         type="button"
-        onClick={() => onChange(recommendation)}
+        onClick={() => { onChange(recommendation); trackConfiguratorEvent("technique_recommended", { technique: recommendation, file_type: fileType ?? null }); }}
         className="flex items-start gap-2 rounded-xl border border-[var(--color-teal)]/35 bg-[var(--color-teal)]/5 px-3 py-2.5 text-left hover:border-[var(--color-teal)]"
       >
         <Sparkles size={16} strokeWidth={2.2} className="mt-0.5 shrink-0 text-[var(--color-teal)]" />
@@ -81,7 +82,7 @@ export function TechniqueSelect({ value, fileType, onChange }: TechniqueSelectPr
             <button
               key={technique}
               type="button"
-              onClick={() => onChange(technique)}
+              onClick={() => { onChange(technique); trackConfiguratorEvent("technique_selected", { technique, file_type: fileType ?? null }); }}
               aria-pressed={selected}
               className={`min-h-[58px] rounded-md border px-3 py-2 text-left transition-colors ${
                 selected

@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronDown, FileCheck2 } from "lucide-react";
+import { ChevronDown, FileCheck2, Redo2, RotateCcw, Undo2 } from "lucide-react";
 import type { GarmentView } from "@/lib/configurator/types/garment";
 import type { GarmentColour, Artwork, NeckLabel } from "@/lib/configurator/types/configurator";
 import GarmentPreview from "./GarmentPreview/GarmentPreview";
@@ -32,6 +32,7 @@ import {
 import { CUSTOM_DYE_MOQ_UNITS } from "@/lib/configurator/colours";
 import {
   readDraft,
+  writeDraft,
   totalUnits,
   upsertConfiguredCartItem,
   splitQuantityAcrossSizes,
@@ -45,11 +46,38 @@ import {
 } from "@/lib/configurator/buildDraft";
 import {
   restoreConfigurationUploads,
-  revokeArtworkObjectUrls,
-  revokeNeckLabelObjectUrl,
+  revokeObjectUrl,
 } from "@/lib/configurator/objectUrls";
 import { generateApprovalPdf } from "@/lib/configurator/approvalPdf";
 import { RESERVATION_FEE } from "@/lib/configurator/reservation";
+import { ConfiguratorJourney } from "./ConfiguratorJourney";
+import { NetworkStatusBanner } from "./NetworkStatusBanner";
+import { ActionFeedback, type ActionFeedbackTone } from "./ActionFeedback";
+import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
+import { getDeliveryFeasibility } from "@/lib/configurator/deliveryFeasibility";
+import { readPreferredQuantity, readPreferredTargetDate } from "@/lib/configurator/clientPreferences";
+
+
+type ConfiguratorSnapshot = {
+  activeView: GarmentView;
+  expandedStepId: AccordionStepId | null;
+  quantity: number;
+  colour: GarmentColour;
+  artwork: Artwork;
+  neckLabel: NeckLabel;
+  steps: AccordionStepState[];
+};
+
+interface FeedbackState {
+  tone: ActionFeedbackTone;
+  title: string;
+  detail?: string;
+  retryPdf?: boolean;
+}
+
+function snapshotKey(snapshot: ConfiguratorSnapshot): string {
+  return JSON.stringify(snapshot);
+}
 
 interface ConfigureClientProps {
   configId: string;
@@ -188,15 +216,42 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
     stepsForConfiguration(DEFAULT_COLOUR, {}, undefined)
   );
   const [draftRestored, setDraftRestored] = useState(false);
-  const [draftJustSaved, setDraftJustSaved] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+  const [feedback, setFeedback] = useState<FeedbackState | null>(null);
+  const [preferredTargetDate, setPreferredTargetDate] = useState("");
+  const [historyVersion, setHistoryVersion] = useState(0);
   const hasHydrated = useRef(false);
+  const historyRef = useRef<ConfiguratorSnapshot[]>([]);
+  const historyIndexRef = useRef(-1);
+  const historyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const restoringHistoryRef = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveStatusTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autosaveErrorNotifiedRef = useRef(false);
+  const retainedObjectUrlsRef = useRef<Set<string>>(new Set());
 
   const pricingBreakdown = buildPricingBreakdown(productId, colour, artwork, neckLabel, quantity);
   const minimumQuantity = colour.type === "custom_dye" ? CUSTOM_DYE_MOQ_UNITS : 50;
   const buildProgress = getBuildProgress(steps);
   const discountProgress = getVolumeDiscountProgress(quantity);
+
+  useEffect(() => {
+    [artwork.front?.fileUrl, artwork.back?.fileUrl, neckLabel?.fileUrl].forEach((url) => {
+      if (url?.startsWith("blob:")) retainedObjectUrlsRef.current.add(url);
+    });
+  }, [artwork.front?.fileUrl, artwork.back?.fileUrl, neckLabel?.fileUrl]);
+
+  useEffect(() => {
+    const retainedUrls = retainedObjectUrlsRef.current;
+    return () => retainedUrls.forEach((url) => revokeObjectUrl(url));
+  }, []);
+
+  useEffect(() => {
+    setPreferredTargetDate(readPreferredTargetDate());
+    const preferredQuantity = readPreferredQuantity();
+    if (preferredQuantity) setQuantity((current) => current === 50 ? preferredQuantity : current);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -233,6 +288,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
             totalUnits(item.sizeQuantities)
           );
           hasHydrated.current = true;
+          setHistoryVersion((value) => value + 1);
           return;
         }
       }
@@ -248,7 +304,13 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         );
       }
       hasHydrated.current = true;
-    })();
+      setHistoryVersion((value) => value + 1);
+    })().catch(() => {
+      if (cancelled) return;
+      hasHydrated.current = true;
+      setFeedback({ tone: "error", title: "Saved design could not be restored", detail: "The Studio opened with safe defaults. Re-upload any missing artwork and continue." });
+      setHistoryVersion((value) => value + 1);
+    });
 
     return () => {
       cancelled = true;
@@ -258,15 +320,95 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   useEffect(() => {
     if (!hasHydrated.current) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
+    if (saveStatusTimer.current) clearTimeout(saveStatusTimer.current);
+    setSaveStatus("saving");
     saveTimer.current = setTimeout(() => {
-      writeBuildDraft(configId, { colour, artwork, neckLabel, steps, quantity });
-      setDraftJustSaved(true);
-      window.setTimeout(() => setDraftJustSaved(false), 1500);
+      const saved = writeBuildDraft(configId, { colour, artwork, neckLabel, steps, quantity });
+      setSaveStatus(saved ? "saved" : "error");
+      if (!saved && !autosaveErrorNotifiedRef.current) {
+        autosaveErrorNotifiedRef.current = true;
+        setFeedback({
+          tone: "error",
+          title: "Browser autosave is unavailable",
+          detail: "Your design is still active in this tab. Keep it open, download an approval PDF, or continue to the cart before leaving.",
+        });
+      }
+      if (saved) {
+        autosaveErrorNotifiedRef.current = false;
+        saveStatusTimer.current = window.setTimeout(() => setSaveStatus("idle"), 1800);
+      }
     }, 450);
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
+      if (saveStatusTimer.current) clearTimeout(saveStatusTimer.current);
     };
   }, [configId, colour, artwork, neckLabel, steps, quantity]);
+
+  useEffect(() => {
+    if (!hasHydrated.current || restoringHistoryRef.current) return;
+    if (historyTimerRef.current) clearTimeout(historyTimerRef.current);
+    historyTimerRef.current = setTimeout(() => {
+      const snapshot: ConfiguratorSnapshot = {
+        activeView, expandedStepId, quantity, colour, artwork, neckLabel, steps,
+      };
+      const key = snapshotKey(snapshot);
+      const current = historyRef.current[historyIndexRef.current];
+      if (current && snapshotKey(current) === key) return;
+      const nextHistory = historyRef.current.slice(0, historyIndexRef.current + 1);
+      nextHistory.push(snapshot);
+      historyRef.current = nextHistory.slice(-30);
+      historyIndexRef.current = historyRef.current.length - 1;
+      setHistoryVersion((value) => value + 1);
+    }, 320);
+    return () => { if (historyTimerRef.current) clearTimeout(historyTimerRef.current); };
+  }, [activeView, expandedStepId, quantity, colour, artwork, neckLabel, steps, historyVersion]);
+
+  function restoreSnapshot(snapshot: ConfiguratorSnapshot) {
+    restoringHistoryRef.current = true;
+    setActiveView(snapshot.activeView);
+    setExpandedStepId(snapshot.expandedStepId);
+    setQuantity(snapshot.quantity);
+    setColour(snapshot.colour);
+    setArtwork(snapshot.artwork);
+    setNeckLabel(snapshot.neckLabel);
+    setSteps(snapshot.steps);
+    window.setTimeout(() => { restoringHistoryRef.current = false; }, 0);
+  }
+
+  function undoConfiguration() {
+    if (historyIndexRef.current <= 0) return;
+    historyIndexRef.current -= 1;
+    restoreSnapshot(historyRef.current[historyIndexRef.current]);
+    setHistoryVersion((value) => value + 1);
+    trackConfiguratorEvent("configuration_undo", { product_id: productId });
+  }
+
+  function redoConfiguration() {
+    if (historyIndexRef.current >= historyRef.current.length - 1) return;
+    historyIndexRef.current += 1;
+    restoreSnapshot(historyRef.current[historyIndexRef.current]);
+    setHistoryVersion((value) => value + 1);
+    trackConfiguratorEvent("configuration_redo", { product_id: productId });
+  }
+
+  function resetConfiguration() {
+    setActiveView("front");
+    setExpandedStepId("garment-colour");
+    setColour(DEFAULT_COLOUR);
+    setArtwork({});
+    setNeckLabel({} as NeckLabel);
+    setSteps(stepsForConfiguration(DEFAULT_COLOUR, {}, undefined));
+    setQuantity(50);
+    setFeedback({ tone: "info", title: "Configuration reset", detail: "The product is back to its default colour and blank branding state." });
+    trackConfiguratorEvent("configuration_reset", { product_id: productId });
+  }
+
+  const canUndo = historyIndexRef.current > 0;
+  const canRedo = historyIndexRef.current >= 0 && historyIndexRef.current < historyRef.current.length - 1;
+  const deliveryFeasibility = useMemo(
+    () => getDeliveryFeasibility(preferredTargetDate, colour.type === "custom_dye" ? 7 : 0),
+    [preferredTargetDate, colour.type]
+  );
 
   function showCtaError(message: string) {
     setCtaErrorMessage(message);
@@ -300,12 +442,10 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       });
     }
     if (stepId === "artwork") {
-      revokeArtworkObjectUrls(artwork);
       setArtwork({});
       updateStep("artwork", { confirmed: false, skipped: false, summary: null });
     }
     if (stepId === "neck-label") {
-      revokeNeckLabelObjectUrl(neckLabel);
       setNeckLabel({} as NeckLabel);
       updateStep("neck-label", { confirmed: false, skipped: false, summary: null });
     }
@@ -331,6 +471,43 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       cartId: editCartId ?? undefined,
       itemId: editItemId ?? undefined,
     });
+    if (!targetCartId) {
+      setFeedback({
+        tone: "error",
+        title: "Could not save this product to the cart",
+        detail: "Your configuration is still open. Free some browser storage or try another browser before continuing.",
+      });
+      return;
+    }
+
+    if (preferredTargetDate) {
+      const targetDraft = readDraft(targetCartId);
+      if (!targetDraft.selectedDeliveryDateIso) {
+        const dateSaved = writeDraft(targetCartId, {
+          ...targetDraft,
+          selectedDeliveryDateIso: new Date(`${preferredTargetDate}T12:00:00`).toISOString(),
+          deliveryType: "flexible",
+        });
+        if (!dateSaved) {
+          try {
+            window.sessionStorage.setItem(
+              "garmops:cart-update",
+              "Product saved, but the target date could not be retained. Select it again before payment."
+            );
+          } catch {
+            // The review page remains usable even when session storage is unavailable.
+          }
+        }
+      }
+    }
+    if (editCartId && typeof window !== "undefined") {
+      try {
+        window.sessionStorage.setItem("garmops:cart-update", "Design updated successfully.");
+      } catch {
+        // The cart itself is already saved; this success toast is optional.
+      }
+    }
+    trackConfiguratorEvent("added_to_cart", { product_id: productId, quantity, editing: Boolean(editCartId) });
     clearBuildDraft(configId);
     router.push(`/configurator/cart/${encodeURIComponent(targetCartId)}/review`);
   }
@@ -345,6 +522,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       }
       const confirmedColour = { ...colour, confirmed: true };
       setColour(confirmedColour);
+      trackConfiguratorEvent("colour_selected", { product_id: productId, colour: confirmedColour.name, colour_type: confirmedColour.type });
       updateStep("garment-colour", {
         confirmed: true,
         skipped: false,
@@ -358,6 +536,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
     if (expandedStepId === "artwork") {
       const hasArtwork = Boolean(artwork.front || artwork.back);
       if (!hasArtwork) {
+        trackConfiguratorEvent("artwork_skipped", { product_id: productId });
         updateStep("artwork", {
           confirmed: true,
           skipped: true,
@@ -391,6 +570,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
 
     if (expandedStepId === "neck-label") {
       if (!neckLabel?.fileUrl) {
+        trackConfiguratorEvent("neck_label_skipped", { product_id: productId, step: "neck_label" });
         updateStep("neck-label", {
           confirmed: true,
           skipped: true,
@@ -424,6 +604,8 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
 
   async function handleDownloadPdf() {
     setIsDownloadingPdf(true);
+    setFeedback({ tone: "loading", title: "Preparing product preview…", detail: "Your current configuration remains editable while the document is created." });
+    trackConfiguratorEvent("approval_pdf_started", { source: "studio", product_id: productId });
     try {
       const sizes = product?.sizes ?? ["XS", "S", "M", "L", "XL", "XXL"];
       const sizeQuantities = splitQuantityAcrossSizes(quantity, sizes);
@@ -443,6 +625,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       } catch {
         previewDataUrl = undefined;
       }
+      setFeedback({ tone: "loading", title: "Adding commercial and production details…" });
       await generateApprovalPdf({
         projectReference: configId,
         documentTitle: "Merch Design Summary",
@@ -469,6 +652,11 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         previewDataUrls: { [configId]: previewDataUrl },
         filename: `Garmops-Design-${configId}.pdf`,
       });
+      setFeedback({ tone: "success", title: "Design PDF downloaded", detail: "The document is a dated snapshot of this configuration." });
+      trackConfiguratorEvent("approval_pdf_downloaded", { source: "studio", product_id: productId });
+    } catch {
+      setFeedback({ tone: "error", title: "PDF generation failed", detail: "Your configuration is safe. Check your connection and try downloading again.", retryPdf: true });
+      trackConfiguratorEvent("approval_pdf_failed", { source: "studio", product_id: productId });
     } finally {
       setIsDownloadingPdf(false);
     }
@@ -477,12 +665,20 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   return (
     <ArtworkPositionProvider activeView={activeView}>
       <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-white text-[#111111]">
+        <NetworkStatusBanner />
         <ConfiguratorHeader
           configId={configId}
           productName={productName}
           onDownloadPdf={handleDownloadPdf}
           isDownloadingPdf={isDownloadingPdf}
         />
+        <ConfiguratorJourney currentStep="customise" compact links={{ product: "/configurator" }} className="mx-4 mb-3 shrink-0" />
+
+        {feedback && (
+          <div className="fixed right-4 top-24 z-[70] w-[min(380px,calc(100vw-2rem))]">
+            <ActionFeedback {...feedback} onDismiss={feedback.tone === "loading" ? undefined : () => setFeedback(null)} actionLabel={feedback.retryPdf ? "Try PDF again" : undefined} onAction={feedback.retryPdf ? handleDownloadPdf : undefined} />
+          </div>
+        )}
 
         <div
           data-configurator-pdf-preview="true"
@@ -502,7 +698,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
           </ArtworkPositionProvider>
         </div>
 
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 px-4 pb-4 lg:grid-cols-[360px_minmax(0,1fr)_310px] lg:px-5">
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 px-4 pb-4 lg:grid-cols-[320px_minmax(0,1fr)_280px] xl:grid-cols-[360px_minmax(0,1fr)_310px] lg:px-5">
           <aside className="order-2 flex min-h-0 min-w-0 flex-col overflow-hidden rounded-[28px] border border-[#E5E5E5] bg-white lg:order-1">
             <div className="border-b border-[#E5E5E5] px-4 py-3">
               <div className="flex items-center justify-between gap-2">
@@ -510,18 +706,23 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                   Guided setup
                 </p>
                 <span
-                  className={`text-[10px] font-medium uppercase tracking-wide text-[#111111]/35 transition-opacity ${
-                    draftJustSaved ? "opacity-100" : "opacity-0"
+                  className={`text-[10px] font-medium uppercase tracking-wide transition-opacity ${
+                    saveStatus === "error" ? "text-[#A63A3A]" : "text-[#111111]/45"
                   }`}
                   aria-live="polite"
                 >
-                  Saved automatically
+                  {saveStatus === "saving" ? "Saving…" : saveStatus === "saved" ? "Saved" : saveStatus === "error" ? "Could not save" : "Autosave on"}
                 </span>
               </div>
               <h1 className="mt-1 text-lg font-semibold text-[#111111]">{productName}</h1>
               <p className="mt-1 text-xs font-medium text-[#111111]/60">
                 Step {buildProgress.current} of {buildProgress.total}: {buildProgress.label}
               </p>
+              <div className="mt-2 flex items-center gap-1" aria-label="Configuration history controls">
+                <button type="button" onClick={undoConfiguration} disabled={!canUndo} className="flex h-8 items-center gap-1 rounded-full border border-[#E5E5E5] px-2.5 text-[11px] font-semibold text-[#111111]/60 disabled:opacity-35"><Undo2 size={13} /> Undo</button>
+                <button type="button" onClick={redoConfiguration} disabled={!canRedo} className="flex h-8 items-center gap-1 rounded-full border border-[#E5E5E5] px-2.5 text-[11px] font-semibold text-[#111111]/60 disabled:opacity-35"><Redo2 size={13} /> Redo</button>
+                <button type="button" onClick={resetConfiguration} className="flex h-8 items-center gap-1 rounded-full border border-[#E5E5E5] px-2.5 text-[11px] font-semibold text-[#A63A3A]"><RotateCcw size={13} /> Reset</button>
+              </div>
               {draftRestored && (
                 <div className="mt-2 flex items-center justify-between gap-2 rounded-md bg-[#F7F7F7] px-2.5 py-1.5 text-xs text-[#111111]/65">
                   <span>Restored your saved progress.</span>
@@ -590,6 +791,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
               activeView={activeView}
               onViewChange={setActiveView}
               colourHex={colour.hex}
+              colourName={colour.name}
               productId={productId}
               artwork={artwork}
               neckLabel={neckLabel}
@@ -605,8 +807,9 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-[#111111]/45">
                   Studio summary
                 </p>
-                <span className="inline-flex items-center gap-1 rounded-full bg-[#EAF7EA] px-2 py-1 text-[10px] font-semibold text-[#1B7F36]">
-                  <FileCheck2 size={12} strokeWidth={2.3} /> Autosaved
+                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold ${saveStatus === "error" ? "bg-[#FFF0F0] text-[#A63A3A]" : "bg-[#EAF7EA] text-[#1B7F36]"}`}>
+                  <FileCheck2 size={12} strokeWidth={2.3} />
+                  {saveStatus === "saving" ? "Saving" : saveStatus === "error" ? "Save unavailable" : "Autosaved"}
                 </span>
               </div>
               <div className="mt-4 space-y-3 text-sm">
@@ -627,6 +830,12 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 <div className="flex justify-between gap-4">
                   <span className="text-[#111111]/55">{isToteProduct ? "Bag label" : "Neck label"}</span>
                   <span className="text-right font-medium">{neckLabel?.fileUrl ? "Added" : "Not added"}</span>
+                </div>
+
+                <div className={`rounded-xl border p-3 ${deliveryFeasibility.status === "comfortable" ? "border-[#CDE8D2] bg-[#F2FBF3]" : deliveryFeasibility.status === "review" ? "border-[#F0CACA] bg-[#FFF5F5]" : "border-[#E7C56A] bg-[#FFF8E7]"}`}>
+                  <p className="text-xs font-semibold text-[#111111]">{deliveryFeasibility.label}</p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-[#111111]/60">{deliveryFeasibility.detail}</p>
+                  {!preferredTargetDate && <a href="/configurator" className="mt-1 inline-block text-[11px] font-semibold text-[var(--color-teal-dark)] underline">Set required-by date</a>}
                 </div>
 
                 <div className="rounded-xl border border-[var(--color-teal)]/25 bg-[var(--color-teal)]/5 p-3">

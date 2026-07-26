@@ -14,6 +14,7 @@ interface CartSummarySidebarProps {
   nextDisabled?: boolean;
   disabledMessage?: string;
   sticky?: boolean;
+  onDisabledNext?: () => void;
 }
 
 export function CartSummarySidebar({
@@ -29,6 +30,7 @@ export function CartSummarySidebar({
   nextDisabled = false,
   disabledMessage,
   sticky = true,
+  onDisabledNext,
 }: CartSummarySidebarProps) {
   const balanceDue = Math.max(0, total - RESERVATION_FEE);
 
@@ -102,9 +104,12 @@ export function CartSummarySidebar({
         <>
         <button
           type="button"
-          onClick={onNext}
-          disabled={nextDisabled}
-          className="mt-5 w-full rounded-full bg-[var(--color-teal)] py-3 text-sm font-semibold text-white hover:bg-[var(--color-teal-dark)] disabled:cursor-not-allowed disabled:bg-[#E5E5E5] disabled:text-[#111111]/40"
+          onClick={() => {
+            if (nextDisabled) { onDisabledNext?.(); return; }
+            onNext();
+          }}
+          aria-disabled={nextDisabled}
+          className={`mt-5 w-full rounded-full py-3 text-sm font-semibold ${nextDisabled ? "bg-[#E5E5E5] text-[#111111]/40" : "bg-[var(--color-teal)] text-white hover:bg-[var(--color-teal-dark)]"}`}
         >
           {nextLabel}
         </button>

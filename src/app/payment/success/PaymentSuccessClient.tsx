@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useCartStore } from "@/lib/store";
 import type { PaymentKind } from "@/lib/payu";
 import { readUploadedFile } from "@/lib/configurator/objectUrls";
+import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
+import { ConfiguratorJourney } from "@/components/configurator/ConfiguratorJourney";
 
 interface PaymentSuccessClientProps {
   verified: boolean;
@@ -23,6 +25,7 @@ type PendingOrder = {
   email?: string;
   txnid?: string;
   amount?: string;
+  projectName?: string;
   companyName?: string;
   companyGstin?: string;
   companyWebsite?: string;
@@ -102,9 +105,25 @@ export default function PaymentSuccessClient({
     }
 
     if (!order) {
+      if (paymentKind === "configurator") {
+        trackConfiguratorEvent("reservation_completed", {
+          transaction_id: txnid,
+          order_details_restored: false,
+          mock_payment: isMockPayment,
+        });
+      }
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setOrderDetailsStatus("missing");
       return;
+    }
+
+    if (paymentKind === "configurator") {
+      trackConfiguratorEvent("reservation_completed", {
+        transaction_id: txnid,
+        order_details_restored: true,
+        mock_payment: isMockPayment,
+        quantity: order.totalQty,
+      });
     }
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -159,6 +178,7 @@ export default function PaymentSuccessClient({
               shippingAddress: order.shippingAddress ?? "",
             }
           : {
+              projectName: order.projectName,
               companyName: order.companyName,
               companyGstin: order.companyGstin,
               companyWebsite: order.companyWebsite,
@@ -263,6 +283,9 @@ export default function PaymentSuccessClient({
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-6">
       <div className="w-full max-w-md text-center">
+        {!isSampleOrder && (
+          <ConfiguratorJourney currentStep="reserve" compact className="mb-6 text-left" />
+        )}
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-teal)]/10">
           <svg
             width="28"
@@ -292,7 +315,7 @@ export default function PaymentSuccessClient({
           {firstName ? `Thanks ${firstName}!` : "Thank you!"}{" "}
           {isSampleOrder
             ? "Your sample order has been received."
-            : "Your production slot has been reserved."}
+            : "Your production review request has been received."}
         </p>
 
         {orderDetailsStatus === "missing" && (
@@ -336,7 +359,7 @@ export default function PaymentSuccessClient({
             <ul className="flex flex-col gap-1.5">
               <li>· Our team will review your order and send a proforma invoice within 24 hours</li>
               <li>· The ₹499 reservation fee will be deducted from your final invoice</li>
-              <li>· Production begins after balance payment is received</li>
+              <li>· Production begins only after technical review, your approval and agreed payment terms</li>
             </ul>
           )}
         </div>

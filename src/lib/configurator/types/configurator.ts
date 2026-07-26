@@ -42,6 +42,11 @@ export interface ArtworkSide {
   printArea: PrintAreaSize;
   guidelines: ArtworkGuidelines;
   confirmed: boolean;
+  /** Optional browser-side diagnostics used for preview and production warnings. */
+  pixelWidth?: number;
+  pixelHeight?: number;
+  hasTransparency?: boolean;
+  averageLuminance?: number;
 }
 
 export interface Artwork {

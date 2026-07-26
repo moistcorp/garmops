@@ -15,6 +15,7 @@ import type {
   ArtworkSide,
   ArtworkTechnique,
 } from "@/lib/configurator/types/configurator";
+import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 
 const ACCEPTED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".svg", ".ai"];
 const MAX_FILE_BYTES = 4.5 * 1024 * 1024;
@@ -49,7 +50,8 @@ function makeDefaultSide(
   dimensions: { width: number; height: number },
   technique?: ArtworkTechnique,
   fileKey?: string,
-  fileName?: string
+  fileName?: string,
+  diagnostics?: Pick<ArtworkSide, "pixelWidth" | "pixelHeight" | "hasTransparency" | "averageLuminance">
 ): ArtworkSide {
   return {
     fileUrl,
@@ -65,6 +67,7 @@ function makeDefaultSide(
     printArea: "XS",
     guidelines: { maximumArea: true, leftChest: false },
     confirmed: false,
+    ...diagnostics,
   };
 }
 
@@ -102,6 +105,42 @@ async function getDefaultArtworkDimensions(
   return { width: DEFAULT_ARTWORK_WIDTH_CM, height: FALLBACK_VECTOR_HEIGHT_CM };
 }
 
+
+async function analyseRasterArtwork(fileUrl: string): Promise<Pick<ArtworkSide, "pixelWidth" | "pixelHeight" | "hasTransparency" | "averageLuminance">> {
+  const image = new Image();
+  await new Promise<void>((resolve, reject) => {
+    image.onload = () => resolve();
+    image.onerror = reject;
+    image.src = fileUrl;
+  });
+  const canvas = document.createElement("canvas");
+  const maxSide = 160;
+  const scale = Math.min(1, maxSide / Math.max(image.naturalWidth, image.naturalHeight));
+  canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+  canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  if (!context) return { pixelWidth: image.naturalWidth, pixelHeight: image.naturalHeight };
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  const data = context.getImageData(0, 0, canvas.width, canvas.height).data;
+  let transparent = false;
+  let luminanceTotal = 0;
+  let samples = 0;
+  for (let index = 0; index < data.length; index += 16) {
+    const alpha = data[index + 3] / 255;
+    if (alpha < 0.98) transparent = true;
+    if (alpha > 0.1) {
+      luminanceTotal += (0.2126 * data[index] + 0.7152 * data[index + 1] + 0.0722 * data[index + 2]) / 255;
+      samples += 1;
+    }
+  }
+  return {
+    pixelWidth: image.naturalWidth,
+    pixelHeight: image.naturalHeight,
+    hasTransparency: transparent,
+    averageLuminance: samples ? luminanceTotal / samples : undefined,
+  };
+}
+
 export interface ArtworkUploadSideProps {
   side: "front" | "back";
   value?: ArtworkSide;
@@ -119,18 +158,67 @@ function VectorConversionDialog({
   onOpenConverter,
   onUploadToStudio,
 }: VectorConversionDialogProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    const previouslyFocused = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    closeButtonRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+      if (event.key !== "Tab") return;
+
+      const focusable = Array.from(
+        dialogRef.current?.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        ) ?? []
+      ).filter((element) => !element.hasAttribute("hidden"));
+      if (!focusable.length) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      previouslyFocused?.focus();
+    };
+  }, []);
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-white/60 p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby="vector-conversion-title"
+      aria-describedby="vector-conversion-description"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="relative w-full max-w-[720px] rounded-lg bg-white p-6 shadow-2xl sm:p-8">
+      <div ref={dialogRef} className="relative w-full max-w-[720px] rounded-lg bg-white p-6 shadow-2xl sm:p-8">
         <button
+          ref={closeButtonRef}
           type="button"
           onClick={onClose}
           aria-label="Close convert artwork guide"
@@ -145,7 +233,7 @@ function VectorConversionDialog({
               Convert your artwork in three steps
             </h2>
             <div className="flex flex-col gap-2 text-sm leading-relaxed text-[#111111]/80">
-              <p>
+              <p id="vector-conversion-description">
                 Why vector files? Vector graphics are made from paths, not pixels - which means
                 they scale without losing quality.
               </p>
@@ -277,6 +365,9 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
     fileName?: string
   ) {
     const dimensions = await getDefaultArtworkDimensions(fileUrl, fileType);
+    const diagnostics = fileType === "jpg" || fileType === "png"
+      ? await analyseRasterArtwork(fileUrl).catch(() => ({}))
+      : {};
     if (token !== importTokenRef.current) {
       revokeObjectUrl(fileUrl);
       return;
@@ -290,9 +381,6 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
       fromNeckCm: 5,
       fromCenterCm: 0,
     });
-    if (value?.fileUrl !== fileUrl) {
-      revokeObjectUrl(value?.fileUrl);
-    }
     onChange(
       makeDefaultSide(
         fileUrl,
@@ -300,7 +388,8 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
         dimensions,
         value?.technique,
         fileKey,
-        fileName
+        fileName,
+        diagnostics
       )
     );
   }
@@ -320,6 +409,7 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
     }
     setError(null);
     setResolutionWarning(null);
+    trackConfiguratorEvent("artwork_upload_started", { side, file_type: fileType, file_size: file.size });
     setPersistenceWarning(null);
 
     const fileUrl = URL.createObjectURL(file);
@@ -339,7 +429,8 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
         })
         .catch(() => {
           if (token === importTokenRef.current) {
-            setError("This image could not be read. Try exporting it again.");
+            setError("This image could not be read. Your other selections are safe. Try exporting it again or upload another file.");
+            trackConfiguratorEvent("artwork_upload_failed", { side, reason: "unreadable_image" });
           }
         });
     }
@@ -352,7 +443,9 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
             "This browser could not save the upload for reload recovery. Keep this tab open or try a different browser."
           );
         }
-        void importArtwork(fileUrl, fileType, token, fileKey, file.name);
+        void importArtwork(fileUrl, fileType, token, fileKey, file.name).then(() => {
+          trackConfiguratorEvent("artwork_upload_succeeded", { side, file_type: fileType });
+        });
       });
     });
   }
@@ -362,7 +455,6 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
     clearFakeProgress();
     revokeObjectUrl(pendingObjectUrlRef.current ?? undefined);
     pendingObjectUrlRef.current = null;
-    revokeObjectUrl(value?.fileUrl);
     onChange(undefined);
     setError(null);
     setResolutionWarning(null);
@@ -423,44 +515,45 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
 
       {!value ? (
         <div
-          onDragOver={(e) => {
-            e.preventDefault();
+          onDragOver={(event) => {
+            event.preventDefault();
             setDragging(true);
           }}
           onDragLeave={() => setDragging(false)}
-          onDrop={(e) => {
-            e.preventDefault();
+          onDrop={(event) => {
+            event.preventDefault();
             setDragging(false);
-            handleFiles(e.dataTransfer.files);
+            handleFiles(event.dataTransfer.files);
           }}
-          onClick={() => inputRef.current?.click()}
-          className={`group relative flex cursor-pointer flex-col items-center justify-center gap-1 border border-dashed px-4 py-8 text-center transition-colors ${
+          className={`flex flex-col items-center border border-dashed px-4 py-5 text-center transition-colors ${
             dragging ? "border-[var(--color-teal)] bg-[var(--color-teal)]/10" : "border-[#E5E5E5]"
           }`}
         >
-          <p className="text-sm text-[#111111]">Drag and drop artwork, or click to browse</p>
-          <p className="text-xs text-[#111111]/50">
-            Accepts .jpg, .jpeg, .png, .svg, .ai up to 4.5MB
-          </p>
-          <a
-            href={PRINT_TEMPLATES_HREF}
-            download
-            onClick={(e) => e.stopPropagation()}
-            className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-[#111111] underline underline-offset-2 hover:no-underline"
-          >
-            Download Templates
-            <Download size={13} strokeWidth={2.2} />
-          </a>
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleTrySample();
-            }}
-            className="pointer-events-none absolute bottom-2 right-2 rounded-full border border-[var(--color-teal)] bg-[var(--color-cream-soft)] px-2 py-0.5 text-[10px] uppercase tracking-wide text-[var(--color-teal)] opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100"
+            onClick={() => inputRef.current?.click()}
+            className="flex min-h-20 w-full flex-col items-center justify-center gap-1 rounded-md px-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-teal)]"
           >
-            + Try sample artwork
+            <span className="text-sm text-[#111111]">Drag and drop artwork, or click to browse</span>
+            <span className="text-xs text-[#111111]/50">Accepts .jpg, .jpeg, .png, .svg, .ai up to 4.5MB</span>
           </button>
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+            <a
+              href={PRINT_TEMPLATES_HREF}
+              download
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-[#E5E5E5] px-3 text-xs font-medium uppercase tracking-wide text-[#111111] hover:border-[var(--color-teal)]"
+            >
+              Download Templates
+              <Download size={13} strokeWidth={2.2} />
+            </a>
+            <button
+              type="button"
+              onClick={handleTrySample}
+              className="min-h-9 rounded-full border border-[var(--color-teal)] bg-[var(--color-cream-soft)] px-3 text-xs font-semibold text-[var(--color-teal-dark)]"
+            >
+              Try sample artwork
+            </button>
+          </div>
         </div>
       ) : (
         <div className="flex flex-col gap-2 border border-[#E5E5E5] p-3">
