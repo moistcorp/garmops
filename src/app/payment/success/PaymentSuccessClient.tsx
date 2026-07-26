@@ -62,6 +62,12 @@ export default function PaymentSuccessClient({
     if (!verified || hasHandled.current) return;
     hasHandled.current = true;
 
+    // A verified sample-cart payment means this browser cart should no longer
+    // remain purchasable, even when its optional local order summary is missing.
+    if (paymentKind === "sample-cart") {
+      clearCart();
+    }
+
     let order: PendingOrder | null = null;
     try {
       const raw = window.localStorage.getItem("mf_pending_order");
@@ -90,10 +96,6 @@ export default function PaymentSuccessClient({
       name: order.name ?? "",
       email: order.email ?? "",
     });
-
-    if (paymentKind === "sample-cart") {
-      clearCart();
-    }
 
     if (isMockPayment) {
       window.localStorage.removeItem("mf_pending_order");

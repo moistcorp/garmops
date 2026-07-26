@@ -15,19 +15,19 @@ export default function Products() {
     <>
       <section className="max-w-7xl mx-auto px-6 pt-20 pb-12">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Garmops</p>
-        <h1 className="text-5xl font-bold text-[#111111] leading-tight mb-4 tracking-tight">Products</h1>
+        <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] leading-tight mb-4 tracking-tight">Products</h1>
         <p className="text-[#111111]/50 max-w-lg text-lg">
           Order samples of our products before placing a bulk order. All pieces are manufactured in-house.
         </p>
       </section>
 
       <section className="max-w-7xl mx-auto px-6 pb-12">
-        <div className="rounded-2xl border border-[#ECE7DF] bg-white px-8 py-5 flex flex-col md:flex-row items-center justify-between gap-4 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
+        <div className="rounded-2xl border border-[#ECE7DF] bg-white px-5 sm:px-8 py-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
           <p className="text-sm text-[#111111]/60">
             Ships within 24 hours.
           </p>
-          <div className="flex gap-6 text-xs text-[#111111]/40 shrink-0">
-            <span>Free shipping above ₹2000 spend</span>
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-6 text-xs text-[#111111]/40 md:shrink-0">
+            <span>Free shipping above ₹2,000</span>
             <span>Easy returns</span>
           </div>
         </div>

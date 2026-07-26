@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { useState } from 'react'
+import { DELIVERY_DAYS, RUSH_DELIVERY_DAYS } from '@/lib/pricing'
 
 export default function ContactClient() {
   const [submitted, setSubmitted] = useState(false)
@@ -46,7 +47,7 @@ export default function ContactClient() {
     <>
       <section className="max-w-7xl mx-auto px-6 pt-20 pb-16">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Get in touch</p>
-        <h1 className="text-5xl font-bold text-[#111111] max-w-xl leading-tight mb-6 tracking-tight">
+        <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] max-w-xl leading-tight mb-6 tracking-tight">
           Tell us about your project
         </h1>
         <p className="text-[#111111]/50 max-w-lg text-lg">
@@ -112,7 +113,7 @@ export default function ContactClient() {
           {[
             { label: 'Location', content: 'Moist Corp\nGreater Noida, Uttar Pradesh\nIndia' },
             { label: 'Email', content: 'hello@garmops.com', isEmail: true },
-            { label: 'MOQ & Turnaround', content: '50 pieces minimum. 35-day standard production. Rush available on request.' },
+            { label: 'MOQ & Turnaround', content: `50 pieces minimum. ${DELIVERY_DAYS}-day standard production. ${RUSH_DELIVERY_DAYS}-day rush production available.` },
           ].map(item => (
             <div key={item.label}>
               <p className="text-xs font-medium text-[#111111]/40 mb-2 uppercase tracking-widest">{item.label}</p>

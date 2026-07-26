@@ -1,8 +1,9 @@
 'use client'
-import Link from 'next/link'
+
 import Image from 'next/image'
-import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
 import { useCartStore } from '@/lib/store'
 
 const links = [
@@ -18,111 +19,215 @@ export default function Navbar() {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
-  const itemCount = useCartStore(s => s.items.reduce((a, i) => a + i.quantity, 0))
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
+  const firstMenuLinkRef = useRef<HTMLAnchorElement>(null)
+  const mobileNavRef = useRef<HTMLElement>(null)
+  const itemCount = useCartStore(state => state.items.reduce((total, item) => total + item.quantity, 0))
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 12)
-    window.addEventListener('scroll', handleScroll)
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   useEffect(() => {
+    setOpen(false)
+  }, [pathname])
+
+  useEffect(() => {
     if (!open) return
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false)
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    firstMenuLinkRef.current?.focus()
+
+    const handleMenuKeys = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOpen(false)
+        requestAnimationFrame(() => menuButtonRef.current?.focus())
+        return
+      }
+
+      if (event.key !== 'Tab') return
+      const focusable = Array.from(
+        mobileNavRef.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [],
+      ).filter(element => !element.hasAttribute('disabled'))
+      if (focusable.length === 0) return
+
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
     }
-    document.addEventListener('keydown', closeOnEscape)
-    return () => document.removeEventListener('keydown', closeOnEscape)
+
+    document.addEventListener('keydown', handleMenuKeys)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', handleMenuKeys)
+    }
   }, [open])
 
+  const closeMenu = () => setOpen(false)
+
   return (
-    <header className="w-full sticky top-0 z-50 px-4 pt-4 pb-3">
+    <header className="sticky top-0 z-50 w-full px-3 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-4 sm:pt-4">
       <div
-        className={`max-w-7xl mx-auto rounded-full bg-white/90 backdrop-blur-md border border-[#ECE7DF] transition-shadow duration-200 ${
-          scrolled ? 'shadow-[0_8px_24px_rgba(22,33,43,0.08)]' : 'shadow-[0_2px_10px_rgba(22,33,43,0.04)]'
+        className={`relative z-50 mx-auto max-w-7xl rounded-full border border-[#ECE7DF] bg-white/95 backdrop-blur-md transition-shadow duration-200 ${
+          scrolled
+            ? 'shadow-[0_8px_24px_rgba(22,33,43,0.08)]'
+            : 'shadow-[0_2px_10px_rgba(22,33,43,0.04)]'
         }`}
       >
-        <div className="px-6 py-3 flex items-center justify-between gap-8">
-          <Link href="/" className="flex items-center shrink-0">
-            <Image src="/logo3.png" alt="Garmops" width={908} height={114}
-              className="h-5 w-auto object-contain" priority />
+        <div className="flex min-h-12 items-center justify-between gap-4 px-5 py-2.5 sm:px-6 sm:py-3">
+          <Link href="/" className="flex min-w-0 shrink items-center" aria-label="Garmops home">
+            <Image
+              src="/logo3.png"
+              alt="Garmops"
+              width={908}
+              height={114}
+              className="h-[18px] w-auto max-w-[180px] object-contain sm:h-5"
+              priority
+            />
           </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-6 text-sm flex-1 justify-center">
-            {links.map(l => {
-              const isActive = pathname === l.href || pathname.startsWith(l.href + '/')
+          <nav className="hidden flex-1 items-center justify-center gap-6 text-sm md:flex" aria-label="Primary navigation">
+            {links.map(link => {
+              const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`)
               return (
-                <Link key={l.href} href={l.href}
+                <Link
+                  key={link.href}
+                  href={link.href}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`transition-colors text-xs tracking-wide ${
+                  className={`text-xs tracking-wide transition-colors ${
                     isActive
-                      ? 'text-[var(--color-teal)] font-semibold'
+                      ? 'font-semibold text-[var(--color-teal)]'
                       : 'text-[#444444] hover:text-[var(--color-teal)]'
-                  }`}>
-                  {l.label}
+                  }`}
+                >
+                  {link.label}
                 </Link>
               )
             })}
           </nav>
 
-          {/* Right side actions */}
-          <div className="hidden md:flex items-center gap-4 shrink-0">
-            <Link href="/cart" className="relative text-xs text-[#444444] hover:text-[var(--color-teal)] transition-colors">
+          <div className="hidden shrink-0 items-center gap-4 md:flex">
+            <Link
+              href="/cart"
+              className="relative text-xs text-[#444444] transition-colors hover:text-[var(--color-teal)]"
+            >
               Cart
               {itemCount > 0 && (
-                <span className="absolute -top-2 -right-3 bg-[var(--color-teal)] text-white text-xs w-4 h-4 rounded-full flex items-center justify-center leading-none">
-                  {itemCount}
+                <span className="absolute -right-3 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--color-teal)] px-1 text-[10px] leading-none text-white">
+                  {itemCount > 99 ? '99+' : itemCount}
                 </span>
               )}
             </Link>
-            <Link href="/configurator"
-              className="bg-[var(--color-teal)] text-white text-xs px-5 py-2.5 rounded-full hover:bg-[var(--color-teal-dark)] transition-colors tracking-wide">
+            <Link
+              href="/configurator"
+              className="rounded-full bg-[var(--color-teal)] px-5 py-2.5 text-xs tracking-wide text-white transition-colors hover:bg-[var(--color-teal-dark)]"
+            >
               Start designing
             </Link>
           </div>
 
-          {/* Mobile right */}
-          <div className="md:hidden flex items-center gap-4">
-            <Link href="/cart" className="relative text-xs text-[#111111]/50">
+          <div className="flex shrink-0 items-center gap-4 md:hidden">
+            <Link href="/cart" className="relative text-sm text-[#111111]/60">
               Cart
               {itemCount > 0 && (
-                <span className="absolute -top-2 -right-3 bg-[var(--color-teal)] text-white text-xs w-4 h-4 rounded-full flex items-center justify-center leading-none">
-                  {itemCount}
+                <span className="absolute -right-3 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--color-teal)] px-1 text-[10px] leading-none text-white">
+                  {itemCount > 99 ? '99+' : itemCount}
                 </span>
               )}
             </Link>
-            <button className="flex flex-col gap-1.5 p-1" onClick={() => setOpen(!open)} aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} aria-controls="mobile-navigation">
-              <span className={`block w-5 h-0.5 bg-[#111111] transition-transform ${open ? 'rotate-45 translate-y-2' : ''}`} />
-              <span className={`block w-5 h-0.5 bg-[#111111] transition-opacity ${open ? 'opacity-0' : ''}`} />
-              <span className={`block w-5 h-0.5 bg-[#111111] transition-transform ${open ? '-rotate-45 -translate-y-2' : ''}`} />
+            <button
+              ref={menuButtonRef}
+              type="button"
+              className="relative flex h-9 w-9 items-center justify-center rounded-full text-[#111111] transition-colors hover:bg-black/5"
+              onClick={() => setOpen(current => !current)}
+              aria-label={open ? 'Close menu' : 'Open menu'}
+              aria-expanded={open}
+              aria-controls="mobile-navigation"
+            >
+              <span className="sr-only">{open ? 'Close menu' : 'Open menu'}</span>
+              <span
+                aria-hidden="true"
+                className={`absolute h-0.5 w-5 bg-current transition-transform duration-200 ${
+                  open ? 'rotate-45' : '-translate-y-[6px]'
+                }`}
+              />
+              <span
+                aria-hidden="true"
+                className={`absolute h-0.5 w-5 bg-current transition-opacity duration-200 ${open ? 'opacity-0' : 'opacity-100'}`}
+              />
+              <span
+                aria-hidden="true"
+                className={`absolute h-0.5 w-5 bg-current transition-transform duration-200 ${
+                  open ? '-rotate-45' : 'translate-y-[6px]'
+                }`}
+              />
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Mobile menu */}
-        {open && (
-          <nav id="mobile-navigation" aria-label="Mobile navigation" className="md:hidden px-6 pb-6 flex flex-col gap-1 border-t border-[#ECE7DF] pt-4">
-            {links.map(l => {
-              const isActive = pathname === l.href || pathname.startsWith(l.href + '/')
+      <div
+        className={`fixed inset-0 z-40 md:hidden ${open ? 'pointer-events-auto' : 'pointer-events-none'}`}
+        aria-hidden={!open}
+      >
+        <button
+          type="button"
+          aria-label="Close menu"
+          tabIndex={-1}
+          onClick={closeMenu}
+          className={`absolute inset-0 bg-[#111111]/20 backdrop-blur-[2px] transition-opacity duration-200 ${
+            open ? 'opacity-100' : 'opacity-0'
+          }`}
+        />
+
+        <nav
+          ref={mobileNavRef}
+          id="mobile-navigation"
+          aria-label="Mobile navigation"
+          className={`absolute inset-x-3 top-[calc(max(0.75rem,env(safe-area-inset-top))+3.75rem)] max-h-[calc(100dvh-5.5rem-env(safe-area-inset-bottom))] overflow-y-auto rounded-[28px] border border-[#ECE7DF] bg-white px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 shadow-[0_18px_50px_rgba(22,33,43,0.16)] transition-all duration-200 sm:inset-x-4 ${
+            open ? 'translate-y-0 opacity-100' : '-translate-y-3 opacity-0'
+          }`}
+        >
+          <div className="flex flex-col">
+            {links.map((link, index) => {
+              const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`)
               return (
-                <Link key={l.href} href={l.href}
+                <Link
+                  ref={index === 0 ? firstMenuLinkRef : undefined}
+                  key={link.href}
+                  href={link.href}
+                  tabIndex={open ? 0 : -1}
                   aria-current={isActive ? 'page' : undefined}
-                  onClick={() => setOpen(false)}
-                  className={`py-2.5 text-sm border-b border-[var(--color-cream-soft)] ${
-                    isActive ? 'text-[var(--color-teal)] font-semibold' : 'text-[#111111]/60'
-                  }`}>
-                  {l.label}
+                  onClick={closeMenu}
+                  className={`border-b border-[#ECE7DF] px-1 py-4 text-[17px] leading-none transition-colors ${
+                    isActive ? 'font-semibold text-[var(--color-teal)]' : 'text-[#111111]/65'
+                  }`}
+                >
+                  {link.label}
                 </Link>
               )
             })}
-            <Link href="/configurator"
-              onClick={() => setOpen(false)}
-              className="mt-3 bg-[var(--color-teal)] text-white px-5 py-3 rounded-full text-center text-sm font-medium">
-              Start designing
-            </Link>
-          </nav>
-        )}
+          </div>
+
+          <Link
+            href="/configurator"
+            tabIndex={open ? 0 : -1}
+            onClick={closeMenu}
+            className="mt-5 block rounded-full bg-[var(--color-teal)] px-5 py-3.5 text-center text-base font-medium text-white transition-colors hover:bg-[var(--color-teal-dark)]"
+          >
+            Start designing
+          </Link>
+        </nav>
       </div>
     </header>
   )

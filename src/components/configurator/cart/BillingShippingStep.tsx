@@ -25,13 +25,20 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
   // returned the saved delivery date/type immediately while the server
   // markup was rendered with none, and the two didn't match.
   const [draft, setDraft] = useState<CartDraft>(() => createDraft(cartId));
+  const [isDraftReady, setIsDraftReady] = useState(false);
   useEffect(() => {
     const loadDraft = window.setTimeout(() => {
-      setDraft(readDraft(cartId));
+      const savedDraft = readDraft(cartId);
+      if (savedDraft.items.length === 0) {
+        router.replace(`/configurator/cart/${encodeURIComponent(cartId)}/review`);
+        return;
+      }
+      setDraft(savedDraft);
+      setIsDraftReady(true);
     }, 0);
 
     return () => window.clearTimeout(loadDraft);
-  }, [cartId]);
+  }, [cartId, router]);
   const selectedDeliveryDate = useMemo(
     () =>
       draft.selectedDeliveryDateIso
@@ -69,7 +76,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
       deliveryBaseDate ?? new Date(),
       extraLeadTimeDays
     );
-    return shippingOk && billingOk && deliveryOk;
+    return isDraftReady && draft.items.length > 0 && shippingOk && billingOk && deliveryOk;
   }, [
     draft.shippingAddress,
     draft.billingAddress,
@@ -78,10 +85,12 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
     selectedDeliveryDate,
     deliveryBaseDate,
     extraLeadTimeDays,
+    isDraftReady,
+    draft.items.length,
   ]);
 
   const handleNext = () => {
-    if (!isValid) return;
+    if (!isDraftReady || draft.items.length === 0 || !isValid) return;
     router.push(`/configurator/cart/${encodeURIComponent(cartId)}/confirmation`);
   };
 

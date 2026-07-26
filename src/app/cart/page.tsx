@@ -49,7 +49,8 @@ export default function Cart() {
         {/* Items */}
         <div className="lg:col-span-2 flex flex-col gap-4">
           {items.map(item => (
-            <div key={`${item.id}-${item.size}`} className="bg-white rounded-2xl border border-[#ECE7DF] p-5 flex gap-5 items-start shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
+            <div key={`${item.id}-${item.size}`} className="bg-white rounded-2xl border border-[#ECE7DF] p-4 sm:p-5 flex flex-col sm:flex-row gap-4 sm:gap-5 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
+              <div className="flex min-w-0 gap-4 sm:contents">
               <div className="relative w-20 h-20 bg-[var(--color-cream-soft)] rounded-xl shrink-0 flex items-center justify-center overflow-hidden">
                 {item.image ? (
                   <Image src={item.image} alt={item.name} fill sizes="80px" className="object-cover" />
@@ -58,11 +59,12 @@ export default function Cart() {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-[#111111] leading-snug">{item.name}</p>
+                <p className="text-sm font-semibold text-[#111111] leading-snug break-words">{item.name}</p>
                 <p className="text-xs text-[#111111]/50 mt-0.5">Size: {item.size}</p>
                 <p className="text-sm font-bold mt-2">&#8377;{(item.price * item.quantity).toLocaleString('en-IN')}</p>
               </div>
-              <div className="flex flex-col items-end gap-3">
+              </div>
+              <div className="flex w-full sm:w-auto items-center justify-between sm:flex-col sm:items-end gap-3 sm:ml-auto">
                 <div className="flex items-center gap-2">
                   <button type="button"
                     onClick={() => updateQuantity(item.id, item.size, item.quantity - 1)}

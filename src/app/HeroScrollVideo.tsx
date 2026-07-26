@@ -1,7 +1,8 @@
 'use client'
+
 import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { RUSH_DELIVERY_DAYS } from '@/lib/pricing'
 
 export default function HeroScrollVideo() {
@@ -9,8 +10,24 @@ export default function HeroScrollVideo() {
   const videoWrapRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const hasStarted = useRef(false)
+  const [videoReady, setVideoReady] = useState(false)
+  const [useSimpleMedia, setUseSimpleMedia] = useState(false)
 
   useEffect(() => {
+    const updateMediaMode = () => {
+      const smallScreen = window.matchMedia('(max-width: 767px)').matches
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      setUseSimpleMedia(smallScreen || reducedMotion)
+    }
+
+    updateMediaMode()
+    window.addEventListener('resize', updateMediaMode)
+    return () => window.removeEventListener('resize', updateMediaMode)
+  }, [])
+
+  useEffect(() => {
+    if (useSimpleMedia) return
+
     const container = containerRef.current
     const videoWrap = videoWrapRef.current
     const video = videoRef.current
@@ -38,11 +55,10 @@ export default function HeroScrollVideo() {
     window.addEventListener('scroll', handleScroll, { passive: true })
     handleScroll()
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  }, [useSimpleMedia])
 
   return (
     <>
-      {/* HERO */}
       <section className="grid lg:grid-cols-2 min-h-[90vh]">
         <div className="flex flex-col justify-center px-8 md:px-16 py-20 lg:py-0 bg-[var(--color-cream)]">
           <p className="text-xs text-[#595959] font-medium mb-6 tracking-widest uppercase">
@@ -54,20 +70,24 @@ export default function HeroScrollVideo() {
           <p className="text-base text-[#4a4a4a] max-w-sm mb-10 leading-relaxed">
             From design to delivery: premium custom merch, made in India. Create, customise and place your order in just a few simple steps.
           </p>
-          <div className="flex gap-6 mb-10">
-            <div>
-              <p className="text-2xl font-bold text-[#111111]">50</p>
-              <p className="text-xs text-[#595959] uppercase tracking-wide">Min. pieces</p>
+          <div className="grid grid-cols-3 gap-2 sm:flex sm:gap-6 mb-10">
+            <div className="min-w-0">
+              <p className="text-xl sm:text-2xl font-bold text-[#111111]">50</p>
+              <p className="text-[10px] sm:text-xs text-[#595959] uppercase tracking-normal sm:tracking-wide leading-tight">Min. pieces</p>
             </div>
-            <div className="w-px bg-[#E5E5E5]" />
-            <div>
-              <p className="text-2xl font-bold text-[#111111]">{RUSH_DELIVERY_DAYS}</p>
-              <p className="text-xs text-[#595959] uppercase tracking-wide">Day delivery</p>
+            <div className="border-l border-[#E5E5E5] pl-3 sm:border-0 sm:pl-0 sm:contents">
+              <div className="hidden sm:block w-px bg-[#E5E5E5]" />
+              <div>
+                <p className="text-xl sm:text-2xl font-bold text-[#111111]">{RUSH_DELIVERY_DAYS}</p>
+                <p className="text-[10px] sm:text-xs text-[#595959] uppercase tracking-normal sm:tracking-wide leading-tight">Day delivery</p>
+              </div>
             </div>
-            <div className="w-px bg-[#E5E5E5]" />
-            <div>
-              <p className="text-2xl font-bold text-[#111111]">100%</p>
-              <p className="text-xs text-[#595959] uppercase tracking-wide">Made in India</p>
+            <div className="border-l border-[#E5E5E5] pl-3 sm:border-0 sm:pl-0 sm:contents">
+              <div className="hidden sm:block w-px bg-[#E5E5E5]" />
+              <div>
+                <p className="text-xl sm:text-2xl font-bold text-[#111111]">100%</p>
+                <p className="text-[10px] sm:text-xs text-[#595959] uppercase tracking-normal sm:tracking-wide leading-tight">Made in India</p>
+              </div>
             </div>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -97,35 +117,50 @@ export default function HeroScrollVideo() {
         </div>
       </section>
 
-      {/* SCROLL VIDEO */}
-      <div
-        ref={containerRef}
-        className="relative h-[130vh]"
-        style={{ contain: 'paint' }}
-      >
-        <div className="sticky top-0 h-screen w-full" style={{ contain: 'paint' }}>
-          <div
-            ref={videoWrapRef}
-            className="absolute bg-black"
-            style={{
-              inset: '20px',
-              borderRadius: '20px',
-              overflow: 'hidden',
-            }}
-          >
-            <video
-              ref={videoRef}
-              className="w-full h-full object-cover"
-              src="/videos/homepage-reel.mp4"
-              muted
-              loop
-              playsInline
-              preload="metadata"
-              webkit-playsinline="true"
-            />
+      {useSimpleMedia ? (
+        <section className="relative mx-4 my-4 aspect-[4/5] overflow-hidden rounded-3xl bg-black sm:aspect-video" aria-label="Garmops production showcase">
+          <Image
+            src="/hero.jpg"
+            alt="Garmops custom apparel production"
+            fill
+            sizes="100vw"
+            className="object-cover"
+          />
+        </section>
+      ) : (
+        <div ref={containerRef} className="relative h-[130vh]" style={{ contain: 'paint' }}>
+          <div className="sticky top-0 h-screen w-full" style={{ contain: 'paint' }}>
+            <div
+              ref={videoWrapRef}
+              className="absolute bg-black"
+              style={{ inset: '20px', borderRadius: '20px', overflow: 'hidden' }}
+            >
+              <Image
+                src="/hero.jpg"
+                alt=""
+                aria-hidden="true"
+                fill
+                sizes="100vw"
+                className="object-cover"
+              />
+              <video
+                ref={videoRef}
+                className={`relative z-10 h-full w-full object-cover transition-opacity duration-300 ${videoReady ? 'opacity-100' : 'opacity-0'}`}
+                src="/videos/homepage-reel.mp4"
+                poster="/hero.jpg"
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                onCanPlay={() => setVideoReady(true)}
+                onError={() => setVideoReady(false)}
+                webkit-playsinline="true"
+                aria-label="Garmops production showcase"
+              />
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </>
   )
 }

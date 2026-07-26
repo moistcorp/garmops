@@ -16,7 +16,7 @@ export default function Work() {
       {/* Header */}
       <section className="max-w-7xl mx-auto px-6 pt-20 pb-16">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Case studies</p>
-        <h1 className="text-5xl font-bold text-[#111111] leading-tight mb-6 tracking-tight">
+        <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] leading-tight mb-6 tracking-tight">
           Our work
         </h1>
         <p className="text-[#111111]/50 max-w-lg text-lg">

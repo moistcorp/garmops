@@ -44,6 +44,10 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
   useEffect(() => {
     const loadDraft = window.setTimeout(() => {
       const savedDraft = readDraft(cartId);
+      if (savedDraft.items.length === 0) {
+        router.replace(`/configurator/cart/${encodeURIComponent(cartId)}/review`);
+        return;
+      }
       const shippingComplete = isAddressValid(savedDraft.shippingAddress);
       const billingComplete =
         savedDraft.sameAsShipping || isAddressValid(savedDraft.billingAddress);

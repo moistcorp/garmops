@@ -1,73 +1,139 @@
 'use client'
-import { useCartStore } from '@/lib/store'
+
+import { MAX_SAMPLE_ITEM_QUANTITY, useCartStore } from '@/lib/store'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useEffect, useRef } from 'react'
 
 export default function CartDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { items, removeItem, updateQuantity, total } = useCartStore()
+  const { items, removeItem, updateQuantity, total, hasHydrated } = useCartStore()
   const cartTotal = total()
+  const drawerRef = useRef<HTMLDivElement>(null)
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null)
+
+  useEffect(() => {
+    if (!open) return
+
+    previouslyFocusedRef.current = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const focusTimer = window.setTimeout(() => drawerRef.current?.focus(), 0)
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.clearTimeout(focusTimer)
+      document.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = previousOverflow
+      previouslyFocusedRef.current?.focus()
+    }
+  }, [onClose, open])
 
   if (!open) return null
 
   return (
     <>
-      {/* Overlay */}
-      <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
+      <div className="fixed inset-0 z-50 bg-black/40" onClick={onClose} aria-hidden="true" />
 
-      {/* Drawer */}
-      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white z-50 flex flex-col shadow-xl">
-        <div className="flex items-center justify-between px-6 py-5 border-b border-[#ECE7DF]">
-          <p className="text-sm font-semibold text-[#111111]">Cart ({items.length})</p>
-          <button type="button" onClick={onClose} className="text-[#111111]/40 hover:text-[#111111] transition-colors">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      <div
+        ref={drawerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cart-drawer-title"
+        tabIndex={-1}
+        className="fixed right-0 top-0 z-50 flex h-full w-full max-w-md flex-col bg-white shadow-xl outline-none"
+      >
+        <div className="flex items-center justify-between border-b border-[#ECE7DF] px-6 py-5">
+          <p id="cart-drawer-title" className="text-sm font-semibold text-[#111111]">
+            Cart ({hasHydrated ? items.length : 0})
+          </p>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close cart"
+            className="text-[#111111]/40 transition-colors hover:text-[#111111]"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-4">
-          {items.length === 0 ? (
-            <p className="text-sm text-[#111111]/40 text-center mt-12">Your cart is empty</p>
+        <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-6 py-4">
+          {!hasHydrated ? (
+            <p className="mt-12 text-center text-sm text-[#111111]/40" role="status">
+              Loading cart…
+            </p>
+          ) : items.length === 0 ? (
+            <p className="mt-12 text-center text-sm text-[#111111]/40">Your cart is empty</p>
           ) : (
             items.map(item => (
-              <div key={`${item.id}-${item.size}`} className="flex gap-4 items-start border-b border-[#ECE7DF] pb-4">
-                <div className="relative w-14 h-14 bg-[var(--color-cream-soft)] rounded-xl shrink-0 flex items-center justify-center overflow-hidden">
+              <div key={`${item.id}-${item.size}`} className="flex items-start gap-4 border-b border-[#ECE7DF] pb-4">
+                <div className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[var(--color-cream-soft)]">
                   {item.image ? (
                     <Image src={item.image} alt={item.name} fill sizes="56px" className="object-cover" />
                   ) : (
                     <span className="text-[10px] text-[#111111]/20">IMG</span>
                   )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-[#111111] leading-snug">{item.name}</p>
-                  <p className="text-xs text-[#111111]/50 mt-0.5">Size: {item.size}</p>
-                  <p className="text-xs font-bold mt-1">&#8377;{(item.price * item.quantity).toLocaleString('en-IN')}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold leading-snug text-[#111111]">{item.name}</p>
+                  <p className="mt-0.5 text-xs text-[#111111]/50">Size: {item.size}</p>
+                  <p className="mt-1 text-xs font-bold">&#8377;{(item.price * item.quantity).toLocaleString('en-IN')}</p>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <div className="flex items-center gap-2">
-                    <button type="button" onClick={() => updateQuantity(item.id, item.size, item.quantity - 1)}
-                      className="w-6 h-6 rounded-full border border-[#E5E5E5] text-sm flex items-center justify-center hover:border-[var(--color-teal)] hover:text-[var(--color-teal)] transition-colors">-</button>
-                    <span className="text-xs w-4 text-center">{item.quantity}</span>
-                    <button type="button" onClick={() => updateQuantity(item.id, item.size, item.quantity + 1)}
-                      className="w-6 h-6 rounded-full border border-[#E5E5E5] text-sm flex items-center justify-center hover:border-[var(--color-teal)] hover:text-[var(--color-teal)] transition-colors">+</button>
+                    <button
+                      type="button"
+                      onClick={() => updateQuantity(item.id, item.size, item.quantity - 1)}
+                      aria-label={`Decrease ${item.name} quantity`}
+                      className="flex h-6 w-6 items-center justify-center rounded-full border border-[#E5E5E5] text-sm transition-colors hover:border-[var(--color-teal)] hover:text-[var(--color-teal)]"
+                    >
+                      -
+                    </button>
+                    <span className="w-4 text-center text-xs">{item.quantity}</span>
+                    <button
+                      type="button"
+                      onClick={() => updateQuantity(item.id, item.size, item.quantity + 1)}
+                      disabled={item.quantity >= MAX_SAMPLE_ITEM_QUANTITY}
+                      aria-label={`Increase ${item.name} quantity`}
+                      className="flex h-6 w-6 items-center justify-center rounded-full border border-[#E5E5E5] text-sm transition-colors hover:border-[var(--color-teal)] hover:text-[var(--color-teal)] disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-[#E5E5E5] disabled:hover:text-inherit"
+                    >
+                      +
+                    </button>
                   </div>
-                  <button type="button" onClick={() => removeItem(item.id, item.size)}
-                    className="text-xs text-[#111111]/30 hover:text-[#111111] transition-colors">Remove</button>
+                  <button
+                    type="button"
+                    onClick={() => removeItem(item.id, item.size)}
+                    className="text-xs text-[#111111]/30 transition-colors hover:text-[#111111]"
+                  >
+                    Remove
+                  </button>
                 </div>
               </div>
             ))
           )}
         </div>
 
-        {items.length > 0 && (
-          <div className="border-t border-[#ECE7DF] px-6 py-5 flex flex-col gap-3">
+        {hasHydrated && items.length > 0 && (
+          <div className="flex flex-col gap-3 border-t border-[#ECE7DF] px-6 py-5">
             <div className="flex justify-between text-sm font-bold">
               <span>Total</span>
               <span>&#8377;{cartTotal.toLocaleString('en-IN')}</span>
             </div>
-            <p className="text-xs text-[#111111]/40">+ Shipping quoted separately</p>
-            <Link href="/checkout" onClick={onClose}
-              className="w-full bg-[var(--color-teal)] text-white py-3.5 rounded-full text-sm font-medium text-center hover:bg-[var(--color-teal-dark)] transition-colors">
+            <p className="text-xs text-[#111111]/40">Shipping calculated at checkout</p>
+            <Link
+              href="/checkout"
+              onClick={onClose}
+              className="w-full rounded-full bg-[var(--color-teal)] py-3.5 text-center text-sm font-medium text-white transition-colors hover:bg-[var(--color-teal-dark)]"
+            >
               Proceed to checkout
             </Link>
           </div>

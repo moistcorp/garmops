@@ -29,7 +29,7 @@ export default function HowItWorks() {
     <>
       <section className="max-w-7xl mx-auto px-6 pt-20 pb-16">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">The process</p>
-        <h1 className="text-5xl font-bold text-[#111111] max-w-xl leading-tight mb-6 tracking-tight">
+        <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] max-w-xl leading-tight mb-6 tracking-tight">
           From brief to <span className="text-[var(--color-teal)]">delivery</span>
         </h1>
         <p className="text-[#111111]/50 max-w-lg text-lg">

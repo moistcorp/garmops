@@ -182,27 +182,11 @@ export default function ShopProductClient({
                 {added ? 'Added to cart' : 'Add to cart'}
               </button>
               <Link
-  href="/configurator"
-  className="
-    w-full
-    rounded-full
-    bg-[var(--color-teal)]
-    py-4
-    text-center
-    text-sm
-    font-semibold
-    text-white
-    shadow-lg
-    transition-all
-    duration-300
-    hover:-translate-y-0.5
-    hover:bg-[var(--color-teal-dark)]
-    hover:shadow-xl
-    active:translate-y-0
-  "
->
-  Start Designing
-</Link>
+                href="/configurator"
+                className="w-full py-2 text-center text-sm font-medium text-[#111111]/55 underline-offset-4 transition-colors hover:text-[var(--color-teal)] hover:underline"
+              >
+                Customise this product in the configurator
+              </Link>
             </div>
 
             {/* Details */}
@@ -242,7 +226,8 @@ export default function ShopProductClient({
                   Size chart
                 </p>
                 <div className="border border-[#ECE7DF] rounded-2xl overflow-hidden">
-                  <table className="w-full text-xs">
+                  <div className="overflow-x-auto" role="region" aria-label="Product size chart" tabIndex={0}>
+                  <table className="min-w-max w-full text-xs">
                     <thead>
                       <tr className="bg-[var(--color-cream-soft)]">
                         <th className="text-left px-4 py-3 font-medium text-[#111111]/50">Size</th>
@@ -290,6 +275,7 @@ export default function ShopProductClient({
                       ))}
                     </tbody>
                   </table>
+                  </div>
                 </div>
                 {sizeChart.note && (
                   <p className="text-xs text-[#111111]/30 mt-2">{sizeChart.note}</p>
@@ -298,7 +284,7 @@ export default function ShopProductClient({
             )}
 
             <p className="text-xs text-[#111111]/40">
-              Free shipping above &#8377;2000. Dispatches within 24 hours.
+              Free shipping above &#8377;2,000. Dispatches within 24 hours.
             </p>
           </div>
         </div>

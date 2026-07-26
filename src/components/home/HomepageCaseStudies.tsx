@@ -42,22 +42,23 @@ export default function HomepageCaseStudies() {
             </Link>
           </div>
 
-          {/* Cards */}
-          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-8">
+          {/* Horizontally scrolling case-study cards */}
+          <div className="min-w-0">
+            <div className="scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain pb-4 pr-6 [scroll-padding-left:0] sm:gap-6">
 
             {caseStudies.slice(0, 3).map((cs) => (
 
               <Link
                 key={cs.slug}
                 href={`/work/${cs.slug}`}
-                className="group"
+                className="group w-[82vw] max-w-[430px] shrink-0 snap-start sm:w-[420px] lg:w-[380px] xl:w-[420px]"
               >
 
                 <div className="overflow-hidden rounded-xl border border-[#ECE7DF] hover:border-[var(--color-teal)] hover:shadow-[0_12px_30px_rgba(22,33,43,0.08)] transition-all duration-300 bg-white">
 
                   {/* Image */}
 
-                  <div className="relative h-[520px] overflow-hidden bg-[#F7F7F7]">
+                  <div className="relative h-[430px] overflow-hidden bg-[#F7F7F7] sm:h-[520px]">
 
                     {/* Chips */}
 
@@ -136,6 +137,10 @@ export default function HomepageCaseStudies() {
 
             ))}
 
+            </div>
+            <p className="mt-2 text-xs text-[#666666] lg:hidden">
+              Swipe to explore more stories →
+            </p>
           </div>
 
         </div>

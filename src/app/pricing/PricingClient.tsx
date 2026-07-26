@@ -1,7 +1,7 @@
 'use client'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   PRODUCT_PRICES,
   VOLUME_TIERS,
@@ -21,6 +21,28 @@ export default function PricingClient() {
   const [selected, setSelected] = useState<string>(productList[0].name)
   const [rush, setRush] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const dropdownButtonRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!dropdownOpen) return
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!dropdownRef.current?.contains(event.target as Node)) setDropdownOpen(false)
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      setDropdownOpen(false)
+      dropdownButtonRef.current?.focus()
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [dropdownOpen])
 
   const selectedProduct = productList.find(p => p.name === selected) ?? productList[0]
   const {
@@ -39,11 +61,11 @@ export default function PricingClient() {
     <>
       <section className="max-w-7xl mx-auto px-6 pt-20 pb-12">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Pricing</p>
-        <h1 className="text-5xl font-bold text-[#111111] max-w-xl leading-tight mb-4 tracking-tight">
+        <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] max-w-xl leading-tight mb-4 tracking-tight">
           Simple, transparent pricing
         </h1>
         <p className="text-[#111111]/50 max-w-lg text-lg">
-          All prices include fabric, stitching, single-color screen print, neck label, and our margin. Shipping Charges Excluded.
+          Base prices include fabric, stitching, single-color screen print, neck label, and our margin. The estimate shows GST separately and includes it in the final total. Shipping is excluded.
         </p>
       </section>
 
@@ -58,11 +80,15 @@ export default function PricingClient() {
               <label className="text-xs font-medium text-[#111111]/50 uppercase tracking-widest block mb-3">
                 Select product
               </label>
-              <div className="overflow-hidden rounded-2xl border border-[#ECE7DF] bg-white shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
+              <div ref={dropdownRef} className="overflow-hidden rounded-2xl border border-[#ECE7DF] bg-white shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
                 {/* Selected product — always visible */}
                 <button
+                  ref={dropdownButtonRef}
                   type="button"
                   onClick={() => setDropdownOpen(!dropdownOpen)}
+                  aria-expanded={dropdownOpen}
+                  aria-controls="pricing-product-options"
+                  aria-haspopup="listbox"
                   className="w-full flex items-center gap-4 px-4 py-4 bg-[var(--color-cream-soft)] hover:bg-[var(--color-cream)] transition-colors text-left"
                 >
                   <div className="w-12 h-12 bg-white border border-[#ECE7DF] rounded-xl flex items-center justify-center shrink-0">
@@ -82,12 +108,14 @@ export default function PricingClient() {
 
                 {/* Dropdown options */}
                 {dropdownOpen && (
-                  <div className="border-t border-[#ECE7DF]">
+                  <div id="pricing-product-options" role="listbox" aria-label="Products" className="border-t border-[#ECE7DF]">
                     {productList.filter(p => p.name !== selected).map((p, i, arr) => (
                       <button
                         key={p.name}
                         type="button"
-                        onClick={() => { setSelected(p.name); setDropdownOpen(false) }}
+                        role="option"
+                        aria-selected={false}
+                        onClick={() => { setSelected(p.name); setDropdownOpen(false); dropdownButtonRef.current?.focus() }}
                         className={`w-full flex items-center gap-4 px-4 py-3.5 hover:bg-[var(--color-cream)] transition-colors text-left ${i < arr.length - 1 ? 'border-b border-[#ECE7DF]' : ''}`}
                       >
                         <div className="w-10 h-10 bg-[var(--color-cream-soft)] border border-[#ECE7DF] rounded-lg flex items-center justify-center shrink-0">
@@ -275,7 +303,7 @@ export default function PricingClient() {
       <section className="bg-[var(--color-cream)] border-t border-[#ECE7DF] py-16">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-2xl font-bold mb-2 tracking-tight">What&apos;s included in every order</h2>
-          <p className="text-[#111111]/50 text-sm mb-8">All prices already include the following. No surprises at invoice.</p>
+          <p className="text-[#111111]/50 text-sm mb-8">Base prices include the following. GST is shown separately and included in the final estimated total.</p>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               { title: 'Fabric & stitching', desc: 'Premium blanks cut and sewn at our Greater Noida facility' },
@@ -298,7 +326,6 @@ export default function PricingClient() {
               <p>Embroidery (quoted per stitch count)</p>
               <p>Custom woven / printed neck labels</p>
               <p>Shipping (paid by client, quoted by email)</p>
-              <p>GST 5% (added at invoice stage)</p>
             </div>
           </div>
         </div>
