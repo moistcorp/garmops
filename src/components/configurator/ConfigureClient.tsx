@@ -224,10 +224,10 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   const hasHydrated = useRef(false);
   const historyRef = useRef<ConfiguratorSnapshot[]>([]);
   const historyIndexRef = useRef(-1);
-  const historyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const historyTimerRef = useRef<number | null>(null);
   const restoringHistoryRef = useRef(false);
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const saveStatusTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveTimer = useRef<number | null>(null);
+  const saveStatusTimer = useRef<number | null>(null);
   const autosaveErrorNotifiedRef = useRef(false);
   const retainedObjectUrlsRef = useRef<Set<string>>(new Set());
 
@@ -319,10 +319,10 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
 
   useEffect(() => {
     if (!hasHydrated.current) return;
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    if (saveStatusTimer.current) clearTimeout(saveStatusTimer.current);
+    if (saveTimer.current) window.clearTimeout(saveTimer.current);
+    if (saveStatusTimer.current) window.clearTimeout(saveStatusTimer.current);
     setSaveStatus("saving");
-    saveTimer.current = setTimeout(() => {
+    saveTimer.current = window.setTimeout(() => {
       const saved = writeBuildDraft(configId, { colour, artwork, neckLabel, steps, quantity });
       setSaveStatus(saved ? "saved" : "error");
       if (!saved && !autosaveErrorNotifiedRef.current) {
@@ -339,15 +339,15 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       }
     }, 450);
     return () => {
-      if (saveTimer.current) clearTimeout(saveTimer.current);
-      if (saveStatusTimer.current) clearTimeout(saveStatusTimer.current);
+      if (saveTimer.current) window.clearTimeout(saveTimer.current);
+      if (saveStatusTimer.current) window.clearTimeout(saveStatusTimer.current);
     };
   }, [configId, colour, artwork, neckLabel, steps, quantity]);
 
   useEffect(() => {
     if (!hasHydrated.current || restoringHistoryRef.current) return;
-    if (historyTimerRef.current) clearTimeout(historyTimerRef.current);
-    historyTimerRef.current = setTimeout(() => {
+    if (historyTimerRef.current) window.clearTimeout(historyTimerRef.current);
+    historyTimerRef.current = window.setTimeout(() => {
       const snapshot: ConfiguratorSnapshot = {
         activeView, expandedStepId, quantity, colour, artwork, neckLabel, steps,
       };
@@ -360,7 +360,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       historyIndexRef.current = historyRef.current.length - 1;
       setHistoryVersion((value) => value + 1);
     }, 320);
-    return () => { if (historyTimerRef.current) clearTimeout(historyTimerRef.current); };
+    return () => { if (historyTimerRef.current) window.clearTimeout(historyTimerRef.current); };
   }, [activeView, expandedStepId, quantity, colour, artwork, neckLabel, steps, historyVersion]);
 
   function restoreSnapshot(snapshot: ConfiguratorSnapshot) {
