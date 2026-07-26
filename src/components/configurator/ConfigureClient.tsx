@@ -648,7 +648,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
             </div>
           )}
 
-          <main className="order-1 relative flex min-h-0 min-w-0 flex-col items-center justify-center overflow-hidden rounded-2xl border border-[#ECE7DF] bg-white lg:order-2">
+          <main className="order-1 relative flex min-h-0 min-w-0 flex-col items-center justify-center overflow-hidden rounded-2xl border border-[#ECE7DF] bg-[#F5F5F5] lg:order-2">
             <GarmentPreview
               activeView={activeView}
               onViewChange={setActiveView}

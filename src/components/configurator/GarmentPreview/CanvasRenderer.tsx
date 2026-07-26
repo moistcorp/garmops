@@ -2,7 +2,7 @@
 "use client";
 
 import { useRef } from "react";
-import type { PointerEvent as ReactPointerEvent } from "react";
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import type { ProductId } from "@/lib/configurator/pricing";
 import type {
   Artwork,
@@ -89,6 +89,7 @@ interface CanvasRendererProps {
   neckLabel?: NeckLabel;
   interactive?: boolean;
   className?: string;
+  style?: CSSProperties;
 }
 
 const CANVAS_SIZE = CANVAS_PX;
@@ -287,7 +288,8 @@ export default function CanvasRenderer({
   artwork,
   neckLabel,
   interactive = true,
-  className = "aspect-square h-[min(78dvh,820px)] max-h-[820px] max-w-full rounded-lg bg-[#F7F7F5]",
+  className = "aspect-square h-[min(78dvh,820px)] max-h-[820px] max-w-full rounded-lg bg-[#F5F5F5]",
+  style,
 }: CanvasRendererProps) {
   const { positions, updatePosition } = useArtworkPosition();
   const dragOrigin = useRef<DragOrigin | null>(null);
@@ -410,7 +412,7 @@ export default function CanvasRenderer({
   };
 
   return (
-    <div ref={canvasRef} className={`relative overflow-hidden ${className}`}>
+    <div ref={canvasRef} className={`relative overflow-hidden ${className}`} style={style}>
       {!garmentFolder && (
         <div className="absolute inset-0 z-30 flex items-center justify-center bg-[#F7F7F7] p-6 text-center text-sm font-semibold text-[#C62828]">
           Preview assets are not mapped for this product.
