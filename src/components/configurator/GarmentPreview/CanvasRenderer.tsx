@@ -25,6 +25,7 @@ import {
 } from "@/lib/configurator/ArtworkPositionContext";
 import { PRINT_AREA_SIZE_CHART } from "@/lib/configurator/sizecharts";
 import { LEFT_CHEST_DIMENSIONS } from "@/components/configurator/ConfiguratorSidebar/ArtworkPanel/GuidelinesToggles";
+import GarmentComposite, { getDisplayPreviewHex } from "./GarmentComposite";
 
 // Matches the small top margin PositionControls/the box default use as the
 // garment's overall printable boundary — the guideline overlays anchor here
@@ -286,7 +287,7 @@ export default function CanvasRenderer({
   artwork,
   neckLabel,
   interactive = true,
-  className = "aspect-square h-[min(78dvh,820px)] max-h-[820px] max-w-full rounded-lg bg-white",
+  className = "aspect-square h-[min(78dvh,820px)] max-h-[820px] max-w-full rounded-lg bg-[#F7F7F5]",
 }: CanvasRendererProps) {
   const { positions, updatePosition } = useArtworkPosition();
   const dragOrigin = useRef<DragOrigin | null>(null);
@@ -416,10 +417,11 @@ export default function CanvasRenderer({
         </div>
       )}
       <div className="absolute inset-[2%]">
+        {/* Immediate colour fallback while the detail-rich canvas composite loads. */}
         <div
           className="absolute inset-0"
           style={{
-            backgroundColor: colourHex,
+            backgroundColor: getDisplayPreviewHex(colourHex),
             WebkitMaskImage: `url(${assetPath(productId, view, "mask")})`,
             maskImage: `url(${assetPath(productId, view, "mask")})`,
             WebkitMaskSize: "contain",
@@ -430,23 +432,12 @@ export default function CanvasRenderer({
             maskPosition: "center",
           }}
         />
-        <img
-          src={assetPath(productId, view, "texture")}
-          alt=""
-          draggable={false}
-          className="absolute inset-0 h-full w-full object-contain mix-blend-multiply opacity-90"
-        />
-        <img
-          src={assetPath(productId, view, "shadow")}
-          alt=""
-          draggable={false}
-          className="absolute inset-0 h-full w-full object-contain mix-blend-multiply opacity-85"
-        />
-        <img
-          src={assetPath(productId, view, "highlight")}
-          alt=""
-          draggable={false}
-          className="absolute inset-0 h-full w-full object-contain mix-blend-screen opacity-60"
+        <GarmentComposite
+          maskSrc={assetPath(productId, view, "mask")}
+          textureSrc={assetPath(productId, view, "texture")}
+          shadowSrc={assetPath(productId, view, "shadow")}
+          highlightSrc={assetPath(productId, view, "highlight")}
+          colourHex={colourHex}
         />
       </div>
 
