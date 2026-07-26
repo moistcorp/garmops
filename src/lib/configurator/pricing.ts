@@ -184,3 +184,74 @@ export function formatInr(amount: number): string {
     maximumFractionDigits: amount % 1 === 0 ? 0 : 2,
   }).format(amount);
 }
+
+// ---------------------------------------------------------------------------
+// Pricing breakdown — reconstructs the same sequential adjustment math as
+// applyUnitPriceAdjustments, but keeps each step's rupee impact around so it
+// can be listed line-by-line (e.g. in the Studio Summary) instead of only
+// showing the final number.
+// ---------------------------------------------------------------------------
+
+export interface PricingBreakdownRow {
+  label: string;
+  detail?: string;
+  amount: number;
+}
+
+export interface PricingBreakdown {
+  rows: PricingBreakdownRow[];
+  unitPrice: number;
+  lineSubtotal: number;
+  discountPercent: number;
+  discountAmount: number;
+  taxable: number;
+  gst: number;
+  total: number;
+}
+
+export function buildPricingBreakdown(
+  productId: ProductId,
+  colour: GarmentColour | undefined,
+  artwork: Artwork,
+  neckLabel: NeckLabel | undefined,
+  quantity: number,
+  rushDelivery = false
+): PricingBreakdown {
+  const basePrice = getBasePrice(productId);
+  const adjustments = getUnitPriceAdjustments(colour, artwork, neckLabel, rushDelivery);
+
+  const rows: PricingBreakdownRow[] = [{ label: "Base garment", amount: basePrice }];
+  let running = basePrice;
+  for (const adjustment of adjustments) {
+    const before = running;
+    running =
+      adjustment.percent !== undefined
+        ? running * (1 + adjustment.percent / 100)
+        : running + (adjustment.amount ?? 0);
+    rows.push({
+      label: adjustment.label,
+      detail: adjustment.percent !== undefined ? `+${adjustment.percent}%` : undefined,
+      amount: running - before,
+    });
+  }
+
+  const summary = getConfiguredPricingSummary(
+    productId,
+    colour,
+    artwork,
+    neckLabel,
+    quantity,
+    rushDelivery
+  );
+
+  return {
+    rows,
+    unitPrice: summary.undiscountedUnitPrice,
+    lineSubtotal: summary.lineSubtotal,
+    discountPercent: summary.discountPercent,
+    discountAmount: summary.discountAmount,
+    taxable: summary.taxableSubtotal,
+    gst: summary.gst,
+    total: summary.total,
+  };
+}

@@ -1,16 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronDown, TrendingUp } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import type { ProductId } from "@/lib/configurator/pricing";
 import {
   formatInr,
-  getBasePrice,
   getConfiguredPricingSummary,
-  getUnitPriceAdjustments,
   getVolumeDiscountPercent,
   VOLUME_DISCOUNT_TIERS,
-  GST_PERCENT,
 } from "@/lib/configurator/pricing";
 import { getDeliveryOptions } from "@/lib/configurator/delivery";
 import { CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS } from "@/lib/configurator/colours";
@@ -72,65 +69,6 @@ function computeDeliveryDate(extraLeadTimeDays = 0): string {
   return formatDate(standard);
 }
 
-// ---------------------------------------------------------------------------
-// Pricing breakdown — reconstructs the same sequential adjustment math as
-// pricing.ts's applyUnitPriceAdjustments, but keeps each step's rupee impact
-// around so it can be listed line-by-line instead of only the final number.
-// ---------------------------------------------------------------------------
-
-interface BreakdownRow {
-  label: string;
-  detail?: string;
-  amount: number;
-}
-
-function buildPricingBreakdown(
-  productId: ProductId,
-  colour: GarmentColour | undefined,
-  artwork: Artwork,
-  neckLabel: NeckLabel | undefined,
-  quantity: number,
-  rushDelivery = false
-) {
-  const basePrice = getBasePrice(productId);
-  const adjustments = getUnitPriceAdjustments(colour, artwork, neckLabel, rushDelivery);
-
-  const rows: BreakdownRow[] = [{ label: "Base garment", amount: basePrice }];
-  let running = basePrice;
-  for (const adjustment of adjustments) {
-    const before = running;
-    running =
-      adjustment.percent !== undefined
-        ? running * (1 + adjustment.percent / 100)
-        : running + (adjustment.amount ?? 0);
-    rows.push({
-      label: adjustment.label,
-      detail: adjustment.percent !== undefined ? `+${adjustment.percent}%` : undefined,
-      amount: running - before,
-    });
-  }
-
-  const summary = getConfiguredPricingSummary(
-    productId,
-    colour,
-    artwork,
-    neckLabel,
-    quantity,
-    rushDelivery
-  );
-
-  return {
-    rows,
-    unitPrice: summary.undiscountedUnitPrice,
-    lineSubtotal: summary.lineSubtotal,
-    discountPercent: summary.discountPercent,
-    discountAmount: summary.discountAmount,
-    taxable: summary.taxableSubtotal,
-    gst: summary.gst,
-    total: summary.total,
-  };
-}
-
 // Finds the next tier that would actually beat the customer's current
 // discount (skips e.g. the 50–99 "base price" tier once already inside it),
 // so the nudge always points at a meaningfully better price.
@@ -145,89 +83,6 @@ function getBestDiscountPercent() {
   return VOLUME_DISCOUNT_TIERS.reduce(
     (best, tier) => Math.max(best, tier.discountPercent),
     0
-  );
-}
-
-function PricingBreakdown({
-  productId,
-  colour,
-  artwork,
-  neckLabel,
-  quantity,
-}: {
-  productId: ProductId;
-  colour?: GarmentColour;
-  artwork: Artwork;
-  neckLabel?: NeckLabel;
-  quantity: number;
-}) {
-  const [open, setOpen] = useState(false);
-  const breakdown = buildPricingBreakdown(productId, colour, artwork, neckLabel, quantity);
-
-  return (
-    <div className="border-t border-[#E5E5E5] pt-2">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="flex w-full items-center justify-between gap-2 py-1 text-left text-xs font-semibold text-[#111111]/70 hover:text-[#111111]"
-      >
-        See pricing breakdown
-        <ChevronDown
-          size={14}
-          strokeWidth={2.2}
-          className={`shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
-        />
-      </button>
-
-      {open && (
-        <div className="mt-2 flex flex-col gap-2 rounded-md bg-[#F7F7F7] p-3 text-xs">
-          <div className="flex flex-col gap-1.5">
-            {breakdown.rows.map((row) => (
-              <div key={row.label} className="flex items-center justify-between gap-3">
-                <span className="text-[#111111]/60">
-                  {row.label}
-                  {row.detail && <span className="ml-1 text-[#111111]/40">({row.detail})</span>}
-                </span>
-                <span className="font-medium text-[#111111]">
-                  {row.amount >= 0 ? "+" : "−"}
-                  {formatInr(Math.abs(row.amount))}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex items-center justify-between gap-3 border-t border-[#E5E5E5] pt-1.5 font-semibold text-[#111111]">
-            <span>Unit price</span>
-            <span>{formatInr(breakdown.unitPrice)}</span>
-          </div>
-
-          <div className="flex items-center justify-between gap-3 text-[#111111]/60">
-            <span>
-              {formatInr(breakdown.unitPrice)} × {quantity} units
-            </span>
-            <span className="font-medium text-[#111111]">{formatInr(breakdown.lineSubtotal)}</span>
-          </div>
-
-          {breakdown.discountPercent > 0 && (
-            <div className="flex items-center justify-between gap-3 text-[#2E7D32]">
-              <span>Volume discount ({breakdown.discountPercent}%)</span>
-              <span className="font-medium">−{formatInr(breakdown.discountAmount)}</span>
-            </div>
-          )}
-
-          <div className="flex items-center justify-between gap-3 text-[#111111]/60">
-            <span>GST ({GST_PERCENT}%)</span>
-            <span className="font-medium text-[#111111]">{formatInr(breakdown.gst)}</span>
-          </div>
-
-          <div className="flex items-center justify-between gap-3 border-t border-[#E5E5E5] pt-1.5 text-sm font-semibold text-[#111111]">
-            <span>Order total</span>
-            <span>{formatInr(breakdown.total)}</span>
-          </div>
-        </div>
-      )}
-    </div>
   );
 }
 
@@ -350,14 +205,6 @@ export function OrderBar({
           <div className="mt-1 font-semibold text-[#111111]/70">{displayDeliveryDate}</div>
         </div>
       </div>
-
-      <PricingBreakdown
-        productId={productId}
-        colour={colour}
-        artwork={artwork}
-        neckLabel={neckLabel}
-        quantity={quantity}
-      />
 
       <div className="grid gap-1.5">
         <div className="grid min-h-11 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">

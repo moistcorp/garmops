@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, ChevronDown } from "lucide-react";
 import type { GarmentView } from "@/lib/configurator/types/garment";
 import type { GarmentColour, Artwork, NeckLabel } from "@/lib/configurator/types/configurator";
 import GarmentPreview from "./GarmentPreview/GarmentPreview";
@@ -22,7 +22,10 @@ import { getProduct } from "@/lib/configurator/products";
 import {
   formatInr,
   getBasePrice,
-  getConfiguredPricingSummary,
+  getVolumeDiscountPercent,
+  VOLUME_DISCOUNT_TIERS,
+  buildPricingBreakdown,
+  GST_PERCENT,
 } from "@/lib/configurator/pricing";
 import { CUSTOM_DYE_MOQ_UNITS } from "@/lib/configurator/colours";
 import {
@@ -150,6 +153,35 @@ function getBuildProgress(steps: AccordionStepState[]) {
   };
 }
 
+// Progress toward the *next* volume-discount tier (not the whole 50–1000+
+// range at once) so the bar fills meaningfully within whichever tier the
+// customer is currently in, rather than looking nearly-empty at low
+// quantities relative to the 1000+ ceiling.
+function getVolumeDiscountProgress(quantity: number) {
+  const currentPercent = getVolumeDiscountPercent(quantity);
+  const currentTierIndex = VOLUME_DISCOUNT_TIERS.findIndex(
+    (tier) => quantity >= tier.minQty && (tier.maxQty === null || quantity <= tier.maxQty)
+  );
+  const currentTier = VOLUME_DISCOUNT_TIERS[currentTierIndex] ?? VOLUME_DISCOUNT_TIERS[0];
+  const nextTier = VOLUME_DISCOUNT_TIERS[currentTierIndex + 1];
+
+  if (!nextTier) {
+    return { currentPercent, nextPercent: null, unitsToNext: 0, progressFraction: 1, isMaxed: true };
+  }
+
+  const span = nextTier.minQty - currentTier.minQty;
+  const progressFraction =
+    span > 0 ? Math.min(1, Math.max(0, (quantity - currentTier.minQty) / span)) : 1;
+
+  return {
+    currentPercent,
+    nextPercent: nextTier.discountPercent,
+    unitsToNext: Math.max(0, nextTier.minQty - quantity),
+    progressFraction,
+    isMaxed: false,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -174,6 +206,8 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   const [pendingStepId, setPendingStepId] = useState<AccordionStepId | null>(null);
   const [unsavedStepId, setUnsavedStepId] = useState<AccordionStepId | null>(null);
   const [quantity, setQuantity] = useState<number>(50);
+  const discountProgress = getVolumeDiscountProgress(quantity);
+  const [breakdownOpen, setBreakdownOpen] = useState(false);
   const [ctaErrorMessage, setCtaErrorMessage] = useState<string | null>(null);
   const [ctaErrorNonce, setCtaErrorNonce] = useState(0);
 
@@ -197,13 +231,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   // Lifted (7B) so the CTA/confirm flow can validate fileUrl/dimensions/
   // position and build the summary string, mirroring the artwork lift above.
   const [neckLabel, setNeckLabel] = useState<NeckLabel>({} as NeckLabel);
-  const configuredPricing = getConfiguredPricingSummary(
-    productId,
-    colour,
-    artwork,
-    neckLabel,
-    quantity
-  );
+  const pricingBreakdown = buildPricingBreakdown(productId, colour, artwork, neckLabel, quantity);
   const minimumQuantity = colour.type === "custom_dye" ? CUSTOM_DYE_MOQ_UNITS : 50;
 
   // Autosave: whether a saved draft was restored on load (drives the small
@@ -662,7 +690,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
             </div>
           </main>
 
-          <aside className="order-3 flex min-h-0 min-w-0 flex-col justify-between gap-3 overflow-hidden">
+          <aside className="order-3 flex min-h-0 min-w-0 flex-col justify-between gap-3 overflow-y-auto">
             <div className="rounded-[28px] border border-[#ECE7DF] bg-white p-4 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-[#111111]/45">
                 Studio Summary
@@ -671,6 +699,10 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 <div className="flex justify-between gap-4">
                   <span className="text-[#111111]/55">Colour</span>
                   <span className="text-right font-medium">{colour.name || "Not selected"}</span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="text-[#111111]/55">Fabric</span>
+                  <span className="text-right font-medium">{product?.details?.[0] ?? "—"}</span>
                 </div>
                 <div className="flex justify-between gap-4">
                   <span className="text-[#111111]/55">Artwork</span>
@@ -686,17 +718,131 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                     {neckLabel?.confirmed ? "Added" : "Not added"}
                   </span>
                 </div>
-                <div className="flex justify-between gap-4 border-t border-[#E5E5E5] pt-3">
-                  <span className="text-[#111111]/55">Unit price</span>
-                  <span className="text-right font-medium">
-                    {formatInr(configuredPricing.discountedUnitPrice)}
-                  </span>
+
+                <div className="border-t border-[#E5E5E5] pt-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[#111111]/55">Volume discount</span>
+                    <span className="font-semibold text-[var(--color-teal)]">
+                      {discountProgress.currentPercent}% off
+                    </span>
+                  </div>
+                  <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[#EDEDE8]">
+                    <div
+                      className="h-full rounded-full bg-[var(--color-teal)] transition-[width] duration-300 ease-out"
+                      style={{ width: `${discountProgress.progressFraction * 100}%` }}
+                    />
+                  </div>
+                  <p className="mt-1.5 text-xs font-medium text-[#111111]/50">
+                    {discountProgress.isMaxed
+                      ? "You've unlocked our best volume price."
+                      : `Add ${discountProgress.unitsToNext} more unit${
+                          discountProgress.unitsToNext === 1 ? "" : "s"
+                        } to reach ${discountProgress.nextPercent}% off.`}
+                  </p>
                 </div>
-                <div className="flex justify-between gap-4">
-                  <span className="text-[#111111]/55">Total incl. GST</span>
-                  <span className="text-right font-semibold">
-                    {formatInr(configuredPricing.total)}
-                  </span>
+
+                <div className="border-t border-[#E5E5E5] pt-3">
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-[#111111]/55">Unit price</span>
+                    <span className="text-right font-medium">
+                      {formatInr(
+                        pricingBreakdown.unitPrice * (1 - pricingBreakdown.discountPercent / 100)
+                      )}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 flex items-center justify-between gap-4">
+                    <span className="text-[#111111]/55">Total incl. GST</span>
+                    <span className="text-right font-semibold">
+                      {formatInr(pricingBreakdown.total)}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setBreakdownOpen((v) => !v)}
+                    aria-expanded={breakdownOpen}
+                    className="mt-2.5 flex w-full items-center justify-between gap-2 text-left text-xs font-semibold text-[#111111]/60 hover:text-[#111111]"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      See full breakdown
+                      {!breakdownOpen && pricingBreakdown.discountPercent > 0 && (
+                        <span className="rounded-full bg-[#EAF7EA] px-2 py-0.5 text-[10px] font-semibold text-[#1B7F36]">
+                          Save{" "}
+                          {formatInr(
+                            pricingBreakdown.unitPrice * (pricingBreakdown.discountPercent / 100)
+                          )}
+                          /unit
+                        </span>
+                      )}
+                    </span>
+                    <ChevronDown
+                      size={14}
+                      strokeWidth={2.2}
+                      className={`shrink-0 transition-transform duration-200 ${
+                        breakdownOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  <div
+                    className={`grid transition-[grid-template-rows] duration-200 ease-in-out ${
+                      breakdownOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+                    }`}
+                  >
+                    <div className="overflow-hidden">
+                      <div className="mt-2 flex flex-col gap-1.5 rounded-md bg-[#F7F7F7] p-3 text-xs">
+                        {pricingBreakdown.rows.map((row) => (
+                          <div key={row.label} className="flex items-center justify-between gap-3">
+                            <span className="text-[#111111]/60">
+                              {row.label}
+                              {row.detail && (
+                                <span className="ml-1 text-[#111111]/40">({row.detail})</span>
+                              )}
+                            </span>
+                            <span className="font-medium text-[#111111]">
+                              {row.amount >= 0 ? "+" : "−"}
+                              {formatInr(Math.abs(row.amount))}
+                            </span>
+                          </div>
+                        ))}
+
+                        <div className="flex items-center justify-between gap-3 border-t border-[#E5E5E5] pt-1.5 font-semibold text-[#111111]">
+                          <span>Unit price</span>
+                          <span>{formatInr(pricingBreakdown.unitPrice)}</span>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-3 text-[#111111]/60">
+                          <span>
+                            {formatInr(pricingBreakdown.unitPrice)} × {quantity} units
+                          </span>
+                          <span className="font-medium text-[#111111]">
+                            {formatInr(pricingBreakdown.lineSubtotal)}
+                          </span>
+                        </div>
+
+                        {pricingBreakdown.discountPercent > 0 && (
+                          <div className="flex items-center justify-between gap-3 text-[#2E7D32]">
+                            <span>Volume discount ({pricingBreakdown.discountPercent}%)</span>
+                            <span className="font-medium">
+                              −{formatInr(pricingBreakdown.discountAmount)}
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between gap-3 text-[#111111]/60">
+                          <span>GST ({GST_PERCENT}%)</span>
+                          <span className="font-medium text-[#111111]">
+                            {formatInr(pricingBreakdown.gst)}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-3 border-t border-[#E5E5E5] pt-1.5 text-sm font-semibold text-[#111111]">
+                          <span>Order total</span>
+                          <span>{formatInr(pricingBreakdown.total)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
