@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronDown, FileCheck2, Redo2, RotateCcw, Undo2 } from "lucide-react";
+import { FileCheck2, Redo2, RotateCcw, Undo2 } from "lucide-react";
 import type { GarmentView } from "@/lib/configurator/types/garment";
 import type { GarmentColour, Artwork, NeckLabel } from "@/lib/configurator/types/configurator";
 import GarmentPreview from "./GarmentPreview/GarmentPreview";
@@ -16,18 +16,14 @@ import {
 } from "./ConfiguratorSidebar/ConfiguratorSidebar";
 import { TECHNIQUE_LABELS } from "./ConfiguratorSidebar/ArtworkPanel/TechniqueSelect";
 import { OrderBar } from "./OrderBar";
-import { ConfiguratorHeader } from "./ConfiguratorHeader";
+import { ConfiguratorTopBar } from "./ConfiguratorTopBar";
 import { WhatsAppAssistantBar } from "./WhatsAppAssistantBar";
 import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionContext";
 import { getProduct } from "@/lib/configurator/products";
 import {
-  formatInr,
   getBasePrice,
-  getVolumeDiscountPercent,
-  VOLUME_DISCOUNT_TIERS,
   buildPricingBreakdown,
   getConfiguredPricingSummary,
-  GST_PERCENT,
 } from "@/lib/configurator/pricing";
 import { CUSTOM_DYE_MOQ_UNITS } from "@/lib/configurator/colours";
 import {
@@ -50,8 +46,6 @@ import {
 } from "@/lib/configurator/objectUrls";
 import { generateApprovalPdf } from "@/lib/configurator/approvalPdf";
 import { RESERVATION_FEE } from "@/lib/configurator/reservation";
-import { ConfiguratorJourney } from "./ConfiguratorJourney";
-import { NetworkStatusBanner } from "./NetworkStatusBanner";
 import { ActionFeedback, type ActionFeedbackTone } from "./ActionFeedback";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 import { getDeliveryFeasibility } from "@/lib/configurator/deliveryFeasibility";
@@ -159,34 +153,6 @@ function getCtaLabel(
   return "Continue to sizes";
 }
 
-function getBuildProgress(steps: AccordionStepState[]) {
-  const nextStepIndex = steps.findIndex((step) => !step.confirmed && !step.skipped);
-  const currentStepIndex = nextStepIndex === -1 ? steps.length - 1 : nextStepIndex;
-  const stepLabel = steps[currentStepIndex]?.title.replace("Garment ", "") ?? "Colour";
-  return { current: currentStepIndex + 1, total: steps.length, label: stepLabel };
-}
-
-function getVolumeDiscountProgress(quantity: number) {
-  const currentPercent = getVolumeDiscountPercent(quantity);
-  const currentTierIndex = VOLUME_DISCOUNT_TIERS.findIndex(
-    (tier) => quantity >= tier.minQty && (tier.maxQty === null || quantity <= tier.maxQty)
-  );
-  const currentTier = VOLUME_DISCOUNT_TIERS[currentTierIndex] ?? VOLUME_DISCOUNT_TIERS[0];
-  const nextTier = VOLUME_DISCOUNT_TIERS[currentTierIndex + 1];
-  if (!nextTier) {
-    return { currentPercent, nextPercent: null, unitsToNext: 0, progressFraction: 1, isMaxed: true };
-  }
-  const span = nextTier.minQty - currentTier.minQty;
-  const progressFraction = span > 0 ? Math.min(1, Math.max(0, (quantity - currentTier.minQty) / span)) : 1;
-  return {
-    currentPercent,
-    nextPercent: nextTier.discountPercent,
-    unitsToNext: Math.max(0, nextTier.minQty - quantity),
-    progressFraction,
-    isMaxed: false,
-  };
-}
-
 export default function ConfigureClient({ configId }: ConfigureClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -206,7 +172,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   const [activeView, setActiveView] = useState<GarmentView>("front");
   const [expandedStepId, setExpandedStepId] = useState<AccordionStepId | null>("garment-colour");
   const [quantity, setQuantity] = useState(50);
-  const [breakdownOpen, setBreakdownOpen] = useState(false);
   const [ctaErrorMessage, setCtaErrorMessage] = useState<string | null>(null);
   const [ctaErrorNonce, setCtaErrorNonce] = useState(0);
   const [colour, setColour] = useState<GarmentColour>(DEFAULT_COLOUR);
@@ -233,8 +198,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
 
   const pricingBreakdown = buildPricingBreakdown(productId, colour, artwork, neckLabel, quantity);
   const minimumQuantity = colour.type === "custom_dye" ? CUSTOM_DYE_MOQ_UNITS : 50;
-  const buildProgress = getBuildProgress(steps);
-  const discountProgress = getVolumeDiscountProgress(quantity);
 
   useEffect(() => {
     [artwork.front?.fileUrl, artwork.back?.fileUrl, neckLabel?.fileUrl].forEach((url) => {
@@ -665,14 +628,16 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   return (
     <ArtworkPositionProvider activeView={activeView}>
       <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-white text-[#111111]">
-        <NetworkStatusBanner />
-        <ConfiguratorHeader
-          configId={configId}
-          productName={productName}
+        <ConfiguratorTopBar
+          currentStep="customise"
+          backHref="/configurator"
+          title={productName}
           onDownloadPdf={handleDownloadPdf}
           isDownloadingPdf={isDownloadingPdf}
+          showCart
+          links={{ product: "/configurator" }}
+          className="px-4"
         />
-        <ConfiguratorJourney currentStep="customise" compact links={{ product: "/configurator" }} className="mx-4 mb-3 shrink-0" />
 
         {feedback && (
           <div className="fixed right-4 top-24 z-[70] w-[min(380px,calc(100vw-2rem))]">
@@ -715,9 +680,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 </span>
               </div>
               <h1 className="mt-1 text-lg font-semibold text-[#111111]">{productName}</h1>
-              <p className="mt-1 text-xs font-medium text-[#111111]/60">
-                Step {buildProgress.current} of {buildProgress.total}: {buildProgress.label}
-              </p>
               <div className="mt-2 flex items-center gap-1" aria-label="Configuration history controls">
                 <button type="button" onClick={undoConfiguration} disabled={!canUndo} className="flex h-8 items-center gap-1 rounded-full border border-[#E5E5E5] px-2.5 text-[11px] font-semibold text-[#111111]/60 disabled:opacity-35"><Undo2 size={13} /> Undo</button>
                 <button type="button" onClick={redoConfiguration} disabled={!canRedo} className="flex h-8 items-center gap-1 rounded-full border border-[#E5E5E5] px-2.5 text-[11px] font-semibold text-[#111111]/60 disabled:opacity-35"><Redo2 size={13} /> Redo</button>
@@ -791,7 +753,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
               activeView={activeView}
               onViewChange={setActiveView}
               colourHex={colour.hex}
-              colourName={colour.name}
               productId={productId}
               artwork={artwork}
               neckLabel={neckLabel}
@@ -837,94 +798,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                   <p className="mt-1 text-[11px] leading-relaxed text-[#111111]/60">{deliveryFeasibility.detail}</p>
                   {!preferredTargetDate && <a href="/configurator" className="mt-1 inline-block text-[11px] font-semibold text-[var(--color-teal-dark)] underline">Set required-by date</a>}
                 </div>
-
-                <div className="rounded-xl border border-[var(--color-teal)]/25 bg-[var(--color-teal)]/5 p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-xs font-semibold text-[#111111]">Due today</span>
-                    <span className="text-lg font-bold text-[var(--color-teal-dark)]">
-                      {formatInr(RESERVATION_FEE)}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-[11px] leading-relaxed text-[#111111]/60">
-                    Reservation fee credited against the final invoice. Production starts only after technical and commercial approval.
-                  </p>
-                </div>
-
-                <div className="border-t border-[#E5E5E5] pt-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[#111111]/55">Volume discount</span>
-                    <span className="font-semibold text-[var(--color-teal)]">
-                      {discountProgress.currentPercent}% off
-                    </span>
-                  </div>
-                  <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[#EDEDE8]">
-                    <div
-                      className="h-full rounded-full bg-[var(--color-teal)] transition-[width] duration-300 ease-out"
-                      style={{ width: `${discountProgress.progressFraction * 100}%` }}
-                    />
-                  </div>
-                  <p className="mt-1.5 text-xs font-medium text-[#111111]/50">
-                    {discountProgress.isMaxed
-                      ? "You have unlocked our best volume price."
-                      : `Add ${discountProgress.unitsToNext} more unit${discountProgress.unitsToNext === 1 ? "" : "s"} to reach ${discountProgress.nextPercent}% off.`}
-                  </p>
-                </div>
-
-                <div className="border-t border-[#E5E5E5] pt-3">
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-[#111111]/55">Estimated unit price</span>
-                    <span className="text-right font-medium">
-                      {formatInr(pricingBreakdown.unitPrice * (1 - pricingBreakdown.discountPercent / 100))}
-                    </span>
-                  </div>
-                  <div className="mt-1.5 flex items-center justify-between gap-4">
-                    <span className="text-[#111111]/55">Estimated total incl. GST</span>
-                    <span className="text-right font-semibold">{formatInr(pricingBreakdown.total)}</span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setBreakdownOpen((value) => !value)}
-                    aria-expanded={breakdownOpen}
-                    className="mt-2.5 flex w-full items-center justify-between gap-2 rounded-xl border border-[#ECE7DF] px-3 py-2 text-left text-xs font-semibold text-[#111111]/70 hover:border-[var(--color-teal)]"
-                  >
-                    <span>Pricing breakdown</span>
-                    <ChevronDown
-                      size={14}
-                      strokeWidth={2.2}
-                      className={`shrink-0 transition-transform duration-200 ${breakdownOpen ? "rotate-180" : ""}`}
-                    />
-                  </button>
-
-                  {breakdownOpen && (
-                    <div className="mt-2 flex flex-col gap-1.5 rounded-xl bg-[#F7F7F7] p-3 text-xs">
-                      {pricingBreakdown.rows.map((row) => (
-                        <div key={`${row.label}-${row.detail ?? ""}`} className="flex items-center justify-between gap-3">
-                          <span className="text-[#111111]/60">
-                            {row.label}{row.detail ? ` (${row.detail})` : ""}
-                          </span>
-                          <span className="font-medium text-[#111111]">
-                            {row.amount >= 0 ? "+" : "-"}{formatInr(Math.abs(row.amount))}
-                          </span>
-                        </div>
-                      ))}
-                      {pricingBreakdown.discountPercent > 0 && (
-                        <div className="flex items-center justify-between gap-3 text-[#2E7D32]">
-                          <span>Volume discount ({pricingBreakdown.discountPercent}%)</span>
-                          <span className="font-medium">-{formatInr(pricingBreakdown.discountAmount)}</span>
-                        </div>
-                      )}
-                      <div className="flex items-center justify-between gap-3 text-[#111111]/60">
-                        <span>GST ({GST_PERCENT}%)</span>
-                        <span className="font-medium text-[#111111]">{formatInr(pricingBreakdown.gst)}</span>
-                      </div>
-                      <div className="flex items-center justify-between gap-3 border-t border-[#E5E5E5] pt-1.5 text-sm font-semibold text-[#111111]">
-                        <span>Estimated order total</span>
-                        <span>{formatInr(pricingBreakdown.total)}</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
 
@@ -940,6 +813,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 colour={colour}
                 artwork={artwork}
                 neckLabel={neckLabel}
+                pricingBreakdown={pricingBreakdown}
                 ctaErrorMessage={ctaErrorMessage}
                 ctaErrorNonce={ctaErrorNonce}
               />

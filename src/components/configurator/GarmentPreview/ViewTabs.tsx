@@ -25,7 +25,7 @@ export default function ViewTabs({ activeView, onChange, productId }: ViewTabsPr
     <div
       role="tablist"
       aria-label="Garment preview view"
-      className="inline-flex shrink-0 items-center rounded-lg border border-[#E5E5E5] bg-white/85 p-1 shadow-sm"
+      className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#E5E5E5] bg-white/85 p-1 shadow-sm"
     >
       {viewOptions.map((opt, index) => {
         const isActive = opt.id === activeView;
@@ -54,10 +54,10 @@ export default function ViewTabs({ activeView, onChange, productId }: ViewTabsPr
             role="tab"
             aria-selected={isActive}
             tabIndex={isActive ? 0 : -1}
-            className={`min-h-11 rounded-md px-5 py-1.5 text-xs font-semibold transition-colors ${
+            className={`flex h-8 min-w-14 items-center justify-center rounded-full px-3 text-[11px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-teal)] focus-visible:ring-offset-1 ${
               isActive
-                ? "bg-white text-[#111111] shadow-sm"
-                : "text-[#111111]/60 hover:text-[#111111]"
+                ? "bg-[var(--color-teal)] text-white shadow-sm"
+                : "text-[#111111]/60 hover:bg-[var(--color-cream-soft)] hover:text-[#111111]"
             }`}
           >
             {opt.label}

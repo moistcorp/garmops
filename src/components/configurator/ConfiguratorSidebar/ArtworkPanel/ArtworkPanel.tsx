@@ -356,7 +356,7 @@ export function ArtworkPanel({ value, onChange, onViewChange }: ArtworkPanelProp
               <button
                 type="button"
                 onClick={() => handleSideChange(side, undefined)}
-                className="flex items-center gap-1.5 rounded-full border border-[#F0DADA] px-3 py-1.5 text-xs font-semibold text-[#A63A3A] hover:bg-[#FFF5F5]"
+                className="ml-auto flex items-center gap-1.5 rounded-full border border-[#F0DADA] px-3 py-1.5 text-xs font-semibold text-[#A63A3A] hover:bg-[#FFF5F5]"
               >
                 <Trash2 size={13} strokeWidth={2.2} />
                 Clear {SIDE_LABELS[side].toLowerCase()} side

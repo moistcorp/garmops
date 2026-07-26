@@ -1,5 +1,4 @@
 import { ConfirmationStep } from "@/components/configurator/cart/ConfirmationStep";
-import { CartPageHeader } from "@/components/configurator/cart/CartPageHeader";
 
 interface ConfirmationPageProps {
   params: Promise<{ cartId: string }>;
@@ -9,9 +8,8 @@ export default async function ConfirmationPage({ params }: ConfirmationPageProps
   const { cartId } = await params;
 
   return (
-    <main className="min-h-screen bg-white px-4 py-8 sm:py-10">
+    <main className="min-h-screen bg-white px-4 pb-8 sm:pb-10">
       <div className="mx-auto max-w-6xl">
-        <CartPageHeader />
         <ConfirmationStep cartId={cartId} />
       </div>
     </main>

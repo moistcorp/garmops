@@ -1,6 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -23,7 +31,10 @@ import {
   isWebsiteValid,
 } from "@/components/configurator/cart/AddressForm";
 import { CartSummarySidebar } from "@/components/configurator/cart/CartSummarySidebar";
-import { CheckoutSteps } from "@/components/configurator/cart/CheckoutSteps";
+import {
+  ConfiguratorTopBar,
+  getCartJourneyLinks,
+} from "@/components/configurator/ConfiguratorTopBar";
 import {
   INDUSTRIES,
   PROJECT_DEPARTMENTS,
@@ -50,6 +61,14 @@ const INPUT_CLASS =
 const LABEL_CLASS = "mb-1 block text-xs font-medium text-[#111111]/70";
 const PO_MAX_BYTES = 3 * 1024 * 1024;
 const PO_TYPES = ["application/pdf", "image/jpeg", "image/png"];
+const CHECKOUT_SECTIONS = [
+  { id: "company-information", label: "Company" },
+  { id: "project-contact", label: "Contact" },
+  { id: "shipping-information", label: "Shipping" },
+  { id: "delivery-target", label: "Delivery" },
+  { id: "billing-information", label: "Billing" },
+  { id: "order-notes", label: "Notes" },
+] as const;
 
 function formatIndianPhone(value: string): string {
   let digits = digitsOnly(value);
@@ -99,6 +118,38 @@ function sectionHeading(
         <p className="mt-1 text-xs leading-relaxed text-[#111111]/55">{description}</p>
       </div>
     </div>
+  );
+}
+
+function CheckoutSectionNav() {
+  const handleSectionJump = (
+    event: MouseEvent<HTMLAnchorElement>,
+    sectionId: string
+  ) => {
+    event.preventDefault();
+    document
+      .getElementById(sectionId)
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  return (
+    <nav
+      aria-label="Checkout sections"
+      className="sticky top-36 z-20 rounded-full border border-[#ECE7DF] bg-white/95 p-1 shadow-[0_2px_10px_rgba(22,33,43,0.04)] backdrop-blur-md"
+    >
+      <div className="scrollbar-hide flex gap-1 overflow-x-auto">
+        {CHECKOUT_SECTIONS.map((section) => (
+          <a
+            key={section.id}
+            href={`#${section.id}`}
+            onClick={(event) => handleSectionJump(event, section.id)}
+            className="flex h-8 shrink-0 items-center rounded-full px-3 text-xs font-semibold text-[#111111]/60 transition-colors hover:bg-[var(--color-cream-soft)] hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-teal)] focus-visible:ring-offset-1"
+          >
+            {section.label}
+          </a>
+        ))}
+      </div>
+    </nav>
   );
 }
 
@@ -334,9 +385,19 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
     !doesGstinMatchState(draft.billingInformation.gstin, billingAddress.state);
 
   return (
-    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <div className="space-y-6">
-        <CheckoutSteps currentStep="shipping" cartId={cartId} firstProductId={draft.items[0]?.productId} firstItemId={draft.items[0]?.id} />
+    <>
+      <ConfiguratorTopBar
+        currentStep="company"
+        backHref={`/configurator/cart/${encodeURIComponent(cartId)}/review`}
+        links={getCartJourneyLinks(
+          cartId,
+          draft.items[0]?.productId,
+          draft.items[0]?.id
+        )}
+      />
+
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="space-y-6">
         {validationFeedback && <ActionFeedback tone="error" title="More information is required" detail={validationFeedback} onDismiss={() => setValidationFeedback(null)} />}
         {storageSaveError && <ActionFeedback tone="error" title="Checkout autosave is unavailable" detail={storageSaveError} onDismiss={() => setStorageSaveError(null)} />}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -357,7 +418,9 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
           </button>
         </div>
 
-        <section id="company-information" className="rounded-lg border border-[#E5E5E5] bg-white p-5">
+        <CheckoutSectionNav />
+
+        <section id="company-information" className="scroll-mt-16 rounded-lg border border-[#E5E5E5] bg-white p-5">
           {sectionHeading(
             <Building2 size={18} />,
             "Company information",
@@ -445,7 +508,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
           </div>
         </section>
 
-        <section id="project-contact" className="rounded-lg border border-[#E5E5E5] bg-white p-5">
+        <section id="project-contact" className="scroll-mt-16 rounded-lg border border-[#E5E5E5] bg-white p-5">
           {sectionHeading(
             <UserRound size={18} />,
             "Primary project contact",
@@ -522,7 +585,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
           </div>
         </section>
 
-        <section id="shipping-information" className="rounded-lg border border-[#E5E5E5] bg-white p-5">
+        <section id="shipping-information" className="scroll-mt-16 rounded-lg border border-[#E5E5E5] bg-white p-5">
           {sectionHeading(
             <MapPin size={18} />,
             "Shipping information",
@@ -580,7 +643,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
           </div>
         </section>
 
-        <section id="delivery-target" className="rounded-lg border border-[#E5E5E5] bg-white p-5">
+        <section id="delivery-target" className="scroll-mt-16 rounded-lg border border-[#E5E5E5] bg-white p-5">
           <DeliveryDatePicker
             orderConfirmedDate={deliveryBaseDate}
             extraLeadTimeDays={extraLeadTimeDays}
@@ -599,7 +662,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
           </p>
         </section>
 
-        <section id="billing-information" className="rounded-lg border border-[#E5E5E5] bg-white p-5">
+        <section id="billing-information" className="scroll-mt-16 rounded-lg border border-[#E5E5E5] bg-white p-5">
           {sectionHeading(
             <ReceiptText size={18} />,
             "Billing information",
@@ -738,7 +801,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
           </div>
         </section>
 
-        <section className="rounded-lg border border-[#E5E5E5] bg-white p-5">
+        <section id="order-notes" className="scroll-mt-16 rounded-lg border border-[#E5E5E5] bg-white p-5">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-[#111111]">Order notes & communication</h2>
           <p className="mt-1 text-xs text-[#111111]/55">These preferences apply once to the complete order and are no longer duplicated inside address forms.</p>
           <div className="mt-4">
@@ -768,21 +831,25 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
           <p className="text-sm font-medium text-[#111111]">Have a promo code?</p>
           <p className="text-sm text-[#111111]/60">Contact your account manager before reserving the production review.</p>
         </section>
-      </div>
+        </div>
 
-      <CartSummarySidebar
-        subtotal={totals.subtotal}
-        volumeDiscount={totals.volumeDiscount}
-        shippingFee={totals.shippingFee}
-        gst={totals.gst}
-        delivery={deliveryLabel}
-        total={totals.total}
-        onNext={handleNext}
-        nextLabel="Next: Review & Payment"
-        nextDisabled={!isValid}
-        disabledMessage={missingMessage}
-        onDisabledNext={handleNext}
-      />
-    </div>
+        <div className="lg:sticky lg:top-36 lg:self-start">
+          <CartSummarySidebar
+            subtotal={totals.subtotal}
+            volumeDiscount={totals.volumeDiscount}
+            shippingFee={totals.shippingFee}
+            gst={totals.gst}
+            delivery={deliveryLabel}
+            total={totals.total}
+            onNext={handleNext}
+            nextLabel="Next: Review & Payment"
+            nextDisabled={!isValid}
+            disabledMessage={missingMessage}
+            onDisabledNext={handleNext}
+            sticky={false}
+          />
+        </div>
+      </div>
+    </>
   );
 }

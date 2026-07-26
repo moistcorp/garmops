@@ -16,7 +16,10 @@ import {
 } from "lucide-react";
 import type { Address } from "./AddressForm";
 import { CartSummarySidebar } from "./CartSummarySidebar";
-import { CheckoutSteps } from "./CheckoutSteps";
+import {
+  ConfiguratorTopBar,
+  getCartJourneyLinks,
+} from "../ConfiguratorTopBar";
 import { getProcurementMissingFields } from "./checkoutDetails";
 import type { CartItem } from "./OrderReviewStep";
 import {
@@ -340,19 +343,36 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
     }
   };
 
+  const topBar = (
+    <ConfiguratorTopBar
+      currentStep="review"
+      backHref={`/configurator/cart/${encodeURIComponent(cartId)}/shipping`}
+      links={getCartJourneyLinks(
+        cartId,
+        draft.items[0]?.productId,
+        draft.items[0]?.id
+      )}
+    />
+  );
+
   if (!isDraftReady) {
     return (
-      <div className="flex min-h-[320px] items-center justify-center" role="status" aria-live="polite">
-        <LoaderCircle className="animate-spin text-[var(--color-teal)]" size={28} aria-hidden="true" />
-        <span className="sr-only">Validating company, billing and shipping details</span>
-      </div>
+      <>
+        {topBar}
+        <div className="flex min-h-[320px] items-center justify-center" role="status" aria-live="polite">
+          <LoaderCircle className="animate-spin text-[var(--color-teal)]" size={28} aria-hidden="true" />
+          <span className="sr-only">Validating company, billing and shipping details</span>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <div className="space-y-6">
-        <CheckoutSteps currentStep="payment" cartId={cartId} firstProductId={draft.items[0]?.productId} firstItemId={draft.items[0]?.id} />
+    <>
+      {topBar}
+
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-[#111111]/50">Cart {cartId}</p>
@@ -495,53 +515,54 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
             <li>Production starts only after final approval and the agreed balance-payment terms.</li>
           </ul>
         </section>
-      </div>
-
-      <div className="space-y-4 lg:sticky lg:top-6 lg:self-start">
-        <CartSummarySidebar
-          subtotal={subtotal}
-          volumeDiscount={volumeDiscount}
-          shippingFee={shippingFee}
-          gst={gst}
-          delivery={delivery}
-          total={orderTotal}
-          sticky={false}
-        />
-        <div className="rounded-lg border border-[var(--color-teal)]/25 bg-white p-5 text-sm shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[#111111]/50">Reservation payment</p>
-          <div className="mt-3 flex items-end justify-between gap-3">
-            <span className="font-medium text-[#111111]">Due today</span>
-            <span className="text-2xl font-bold text-[var(--color-teal-dark)]">{formatInr(RESERVATION_FEE)}</span>
-          </div>
-          <div className="mt-3 flex justify-between border-t border-[#E5E5E5] pt-3 text-xs text-[#111111]/65">
-            <span>Estimated balance later</span>
-            <span className="font-semibold text-[#111111]">{formatInr(balanceDue)}</span>
-          </div>
-          <p className="mt-3 text-xs leading-relaxed text-[#111111]/60">
-            Shipping and final production feasibility are confirmed by the Garmops team before the balance becomes payable.
-          </p>
         </div>
-        <button
-          type="button"
-          disabled={!termsAccepted || isProcessing}
-          onClick={handlePayment}
-          className={`flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold transition-colors ${
-            termsAccepted && !isProcessing
-              ? "bg-[var(--color-teal)] text-white hover:bg-[var(--color-teal-dark)]"
-              : "cursor-not-allowed bg-[#E5E5E5] text-[#111111]/40"
-          }`}
-        >
-          {isProcessing && <LoaderCircle size={16} className="animate-spin" />}
-          {isProcessing
-            ? "Opening secure payment…"
-            : `Reserve production review — ${formatInr(RESERVATION_FEE)}`}
-        </button>
-        {!termsAccepted && (
-          <p className="text-center text-xs text-[#111111]/55">Accept the reservation terms to continue.</p>
-        )}
-        {paymentError && <ActionFeedback tone="error" title="Payment could not be opened" detail={`${paymentError} Your project details are safe.`} actionLabel="Try payment again" onAction={handlePayment} onDismiss={() => setPaymentError("")} />}
+
+        <div className="space-y-4 lg:sticky lg:top-36 lg:self-start">
+          <CartSummarySidebar
+            subtotal={subtotal}
+            volumeDiscount={volumeDiscount}
+            shippingFee={shippingFee}
+            gst={gst}
+            delivery={delivery}
+            total={orderTotal}
+            sticky={false}
+          />
+          <div className="rounded-lg border border-[var(--color-teal)]/25 bg-white p-5 text-sm shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#111111]/50">Reservation payment</p>
+            <div className="mt-3 flex items-end justify-between gap-3">
+              <span className="font-medium text-[#111111]">Due today</span>
+              <span className="text-2xl font-bold text-[var(--color-teal-dark)]">{formatInr(RESERVATION_FEE)}</span>
+            </div>
+            <div className="mt-3 flex justify-between border-t border-[#E5E5E5] pt-3 text-xs text-[#111111]/65">
+              <span>Estimated balance later</span>
+              <span className="font-semibold text-[#111111]">{formatInr(balanceDue)}</span>
+            </div>
+            <p className="mt-3 text-xs leading-relaxed text-[#111111]/60">
+              Shipping and final production feasibility are confirmed by the Garmops team before the balance becomes payable.
+            </p>
+          </div>
+          <button
+            type="button"
+            disabled={!termsAccepted || isProcessing}
+            onClick={handlePayment}
+            className={`flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold transition-colors ${
+              termsAccepted && !isProcessing
+                ? "bg-[var(--color-teal)] text-white hover:bg-[var(--color-teal-dark)]"
+                : "cursor-not-allowed bg-[#E5E5E5] text-[#111111]/40"
+            }`}
+          >
+            {isProcessing && <LoaderCircle size={16} className="animate-spin" />}
+            {isProcessing
+              ? "Opening secure payment…"
+              : `Reserve production review — ${formatInr(RESERVATION_FEE)}`}
+          </button>
+          {!termsAccepted && (
+            <p className="text-center text-xs text-[#111111]/55">Accept the reservation terms to continue.</p>
+          )}
+          {paymentError && <ActionFeedback tone="error" title="Payment could not be opened" detail={`${paymentError} Your project details are safe.`} actionLabel="Try payment again" onAction={handlePayment} onDismiss={() => setPaymentError("")} />}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

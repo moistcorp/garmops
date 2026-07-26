@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { TrendingUp } from "lucide-react";
-import type { ProductId } from "@/lib/configurator/pricing";
+import { ChevronDown, TrendingUp } from "lucide-react";
+import type { PricingBreakdown, ProductId } from "@/lib/configurator/pricing";
 import {
   formatInr,
   getConfiguredPricingSummary,
   getVolumeDiscountPercent,
+  GST_PERCENT,
   VOLUME_DISCOUNT_TIERS,
 } from "@/lib/configurator/pricing";
 import { getDeliveryOptions } from "@/lib/configurator/delivery";
@@ -31,6 +32,7 @@ export interface OrderBarProps {
   colour?: GarmentColour;
   artwork?: Artwork;
   neckLabel?: NeckLabel;
+  pricingBreakdown: PricingBreakdown;
 
   /** Validation message for the currently expanded step's last failed CTA
    *  click, if any (mirrors the message shown inline on the accordion). */
@@ -87,25 +89,34 @@ function getBestDiscountPercent() {
   );
 }
 
-function VolumeDiscountNudge({ quantity }: { quantity: number }) {
+function DiscountStatus({
+  quantity,
+  unitDiscount,
+  discountPercent,
+}: {
+  quantity: number;
+  unitDiscount: number;
+  discountPercent: number;
+}) {
   const nextTier = getNextDiscountTier(quantity);
+  const bestDiscountPercent = getBestDiscountPercent();
 
-  if (!nextTier) {
-    const bestDiscountPercent = getBestDiscountPercent();
-
+  if (unitDiscount > 0) {
     return (
       <p className="flex items-center gap-1.5 text-[11px] font-medium text-[#2E7D32]">
-        <TrendingUp size={12} strokeWidth={2.4} />
-        You&rsquo;re at our best volume price — {bestDiscountPercent}% off.
+        <TrendingUp size={12} strokeWidth={2.4} className="shrink-0" />
+        {discountPercent}% off applied
       </p>
     );
   }
 
+  if (!nextTier || bestDiscountPercent === 0) return null;
+
   return (
     <p className="flex items-center gap-1.5 text-[11px] font-medium text-[#111111]/60">
       <TrendingUp size={12} strokeWidth={2.4} className="shrink-0" />
-      Add {nextTier.neededQty} more unit{nextTier.neededQty === 1 ? "" : "s"} to unlock{" "}
-      {nextTier.nextPercent}% off.
+      Add {nextTier.neededQty} more unit{nextTier.neededQty === 1 ? "" : "s"} for{" "}
+      {nextTier.nextPercent}% off
     </p>
   );
 }
@@ -118,40 +129,27 @@ export function OrderBar({
   minQuantity = MINIMUM_ORDER_QUANTITY,
   ctaLabel,
   onCtaClick,
-  productId = "tshirt-classic",
   colour,
-  artwork = {},
-  neckLabel,
+  pricingBreakdown,
   ctaErrorMessage,
   ctaErrorNonce,
 }: OrderBarProps) {
-  const configuredSummary = getConfiguredPricingSummary(
-    productId, colour, artwork, neckLabel, quantity
+  const discountedUnitCost =
+    pricingBreakdown.unitPrice * (1 - pricingBreakdown.discountPercent / 100);
+  const displayUnitCost = unitCost ?? formatInr(discountedUnitCost);
+  const unitDiscount = Math.max(
+    0,
+    pricingBreakdown.unitPrice - discountedUnitCost
   );
-  const displayUnitCost = unitCost ?? formatInr(configuredSummary.discountedUnitPrice);
+  const discountPercent = pricingBreakdown.discountPercent;
   const extraLeadTimeDays =
     colour?.type === "custom_dye" ? CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS.max : 0;
   const displayDeliveryDate = deliveryDate ?? computeDeliveryDate(extraLeadTimeDays);
-  const undiscountedUnitCost = computeConfiguredUnitCost(
-    productId,
-    colour,
-    artwork,
-    neckLabel,
-    1
-  );
-  const discountedUnitCost = computeConfiguredUnitCost(
-    productId,
-    colour,
-    artwork,
-    neckLabel,
-    quantity
-  );
-  const unitDiscount = Math.max(0, undiscountedUnitCost - discountedUnitCost);
-  const discountPercent = getVolumeDiscountPercent(quantity);
 
   // Attention flash for a failed CTA click — mirrors the existing
   // "Draft saved" pattern in ConfigureClient (brief true, then auto-reset).
   const [flashError, setFlashError] = useState(false);
+  const [breakdownOpen, setBreakdownOpen] = useState(false);
   useEffect(() => {
     if (!ctaErrorNonce) return;
     const showTimer = setTimeout(() => setFlashError(true), 0);
@@ -188,35 +186,87 @@ export function OrderBar({
       <div className="grid min-h-11 grid-cols-3 gap-3 text-xs" aria-live="polite">
         <div className="min-w-0">
           <div className="font-semibold leading-tight text-[#111111]">Unit Cost</div>
-          <div className="mt-1 flex flex-wrap items-center gap-1.5">
-            <span className="font-semibold text-[#111111]/80">{displayUnitCost}</span>
-            {unitDiscount > 0 && (
-              <span className="rounded-full bg-[#EAF7EA] px-2 py-0.5 text-[10px] font-semibold text-[#1B7F36]">
-                {discountPercent}% off
-              </span>
-            )}
+          <div className="mt-1 font-semibold text-[#111111]/80">{displayUnitCost}</div>
+          <div className="mt-1">
+            <DiscountStatus
+              quantity={quantity}
+              unitDiscount={unitDiscount}
+              discountPercent={discountPercent}
+            />
           </div>
-          {unitDiscount > 0 && (
-            <p className="mt-1 text-[11px] font-medium text-[#1B7F36]">
-              Saves {formatInr(unitDiscount)}/unit at {quantity} units
-            </p>
-          )}
         </div>
         <div className="min-w-0">
           <div className="font-semibold leading-tight text-[#111111]">Target Delivery</div>
           <div className="mt-1 font-semibold text-[#111111]/70">{displayDeliveryDate}</div>
         </div>
         <div className="min-w-0 text-right">
-          <div className="font-semibold leading-tight text-[#111111]">Est. total incl. GST</div>
-          <div className="mt-1 font-semibold text-[#111111]/80">{formatInr(configuredSummary.total)}</div>
+          <div className="font-semibold leading-tight text-[#111111]">
+            Est. total{" "}
+            <span
+              title="Includes GST"
+              aria-label="Includes GST"
+              className="cursor-help text-[10px] font-normal text-[#111111]/45"
+            >
+              (?)
+            </span>
+          </div>
+          <div className="mt-1 font-semibold text-[#111111]/80">{formatInr(pricingBreakdown.total)}</div>
         </div>
       </div>
 
       <div className="grid gap-1.5">
-        <div className="flex items-center justify-between rounded-xl bg-[var(--color-teal)]/5 px-3 py-2 text-xs">
-          <span className="font-medium text-[#111111]/65">Due today to reserve review</span>
-          <span className="font-bold text-[var(--color-teal-dark)]">{formatInr(RESERVATION_FEE)}</span>
+        <div className="flex items-center justify-between rounded-xl bg-[var(--color-teal)]/5 px-3 py-1.5 text-[10px]">
+          <span className="font-normal text-[#111111]/55">Due today to reserve review</span>
+          <span className="font-semibold text-[var(--color-teal-dark)]/80">{formatInr(RESERVATION_FEE)}</span>
         </div>
+
+        <button
+          type="button"
+          onClick={() => setBreakdownOpen((value) => !value)}
+          aria-expanded={breakdownOpen}
+          aria-controls="order-price-breakdown"
+          className="flex w-full items-center justify-between gap-2 rounded-xl border border-[#ECE7DF] px-3 py-2 text-left text-xs font-semibold text-[#111111]/70 hover:border-[var(--color-teal)]"
+        >
+          <span>See price breakdown</span>
+          <ChevronDown
+            size={14}
+            strokeWidth={2.2}
+            className={`shrink-0 transition-transform duration-200 ${breakdownOpen ? "rotate-180" : ""}`}
+          />
+        </button>
+
+        {breakdownOpen && (
+          <div
+            id="order-price-breakdown"
+            className="flex flex-col gap-1.5 rounded-xl bg-[#F7F7F7] p-3 text-xs"
+          >
+            {pricingBreakdown.rows.map((row) => (
+              <div key={`${row.label}-${row.detail ?? ""}`} className="flex items-center justify-between gap-3">
+                <span className="text-[#111111]/60">
+                  {row.label}{row.detail ? ` (${row.detail})` : ""}
+                </span>
+                <span className="font-medium text-[#111111]">
+                  {row.amount >= 0 ? "+" : "-"}{formatInr(Math.abs(row.amount))}
+                </span>
+              </div>
+            ))}
+            {pricingBreakdown.discountPercent > 0 && (
+              <div className="flex items-center justify-between gap-3 text-[#2E7D32]">
+                <span>Volume discount ({pricingBreakdown.discountPercent}%)</span>
+                <span className="font-medium">-{formatInr(pricingBreakdown.discountAmount)}</span>
+              </div>
+            )}
+            <div className="flex items-center justify-between gap-3 text-[#111111]/60">
+              <span>GST ({GST_PERCENT}%)</span>
+              <span className="font-medium text-[#111111]">{formatInr(pricingBreakdown.gst)}</span>
+            </div>
+            <div className="flex items-center justify-between gap-3 border-t border-[#E5E5E5] pt-1.5 text-sm font-semibold text-[#111111]">
+              <span>Estimated order total</span>
+              <span>{formatInr(pricingBreakdown.total)}</span>
+            </div>
+          </div>
+        )}
+
         <div className="grid min-h-11 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
           <label htmlFor="configurator-quantity" className="whitespace-nowrap text-xs font-semibold text-[#111111]">
             Quantity
@@ -272,13 +322,6 @@ export function OrderBar({
             {ctaLabel}
           </button>
         </div>
-
-        <VolumeDiscountNudge quantity={quantity} />
-        {minQuantity > MINIMUM_ORDER_QUANTITY && (
-          <p className="text-[11px] font-medium text-[#8A6212]">
-            Custom dye minimum: {minQuantity} units per colour.
-          </p>
-        )}
 
         {ctaErrorMessage && (
           <p role="alert" className="text-right text-[11px] font-medium text-[#C62828]">

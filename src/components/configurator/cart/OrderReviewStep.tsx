@@ -2,13 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Copy, Download, LoaderCircle, Plus, Tag } from 'lucide-react';
+import { ArrowLeft, Copy, Plus, Tag } from 'lucide-react';
 import type { ProductId } from '@/lib/configurator/pricing';
 import type { GarmentColour, Artwork, NeckLabel } from '@/lib/configurator/types/configurator';
 import type { GarmentView } from '@/lib/configurator/types/garment';
 import { SizeQuantityGrid, SIZES, type Size } from './SizeQuantityGrid';
 import { CartSummarySidebar } from './CartSummarySidebar';
-import { CheckoutSteps } from './CheckoutSteps';
+import {
+  ConfiguratorTopBar,
+  getCartJourneyLinks,
+} from '../ConfiguratorTopBar';
 import {
   calculateTotals,
   createDraft,
@@ -315,9 +318,19 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
     });
 
   return (
-    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <div className="space-y-6">
-        <CheckoutSteps currentStep="summary" cartId={cartId} firstProductId={items[0]?.productId} firstItemId={items[0]?.id} />
+    <>
+      <ConfiguratorTopBar
+        currentStep="quantity"
+        backHref="/configurator"
+        onDownloadPdf={handleDownloadApprovalPdf}
+        isDownloadingPdf={isDownloadingPdf}
+        isDownloadDisabled={!draftLoaded || items.length === 0}
+        showCart
+        links={getCartJourneyLinks(cartId, items[0]?.productId, items[0]?.id)}
+      />
+
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="space-y-6">
         {feedback && <ActionFeedback {...feedback} onDismiss={feedback.tone === 'loading' ? undefined : () => setFeedback(null)} actionLabel={feedback.tone === 'error' ? 'Retry PDF' : undefined} onAction={feedback.tone === 'error' ? handleDownloadApprovalPdf : undefined} />}
         <section className="rounded-xl border border-[#ECE7DF] bg-white p-4">
           <label htmlFor="project-name" className="text-xs font-semibold uppercase tracking-wide text-[#111111]/55">
@@ -349,19 +362,6 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             >
               <ArrowLeft size={16} strokeWidth={2.2} />
               Back to configurator
-            </button>
-            <button
-              type="button"
-              onClick={handleDownloadApprovalPdf}
-              disabled={!draftLoaded || items.length === 0 || isDownloadingPdf}
-              className="inline-flex items-center gap-2 rounded-full border border-[var(--color-teal)] px-4 py-2 text-sm font-semibold text-[var(--color-teal)] hover:bg-[var(--color-teal)] hover:text-white disabled:cursor-not-allowed disabled:border-[#E5E5E5] disabled:text-[#111111]/35"
-            >
-              {isDownloadingPdf ? (
-                <LoaderCircle size={16} strokeWidth={2.2} className="animate-spin" />
-              ) : (
-                <Download size={16} strokeWidth={2.2} />
-              )}
-              {isDownloadingPdf ? 'Creating PDF' : 'Download Approval PDF'}
             </button>
             <button
               type="button"
@@ -579,25 +579,29 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             </section>
           );
         })}
-      </div>
+        </div>
 
-      <CartSummarySidebar
-        subtotal={totals.subtotal}
-        volumeDiscount={totals.volumeDiscount}
-        shippingFee={totals.shippingFee}
-        gst={totals.gst}
-        delivery="Calculated at shipping"
-        total={totals.total}
-        onNext={handleNext}
-        nextLabel="Next: Invoice & Shipping"
-        nextDisabled={!cartIsValid || cartUnitCount < 50}
-        disabledMessage={
-          !cartIsValid || cartUnitCount < 50
-            ? "Complete the size allocation and ensure every product meets its minimum order quantity."
-            : undefined
-        }
-      />
-    </div>
+        <div className="lg:sticky lg:top-36 lg:self-start">
+          <CartSummarySidebar
+            subtotal={totals.subtotal}
+            volumeDiscount={totals.volumeDiscount}
+            shippingFee={totals.shippingFee}
+            gst={totals.gst}
+            delivery="Calculated at shipping"
+            total={totals.total}
+            onNext={handleNext}
+            nextLabel="Next: Invoice & Shipping"
+            nextDisabled={!cartIsValid || cartUnitCount < 50}
+            disabledMessage={
+              !cartIsValid || cartUnitCount < 50
+                ? "Complete the size allocation and ensure every product meets its minimum order quantity."
+                : undefined
+            }
+            sticky={false}
+          />
+        </div>
+      </div>
+    </>
   );
 }
 
