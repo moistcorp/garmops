@@ -10,19 +10,19 @@ const steps = [
     number: '1',
     title: 'Select a product',
     body: 'Made in India in the same factories as leading fashion brands, our garments and accessories have unmatched quality and fit.',
-    image: '/images/how-it-works-1.jpg',
+    image: '/images/how-it-works-1.webp',
   },
   {
     number: '2',
     title: 'Customise it',
     body: 'Explore the Garmops, a real-time merch platform that allows you to choose from +2500 colours, numerous embellishments and printing techniques. Top it off with your brands woven label.',
-    image: '/images/how-it-works-2.jpg',
+    image: '/images/how-it-works-2.webp',
   },
   {
     number: '3',
     title: 'Place your order',
     body: 'Review the order details and place your order. Our team will review it and given the OK, your new merch will arrive at your doorstep in 18 Days.',
-    image: '/images/how-it-works-3.jpg',
+    image: '/images/how-it-works-3.webp',
   },
 ]
 

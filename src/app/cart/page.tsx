@@ -5,11 +5,31 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 export default function Cart() {
-  const { items, removeItem, updateQuantity, total } = useCartStore()
+  const { items, removeItem, updateQuantity, total, hasHydrated } = useCartStore()
   const router = useRouter()
   const cartTotal = total()
   const shipping = cartTotal >= 2000 ? 0 : 99
   const grandTotal = cartTotal + shipping
+
+  if (!hasHydrated) return (
+    <div className="max-w-7xl mx-auto px-6 py-16 animate-pulse">
+      <div className="h-9 w-56 bg-[#ECE7DF] rounded-lg mb-12" />
+      <div className="grid lg:grid-cols-3 gap-12">
+        <div className="lg:col-span-2 flex flex-col gap-4">
+          {[0, 1].map(i => (
+            <div key={i} className="bg-white rounded-2xl border border-[#ECE7DF] p-5 flex gap-5 items-start h-28">
+              <div className="w-20 h-20 bg-[var(--color-cream-soft)] rounded-xl shrink-0" />
+              <div className="flex-1 flex flex-col gap-2 pt-1">
+                <div className="h-4 w-1/2 bg-[#ECE7DF] rounded" />
+                <div className="h-3 w-1/3 bg-[#ECE7DF] rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="h-56 bg-white rounded-2xl border border-[#ECE7DF]" />
+      </div>
+    </div>
+  )
 
   if (items.length === 0) return (
     <div className="max-w-7xl mx-auto px-6 py-24 text-center">

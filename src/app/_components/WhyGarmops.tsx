@@ -6,25 +6,25 @@ const accordionItems = [
   {
     title: 'Manufactured in India, built for global standards',
     body: 'Our facilities across India runs on the same processes trusted by export-grade fashion brands. Every order - from 50 pieces to 5,000 - goes through the same QA rigour.',
-    image: '/images/manufacturing-facility.jpg',
+    image: '/images/manufacturing-facility.webp',
     alt: 'Garment manufacturing facility floor in India with QA processes in place',
   },
   {
     title: 'Extensive Customisation',
     body: 'Over 2500 colours to match your brand identity and 6 professional embellishment techniques to bring your merch vision to life.',
-    image: '/images/print-techniques.jpg',
+    image: '/images/print-techniques.webp',
     alt: 'Our 6 print and embroidery techniques — Screen Print, DTG, DTF, Reflective Heat Transfer, Embroidery, 3D Embroidery, Puff',
   },
   {
     title: 'Flexible MOQs from 50 pieces',
     body: 'No warehouse minimums, no padding. Order exactly what you need. Volume discounts kick in automatically from 100 pieces.',
-    image: '/images/flexiblemoq.jpg',
+    image: '/images/flexiblemoq.webp',
     alt: 'Small batch garment production run showing flexible order quantities',
   },
   {
     title: 'Fast, predictable lead times',
     body: 'Standard orders in 35 working days. Rush orders in 18 working days. Timelines confirmed at order, not after.',
-    image: '/images/fast-lead-times.jpg',
+    image: '/images/fast-lead-times.webp',
     alt: 'Garments packed and ready for dispatch, showing fast turnaround',
   },
 ]

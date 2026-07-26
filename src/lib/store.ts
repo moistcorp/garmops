@@ -15,6 +15,8 @@ export type CartItem = {
 
 type CartStore = {
   items: CartItem[]
+  hasHydrated: boolean
+  setHasHydrated: (hasHydrated: boolean) => void
   addItem: (item: CartItem) => void
   removeItem: (id: number, size: string) => void
   updateQuantity: (id: number, size: string, quantity: number) => void
@@ -67,6 +69,9 @@ function normalizeItems(value: unknown): CartItem[] {
 
 export const useCartStore = create<CartStore>()(persist((set, get) => ({
   items: [],
+  hasHydrated: false,
+
+  setHasHydrated: (hasHydrated) => set({ hasHydrated }),
 
   addItem: (item) => {
     const normalized = normalizeItem(item)
@@ -115,4 +120,7 @@ export const useCartStore = create<CartStore>()(persist((set, get) => ({
     items: normalizeItems((persistedState as Partial<CartStore> | undefined)?.items),
   }),
   skipHydration: true,
+  onRehydrateStorage: () => (state) => {
+    state?.setHasHydrated(true)
+  },
 }))

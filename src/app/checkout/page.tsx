@@ -63,7 +63,7 @@ function SelectWrapper({ children }: { children: React.ReactNode }) {
 }
 
 export default function Checkout() {
-  const { items, total } = useCartStore()
+  const { items, total, hasHydrated } = useCartStore()
   const cartTotal = total()
   const shipping = cartTotal >= 2000 ? 0 : 99
   const grandTotal = cartTotal + shipping
@@ -87,6 +87,21 @@ export default function Checkout() {
 
   const availableCities = selectedState && indianCities[selectedState] ? indianCities[selectedState] : []
   const cityValue = customCity || selectedCity
+
+  if (!hasHydrated) {
+    return (
+      <div className="max-w-7xl mx-auto px-6 py-16 animate-pulse">
+        <div className="h-9 w-64 bg-[#ECE7DF] rounded-lg mb-12" />
+        <div className="grid lg:grid-cols-3 gap-12">
+          <div className="lg:col-span-2 flex flex-col gap-4">
+            <div className="h-64 bg-white rounded-2xl border border-[#E5E5E5]" />
+            <div className="h-40 bg-white rounded-2xl border border-[#E5E5E5]" />
+          </div>
+          <div className="h-56 bg-white rounded-2xl border border-[#E5E5E5]" />
+        </div>
+      </div>
+    )
+  }
 
   if (items.length === 0) {
     return (
