@@ -1,11 +1,22 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, CreditCard, LoaderCircle, ShieldCheck } from "lucide-react";
-import { isAddressValid, type Address } from "./AddressForm";
+import {
+  ArrowLeft,
+  Building2,
+  CreditCard,
+  FileText,
+  LoaderCircle,
+  MapPin,
+  ReceiptText,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
+import type { Address } from "./AddressForm";
 import { CartSummarySidebar } from "./CartSummarySidebar";
 import { CheckoutSteps } from "./CheckoutSteps";
+import { getProcurementMissingFields } from "./checkoutDetails";
 import type { CartItem } from "./OrderReviewStep";
 import {
   calculateTotals,
@@ -30,6 +41,19 @@ export interface ConfirmationStepProps {
   cartId: string;
 }
 
+function joinAddress(address: Address): string {
+  return [
+    address.addressLine1,
+    address.addressLine2,
+    address.city,
+    address.state,
+    address.zip,
+    address.country,
+  ]
+    .filter(Boolean)
+    .join(", ");
+}
+
 export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
   const router = useRouter();
   const [draft, setDraft] = useState(() => createDraft(cartId));
@@ -46,10 +70,13 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
         return;
       }
 
-      const shippingComplete = isAddressValid(savedDraft.shippingAddress);
-      const billingComplete =
-        savedDraft.sameAsShipping ||
-        isAddressValid(savedDraft.billingAddress, { requireContact: false });
+      const procurementComplete =
+        getProcurementMissingFields({
+          company: savedDraft.companyInformation,
+          contact: savedDraft.projectContact,
+          shipping: savedDraft.shippingInformation,
+          billing: savedDraft.billingInformation,
+        }).length === 0;
       const selectedDeliveryDate = savedDraft.selectedDeliveryDateIso
         ? new Date(savedDraft.selectedDeliveryDateIso)
         : undefined;
@@ -68,7 +95,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
         extraLeadTimeDays
       );
 
-      if (!shippingComplete || !billingComplete || !deliveryComplete) {
+      if (!procurementComplete || !deliveryComplete) {
         router.replace(`/configurator/cart/${encodeURIComponent(cartId)}/shipping`);
         return;
       }
@@ -97,8 +124,10 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
       };
     }, [draft]);
 
-  const billingAddress = draft.sameAsShipping ? draft.shippingAddress : draft.billingAddress;
-  const projectContact = draft.shippingAddress;
+  const billingAddress = draft.billingInformation.sameAsCompanyAddress
+    ? draft.companyInformation.address
+    : draft.billingInformation.address;
+  const projectContact = draft.projectContact;
 
   const handlePayment = async () => {
     setPaymentError("");
@@ -109,10 +138,12 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
         const minimum = item.colour.type === "custom_dye" ? CUSTOM_DYE_MOQ_UNITS : 50;
         return totalUnits(item.sizeQuantities) >= minimum;
       });
-    const shippingComplete = isAddressValid(draft.shippingAddress);
-    const billingComplete =
-      draft.sameAsShipping ||
-      isAddressValid(draft.billingAddress, { requireContact: false });
+    const procurementMissing = getProcurementMissingFields({
+      company: draft.companyInformation,
+      contact: draft.projectContact,
+      shipping: draft.shippingInformation,
+      billing: draft.billingInformation,
+    });
     const selectedDeliveryDate = draft.selectedDeliveryDateIso
       ? new Date(draft.selectedDeliveryDateIso)
       : undefined;
@@ -131,9 +162,9 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
     const firstname = projectContact.firstName.trim();
     const email = projectContact.email.trim();
 
-    if (!hasValidItems || !shippingComplete || !billingComplete || !deliveryComplete) {
+    if (!hasValidItems || procurementMissing.length > 0 || !deliveryComplete) {
       setPaymentError(
-        "Your order or company details are incomplete. Return to the previous steps and review them."
+        "Your order or company details are incomplete. Return to the previous step and review them."
       );
       return;
     }
@@ -166,6 +197,8 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
         throw new Error("PayU returned an invalid payment response");
       }
 
+      const shippingAddress = draft.shippingInformation.address;
+      const purchaseOrder = draft.billingInformation.purchaseOrder;
       window.localStorage.setItem(
         "mf_pending_order",
         JSON.stringify({
@@ -175,9 +208,31 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
           name: `${projectContact.firstName} ${projectContact.lastName}`.trim(),
           email,
           amount,
+          companyName: draft.companyInformation.name,
+          companyGstin: draft.companyInformation.gstin,
+          companyWebsite: draft.companyInformation.website,
+          industry: draft.companyInformation.industry,
+          department: projectContact.department,
+          phone: projectContact.phone,
+          billingEntity: draft.billingInformation.entity,
+          accountsPayableEmail: draft.billingInformation.accountsPayableEmail,
+          billingGstin: draft.billingInformation.gstin,
+          billingAddress: joinAddress(billingAddress),
+          poNumber: draft.companyInformation.poNumber,
+          costCentre: draft.companyInformation.costCentre,
+          poFileKey: purchaseOrder?.fileKey,
+          poFileName: purchaseOrder?.fileName,
+          poFileType: purchaseOrder?.fileType,
+          orderNotes: draft.projectPreferences.orderNotes,
+          multipleLocations: draft.shippingInformation.multipleLocations,
+          multipleLocationsNotes: draft.shippingInformation.multipleLocationsNotes,
+          targetDelivery: delivery,
           product: draft.items.map((item) => item.productName).join(", "),
           color: draft.items.map((item) => item.colour.name || "Bright White").join(", "),
-          technique: "Configurator order",
+          technique: draft.items
+            .flatMap((item) => [item.artwork.front?.technique, item.artwork.back?.technique])
+            .filter(Boolean)
+            .join(", ") || "To be reviewed",
           placements: draft.items
             .map((item) =>
               [item.artwork.front?.fileUrl && "Front", item.artwork.back?.fileUrl && "Back"]
@@ -196,18 +251,21 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
           sizeBreakdown: draft.items
             .map((item) => {
               const sizes = getProduct(item.productId)?.sizes ?? Object.keys(item.sizeQuantities);
-              return sizes
+              return `${item.productName}: ${sizes
                 .map((size) => `${size}: ${item.sizeQuantities[size] ?? 0}`)
-                .join(", ");
+                .join(", ")}`;
             })
             .join(" | "),
           estimatedTotal: formatInr(orderTotal),
           retryHref: `/configurator/cart/${encodeURIComponent(cartId)}/confirmation`,
           shipping: {
-            addressLine1: draft.shippingAddress.addressLine1,
-            city: draft.shippingAddress.city,
-            state: draft.shippingAddress.state,
-            pincode: draft.shippingAddress.zip,
+            recipientName: draft.shippingInformation.recipientName,
+            addressLine1: shippingAddress.addressLine1,
+            addressLine2: shippingAddress.addressLine2,
+            city: shippingAddress.city,
+            state: shippingAddress.state,
+            pincode: shippingAddress.zip,
+            country: shippingAddress.country,
           },
         })
       );
@@ -235,6 +293,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
         email,
         phone: projectContact.phone,
         address1: billingAddress.addressLine1,
+        address2: billingAddress.addressLine2 ?? "",
         city: billingAddress.city,
         state: billingAddress.state ?? "",
         zipcode: billingAddress.zip,
@@ -269,7 +328,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
     return (
       <div className="flex min-h-[320px] items-center justify-center" role="status" aria-live="polite">
         <LoaderCircle className="animate-spin text-[var(--color-teal)]" size={28} aria-hidden="true" />
-        <span className="sr-only">Validating shipping details</span>
+        <span className="sr-only">Validating company, billing and shipping details</span>
       </div>
     );
   }
@@ -289,49 +348,88 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
             className="inline-flex items-center gap-2 self-start rounded-full border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-teal)] hover:text-[#111111] sm:self-auto"
           >
             <ArrowLeft size={16} strokeWidth={2.2} />
-            Back to Invoice & Shipping
+            Back to Company, Billing & Shipping
           </button>
         </div>
 
-        <section className="rounded-lg border border-[#E5E5E5] bg-white p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-sm font-medium text-[#111111]">Shipping & project contact</h3>
-            <button
-              type="button"
-              onClick={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping`)}
-              className="text-xs text-[#111111]/70 underline hover:text-[#111111]"
-            >
-              Edit details
-            </button>
+        <ReviewSection
+          icon={<Building2 size={18} />}
+          title="Company information"
+          onEdit={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping#company-information`)}
+        >
+          <div className="grid gap-1 text-sm text-[#111111]/75 sm:grid-cols-2">
+            <p><span className="font-medium text-[#111111]">Company:</span> {draft.companyInformation.name}</p>
+            <p><span className="font-medium text-[#111111]">Industry:</span> {draft.companyInformation.industry}</p>
+            {draft.companyInformation.gstin && <p><span className="font-medium text-[#111111]">GSTIN:</span> {draft.companyInformation.gstin}</p>}
+            {draft.companyInformation.website && <p><span className="font-medium text-[#111111]">Website:</span> {draft.companyInformation.website}</p>}
+            {draft.companyInformation.poNumber && <p><span className="font-medium text-[#111111]">PO number:</span> {draft.companyInformation.poNumber}</p>}
+            {draft.companyInformation.costCentre && <p><span className="font-medium text-[#111111]">Cost centre:</span> {draft.companyInformation.costCentre}</p>}
           </div>
-          <AddressSummary address={draft.shippingAddress} showContact />
-          {(draft.shippingAddress.poNumber || draft.shippingAddress.orderNotes) && (
-            <div className="mt-4 border-t border-[#E5E5E5] pt-3 text-xs text-[#111111]/65">
-              {draft.shippingAddress.poNumber && <p><span className="font-medium">PO:</span> {draft.shippingAddress.poNumber}</p>}
-              {draft.shippingAddress.orderNotes && <p className="mt-1"><span className="font-medium">Notes:</span> {draft.shippingAddress.orderNotes}</p>}
+        </ReviewSection>
+
+        <ReviewSection
+          icon={<UserRound size={18} />}
+          title="Primary project contact"
+          onEdit={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping#project-contact`)}
+        >
+          <div className="space-y-1 text-sm text-[#111111]/75">
+            <p className="font-medium text-[#111111]">{projectContact.firstName} {projectContact.lastName}</p>
+            <p>{projectContact.department}</p>
+            <p>{projectContact.email} · {projectContact.phone}</p>
+          </div>
+        </ReviewSection>
+
+        <ReviewSection
+          icon={<MapPin size={18} />}
+          title="Shipping information"
+          onEdit={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping#shipping-information`)}
+        >
+          <p className="mb-1 text-sm font-medium text-[#111111]">{draft.shippingInformation.recipientName}</p>
+          <AddressSummary address={draft.shippingInformation.address} />
+          {draft.shippingInformation.multipleLocations && (
+            <div className="mt-3 rounded-md bg-[#F7F7F7] p-3 text-xs leading-relaxed text-[#111111]/65">
+              <p className="font-medium text-[#111111]">Multiple delivery locations requested</p>
+              <p className="mt-1">{draft.shippingInformation.multipleLocationsNotes || "Detailed split will be confirmed after reservation."}</p>
             </div>
           )}
-        </section>
+          <p className="mt-3 text-xs text-[#111111]/55">Target delivery: {delivery}</p>
+        </ReviewSection>
 
-        <section className="rounded-lg border border-[#E5E5E5] bg-white p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-sm font-medium text-[#111111]">Billing address</h3>
-            {!draft.sameAsShipping && (
-              <button
-                type="button"
-                onClick={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping`)}
-                className="text-xs text-[#111111]/70 underline hover:text-[#111111]"
-              >
-                Edit details
-              </button>
-            )}
-          </div>
-          {draft.sameAsShipping ? (
-            <p className="text-sm text-[#111111]/70">Same as shipping address</p>
-          ) : (
+        <ReviewSection
+          icon={<ReceiptText size={18} />}
+          title="Billing information"
+          onEdit={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping#billing-information`)}
+        >
+          <div className="space-y-1 text-sm text-[#111111]/75">
+            <p className="font-medium text-[#111111]">{draft.billingInformation.entity}</p>
+            <p>Accounts payable: {draft.billingInformation.accountsPayableEmail}</p>
+            {draft.billingInformation.gstin && <p>GSTIN: {draft.billingInformation.gstin}</p>}
+            <p className="pt-1 text-xs text-[#111111]/55">
+              {draft.billingInformation.sameAsCompanyAddress
+                ? "Registered company / billing address:"
+                : "Alternate billing address:"}
+            </p>
             <AddressSummary address={billingAddress} />
+          </div>
+          {draft.billingInformation.purchaseOrder && (
+            <div className="mt-3 flex items-center gap-2 rounded-md bg-[#F7F7F7] p-3 text-xs text-[#111111]/65">
+              <FileText size={16} className="shrink-0 text-[var(--color-teal-dark)]" />
+              <span>Purchase order attached: <strong className="text-[#111111]">{draft.billingInformation.purchaseOrder.fileName}</strong></span>
+            </div>
           )}
-        </section>
+        </ReviewSection>
+
+        {(draft.projectPreferences.orderNotes || draft.projectPreferences.receiveEmails) && (
+          <section className="rounded-lg border border-[#E5E5E5] bg-white p-5">
+            <h3 className="text-sm font-medium text-[#111111]">Project notes & communication</h3>
+            {draft.projectPreferences.orderNotes && (
+              <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[#111111]/70">{draft.projectPreferences.orderNotes}</p>
+            )}
+            {draft.projectPreferences.receiveEmails && (
+              <p className="mt-2 text-xs text-[#111111]/50">Marketing and product updates enabled.</p>
+            )}
+          </section>
+        )}
 
         <section className="rounded-lg border border-[#E5E5E5] bg-white p-5">
           <h3 className="mb-4 text-sm font-medium text-[#111111]">Order summary</h3>
@@ -425,21 +523,44 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
   );
 }
 
-function AddressSummary({ address, showContact = false }: { address: Address; showContact?: boolean }) {
+function ReviewSection({
+  icon,
+  title,
+  onEdit,
+  children,
+}: {
+  icon: ReactNode;
+  title: string;
+  onEdit: () => void;
+  children: ReactNode;
+}) {
   return (
-    <div className="space-y-1 text-sm text-[#111111]/80">
-      <p className="font-medium text-[#111111]">
-        {address.firstName} {address.lastName}
-        {address.company ? ` · ${address.company}` : ""}
-      </p>
+    <section className="rounded-lg border border-[#E5E5E5] bg-white p-5">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span className="text-[var(--color-teal-dark)]">{icon}</span>
+          <h3 className="text-sm font-medium text-[#111111]">{title}</h3>
+        </div>
+        <button
+          type="button"
+          onClick={onEdit}
+          className="text-xs text-[#111111]/70 underline hover:text-[#111111]"
+        >
+          Edit details
+        </button>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function AddressSummary({ address }: { address: Address }) {
+  return (
+    <div className="space-y-1 text-sm text-[#111111]/75">
       <p>{address.addressLine1}</p>
       {address.addressLine2 && <p>{address.addressLine2}</p>}
-      {address.gstin && <p>GSTIN: {address.gstin}</p>}
       <p>{address.city}{address.state ? `, ${address.state}` : ""} {address.zip}</p>
       <p>{address.country}</p>
-      {showContact && (address.email || address.phone) && (
-        <p className="pt-1 text-[#111111]/60">{[address.email, address.phone].filter(Boolean).join(" · ")}</p>
-      )}
     </div>
   );
 }

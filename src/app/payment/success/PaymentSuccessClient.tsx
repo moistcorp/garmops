@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useCartStore } from "@/lib/store";
 import type { PaymentKind } from "@/lib/payu";
+import { readUploadedFile } from "@/lib/configurator/objectUrls";
 
 interface PaymentSuccessClientProps {
   verified: boolean;
@@ -22,6 +23,25 @@ type PendingOrder = {
   email?: string;
   txnid?: string;
   amount?: string;
+  companyName?: string;
+  companyGstin?: string;
+  companyWebsite?: string;
+  industry?: string;
+  department?: string;
+  phone?: string;
+  billingEntity?: string;
+  accountsPayableEmail?: string;
+  billingGstin?: string;
+  billingAddress?: string;
+  poNumber?: string;
+  costCentre?: string;
+  poFileKey?: string;
+  poFileName?: string;
+  poFileType?: string;
+  orderNotes?: string;
+  multipleLocations?: boolean;
+  multipleLocationsNotes?: string;
+  targetDelivery?: string;
   product?: string;
   color?: string;
   technique?: string;
@@ -38,13 +58,15 @@ type PendingOrder = {
     lineTotal?: number;
   }>;
   shipping?: {
+    recipientName?: string;
     addressLine1?: string;
+    addressLine2?: string;
     city?: string;
     state?: string;
     pincode?: string;
+    country?: string;
   };
 };
-
 export default function PaymentSuccessClient({
   verified,
   txnid,
@@ -110,10 +132,22 @@ export default function PaymentSuccessClient({
 
     const isSampleOrder = paymentKind === "sample-cart";
     setEmailStatus("sending");
-    void fetch("/api/send-confirmation", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+
+    void (async () => {
+      const shippingAddress = order.shipping
+        ? [
+            order.shipping.recipientName,
+            order.shipping.addressLine1,
+            order.shipping.addressLine2,
+            order.shipping.city,
+            order.shipping.state,
+            order.shipping.pincode,
+            order.shipping.country,
+          ]
+            .filter(Boolean)
+            .join(", ")
+        : "";
+      const payload = {
         name: order.name,
         email: order.email,
         txnid,
@@ -125,6 +159,23 @@ export default function PaymentSuccessClient({
               shippingAddress: order.shippingAddress ?? "",
             }
           : {
+              companyName: order.companyName,
+              companyGstin: order.companyGstin,
+              companyWebsite: order.companyWebsite,
+              industry: order.industry,
+              department: order.department,
+              phone: order.phone,
+              billingEntity: order.billingEntity,
+              accountsPayableEmail: order.accountsPayableEmail,
+              billingGstin: order.billingGstin,
+              billingAddress: order.billingAddress,
+              poNumber: order.poNumber,
+              costCentre: order.costCentre,
+              purchaseOrder: order.poFileName,
+              orderNotes: order.orderNotes,
+              multipleLocations: order.multipleLocations ? "Yes" : "No",
+              multipleLocationsNotes: order.multipleLocationsNotes,
+              targetDelivery: order.targetDelivery,
               product: order.product,
               color: order.color,
               technique: order.technique,
@@ -133,19 +184,34 @@ export default function PaymentSuccessClient({
               totalQty: order.totalQty,
               sizeBreakdown: order.sizeBreakdown,
               estimatedTotal: order.estimatedTotal,
-              shippingAddress: order.shipping
-                ? [
-                    order.shipping.addressLine1,
-                    order.shipping.city,
-                    order.shipping.state,
-                    order.shipping.pincode,
-                  ]
-                    .filter(Boolean)
-                    .join(", ")
-                : "",
+              shippingAddress,
             },
-      }),
-    })
+      };
+
+      if (!isSampleOrder && order.poFileKey) {
+        const attachment = await readUploadedFile(order.poFileKey);
+        if (!attachment) {
+          throw new Error("The saved purchase order could not be restored");
+        }
+        const formData = new FormData();
+        formData.set("payload", JSON.stringify(payload));
+        formData.set(
+          "attachment",
+          attachment,
+          order.poFileName || "purchase-order.pdf"
+        );
+        return fetch("/api/send-confirmation", {
+          method: "POST",
+          body: formData,
+        });
+      }
+
+      return fetch("/api/send-confirmation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+    })()
       .then((response) => {
         if (!response.ok) throw new Error("Confirmation email failed");
         window.localStorage.removeItem("mf_pending_order");

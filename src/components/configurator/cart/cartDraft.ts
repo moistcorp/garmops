@@ -10,6 +10,14 @@ import type { ProductId } from "@/lib/configurator/pricing";
 import type { GarmentColour, Artwork, NeckLabel } from "@/lib/configurator/types/configurator";
 import type { CartItem } from "./OrderReviewStep";
 import type { Address } from "./AddressForm";
+import type {
+  BillingInformation,
+  CompanyInformation,
+  ProjectContact,
+  ProjectPreferences,
+  PurchaseOrderAttachment,
+  ShippingInformation,
+} from "./checkoutDetails";
 import type { Size } from "./SizeQuantityGrid";
 import { SIZES } from "./SizeQuantityGrid";
 import { scheduleUploadCleanup } from "@/lib/configurator/objectUrls";
@@ -19,7 +27,6 @@ const STORAGE_PREFIX = "mf_configurator_cart:";
 const ACTIVE_CART_KEY = `${STORAGE_PREFIX}active`;
 const ACTIVE_CART_ID_KEY = `${STORAGE_PREFIX}active_id`;
 export const CART_DRAFT_UPDATED_EVENT = "mf-cart-updated";
-
 
 const SIZE_DISTRIBUTION: Record<(typeof SIZES)[number], number> = {
   XS: 0.1,
@@ -31,32 +38,73 @@ const SIZE_DISTRIBUTION: Record<(typeof SIZES)[number], number> = {
 };
 
 export const emptyAddress: Address = {
-  firstName: "",
-  lastName: "",
-  company: "",
-  gstin: "",
   country: "India",
   addressLine1: "",
   addressLine2: "",
   zip: "",
   city: "",
   state: "",
-  email: "",
-  phone: "",
-  poNumber: "",
-  orderNotes: "",
-  receiveEmails: false,
 };
 
 function createEmptyAddress(): Address {
   return { ...emptyAddress };
 }
 
+function createEmptyCompany(): CompanyInformation {
+  return {
+    name: "",
+    gstin: "",
+    industry: "",
+    website: "",
+    poNumber: "",
+    costCentre: "",
+    address: createEmptyAddress(),
+  };
+}
+
+function createEmptyProjectContact(): ProjectContact {
+  return {
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    department: "",
+  };
+}
+
+function createEmptyShipping(): ShippingInformation {
+  return {
+    recipientName: "",
+    address: createEmptyAddress(),
+    multipleLocations: false,
+    multipleLocationsNotes: "",
+  };
+}
+
+function createEmptyBilling(): BillingInformation {
+  return {
+    sameAsCompanyAddress: true,
+    entity: "",
+    address: createEmptyAddress(),
+    accountsPayableEmail: "",
+    gstin: "",
+  };
+}
+
+function createEmptyPreferences(): ProjectPreferences {
+  return {
+    orderNotes: "",
+    receiveEmails: false,
+  };
+}
+
 export interface CartDraft {
   items: CartItem[];
-  shippingAddress: Address;
-  billingAddress: Address;
-  sameAsShipping: boolean;
+  companyInformation: CompanyInformation;
+  projectContact: ProjectContact;
+  shippingInformation: ShippingInformation;
+  billingInformation: BillingInformation;
+  projectPreferences: ProjectPreferences;
   selectedDeliveryDateIso?: string;
   orderConfirmedDateIso?: string;
   deliveryType?: "rush" | "standard" | "flexible";
@@ -64,9 +112,6 @@ export interface CartDraft {
 }
 
 export function createCartItems(cartId: string): CartItem[] {
-  // A missing cart is genuinely empty. Earlier versions seeded a demo item
-  // here, which meant the first real configuration was silently charged
-  // alongside an unrelated sample garment.
   void cartId;
   return [];
 }
@@ -74,9 +119,11 @@ export function createCartItems(cartId: string): CartItem[] {
 export function createDraft(cartId: string): CartDraft {
   return {
     items: createCartItems(cartId),
-    shippingAddress: createEmptyAddress(),
-    billingAddress: createEmptyAddress(),
-    sameAsShipping: true,
+    companyInformation: createEmptyCompany(),
+    projectContact: createEmptyProjectContact(),
+    shippingInformation: createEmptyShipping(),
+    billingInformation: createEmptyBilling(),
+    projectPreferences: createEmptyPreferences(),
     promoCode: "",
   };
 }
@@ -96,21 +143,142 @@ function asOptionalString(value: unknown): string | undefined {
 function normalizeAddress(value: unknown): Address {
   if (!isRecord(value)) return createEmptyAddress();
   return {
-    firstName: asString(value.firstName),
-    lastName: asString(value.lastName),
-    company: asOptionalString(value.company),
-    gstin: asOptionalString(value.gstin),
     country: asString(value.country, "India"),
     addressLine1: asString(value.addressLine1),
     addressLine2: asOptionalString(value.addressLine2),
     zip: asString(value.zip),
     city: asString(value.city),
     state: asOptionalString(value.state),
+  };
+}
+
+function normalizePurchaseOrder(value: unknown): PurchaseOrderAttachment | undefined {
+  if (!isRecord(value)) return undefined;
+  const fileKey = asString(value.fileKey);
+  const fileName = asString(value.fileName);
+  const fileType = asString(value.fileType);
+  const fileSize = Number(value.fileSize);
+  if (!fileKey || !fileName || !Number.isFinite(fileSize) || fileSize <= 0) return undefined;
+  return { fileKey, fileName, fileType, fileSize };
+}
+
+function normalizeCompany(value: unknown): CompanyInformation {
+  if (!isRecord(value)) return createEmptyCompany();
+  const industry = asString(value.industry);
+  const allowedIndustries = [
+    "Hotels & Restaurants",
+    "Music & Events",
+    "Sports & Fitness",
+    "Arts & Culture",
+    "Creative Studios",
+    "Companies & Startups",
+    "Other",
+  ];
+  return {
+    name: asString(value.name),
+    gstin: asString(value.gstin).toUpperCase(),
+    industry: (allowedIndustries.includes(industry) ? industry : "") as CompanyInformation["industry"],
+    website: asString(value.website),
+    poNumber: asString(value.poNumber),
+    costCentre: asString(value.costCentre),
+    address: normalizeAddress(value.address),
+  };
+}
+
+function normalizeProjectContact(value: unknown): ProjectContact {
+  if (!isRecord(value)) return createEmptyProjectContact();
+  const department = asString(value.department);
+  const allowedDepartments = ["HR", "Operations", "Marketing", "Procurement", "Founder", "Other"];
+  return {
+    firstName: asString(value.firstName),
+    lastName: asString(value.lastName),
     email: asString(value.email),
     phone: asString(value.phone),
-    poNumber: asOptionalString(value.poNumber),
-    orderNotes: asOptionalString(value.orderNotes),
+    department: (allowedDepartments.includes(department) ? department : "") as ProjectContact["department"],
+  };
+}
+
+function normalizeShipping(value: unknown): ShippingInformation {
+  if (!isRecord(value)) return createEmptyShipping();
+  return {
+    recipientName: asString(value.recipientName),
+    address: normalizeAddress(value.address),
+    multipleLocations: value.multipleLocations === true,
+    multipleLocationsNotes: asString(value.multipleLocationsNotes),
+  };
+}
+
+function normalizeBilling(value: unknown): BillingInformation {
+  if (!isRecord(value)) return createEmptyBilling();
+  return {
+    sameAsCompanyAddress: value.sameAsCompanyAddress !== false,
+    entity: asString(value.entity),
+    address: normalizeAddress(value.address),
+    accountsPayableEmail: asString(value.accountsPayableEmail),
+    gstin: asString(value.gstin).toUpperCase(),
+    purchaseOrder: normalizePurchaseOrder(value.purchaseOrder),
+  };
+}
+
+function normalizePreferences(value: unknown): ProjectPreferences {
+  if (!isRecord(value)) return createEmptyPreferences();
+  return {
+    orderNotes: asString(value.orderNotes),
     receiveEmails: value.receiveEmails === true,
+  };
+}
+
+function legacyAddress(value: unknown): Record<string, unknown> {
+  return isRecord(value) ? value : {};
+}
+
+function migrateLegacyProcurementDetails(value: Record<string, unknown>): Pick<
+  CartDraft,
+  "companyInformation" | "projectContact" | "shippingInformation" | "billingInformation" | "projectPreferences"
+> {
+  const shipping = legacyAddress(value.shippingAddress);
+  const legacyBilling = legacyAddress(value.billingAddress);
+  const sameAsShipping = value.sameAsShipping !== false;
+  const shippingAddress = normalizeAddress(shipping);
+  const billingAddress = sameAsShipping ? shippingAddress : normalizeAddress(legacyBilling);
+  const firstName = asString(shipping.firstName);
+  const lastName = asString(shipping.lastName);
+  const companyName = asString(shipping.company);
+  const contactEmail = asString(shipping.email);
+  const legacyGstin = asString(shipping.gstin).toUpperCase();
+
+  return {
+    companyInformation: {
+      ...createEmptyCompany(),
+      name: companyName,
+      gstin: legacyGstin,
+      poNumber: asString(shipping.poNumber),
+      address: shippingAddress,
+    },
+    projectContact: {
+      ...createEmptyProjectContact(),
+      firstName,
+      lastName,
+      email: contactEmail,
+      phone: asString(shipping.phone),
+    },
+    shippingInformation: {
+      ...createEmptyShipping(),
+      recipientName: `${firstName} ${lastName}`.trim(),
+      address: shippingAddress,
+    },
+    billingInformation: {
+      ...createEmptyBilling(),
+      sameAsCompanyAddress: sameAsShipping,
+      entity: asString(legacyBilling.company, companyName),
+      address: billingAddress,
+      accountsPayableEmail: asString(legacyBilling.email, contactEmail),
+      gstin: asString(legacyBilling.gstin, legacyGstin).toUpperCase(),
+    },
+    projectPreferences: {
+      orderNotes: asString(shipping.orderNotes),
+      receiveEmails: shipping.receiveEmails === true,
+    },
   };
 }
 
@@ -219,11 +387,25 @@ function normalizeDraft(value: unknown, cartId: string): CartDraft {
       ? value.deliveryType
       : undefined;
 
+  const hasStructuredDetails =
+    isRecord(value.companyInformation) ||
+    isRecord(value.projectContact) ||
+    isRecord(value.shippingInformation) ||
+    isRecord(value.billingInformation);
+
+  const procurement = hasStructuredDetails
+    ? {
+        companyInformation: normalizeCompany(value.companyInformation),
+        projectContact: normalizeProjectContact(value.projectContact),
+        shippingInformation: normalizeShipping(value.shippingInformation),
+        billingInformation: normalizeBilling(value.billingInformation),
+        projectPreferences: normalizePreferences(value.projectPreferences),
+      }
+    : migrateLegacyProcurementDetails(value);
+
   return {
     items,
-    shippingAddress: normalizeAddress(value.shippingAddress),
-    billingAddress: normalizeAddress(value.billingAddress),
-    sameAsShipping: value.sameAsShipping !== false,
+    ...procurement,
     selectedDeliveryDateIso: asOptionalString(value.selectedDeliveryDateIso),
     orderConfirmedDateIso: asOptionalString(value.orderConfirmedDateIso),
     deliveryType,

@@ -187,8 +187,8 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
           reservationFee: RESERVATION_FEE,
           balanceDue: totals.balanceDue,
         },
-        companyName: draft.shippingAddress.company || undefined,
-        contactName: `${draft.shippingAddress.firstName} ${draft.shippingAddress.lastName}`.trim() || undefined,
+        companyName: draft.companyInformation.name || undefined,
+        contactName: `${draft.projectContact.firstName} ${draft.projectContact.lastName}`.trim() || undefined,
         deliveryLabel: draft.selectedDeliveryDateIso
           ? new Date(draft.selectedDeliveryDateIso).toLocaleDateString('en-IN', {
               day: 'numeric',

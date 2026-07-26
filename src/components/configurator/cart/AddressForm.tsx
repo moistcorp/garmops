@@ -1,44 +1,32 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { CheckCircle2, LoaderCircle, MapPin } from "lucide-react";
 
 export interface Address {
-  firstName: string;
-  lastName: string;
-  company?: string;
-  gstin?: string;
   country: string;
   addressLine1: string;
   addressLine2?: string;
   zip: string;
   city: string;
   state?: string;
-  email: string;
-  phone: string;
-  poNumber?: string;
-  orderNotes?: string;
-  receiveEmails: boolean;
 }
 
 export interface AddressFormProps {
   value: Address;
   onChange: (address: Address) => void;
-  title?: string;
-  showCompany?: boolean;
-  showState?: boolean;
-  showPO?: boolean;
-  showNotes?: boolean;
-  showContact?: boolean;
-  showMarketing?: boolean;
+  idPrefix?: string;
+  showCountry?: boolean;
 }
 
-export interface AddressValidationOptions {
-  requireContact?: boolean;
+export interface AddressMissingField {
+  key: keyof Pick<Address, "country" | "addressLine1" | "zip" | "city" | "state">;
+  label: string;
 }
 
 const COUNTRIES = ["India"];
 
-const INDIA_STATES = [
+export const INDIA_STATES = [
   "Andaman and Nicobar Islands",
   "Andhra Pradesh",
   "Arunachal Pradesh",
@@ -81,6 +69,8 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const GSTIN_RE = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 const INDIA_PIN_RE = /^[1-9][0-9]{5}$/;
 const INDIA_MOBILE_RE = /^[6-9][0-9]{9}$/;
+const WEBSITE_RE = /^(https?:\/\/)?([a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}(?:[/?#].*)?$/i;
+
 const GST_STATE_CODES: Record<string, string[]> = {
   "01": ["jammu and kashmir", "jammu kashmir", "jk"],
   "02": ["himachal pradesh", "hp"],
@@ -127,7 +117,7 @@ const GST_STATE_CODES: Record<string, string[]> = {
   "97": ["other territory", "other"],
 };
 
-function digitsOnly(value: string): string {
+export function digitsOnly(value: string): string {
   return value.replace(/\D/g, "");
 }
 
@@ -138,12 +128,21 @@ function normalizedIndianPhone(value: string): string {
   return digits;
 }
 
-function isPinCodeValid(zip: string): boolean {
+export function isPinCodeValid(zip: string): boolean {
   return INDIA_PIN_RE.test(zip.trim());
 }
 
-function isIndianPhoneValid(phone: string): boolean {
+export function isIndianPhoneValid(phone: string): boolean {
   return INDIA_MOBILE_RE.test(normalizedIndianPhone(phone));
+}
+
+export function isEmailValid(email: string): boolean {
+  return EMAIL_RE.test(email.trim());
+}
+
+export function isWebsiteValid(website: string): boolean {
+  const trimmed = website.trim();
+  return !trimmed || WEBSITE_RE.test(trimmed);
 }
 
 function normalizeStateName(state: string): string {
@@ -160,164 +159,128 @@ function getGstinStateCode(gstin: string): string | undefined {
   return GSTIN_RE.test(trimmed) ? trimmed.slice(0, 2) : undefined;
 }
 
-function doesGstinMatchState(gstin: string, state?: string): boolean {
+export function doesGstinMatchState(gstin: string, state?: string): boolean {
   const stateCode = getGstinStateCode(gstin);
   if (!stateCode) return false;
   const normalizedState = normalizeStateName(state ?? "");
   return Boolean(normalizedState && GST_STATE_CODES[stateCode]?.includes(normalizedState));
 }
 
-function isGstinValid(gstin?: string): boolean {
+export function isGstinValid(gstin?: string): boolean {
   const trimmed = gstin?.trim() ?? "";
   if (!trimmed) return true;
   return GSTIN_RE.test(trimmed.toUpperCase());
 }
 
-export function isAddressValid(
-  address: Address,
-  { requireContact = true }: AddressValidationOptions = {}
-): boolean {
-  const gstin = address.gstin?.trim() ?? "";
-  const contactValid =
-    !requireContact ||
-    (EMAIL_RE.test(address.email.trim()) && isIndianPhoneValid(address.phone));
-
-  return Boolean(
-    address.firstName.trim() &&
-      address.lastName.trim() &&
-      address.country.trim() &&
-      address.addressLine1.trim() &&
-      isPinCodeValid(address.zip) &&
-      address.city.trim() &&
-      address.state?.trim() &&
-      contactValid &&
-      isGstinValid(gstin) &&
-      (!gstin || doesGstinMatchState(gstin, address.state))
-  );
+export function getAddressMissingFields(address: Address): AddressMissingField[] {
+  const missing: AddressMissingField[] = [];
+  if (!address.country.trim()) missing.push({ key: "country", label: "country" });
+  if (!address.addressLine1.trim()) missing.push({ key: "addressLine1", label: "address" });
+  if (!isPinCodeValid(address.zip)) missing.push({ key: "zip", label: "PIN code" });
+  if (!address.city.trim()) missing.push({ key: "city", label: "city" });
+  if (!address.state?.trim()) missing.push({ key: "state", label: "state" });
+  return missing;
 }
+
+export function isAddressValid(address: Address): boolean {
+  return getAddressMissingFields(address).length === 0;
+}
+
+type LookupStatus = "idle" | "loading" | "success" | "not-found" | "error";
 
 export function AddressForm({
   value,
   onChange,
-  title,
-  showCompany = true,
-  showState = true,
-  showPO = false,
-  showNotes = false,
-  showContact = true,
-  showMarketing = false,
+  idPrefix,
+  showCountry = true,
 }: AddressFormProps) {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
-  const formId = useId();
+  const [lookupStatus, setLookupStatus] = useState<LookupStatus>("idle");
+  const generatedId = useId();
+  const formId = idPrefix ?? generatedId;
   const id = (field: string) => `${formId}-${field}`;
+  const latestValue = useRef(value);
+  const latestOnChange = useRef(onChange);
+  const lastLookedUpPin = useRef("");
+
+  useEffect(() => {
+    latestValue.current = value;
+    latestOnChange.current = onChange;
+  }, [onChange, value]);
+
+  useEffect(() => {
+    const pin = value.zip.trim();
+    if (!isPinCodeValid(pin)) {
+      lastLookedUpPin.current = "";
+      setLookupStatus("idle");
+      return;
+    }
+    if (lastLookedUpPin.current === pin) return;
+    lastLookedUpPin.current = pin;
+
+    const controller = new AbortController();
+    setLookupStatus("loading");
+
+    void fetch(`/api/pincode/${encodeURIComponent(pin)}`, {
+      signal: controller.signal,
+      headers: { Accept: "application/json" },
+    })
+      .then(async (response) => {
+        const data = (await response.json()) as {
+          city?: string;
+          state?: string;
+          error?: string;
+        };
+        if (!response.ok || !data.city || !data.state) {
+          setLookupStatus(response.status === 404 ? "not-found" : "error");
+          return;
+        }
+        const current = latestValue.current;
+        latestOnChange.current({
+          ...current,
+          city: data.city,
+          state: data.state,
+        });
+        setLookupStatus("success");
+      })
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setLookupStatus("error");
+      });
+
+    return () => controller.abort();
+  }, [value.zip]);
 
   const set = <K extends keyof Address>(key: K, val: Address[K]) => {
     onChange({ ...value, [key]: val });
   };
 
-  const markTouched = (key: string) => setTouched((current) => ({ ...current, [key]: true }));
+  const markTouched = (key: string) =>
+    setTouched((current) => ({ ...current, [key]: true }));
   const showError = (key: string, invalid: boolean) => touched[key] && invalid;
   const inputClass =
     "w-full rounded-md border border-[#E5E5E5] bg-[#F7F7F7] px-3 py-2 text-sm text-[#111111] placeholder:text-[#111111]/40 focus:border-[var(--color-teal)] focus:outline-none";
   const labelClass = "mb-1 block text-xs font-medium text-[#111111]/70";
 
-  const gstin = value.gstin?.trim() ?? "";
-  const gstinHasValue = Boolean(gstin);
-  const gstinFormatValid = !gstinHasValue || GSTIN_RE.test(gstin.toUpperCase());
-  const gstinStateMatches = !gstinHasValue || doesGstinMatchState(gstin, value.state);
-  const stateMissing = !value.state?.trim();
-  const stateInvalidForGstin = gstinHasValue && gstinFormatValid && !gstinStateMatches;
-
   return (
     <div className="space-y-4">
-      {title && (
+      {showCountry && (
         <div>
-          <h3 className="text-sm font-semibold tracking-wide text-[#111111] uppercase">{title}</h3>
-          {showContact && (
-            <p className="mt-1 text-xs text-[#111111]/55">
-              Use the details of the person coordinating this merchandise project.
-            </p>
-          )}
+          <label htmlFor={id("country")} className={labelClass}>Country</label>
+          <select
+            id={id("country")}
+            autoComplete="country-name"
+            className={inputClass}
+            value={value.country}
+            onChange={(event) => set("country", event.target.value)}
+            onBlur={() => markTouched("country")}
+          >
+            <option value="">Select country</option>
+            {COUNTRIES.map((country) => <option key={country} value={country}>{country}</option>)}
+          </select>
+          {showError("country", !value.country.trim()) && <p className="mt-1 text-xs text-red-600">Required</p>}
         </div>
       )}
-
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div>
-          <label htmlFor={id("firstName")} className={labelClass}>First name</label>
-          <input
-            id={id("firstName")}
-            autoComplete="given-name"
-            className={inputClass}
-            value={value.firstName}
-            onChange={(event) => set("firstName", event.target.value)}
-            onBlur={() => markTouched("firstName")}
-          />
-          {showError("firstName", !value.firstName.trim()) && <p className="mt-1 text-xs text-red-600">Required</p>}
-        </div>
-        <div>
-          <label htmlFor={id("lastName")} className={labelClass}>Last name</label>
-          <input
-            id={id("lastName")}
-            autoComplete="family-name"
-            className={inputClass}
-            value={value.lastName}
-            onChange={(event) => set("lastName", event.target.value)}
-            onBlur={() => markTouched("lastName")}
-          />
-          {showError("lastName", !value.lastName.trim()) && <p className="mt-1 text-xs text-red-600">Required</p>}
-        </div>
-      </div>
-
-      {showCompany && (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div>
-            <label htmlFor={id("company")} className={labelClass}>Company</label>
-            <input
-              id={id("company")}
-              autoComplete="organization"
-              className={inputClass}
-              value={value.company ?? ""}
-              onChange={(event) => set("company", event.target.value)}
-            />
-          </div>
-          <div>
-            <label htmlFor={id("gstin")} className={labelClass}>GSTIN (optional)</label>
-            <input
-              id={id("gstin")}
-              className={inputClass}
-              value={value.gstin ?? ""}
-              maxLength={15}
-              autoCapitalize="characters"
-              placeholder="27ABCDE1234F1Z5"
-              onChange={(event) => set("gstin", event.target.value.toUpperCase())}
-              onBlur={() => markTouched("gstin")}
-            />
-            {showError("gstin", gstinHasValue && !gstinFormatValid) && (
-              <p className="mt-1 text-xs text-red-600">Enter a valid 15-character GSTIN</p>
-            )}
-            {stateInvalidForGstin && !stateMissing && (
-              <p className="mt-1 text-xs text-red-600">GSTIN state code must match the address state.</p>
-            )}
-          </div>
-        </div>
-      )}
-
-      <div>
-        <label htmlFor={id("country")} className={labelClass}>Country</label>
-        <select
-          id={id("country")}
-          autoComplete="country-name"
-          className={inputClass}
-          value={value.country}
-          onChange={(event) => set("country", event.target.value)}
-          onBlur={() => markTouched("country")}
-        >
-          <option value="">Select country</option>
-          {COUNTRIES.map((country) => <option key={country} value={country}>{country}</option>)}
-        </select>
-        {showError("country", !value.country.trim()) && <p className="mt-1 text-xs text-red-600">Required</p>}
-        <p className="mt-1 text-xs text-[#111111]/50">Checkout is currently available for India orders in INR.</p>
-      </div>
 
       <div>
         <label htmlFor={id("addressLine1")} className={labelClass}>Address line 1</label>
@@ -328,6 +291,7 @@ export function AddressForm({
           value={value.addressLine1}
           onChange={(event) => set("addressLine1", event.target.value)}
           onBlur={() => markTouched("addressLine1")}
+          placeholder="Building, street and area"
         />
         {showError("addressLine1", !value.addressLine1.trim()) && <p className="mt-1 text-xs text-red-600">Required</p>}
       </div>
@@ -340,30 +304,47 @@ export function AddressForm({
           className={inputClass}
           value={value.addressLine2 ?? ""}
           onChange={(event) => set("addressLine2", event.target.value)}
+          placeholder="Landmark, floor or unit"
         />
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
-          <label htmlFor={id("zip")} className={labelClass}>PIN Code</label>
-          <input
-            id={id("zip")}
-            autoComplete="postal-code"
-            className={inputClass}
-            inputMode="numeric"
-            maxLength={6}
-            pattern="[1-9][0-9]{5}"
-            placeholder="110001"
-            value={value.zip}
-            onChange={(event) => set("zip", digitsOnly(event.target.value).slice(0, 6))}
-            onBlur={() => markTouched("zip")}
-          />
-          {showError("zip", !isPinCodeValid(value.zip.trim())) && (
+          <label htmlFor={id("zip")} className={labelClass}>PIN code</label>
+          <div className="relative">
+            <input
+              id={id("zip")}
+              autoComplete="postal-code"
+              className={`${inputClass} pr-9`}
+              inputMode="numeric"
+              maxLength={6}
+              pattern="[1-9][0-9]{5}"
+              placeholder="110001"
+              value={value.zip}
+              onChange={(event) => set("zip", digitsOnly(event.target.value).slice(0, 6))}
+              onBlur={() => markTouched("zip")}
+            />
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#111111]/35">
+              {lookupStatus === "loading" ? (
+                <LoaderCircle size={15} className="animate-spin" aria-label="Looking up PIN code" />
+              ) : lookupStatus === "success" ? (
+                <CheckCircle2 size={15} className="text-[var(--color-teal-dark)]" aria-label="PIN code found" />
+              ) : (
+                <MapPin size={15} aria-hidden="true" />
+              )}
+            </span>
+          </div>
+          {showError("zip", !isPinCodeValid(value.zip)) && (
             <p className="mt-1 text-xs text-red-600">Enter a valid 6-digit PIN code</p>
+          )}
+          {lookupStatus === "loading" && <p className="mt-1 text-xs text-[#111111]/50">Finding city and state…</p>}
+          {lookupStatus === "success" && <p className="mt-1 text-xs text-[var(--color-teal-dark)]">City and state filled from PIN code.</p>}
+          {(lookupStatus === "not-found" || lookupStatus === "error") && (
+            <p className="mt-1 text-xs text-amber-700">We could not auto-fill this PIN code. Enter city and state manually.</p>
           )}
         </div>
         <div>
-          <label htmlFor={id("city")} className={labelClass}>City</label>
+          <label htmlFor={id("city")} className={labelClass}>City / district</label>
           <input
             id={id("city")}
             autoComplete="address-level2"
@@ -376,82 +357,21 @@ export function AddressForm({
         </div>
       </div>
 
-      {showState && (
-        <div>
-          <label htmlFor={id("state")} className={labelClass}>State or union territory</label>
-          <select
-            id={id("state")}
-            autoComplete="address-level1"
-            className={inputClass}
-            value={value.state ?? ""}
-            onChange={(event) => set("state", event.target.value)}
-            onBlur={() => markTouched("state")}
-          >
-            <option value="">Select state</option>
-            {INDIA_STATES.map((state) => <option key={state} value={state}>{state}</option>)}
-          </select>
-          {showError("state", stateMissing) && <p className="mt-1 text-xs text-red-600">Required</p>}
-          {showError("state", stateInvalidForGstin && !stateMissing) && (
-            <p className="mt-1 text-xs text-red-600">State must match the GSTIN state code</p>
-          )}
-        </div>
-      )}
-
-      {showContact && (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div>
-            <label htmlFor={id("email")} className={labelClass}>Work email</label>
-            <input
-              id={id("email")}
-              autoComplete="email"
-              className={inputClass}
-              type="email"
-              value={value.email}
-              onChange={(event) => set("email", event.target.value)}
-              onBlur={() => markTouched("email")}
-            />
-            {showError("email", !EMAIL_RE.test(value.email.trim())) && <p className="mt-1 text-xs text-red-600">Enter a valid email</p>}
-          </div>
-          <div>
-            <label htmlFor={id("phone")} className={labelClass}>Phone</label>
-            <input
-              id={id("phone")}
-              className={inputClass}
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel"
-              placeholder="98765 43210"
-              value={value.phone}
-              onChange={(event) => set("phone", event.target.value)}
-              onBlur={() => markTouched("phone")}
-            />
-            {showError("phone", !isIndianPhoneValid(value.phone.trim())) && (
-              <p className="mt-1 text-xs text-red-600">Enter a valid 10-digit Indian mobile number</p>
-            )}
-          </div>
-        </div>
-      )}
-
-      {showPO && (
-        <div>
-          <label htmlFor={id("poNumber")} className={labelClass}>PO number (optional)</label>
-          <input id={id("poNumber")} className={inputClass} value={value.poNumber ?? ""} onChange={(event) => set("poNumber", event.target.value)} />
-        </div>
-      )}
-
-      {showNotes && (
-        <div>
-          <label htmlFor={id("orderNotes")} className={labelClass}>Order notes (optional)</label>
-          <textarea id={id("orderNotes")} className={inputClass} rows={3} value={value.orderNotes ?? ""} onChange={(event) => set("orderNotes", event.target.value)} />
-        </div>
-      )}
-
-      {showMarketing && (
-        <label className="flex items-center gap-2 text-xs text-[#111111]/80">
-          <input type="checkbox" checked={value.receiveEmails} onChange={(event) => set("receiveEmails", event.target.checked)} />
-          Receive occasional Garmops product and service updates
-        </label>
-      )}
+      <div>
+        <label htmlFor={id("state")} className={labelClass}>State or union territory</label>
+        <select
+          id={id("state")}
+          autoComplete="address-level1"
+          className={inputClass}
+          value={value.state ?? ""}
+          onChange={(event) => set("state", event.target.value)}
+          onBlur={() => markTouched("state")}
+        >
+          <option value="">Select state</option>
+          {INDIA_STATES.map((state) => <option key={state} value={state}>{state}</option>)}
+        </select>
+        {showError("state", !value.state?.trim()) && <p className="mt-1 text-xs text-red-600">Required</p>}
+      </div>
     </div>
   );
 }

@@ -4,6 +4,20 @@ import { NextRequest, NextResponse } from 'next/server'
 type EmailType = 'contact' | 'configure' | 'sample'
 type JsonObject = Record<string, unknown>
 
+export const runtime = 'nodejs'
+
+const MAX_ATTACHMENT_BYTES = 3 * 1024 * 1024
+const ALLOWED_ATTACHMENT_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/png'])
+
+type EmailAttachment = {
+  filename: string
+  content: string
+}
+
+type ParsedRequest =
+  | { ok: true; body: JsonObject; attachment?: EmailAttachment }
+  | { ok: false; error: string; status: number }
+
 // Simple in-memory rate limiter — resets on server restart
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
 
@@ -69,6 +83,48 @@ function formatOrderItems(value: unknown): string {
     .join('\n')
 }
 
+async function parseRequest(req: NextRequest): Promise<ParsedRequest> {
+  const contentType = req.headers.get('content-type') ?? ''
+
+  try {
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await req.formData()
+      const payload = formData.get('payload')
+      if (typeof payload !== 'string') {
+        return { ok: false, error: 'Missing request payload', status: 400 }
+      }
+
+      const parsed: unknown = JSON.parse(payload)
+      if (!isObject(parsed)) {
+        return { ok: false, error: 'Invalid request body', status: 400 }
+      }
+
+      const uploaded = formData.get('attachment')
+      if (!(uploaded instanceof File) || uploaded.size === 0) {
+        return { ok: true, body: parsed }
+      }
+      if (uploaded.size > MAX_ATTACHMENT_BYTES) {
+        return { ok: false, error: 'Attachment exceeds 3 MB', status: 413 }
+      }
+      if (!ALLOWED_ATTACHMENT_TYPES.has(uploaded.type)) {
+        return { ok: false, error: 'Unsupported attachment type', status: 415 }
+      }
+
+      const filename = cleanText(uploaded.name, 120)
+        .replace(/[^A-Za-z0-9._ ()-]/g, '_') || 'purchase-order.pdf'
+      const content = Buffer.from(await uploaded.arrayBuffer()).toString('base64')
+      return { ok: true, body: parsed, attachment: { filename, content } }
+    }
+
+    const parsed: unknown = await req.json()
+    return isObject(parsed)
+      ? { ok: true, body: parsed }
+      : { ok: false, error: 'Invalid request body', status: 400 }
+  } catch {
+    return { ok: false, error: 'Invalid request body', status: 400 }
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const apiKey = process.env.RESEND_API_KEY
@@ -83,10 +139,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
     }
 
-    const rawBody: unknown = await req.json()
-    if (!isObject(rawBody)) {
-      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+    const parsedRequest = await parseRequest(req)
+    if (!parsedRequest.ok) {
+      return NextResponse.json(
+        { error: parsedRequest.error },
+        { status: parsedRequest.status }
+      )
     }
+    const rawBody = parsedRequest.body
+    const attachment = parsedRequest.attachment
 
     const name = cleanText(rawBody.name, 120)
     const email = cleanText(rawBody.email, 320)
@@ -225,6 +286,44 @@ export async function POST(req: NextRequest) {
       </div>
     `
 
+    const configureNotificationHtml = `
+      <div style="font-family: sans-serif; max-width: 680px; margin: 0 auto; color: #111111;">
+        <h1 style="font-size: 20px; margin: 0 0 20px;">New configurator reservation</h1>
+        <table style="width: 100%; border-collapse: collapse; border: 1px solid #E5E5E5; font-size: 13px;">
+          ${detailRow('Transaction ID', txnid, 100)}
+          ${detailRow('Company', orderDetails.companyName, 160)}
+          ${detailRow('Industry', orderDetails.industry, 120)}
+          ${detailRow('Company GSTIN', orderDetails.companyGstin, 30)}
+          ${detailRow('Company website', orderDetails.companyWebsite, 300)}
+          ${detailRow('Project contact', name, 120)}
+          ${detailRow('Department', orderDetails.department, 80)}
+          ${detailRow('Work email', email, 320)}
+          ${detailRow('Phone', orderDetails.phone, 40)}
+          ${detailRow('Billing entity', orderDetails.billingEntity, 160)}
+          ${detailRow('Accounts-payable email', orderDetails.accountsPayableEmail, 320)}
+          ${detailRow('Billing GSTIN', orderDetails.billingGstin, 30)}
+          ${detailRow('Billing address', orderDetails.billingAddress, 1000)}
+          ${detailRow('PO number', orderDetails.poNumber, 100)}
+          ${detailRow('Cost centre / department', orderDetails.costCentre, 120)}
+          ${detailRow('Purchase order attachment', orderDetails.purchaseOrder, 160)}
+          ${detailRow('Multiple delivery locations', orderDetails.multipleLocations, 20)}
+          ${detailRow('Distribution notes', orderDetails.multipleLocationsNotes, 1000)}
+          ${detailRow('Target delivery', orderDetails.targetDelivery, 120)}
+          ${detailRow('Product', orderDetails.product, 300)}
+          ${detailRow('Fabric color', orderDetails.color, 200)}
+          ${detailRow('Print technique', orderDetails.technique, 200)}
+          ${detailRow('Placement', orderDetails.placements, 300)}
+          ${detailRow('Neck label', orderDetails.neckLabel, 200)}
+          ${detailRow('Total quantity', totalQuantity ? `${totalQuantity} pieces` : '', 50)}
+          ${detailRow('Size breakdown', orderDetails.sizeBreakdown, 1000)}
+          ${detailRow('Estimated total', orderDetails.estimatedTotal, 100)}
+          ${detailRow('Shipping address', orderDetails.shippingAddress, 1000)}
+          ${detailRow('Order notes', orderDetails.orderNotes, 2000)}
+        </table>
+        <p style="font-size: 12px; color: #888; margin-top: 18px;">Reply to this email to contact the project coordinator.</p>
+      </div>
+    `
+
     const sampleItems = formatOrderItems(orderDetails.items ?? orderDetails.productinfo)
     const paidAmount = orderDetails.amount ?? orderDetails.total ?? orderDetails.estimatedTotal
     const sampleEmailHtml = `
@@ -319,16 +418,48 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Email provider rejected the request' }, { status: 502 })
       }
     } else {
-      const result = await resend.emails.send({
+      if (attachment && !contactToEmail) {
+        return NextResponse.json(
+          { error: 'Order recipient is not configured for purchase-order attachments' },
+          { status: 503 }
+        )
+      }
+
+      const customerResult = await resend.emails.send({
         from: fromEmail,
         to: email,
         replyTo: contactToEmail,
-        subject: 'Slot confirmed - your configuration summary',
+        subject: 'Reservation confirmed - your configuration summary',
         html: configureEmailHtml,
       })
-      if (result.error) {
-        console.error('Resend configure email error:', result.error.name, result.error.message)
+      if (customerResult.error) {
+        console.error(
+          'Resend configure customer email error:',
+          customerResult.error.name,
+          customerResult.error.message
+        )
         return NextResponse.json({ error: 'Email provider rejected the request' }, { status: 502 })
+      }
+
+      if (contactToEmail) {
+        const companyForSubject = cleanText(orderDetails.companyName, 80)
+          .replace(/[\r\n]+/g, ' ')
+        const internalResult = await resend.emails.send({
+          from: fromEmail,
+          to: contactToEmail,
+          replyTo: email,
+          subject: `Configurator reservation - ${companyForSubject || txnid || name}`,
+          html: configureNotificationHtml,
+          attachments: attachment ? [attachment] : undefined,
+        })
+        if (internalResult.error) {
+          console.error(
+            'Resend configure notification error:',
+            internalResult.error.name,
+            internalResult.error.message
+          )
+          return NextResponse.json({ error: 'Email provider rejected the request' }, { status: 502 })
+        }
       }
     }
 

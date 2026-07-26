@@ -6,7 +6,7 @@ interface CheckoutStepsProps {
 
 const CHECKOUT_STEPS: { id: CheckoutStepId; label: string }[] = [
   { id: "summary", label: "Summary" },
-  { id: "shipping", label: "Shipping" },
+  { id: "shipping", label: "Company & delivery" },
   { id: "payment", label: "Payment" },
 ];
 

@@ -49,7 +49,7 @@ export async function persistUploadedFile(file: File): Promise<string | undefine
   }
 }
 
-async function readUploadedFile(key: string): Promise<Blob | undefined> {
+export async function readUploadedFile(key: string): Promise<Blob | undefined> {
   try {
     const db = await openUploadDatabase();
     const result = await new Promise<Blob | undefined>((resolve, reject) => {
