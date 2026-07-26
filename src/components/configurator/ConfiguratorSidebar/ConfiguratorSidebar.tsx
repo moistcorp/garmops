@@ -5,16 +5,9 @@ import { AccordionItem } from "./AccordionItem";
 import GarmentColourPanel from "./GarmentColourPanel/GarmentColourPanel";
 import ArtworkPanel from "./ArtworkPanel/ArtworkPanel";
 import NeckLabelPanel from "./NeckLabelPanel/NeckLabelPanel";
-import type {
-  GarmentColour,
-  Artwork,
-  NeckLabel,
-} from "@/lib/configurator/types/configurator";
+import type { GarmentColour, Artwork, NeckLabel } from "@/lib/configurator/types/configurator";
 import { SIGNATURE_COLOURS } from "@/lib/configurator/colours";
-import {
-  revokeArtworkObjectUrls,
-  revokeNeckLabelObjectUrl,
-} from "@/lib/configurator/objectUrls";
+import { revokeArtworkObjectUrls, revokeNeckLabelObjectUrl } from "@/lib/configurator/objectUrls";
 import type { GarmentView } from "@/lib/configurator/types/garment";
 
 export type AccordionStepId = "garment-colour" | "artwork" | "neck-label";
@@ -24,59 +17,36 @@ export interface AccordionStepState {
   title: string;
   summary: string | null;
   confirmed: boolean;
+  skipped?: boolean;
 }
 
 export interface ConfiguratorSidebarProps {
-  /** Controlled expanded step. Omit to let the component manage its own state (Phase 4 behaviour). */
   expandedStepId?: AccordionStepId | null;
-  /** Fires with the new expanded step (or null) whenever a step is toggled, whether controlled or not. */
   onExpandedStepChange?: (id: AccordionStepId | null) => void;
-  /** Current garment colour selection. Omit to fall back to an internal default (Phase 4 shell behaviour for this step). */
   selectedColour?: GarmentColour;
-  /** Fires with the new GarmentColour whenever a swatch is picked. */
   onColourChange?: (colour: GarmentColour) => void;
-  /** Controlled accordion step list (summary/confirmed per step). Omit to let the component manage its own state internally. */
   steps?: AccordionStepState[];
-  /** Fires with the new steps array whenever a step is confirmed or reset, whether controlled or not. */
   onStepsChange?: (steps: AccordionStepState[]) => void;
-  /** Current artwork selection (front/back sides). Omit to fall back to an internal default ({}). */
   artwork?: Artwork;
-  /** Fires with the new Artwork whenever a side's file, technique, or confirm state changes. */
   onArtworkChange?: (artwork: Artwork) => void;
-  /** Current neck label selection. Omit to fall back to internal state (undefined = nothing uploaded/selected yet). */
   neckLabel?: NeckLabel;
-  /** Fires with the new NeckLabel once a file and dimension preset are both present. */
   onNeckLabelChange?: (neckLabel: NeckLabel) => void;
-  /** Which garment view the live canvas is currently showing. Threaded down to the
-   *  Artwork step so its per-side position controls can switch the canvas to the
-   *  matching side before editing it. */
   activeView?: GarmentView;
-  /** Fires when the Artwork step wants the canvas to switch to a different side. */
   onViewChange?: (view: GarmentView) => void;
-  /** Undiscounted per-unit base price for the selected product, used by the
-   *  Garment Colour step to show the actual Custom Dye price delta inline
-   *  instead of only a percentage. Omit to fall back to percentage-only. */
   unitBasePrice?: number;
-  /** Opens the unsaved-changes confirmation before abandoning an unfinished step. */
   onAttemptStepChange?: (id: AccordionStepId | null) => void;
-  /** Tote bags use bag-label copy instead of neck/collar copy. */
   isToteProduct?: boolean;
-  /** Clears the underlying controlled data for a confirmed step. */
   onResetStep?: (id: AccordionStepId) => void;
 }
 
 export const INITIAL_STEPS: AccordionStepState[] = [
   { id: "garment-colour", title: "Garment Colour", summary: null, confirmed: false },
-  { id: "artwork", title: "Artwork", summary: null, confirmed: false },
-  { id: "neck-label", title: "Neck Label", summary: null, confirmed: false },
+  { id: "artwork", title: "Artwork", summary: null, confirmed: false, skipped: false },
+  { id: "neck-label", title: "Neck Label", summary: null, confirmed: false, skipped: false },
 ];
 
-// Bright White is the preselected default so every product opens with a
-// valid, ready-to-checkout colour instead of nothing — but `confirmed`
-// stays false so the accordion shows it without a green checkmark until
-// the customer actually opens the step and confirms a colour themselves.
 const DEFAULT_SIGNATURE_COLOUR =
-  SIGNATURE_COLOURS.find((c) => c.name === "Bright White") ?? SIGNATURE_COLOURS[0];
+  SIGNATURE_COLOURS.find((colour) => colour.name === "Bright White") ?? SIGNATURE_COLOURS[0];
 
 export const DEFAULT_COLOUR: GarmentColour = {
   type: "signature",
@@ -103,78 +73,25 @@ export function ConfiguratorSidebar({
   isToteProduct = false,
   onResetStep,
 }: ConfiguratorSidebarProps = {}) {
-  // Uncontrolled fallback for steps — mirrors the expandedStepId/selectedColour
-  // pattern so this component still renders standalone (Phase 4 shell testing)
-  // if no steps/onStepsChange is passed in.
   const [internalSteps, setInternalSteps] = useState<AccordionStepState[]>(INITIAL_STEPS);
-  const isStepsControlled = controlledSteps !== undefined;
-  const steps = isStepsControlled ? controlledSteps : internalSteps;
+  const steps = controlledSteps ?? internalSteps;
+  const [internalColour, setInternalColour] = useState<GarmentColour>(DEFAULT_COLOUR);
+  const colour = selectedColour ?? internalColour;
+  const [internalArtwork, setInternalArtwork] = useState<Artwork>({});
+  const artwork = controlledArtwork ?? internalArtwork;
+  const [internalNeckLabel, setInternalNeckLabel] = useState<NeckLabel | undefined>(undefined);
+  const neckLabel = controlledNeckLabel ?? internalNeckLabel;
+  const [internalExpandedStepId, setInternalExpandedStepId] = useState<AccordionStepId | null>(
+    "garment-colour"
+  );
+  const expandedStepId =
+    controlledExpandedStepId !== undefined ? controlledExpandedStepId : internalExpandedStepId;
 
-  function updateSteps(updater: (prev: AccordionStepState[]) => AccordionStepState[]) {
+  function updateSteps(updater: (current: AccordionStepState[]) => AccordionStepState[]) {
     const next = updater(steps);
-    if (!isStepsControlled) {
-      setInternalSteps(next);
-    }
+    if (controlledSteps === undefined) setInternalSteps(next);
     onStepsChange?.(next);
   }
-
-  // Uncontrolled fallback for the colour step — mirrors the expandedStepId
-  // pattern below so this component still renders standalone (Phase 4 shell
-  // testing) if no selectedColour/onColourChange is passed in.
-  const [internalColour, setInternalColour] = useState<GarmentColour>(DEFAULT_COLOUR);
-  const isColourControlled = selectedColour !== undefined;
-  const colour = isColourControlled ? selectedColour : internalColour;
-
-  function handleColourChange(next: GarmentColour) {
-    if (!isColourControlled) {
-      setInternalColour(next);
-    }
-    onColourChange?.(next);
-  }
-
-  // Uncontrolled fallback for the artwork step — same pattern as colour.
-  // Default is {} (no sides uploaded), matching ArtworkPanel's own internal
-  // default when it's used standalone/uncontrolled elsewhere.
-  const [internalArtwork, setInternalArtwork] = useState<Artwork>({});
-  const isArtworkControlled = controlledArtwork !== undefined;
-  const artwork = isArtworkControlled ? controlledArtwork : internalArtwork;
-
-  function handleArtworkChange(next: Artwork) {
-    if (!isArtworkControlled) {
-      setInternalArtwork(next);
-    }
-    onArtworkChange?.(next);
-  }
-
-  // Uncontrolled fallback for the neck-label step — same pattern as artwork.
-  // Default is undefined (nothing uploaded/selected yet); NeckLabel itself
-  // has no "empty" shape since fileUrl/dimensions/position are all required,
-  // so unlike Artwork we can't default to `{}`.
-  const [internalNeckLabel, setInternalNeckLabel] = useState<NeckLabel | undefined>(undefined);
-  const isNeckLabelControlled = controlledNeckLabel !== undefined;
-  const neckLabel = isNeckLabelControlled ? controlledNeckLabel : internalNeckLabel;
-
-  function handleNeckLabelChange(next: NeckLabel) {
-    if (!isNeckLabelControlled) {
-      setInternalNeckLabel(next);
-    }
-    onNeckLabelChange?.(next);
-  }
-
-  function handleNeckLabelClear() {
-    if (!isNeckLabelControlled) {
-      setInternalNeckLabel(undefined);
-    }
-    stubResetStep("neck-label");
-  }
-
-  // Uncontrolled fallback — preserves Phase 4 standalone behaviour when no
-  // expandedStepId prop is passed in.
-  const [internalExpandedStepId, setInternalExpandedStepId] =
-    useState<AccordionStepId | null>(null);
-
-  const isControlled = controlledExpandedStepId !== undefined;
-  const expandedStepId = isControlled ? controlledExpandedStepId : internalExpandedStepId;
 
   function toggleStep(id: AccordionStepId) {
     const next = expandedStepId === id ? null : id;
@@ -182,42 +99,25 @@ export function ConfiguratorSidebar({
       onAttemptStepChange(next);
       return;
     }
-    if (!isControlled) {
-      setInternalExpandedStepId(next);
-    }
+    if (controlledExpandedStepId === undefined) setInternalExpandedStepId(next);
     onExpandedStepChange?.(next);
   }
 
-  // Stubbed for Phase 4 shell testing only — real confirm cycles for
-  // garment-colour/artwork/neck-label are driven externally (see
-  // ConfigureClient) via the steps/onStepsChange lift.
-  function stubConfirmStep(id: AccordionStepId) {
-    updateSteps((prev) =>
-      prev.map((step) =>
-        step.id === id
-          ? { ...step, summary: `${step.title} — sample selection`, confirmed: true }
-          : step
-      )
-    );
-  }
-
-  function stubResetStep(id: AccordionStepId) {
+  function resetStep(id: AccordionStepId) {
     if (id === "artwork") {
       revokeArtworkObjectUrls(artwork);
-      if (!isArtworkControlled) {
-        setInternalArtwork({});
-      }
+      if (controlledArtwork === undefined) setInternalArtwork({});
     }
     if (id === "neck-label") {
       revokeNeckLabelObjectUrl(neckLabel);
-      if (!isNeckLabelControlled) {
-        setInternalNeckLabel(undefined);
-      }
+      if (controlledNeckLabel === undefined) setInternalNeckLabel(undefined);
     }
     onResetStep?.(id);
-    updateSteps((prev) =>
-      prev.map((step) =>
-        step.id === id ? { ...step, summary: null, confirmed: false } : step
+    updateSteps((current) =>
+      current.map((step) =>
+        step.id === id
+          ? { ...step, summary: null, confirmed: false, skipped: false }
+          : step
       )
     );
   }
@@ -230,55 +130,43 @@ export function ConfiguratorSidebar({
           title={isToteProduct && step.id === "neck-label" ? "Bag Label" : step.title}
           summary={step.summary}
           confirmed={step.confirmed}
+          skipped={step.skipped}
+          optional={step.id !== "garment-colour"}
           expanded={expandedStepId === step.id}
           onToggle={() => toggleStep(step.id)}
-          onDelete={() => stubResetStep(step.id)}
+          onDelete={() => resetStep(step.id)}
           hideDelete={step.id === "garment-colour"}
         >
           {step.id === "garment-colour" ? (
             <GarmentColourPanel
               value={colour}
-              onChange={handleColourChange}
+              onChange={(next) => {
+                if (selectedColour === undefined) setInternalColour(next);
+                onColourChange?.(next);
+              }}
               unitBasePrice={unitBasePrice}
             />
           ) : step.id === "artwork" ? (
             <ArtworkPanel
               value={artwork}
-              onChange={handleArtworkChange}
+              onChange={(next) => {
+                if (controlledArtwork === undefined) setInternalArtwork(next);
+                onArtworkChange?.(next);
+              }}
               activeView={activeView}
               onViewChange={onViewChange}
             />
-          ) : step.id === "neck-label" ? (
+          ) : (
             <NeckLabelPanel
               key={neckLabel?.fileUrl ?? "empty-neck-label"}
               value={neckLabel}
-              onChange={handleNeckLabelChange}
-              onClear={handleNeckLabelClear}
+              onChange={(next) => {
+                if (controlledNeckLabel === undefined) setInternalNeckLabel(next);
+                onNeckLabelChange?.(next);
+              }}
+              onClear={() => resetStep("neck-label")}
               isToteProduct={isToteProduct}
             />
-          ) : (
-            <div className="flex flex-col gap-2 text-sm text-[#111111]">
-              <p className="text-[#111111]/60">
-                Panel content for &ldquo;{step.title}&rdquo; is not built yet
-                (Phase 4 shell only).
-              </p>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => stubConfirmStep(step.id)}
-                  className="rounded-full border border-[var(--color-teal)] px-3 py-1 text-xs uppercase tracking-wide text-[var(--color-teal)] hover:bg-[var(--color-teal)] hover:text-white"
-                >
-                  Simulate confirm
-                </button>
-                <button
-                  type="button"
-                  onClick={() => stubResetStep(step.id)}
-                  className="rounded-full border border-[#E5E5E5] px-3 py-1 text-xs uppercase tracking-wide text-[#111111]/60 hover:border-[var(--color-teal)] hover:text-[var(--color-teal)]"
-                >
-                  Reset
-                </button>
-              </div>
-            </div>
           )}
         </AccordionItem>
       ))}

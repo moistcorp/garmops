@@ -71,18 +71,18 @@ export function getUnitPriceAdjustments(
 
   (["front", "back"] as const).forEach((side) => {
     const artworkSide = artwork[side];
-    if (!artworkSide?.confirmed || !artworkSide.technique) return;
+    if (!artworkSide?.fileUrl || !artworkSide.technique) return;
     adjustments.push({
       label: `${side === "front" ? "Front" : "Back"} ${artworkSide.technique.replaceAll("_", " ")}`,
       amount: TECHNIQUE_UNIT_PRICE_DELTAS[artworkSide.technique],
     });
   });
 
-  if (artwork.back?.confirmed) {
+  if (artwork.back?.fileUrl) {
     adjustments.push({ label: "Back artwork", percent: BACK_ARTWORK_UNIT_INCREASE_PERCENT });
   }
 
-  if (neckLabel?.confirmed) {
+  if (neckLabel?.fileUrl) {
     adjustments.push({ label: "Neck label", amount: NECK_LABEL_UNIT_PRICE });
   }
 

@@ -1,4 +1,5 @@
 import { formatInr, GST_PERCENT } from "@/lib/configurator/pricing";
+import { RESERVATION_FEE } from "@/lib/configurator/reservation";
 
 interface CartSummarySidebarProps {
   subtotal: number;
@@ -11,6 +12,8 @@ interface CartSummarySidebarProps {
   onNext?: () => void;
   nextLabel?: string;
   nextDisabled?: boolean;
+  disabledMessage?: string;
+  sticky?: boolean;
 }
 
 export function CartSummarySidebar({
@@ -24,14 +27,18 @@ export function CartSummarySidebar({
   onNext,
   nextLabel = "Next",
   nextDisabled = false,
+  disabledMessage,
+  sticky = true,
 }: CartSummarySidebarProps) {
+  const balanceDue = Math.max(0, total - RESERVATION_FEE);
+
   return (
-    <aside className="w-full shrink-0 self-start rounded-lg border border-[#E5E5E5] bg-white p-5 shadow-sm lg:w-80">
+    <aside className={`w-full shrink-0 self-start rounded-lg border border-[#E5E5E5] bg-white p-5 shadow-sm lg:w-80 ${sticky ? "lg:sticky lg:top-6" : ""}`}>
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-[#111111]/50">
-          Invoice Summary
+          Invoice summary
         </p>
-        <h2 className="mt-1 text-lg font-semibold text-[#111111]">Estimated Total</h2>
+        <h2 className="mt-1 text-lg font-semibold text-[#111111]">Estimated total</h2>
       </div>
 
       <div className="mt-5 space-y-3 text-sm text-[#111111]">
@@ -63,31 +70,48 @@ export function CartSummarySidebar({
         </div>
         <div className="flex justify-between text-[#111111]/70">
           <span>Delivery</span>
-          <span>{delivery}</span>
+          <span className="max-w-[150px] text-right">{delivery}</span>
         </div>
         <div className="flex justify-between border-t border-[#E5E5E5] pt-3 text-base font-semibold">
-          <span>Total</span>
+          <span>Estimated total</span>
           <span>{formatInr(total)}</span>
         </div>
       </div>
 
-      <p className="mt-3 text-[11px] text-[#111111]/60">
-        Prices include {GST_PERCENT}% GST. Rush Delivery adds ₹75 per unit when enabled.
-      </p>
+      <div className="mt-4 rounded-xl border border-[var(--color-teal)]/25 bg-[var(--color-teal)]/5 p-3">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-xs font-semibold text-[#111111]">Due today</span>
+          <span className="text-lg font-bold text-[var(--color-teal-dark)]">
+            {formatInr(RESERVATION_FEE)}
+          </span>
+        </div>
+        <div className="mt-1 flex items-center justify-between gap-3 text-[11px] text-[#111111]/60">
+          <span>Estimated balance later</span>
+          <span>{formatInr(balanceDue)}</span>
+        </div>
+        <p className="mt-2 text-[11px] leading-relaxed text-[#111111]/60">
+          Credited against the final invoice after artwork, shipping and production feasibility are reviewed.
+        </p>
+      </div>
 
-      <p className="mt-3 text-xs text-[#111111]">
-        Items in this order are produced and shipped together.
+      <p className="mt-3 text-[11px] text-[#111111]/60">
+        Prices include {GST_PERCENT}% GST. Shipping is confirmed after address and feasibility review.
       </p>
 
       {onNext && (
+        <>
         <button
           type="button"
           onClick={onNext}
           disabled={nextDisabled}
-          className="mt-5 w-full rounded-full bg-[var(--color-teal)] py-2.5 text-sm font-medium text-white hover:bg-[var(--color-teal-dark)] disabled:cursor-not-allowed disabled:bg-[#E5E5E5] disabled:text-[#111111]/40"
+          className="mt-5 w-full rounded-full bg-[var(--color-teal)] py-3 text-sm font-semibold text-white hover:bg-[var(--color-teal-dark)] disabled:cursor-not-allowed disabled:bg-[#E5E5E5] disabled:text-[#111111]/40"
         >
           {nextLabel}
         </button>
+        {nextDisabled && disabledMessage && (
+          <p className="mt-2 text-center text-xs leading-relaxed text-[#111111]/55">{disabledMessage}</p>
+        )}
+        </>
       )}
     </aside>
   );

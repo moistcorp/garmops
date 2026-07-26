@@ -13,6 +13,7 @@ import { getDeliveryOptions } from "@/lib/configurator/delivery";
 import { CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS } from "@/lib/configurator/colours";
 import type { Artwork, GarmentColour, NeckLabel } from "@/lib/configurator/types/configurator";
 import type { AccordionStepState } from "@/components/configurator/ConfiguratorSidebar/ConfiguratorSidebar";
+import { RESERVATION_FEE } from "@/lib/configurator/reservation";
 
 export interface OrderBarProps {
   unitCost?: string;
@@ -201,12 +202,16 @@ export function OrderBar({
           )}
         </div>
         <div className="min-w-0">
-          <div className="font-semibold leading-tight text-[#111111]">Delivery Date</div>
+          <div className="font-semibold leading-tight text-[#111111]">Target Delivery</div>
           <div className="mt-1 font-semibold text-[#111111]/70">{displayDeliveryDate}</div>
         </div>
       </div>
 
       <div className="grid gap-1.5">
+        <div className="flex items-center justify-between rounded-xl bg-[var(--color-teal)]/5 px-3 py-2 text-xs">
+          <span className="font-medium text-[#111111]/65">Due today to reserve review</span>
+          <span className="font-bold text-[var(--color-teal-dark)]">{formatInr(RESERVATION_FEE)}</span>
+        </div>
         <div className="grid min-h-11 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
           <label htmlFor="configurator-quantity" className="whitespace-nowrap text-xs font-semibold text-[#111111]">
             Quantity

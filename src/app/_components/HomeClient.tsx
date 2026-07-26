@@ -82,6 +82,34 @@ export default function HomeClient() {
       </div>
       </section>
 
+      <section className="bg-white py-16">
+        <div className="mx-auto max-w-7xl px-6">
+          <Reveal>
+            <div className="flex flex-col gap-6 rounded-3xl border border-[var(--color-teal)]/20 bg-[var(--color-teal)]/5 p-7 md:flex-row md:items-center md:justify-between md:p-10">
+              <div className="flex max-w-3xl items-start gap-4">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-[var(--color-teal)] shadow-sm">
+                  <svg aria-hidden="true" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 3.75h7.125c.621 0 1.125.504 1.125 1.125v14.25c0 .621-.504 1.125-1.125 1.125H7.5a1.125 1.125 0 0 1-1.125-1.125V4.875c0-.621.504-1.125 1.125-1.125Z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 8.25h4.5M9 11.25h4.5M9 14.25h2.25" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m14.25 16.5 1.5 1.5 3-3" />
+                  </svg>
+                </span>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-teal-dark)]">Built for company approvals</p>
+                  <h2 className="mt-2 text-2xl font-bold tracking-tight text-[#111111] md:text-3xl">Turn your customised merch into an approval-ready PDF</h2>
+                  <p className="mt-3 text-sm leading-relaxed text-[#4a4a4a]">
+                    Download a professional proposal with garment previews, branding specifications, size allocation, estimated pricing and delivery details. Share the exact configuration with managers, Finance or Procurement—without making a separate presentation.
+                  </p>
+                </div>
+              </div>
+              <Link href="/configurator" className="shrink-0 rounded-full bg-[var(--color-teal)] px-6 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-[var(--color-teal-dark)]">
+                Create an approval PDF
+              </Link>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
      <WhyGarmops />
 
      <HowItWorks />

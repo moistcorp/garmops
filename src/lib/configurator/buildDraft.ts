@@ -101,7 +101,8 @@ export function readBuildDraft(configId: string): BuildDraft | null {
           STEP_IDS.has(String(step.id)) &&
           typeof step.title === "string" &&
           (step.summary === null || typeof step.summary === "string") &&
-          typeof step.confirmed === "boolean"
+          typeof step.confirmed === "boolean" &&
+          (step.skipped === undefined || typeof step.skipped === "boolean")
       )
     ) {
       return null;
@@ -170,6 +171,6 @@ export function hasMeaningfulDraft(draft: BuildDraft | null): boolean {
   const hasColourChoice = draft.colour.confirmed || draft.colour.type === "custom_dye";
   const hasArtwork = Boolean(draft.artwork.front || draft.artwork.back);
   const hasNeckLabel = Boolean(draft.neckLabel?.fileUrl);
-  const hasConfirmedStep = draft.steps.some((step) => step.confirmed);
-  return hasColourChoice || hasArtwork || hasNeckLabel || hasConfirmedStep;
+  const hasCompletedStep = draft.steps.some((step) => step.confirmed || step.skipped);
+  return hasColourChoice || hasArtwork || hasNeckLabel || hasCompletedStep;
 }

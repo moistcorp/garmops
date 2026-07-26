@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import ProductGrid from "@/components/configurator/products/ProductGrid";
 import ProductPickerCartLink from "@/components/configurator/products/ProductPickerCartLink";
+import { FileCheck2 } from "lucide-react";
 
 export default function ConfiguratorPage() {
   return (
@@ -36,6 +37,23 @@ export default function ConfiguratorPage() {
             </h1>
           </div>
         </div>
+
+        <section className="flex flex-col gap-4 rounded-2xl border border-[var(--color-teal)]/20 bg-[var(--color-teal)]/5 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="rounded-full bg-white p-2.5 text-[var(--color-teal-dark)] shadow-sm">
+              <FileCheck2 size={20} />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-[#111111]">Built for internal approvals</p>
+              <p className="mt-1 max-w-3xl text-sm leading-relaxed text-[#111111]/65">
+                Download an approval-ready PDF with product previews, customization details, size allocation, estimated pricing and the target delivery date—ready to share with your manager, Finance or Procurement team.
+              </p>
+            </div>
+          </div>
+          <span className="shrink-0 rounded-full border border-[var(--color-teal)]/25 bg-white px-3 py-1.5 text-xs font-semibold text-[var(--color-teal-dark)]">
+            Included with every project
+          </span>
+        </section>
 
         <ProductGrid />
       </div>

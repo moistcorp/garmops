@@ -2,10 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AlertTriangle, ChevronDown } from "lucide-react";
+import { ChevronDown, FileCheck2 } from "lucide-react";
 import type { GarmentView } from "@/lib/configurator/types/garment";
 import type { GarmentColour, Artwork, NeckLabel } from "@/lib/configurator/types/configurator";
 import GarmentPreview from "./GarmentPreview/GarmentPreview";
+import CanvasRenderer from "./GarmentPreview/CanvasRenderer";
 import {
   ConfiguratorSidebar,
   type AccordionStepId,
@@ -25,6 +26,7 @@ import {
   getVolumeDiscountPercent,
   VOLUME_DISCOUNT_TIERS,
   buildPricingBreakdown,
+  getConfiguredPricingSummary,
   GST_PERCENT,
 } from "@/lib/configurator/pricing";
 import { CUSTOM_DYE_MOQ_UNITS } from "@/lib/configurator/colours";
@@ -32,6 +34,7 @@ import {
   readDraft,
   totalUnits,
   upsertConfiguredCartItem,
+  splitQuantityAcrossSizes,
   type ConfiguredCartItemInput,
 } from "./cart/cartDraft";
 import {
@@ -45,118 +48,96 @@ import {
   revokeArtworkObjectUrls,
   revokeNeckLabelObjectUrl,
 } from "@/lib/configurator/objectUrls";
-
-// ---------------------------------------------------------------------------
-// Types (local to this file)
-// ---------------------------------------------------------------------------
+import { generateApprovalPdf } from "@/lib/configurator/approvalPdf";
+import { RESERVATION_FEE } from "@/lib/configurator/reservation";
 
 interface ConfigureClientProps {
   configId: string;
 }
 
-// Neck-label position values -> display labels used in the confirmed-step
-// summary. Mirrors TECHNIQUE_LABELS' role for the artwork branch.
 const POSITION_LABELS: Record<NeckLabel["position"], string> = {
   below_neck_tape: "Below neck tape",
   on_neck_tape: "On neck tape",
 };
 
 const FALLBACK_PRODUCT_ID = "regular-fit-tee-200gsm";
-const VECTOR_REQUIRED_TECHNIQUES = new Set([
-  "screen_print",
-  "puff_print",
-  "embroidery",
-  "reflective_heat_transfer",
-]);
 
 function safeQuantity(value: unknown, minimum = 50): number {
   const parsed = Number(value);
-  return Number.isFinite(parsed)
-    ? Math.max(minimum, Math.floor(parsed))
-    : minimum;
+  return Number.isFinite(parsed) ? Math.max(minimum, Math.floor(parsed)) : minimum;
+}
+
+function artworkSummary(artwork: Artwork): string | null {
+  const summary = [
+    artwork.front?.technique && `Front - ${TECHNIQUE_LABELS[artwork.front.technique]}`,
+    artwork.back?.technique && `Back - ${TECHNIQUE_LABELS[artwork.back.technique]}`,
+  ]
+    .filter(Boolean)
+    .join(", ");
+  return summary || null;
+}
+
+function labelSummary(neckLabel?: NeckLabel): string | null {
+  if (!neckLabel?.fileUrl || !neckLabel.dimensions || !neckLabel.position) return null;
+  return `${neckLabel.dimensions.replace("x", "x")}mm - ${POSITION_LABELS[neckLabel.position]}`;
 }
 
 function stepsForConfiguration(
   colour: GarmentColour,
   artwork: Artwork,
-  neckLabel?: NeckLabel
+  neckLabel?: NeckLabel,
+  restoredSteps?: AccordionStepState[]
 ): AccordionStepState[] {
-  const colourSummary = colour.name
-    ? `${colour.type === "signature" ? "Signature" : "Custom Dye"} — ${colour.name}`
-    : null;
-  const artworkSummary = [
-    artwork.front?.technique &&
-      `Front — ${TECHNIQUE_LABELS[artwork.front.technique]}`,
-    artwork.back?.technique &&
-      `Back — ${TECHNIQUE_LABELS[artwork.back.technique]}`,
-  ]
-    .filter(Boolean)
-    .join(", ");
-  const labelSummary =
-    neckLabel?.dimensions && neckLabel.position
-      ? `${neckLabel.dimensions.replace("x", "×")}mm — ${POSITION_LABELS[neckLabel.position]}`
-      : null;
-
   return INITIAL_STEPS.map((step) => {
+    const restored = restoredSteps?.find((candidate) => candidate.id === step.id);
     if (step.id === "garment-colour") {
-      return { ...step, confirmed: colour.confirmed, summary: colourSummary };
+      return {
+        ...step,
+        confirmed: colour.confirmed,
+        summary: `${colour.type === "signature" ? "Signature" : "Custom Dye"} - ${colour.name}`,
+      };
     }
     if (step.id === "artwork") {
-      const confirmed = Boolean(
-        (artwork.front || artwork.back) &&
-          (!artwork.front || artwork.front.confirmed) &&
-          (!artwork.back || artwork.back.confirmed)
-      );
-      return { ...step, confirmed, summary: artworkSummary || null };
+      const summary = artworkSummary(artwork);
+      return {
+        ...step,
+        confirmed: restored?.confirmed ?? Boolean(summary),
+        skipped: !summary && restored?.skipped === true,
+        summary: summary ?? (restored?.skipped ? "Skipped - blank garment" : null),
+      };
     }
+    const summary = labelSummary(neckLabel);
     return {
       ...step,
-      confirmed: neckLabel?.confirmed === true,
-      summary: labelSummary,
+      confirmed: restored?.confirmed ?? Boolean(summary),
+      skipped: !summary && restored?.skipped === true,
+      summary: summary ?? (restored?.skipped ? "Skipped - standard label only" : null),
     };
   });
 }
 
-function getCtaLabel(openStep: AccordionStepId | null): string {
-  switch (openStep) {
-    case "garment-colour":
-      return "Confirm Colour";
-    case "artwork":
-      return "Confirm Artwork";
-    case "neck-label":
-      return "Confirm Label";
-    default:
-      return "Add To Cart";
+function getCtaLabel(
+  openStep: AccordionStepId | null,
+  artwork: Artwork,
+  neckLabel?: NeckLabel
+): string {
+  if (openStep === "garment-colour") return "Continue";
+  if (openStep === "artwork") {
+    return artwork.front || artwork.back ? "Continue" : "Skip artwork";
   }
-}
-
-function getStepTitle(stepId: AccordionStepId, isToteProduct = false): string {
-  switch (stepId) {
-    case "garment-colour":
-      return "Garment Colour";
-    case "artwork":
-      return "Artwork";
-    case "neck-label":
-      return isToteProduct ? "Bag Label" : "Neck Label";
+  if (openStep === "neck-label") {
+    return neckLabel?.fileUrl ? "Continue to sizes" : "Skip label & continue";
   }
+  return "Continue to sizes";
 }
 
 function getBuildProgress(steps: AccordionStepState[]) {
-  const nextStepIndex = steps.findIndex((step) => !step.confirmed);
+  const nextStepIndex = steps.findIndex((step) => !step.confirmed && !step.skipped);
   const currentStepIndex = nextStepIndex === -1 ? steps.length - 1 : nextStepIndex;
   const stepLabel = steps[currentStepIndex]?.title.replace("Garment ", "") ?? "Colour";
-
-  return {
-    current: currentStepIndex + 1,
-    total: steps.length,
-    label: stepLabel,
-  };
+  return { current: currentStepIndex + 1, total: steps.length, label: stepLabel };
 }
 
-// Progress toward the *next* volume-discount tier (not the whole 50–1000+
-// range at once) so the bar fills meaningfully within whichever tier the
-// customer is currently in, rather than looking nearly-empty at low
-// quantities relative to the 1000+ ceiling.
 function getVolumeDiscountProgress(quantity: number) {
   const currentPercent = getVolumeDiscountPercent(quantity);
   const currentTierIndex = VOLUME_DISCOUNT_TIERS.findIndex(
@@ -164,15 +145,11 @@ function getVolumeDiscountProgress(quantity: number) {
   );
   const currentTier = VOLUME_DISCOUNT_TIERS[currentTierIndex] ?? VOLUME_DISCOUNT_TIERS[0];
   const nextTier = VOLUME_DISCOUNT_TIERS[currentTierIndex + 1];
-
   if (!nextTier) {
     return { currentPercent, nextPercent: null, unitsToNext: 0, progressFraction: 1, isMaxed: true };
   }
-
   const span = nextTier.minQty - currentTier.minQty;
-  const progressFraction =
-    span > 0 ? Math.min(1, Math.max(0, (quantity - currentTier.minQty) / span)) : 1;
-
+  const progressFraction = span > 0 ? Math.min(1, Math.max(0, (quantity - currentTier.minQty) / span)) : 1;
   return {
     currentPercent,
     nextPercent: nextTier.discountPercent,
@@ -181,10 +158,6 @@ function getVolumeDiscountProgress(quantity: number) {
     isMaxed: false,
   };
 }
-
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
 
 export default function ConfigureClient({ configId }: ConfigureClientProps) {
   const router = useRouter();
@@ -201,76 +174,46 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   } catch {
     unitBasePrice = undefined;
   }
+
   const [activeView, setActiveView] = useState<GarmentView>("front");
-  const [expandedStepId, setExpandedStepId] = useState<AccordionStepId | null>(null);
-  const [pendingStepId, setPendingStepId] = useState<AccordionStepId | null>(null);
-  const [unsavedStepId, setUnsavedStepId] = useState<AccordionStepId | null>(null);
-  const [quantity, setQuantity] = useState<number>(50);
-  const discountProgress = getVolumeDiscountProgress(quantity);
+  const [expandedStepId, setExpandedStepId] = useState<AccordionStepId | null>("garment-colour");
+  const [quantity, setQuantity] = useState(50);
   const [breakdownOpen, setBreakdownOpen] = useState(false);
   const [ctaErrorMessage, setCtaErrorMessage] = useState<string | null>(null);
   const [ctaErrorNonce, setCtaErrorNonce] = useState(0);
-
-  // Lifted so the live preview (below) and the sidebar's Garment Colour step
-  // read/write the same colour — was a disconnected placeholder pre-5B.
   const [colour, setColour] = useState<GarmentColour>(DEFAULT_COLOUR);
-  // Derived from DEFAULT_COLOUR (not the blank INITIAL_STEPS) so the
-  // Garment Colour accordion already reads "Signature — Bright White" on
-  // first open — still unconfirmed, so no checkmark until the customer
-  // actually confirms a colour themselves. Draft/edit/shared-design restores
-  // overwrite this shortly after via stepsForConfiguration.
+  const [artwork, setArtwork] = useState<Artwork>({});
+  const [neckLabel, setNeckLabel] = useState<NeckLabel>({} as NeckLabel);
   const [steps, setSteps] = useState<AccordionStepState[]>(() =>
     stepsForConfiguration(DEFAULT_COLOUR, {}, undefined)
   );
-  const buildProgress = getBuildProgress(steps);
-
-  // Lifted (6D-2) so the CTA/confirm flow can read per-side confirmed state
-  // and build the summary string, mirroring the colour lift above.
-  const [artwork, setArtwork] = useState<Artwork>({});
-
-  // Lifted (7B) so the CTA/confirm flow can validate fileUrl/dimensions/
-  // position and build the summary string, mirroring the artwork lift above.
-  const [neckLabel, setNeckLabel] = useState<NeckLabel>({} as NeckLabel);
-  const pricingBreakdown = buildPricingBreakdown(productId, colour, artwork, neckLabel, quantity);
-  const minimumQuantity = colour.type === "custom_dye" ? CUSTOM_DYE_MOQ_UNITS : 50;
-
-  // Autosave: whether a saved draft was restored on load (drives the small
-  // "Draft restored" notice below), and a ref so the debounced-write effect
-  // doesn't fire on the very first render before restoration has happened.
   const [draftRestored, setDraftRestored] = useState(false);
   const [draftJustSaved, setDraftJustSaved] = useState(false);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const hasHydrated = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Restore any in-progress draft for this configId on mount. Runs once —
-  // deliberately not re-run on configId change within this component's
-  // lifetime, since configId is a route param and the component remounts
-  // when it changes.
+  const pricingBreakdown = buildPricingBreakdown(productId, colour, artwork, neckLabel, quantity);
+  const minimumQuantity = colour.type === "custom_dye" ? CUSTOM_DYE_MOQ_UNITS : 50;
+  const buildProgress = getBuildProgress(steps);
+  const discountProgress = getVolumeDiscountProgress(quantity);
+
   useEffect(() => {
     let cancelled = false;
-
     void (async () => {
       const applyRestoredConfiguration = async (
         restoredColour: GarmentColour,
         restoredArtwork: Artwork,
         restoredNeckLabel: NeckLabel | undefined,
-        restoredQuantity: unknown
+        restoredQuantity: unknown,
+        restoredSteps?: AccordionStepState[]
       ) => {
-        const uploads = await restoreConfigurationUploads(
-          restoredArtwork,
-          restoredNeckLabel
-        );
+        const uploads = await restoreConfigurationUploads(restoredArtwork, restoredNeckLabel);
         if (cancelled) return;
         setColour(restoredColour);
         setArtwork(uploads.artwork);
         setNeckLabel((uploads.neckLabel ?? {}) as NeckLabel);
-        setSteps(
-          stepsForConfiguration(
-            restoredColour,
-            uploads.artwork,
-            uploads.neckLabel
-          )
-        );
+        setSteps(stepsForConfiguration(restoredColour, uploads.artwork, uploads.neckLabel, restoredSteps));
         setQuantity(
           safeQuantity(
             restoredQuantity,
@@ -280,42 +223,8 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         setDraftRestored(true);
       };
 
-      const sharedDesign = searchParams.get("design");
-      if (sharedDesign) {
-        try {
-          const parsed = JSON.parse(
-            decodeURIComponent(escape(atob(sharedDesign)))
-          ) as Partial<{
-            colour: GarmentColour;
-            artwork: Artwork;
-            neckLabel: NeckLabel;
-            quantity: unknown;
-          }>;
-          if (
-            parsed.colour &&
-            (parsed.colour.type === "signature" ||
-              parsed.colour.type === "custom_dye") &&
-            parsed.artwork &&
-            typeof parsed.artwork === "object"
-          ) {
-            await applyRestoredConfiguration(
-              parsed.colour,
-              parsed.artwork,
-              parsed.neckLabel,
-              parsed.quantity
-            );
-            hasHydrated.current = true;
-            return;
-          }
-        } catch {
-          // Ignore malformed shared-design payloads and fall back to local state.
-        }
-      }
-
       if (editCartId && editItemId) {
-        const item = readDraft(editCartId).items.find(
-          (candidate) => candidate.id === editItemId
-        );
+        const item = readDraft(editCartId).items.find((candidate) => candidate.id === editItemId);
         if (item && item.productId === productId) {
           await applyRestoredConfiguration(
             item.colour,
@@ -334,7 +243,8 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
           draft.colour,
           draft.artwork,
           draft.neckLabel,
-          draft.quantity
+          draft.quantity,
+          draft.steps
         );
       }
       hasHydrated.current = true;
@@ -343,60 +253,24 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
     return () => {
       cancelled = true;
     };
-  }, [configId, editCartId, editItemId, productId, searchParams]);
+  }, [configId, editCartId, editItemId, productId]);
 
-  // Debounced autosave — writes the in-progress build to localStorage
-  // shortly after any change, so a refresh or closed tab doesn't lose
-  // uploaded artwork or unconfirmed selections. Only the final "Add To Cart"
-  // click previously persisted anything; every step in between was lost on
-  // reload.
   useEffect(() => {
     if (!hasHydrated.current) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
       writeBuildDraft(configId, { colour, artwork, neckLabel, steps, quantity });
       setDraftJustSaved(true);
-      setTimeout(() => setDraftJustSaved(false), 1500);
-    }, 500);
+      window.setTimeout(() => setDraftJustSaved(false), 1500);
+    }, 450);
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
   }, [configId, colour, artwork, neckLabel, steps, quantity]);
 
-  function hasUnconfirmedChanges(stepId: AccordionStepId | null): boolean {
-    if (!stepId) return false;
-    if (stepId === "garment-colour") return !colour.confirmed;
-    if (stepId === "artwork") {
-      return Boolean(
-        (artwork.front && !artwork.front.confirmed) ||
-          (artwork.back && !artwork.back.confirmed)
-      );
-    }
-    return Boolean(neckLabel?.fileUrl && !neckLabel.confirmed);
-  }
-
-  function resetStepDraft(stepId: AccordionStepId) {
-    if (stepId === "garment-colour") {
-      setColour(DEFAULT_COLOUR);
-    }
-    if (stepId === "artwork") {
-      revokeArtworkObjectUrls(artwork);
-      setArtwork({});
-    }
-    if (stepId === "neck-label") {
-      revokeNeckLabelObjectUrl(neckLabel);
-      setNeckLabel({} as NeckLabel);
-    }
-    setSteps((prev) =>
-      prev.map((step) =>
-        step.id === stepId ? { ...step, confirmed: false, summary: null } : step
-      )
-    );
-  }
-
   function showCtaError(message: string) {
     setCtaErrorMessage(message);
-    setCtaErrorNonce((prev) => prev + 1);
+    setCtaErrorNonce((previous) => previous + 1);
   }
 
   function setSafeQuantity(next: number) {
@@ -404,163 +278,52 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   }
 
   function applyExpandedStepChange(next: AccordionStepId | null) {
-    const wasNeckLabel = expandedStepId === "neck-label";
+    const wasLabel = expandedStepId === "neck-label";
     setExpandedStepId(next);
-    if (next === "neck-label") {
-      setActiveView("neck");
-    } else if (wasNeckLabel) {
-      // Neck Label just closed (collapsed, or another step opened instead) —
-      // don't leave the live preview stuck on the neck crop.
-      setActiveView("front");
-    }
+    if (next === "neck-label") setActiveView("neck");
+    else if (wasLabel) setActiveView("front");
   }
 
-  function handleExpandedStepChange(next: AccordionStepId | null) {
-    if (next !== expandedStepId && hasUnconfirmedChanges(expandedStepId)) {
-      setPendingStepId(next);
-      setUnsavedStepId(expandedStepId);
-      return;
-    }
-    applyExpandedStepChange(next);
+  function updateStep(id: AccordionStepId, patch: Partial<AccordionStepState>) {
+    setSteps((current) =>
+      current.map((step) => (step.id === id ? { ...step, ...patch } : step))
+    );
   }
 
-  function discardUnsavedChanges() {
-    if (unsavedStepId) {
-      resetStepDraft(unsavedStepId);
-    }
-    applyExpandedStepChange(pendingStepId);
-    setPendingStepId(null);
-    setUnsavedStepId(null);
-  }
-
-  function keepEditing() {
-    setPendingStepId(null);
-    setUnsavedStepId(null);
-  }
-
-  function handleCtaClick() {
-    setCtaErrorMessage(null);
-
-    if (expandedStepId === "garment-colour") {
-      if (!colour.name) {
-        showCtaError("Choose a garment colour before confirming.");
-        return;
-      }
-      const confirmedColour: GarmentColour = { ...colour, confirmed: true };
-      setColour(confirmedColour);
-
-      const sectionLabel = confirmedColour.type === "signature" ? "Signature" : "Custom Dye";
-      setSteps((prev) =>
-        prev.map((step) =>
-          step.id === "garment-colour"
-            ? { ...step, confirmed: true, summary: `${sectionLabel} — ${confirmedColour.name}` }
-            : step
-        )
-      );
-
-      setActiveView("front");
-      // Auto-advance: open Artwork next instead of leaving the customer to
-      // reopen it manually.
-      applyExpandedStepChange("artwork");
-      return;
-    }
-
-    if (expandedStepId === "artwork") {
-      const hasAnySide = Boolean(artwork.front || artwork.back);
-      const allUploadedSidesReady =
-        (!artwork.front || Boolean(artwork.front.technique)) &&
-        (!artwork.back || Boolean(artwork.back.technique));
-      const sideNeedingVector = (["front", "back"] as const).find((side) => {
-        const candidate = artwork[side];
-        return Boolean(
-          candidate?.technique &&
-            VECTOR_REQUIRED_TECHNIQUES.has(candidate.technique) &&
-            !candidate.vectorized
-        );
+  function resetStepDraft(stepId: AccordionStepId) {
+    if (stepId === "garment-colour") {
+      setColour(DEFAULT_COLOUR);
+      updateStep("garment-colour", {
+        confirmed: false,
+        skipped: false,
+        summary: `Signature - ${DEFAULT_COLOUR.name}`,
       });
-
-      if (!hasAnySide || !allUploadedSidesReady || sideNeedingVector) {
-        showCtaError(
-          !hasAnySide
-            ? "Upload artwork for at least one side."
-            : sideNeedingVector
-              ? `Upload vector artwork for the ${sideNeedingVector} side before confirming.`
-            : "Choose a technique for each uploaded artwork."
-        );
-        return;
-      }
-
-      const confirmedArtwork: Artwork = {
-        front: artwork.front ? { ...artwork.front, confirmed: true } : undefined,
-        back: artwork.back ? { ...artwork.back, confirmed: true } : undefined,
-      };
-      setArtwork(confirmedArtwork);
-
-      const summary = [
-        confirmedArtwork.front?.technique &&
-          `Front — ${TECHNIQUE_LABELS[confirmedArtwork.front.technique]}`,
-        confirmedArtwork.back?.technique &&
-          `Back — ${TECHNIQUE_LABELS[confirmedArtwork.back.technique]}`,
-      ]
-        .filter(Boolean)
-        .join(", ");
-
-      setSteps((prev) =>
-        prev.map((step) =>
-          step.id === "artwork" ? { ...step, confirmed: true, summary } : step
-        )
-      );
-
-      // Auto-advance: open Neck Label next.
-      applyExpandedStepChange("neck-label");
-      return;
     }
-
-    if (expandedStepId === "neck-label") {
-      const isReady = Boolean(
-        neckLabel?.fileUrl &&
-          neckLabel?.dimensions &&
-          neckLabel?.position &&
-          (neckLabel.position !== "below_neck_tape" || neckLabel.stitch)
-      );
-
-      if (!isReady) {
-        showCtaError(
-          "Upload label artwork and choose its dimensions, position, and stitch first."
-        );
-        return;
-      }
-
-      const confirmedNeckLabel: NeckLabel = { ...neckLabel, confirmed: true };
-      setNeckLabel(confirmedNeckLabel);
-
-      const dimensionsLabel = `${confirmedNeckLabel.dimensions.replace("x", "×")}mm`;
-      const summary = `${dimensionsLabel} — ${POSITION_LABELS[confirmedNeckLabel.position]}`;
-
-      setSteps((prev) =>
-        prev.map((step) =>
-          step.id === "neck-label" ? { ...step, confirmed: true, summary } : step
-        )
-      );
-
-      // Last step — nothing left to auto-advance to, just close it.
-      applyExpandedStepChange(null);
-      return;
+    if (stepId === "artwork") {
+      revokeArtworkObjectUrls(artwork);
+      setArtwork({});
+      updateStep("artwork", { confirmed: false, skipped: false, summary: null });
     }
+    if (stepId === "neck-label") {
+      revokeNeckLabelObjectUrl(neckLabel);
+      setNeckLabel({} as NeckLabel);
+      updateStep("neck-label", { confirmed: false, skipped: false, summary: null });
+    }
+  }
 
-    // Previously required every step (colour/artwork/neck label) to be
-    // explicitly confirmed before Add To Cart would proceed. The customer
-    // can now add to cart straight away with whatever is currently set —
-    // including the untouched defaults (Bright White colour, no artwork,
-    // no neck label) — without opening or confirming any accordion step.
-
+  function addConfigurationToCart(overrides?: {
+    artwork?: Artwork;
+    neckLabel?: NeckLabel;
+  }) {
+    const cartArtwork = overrides?.artwork ?? artwork;
+    const cartNeckLabel = overrides?.neckLabel ?? neckLabel;
     const cartInput: ConfiguredCartItemInput = {
       productId,
       productName,
       previewImage: product?.defaultImage ?? "/flatlays/regulartee.webp",
-      colour,
-      artwork,
-      neckLabel: neckLabel?.fileUrl ? neckLabel : undefined,
+      colour: { ...colour, confirmed: true },
+      artwork: cartArtwork,
+      neckLabel: cartNeckLabel?.fileUrl ? cartNeckLabel : undefined,
       quantity,
       rushDelivery: false,
     };
@@ -568,11 +331,147 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       cartId: editCartId ?? undefined,
       itemId: editItemId ?? undefined,
     });
-    // The in-progress build draft's job is done now that it's been handed
-    // off to the cart draft — clear it so a stale autosave doesn't resurface
-    // if the customer starts a fresh build under the same configId later.
     clearBuildDraft(configId);
     router.push(`/configurator/cart/${encodeURIComponent(targetCartId)}/review`);
+  }
+
+  function handleCtaClick() {
+    setCtaErrorMessage(null);
+
+    if (expandedStepId === "garment-colour") {
+      if (!colour.name) {
+        showCtaError("Choose a garment colour to continue.");
+        return;
+      }
+      const confirmedColour = { ...colour, confirmed: true };
+      setColour(confirmedColour);
+      updateStep("garment-colour", {
+        confirmed: true,
+        skipped: false,
+        summary: `${confirmedColour.type === "signature" ? "Signature" : "Custom Dye"} - ${confirmedColour.name}`,
+      });
+      setActiveView("front");
+      applyExpandedStepChange("artwork");
+      return;
+    }
+
+    if (expandedStepId === "artwork") {
+      const hasArtwork = Boolean(artwork.front || artwork.back);
+      if (!hasArtwork) {
+        updateStep("artwork", {
+          confirmed: true,
+          skipped: true,
+          summary: "Skipped - blank garment",
+        });
+        applyExpandedStepChange("neck-label");
+        return;
+      }
+      const missingTechnique = (["front", "back"] as const).find(
+        (side) => artwork[side]?.fileUrl && !artwork[side]?.technique
+      );
+      if (missingTechnique) {
+        showCtaError(
+          `Choose a technique for the ${missingTechnique} artwork or use Recommend for me.`
+        );
+        return;
+      }
+      const readyArtwork: Artwork = {
+        front: artwork.front ? { ...artwork.front, confirmed: true } : undefined,
+        back: artwork.back ? { ...artwork.back, confirmed: true } : undefined,
+      };
+      setArtwork(readyArtwork);
+      updateStep("artwork", {
+        confirmed: true,
+        skipped: false,
+        summary: artworkSummary(readyArtwork),
+      });
+      applyExpandedStepChange("neck-label");
+      return;
+    }
+
+    if (expandedStepId === "neck-label") {
+      if (!neckLabel?.fileUrl) {
+        updateStep("neck-label", {
+          confirmed: true,
+          skipped: true,
+          summary: "Skipped - standard label only",
+        });
+        addConfigurationToCart();
+        return;
+      }
+      const isReady = Boolean(
+        neckLabel.dimensions &&
+          neckLabel.position &&
+          (neckLabel.position !== "below_neck_tape" || neckLabel.stitch)
+      );
+      if (!isReady) {
+        showCtaError("Choose label dimensions, position and stitch to continue.");
+        return;
+      }
+      const readyLabel = { ...neckLabel, confirmed: true };
+      setNeckLabel(readyLabel);
+      updateStep("neck-label", {
+        confirmed: true,
+        skipped: false,
+        summary: labelSummary(readyLabel),
+      });
+      addConfigurationToCart({ neckLabel: readyLabel });
+      return;
+    }
+
+    addConfigurationToCart();
+  }
+
+  async function handleDownloadPdf() {
+    setIsDownloadingPdf(true);
+    try {
+      const sizes = product?.sizes ?? ["XS", "S", "M", "L", "XL", "XXL"];
+      const sizeQuantities = splitQuantityAcrossSizes(quantity, sizes);
+      const pricing = getConfiguredPricingSummary(
+        productId,
+        colour,
+        artwork,
+        neckLabel?.fileUrl ? neckLabel : undefined,
+        quantity
+      );
+      const garmentCanvas = document.querySelector<HTMLCanvasElement>(
+        '[data-configurator-pdf-preview="true"] canvas'
+      );
+      let previewDataUrl: string | undefined;
+      try {
+        previewDataUrl = garmentCanvas?.toDataURL("image/jpeg", 0.86);
+      } catch {
+        previewDataUrl = undefined;
+      }
+      await generateApprovalPdf({
+        projectReference: configId,
+        documentTitle: "Merch Design Summary",
+        items: [
+          {
+            id: configId,
+            productName,
+            previewImage: product?.defaultImage ?? "/flatlays/regulartee.webp",
+            colour,
+            artwork,
+            neckLabel: neckLabel?.fileUrl ? neckLabel : undefined,
+            sizeQuantities,
+            unitPrice: pricing.discountedUnitPrice,
+          },
+        ],
+        totals: {
+          subtotal: pricing.lineSubtotal,
+          volumeDiscount: pricing.discountAmount,
+          gst: pricing.gst,
+          total: pricing.total,
+          reservationFee: RESERVATION_FEE,
+          balanceDue: Math.max(0, pricing.total - RESERVATION_FEE),
+        },
+        previewDataUrls: { [configId]: previewDataUrl },
+        filename: `Garmops-Design-${configId}.pdf`,
+      });
+    } finally {
+      setIsDownloadingPdf(false);
+    }
   }
 
   return (
@@ -581,15 +480,34 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         <ConfiguratorHeader
           configId={configId}
           productName={productName}
-          designPayload={{ colour, artwork, neckLabel, steps, quantity }}
+          onDownloadPdf={handleDownloadPdf}
+          isDownloadingPdf={isDownloadingPdf}
         />
+
+        <div
+          data-configurator-pdf-preview="true"
+          aria-hidden="true"
+          className="pointer-events-none fixed -left-[10000px] top-0 h-[640px] w-[480px] opacity-0"
+        >
+          <ArtworkPositionProvider activeView="front">
+            <CanvasRenderer
+              view="front"
+              colourHex={colour.hex}
+              productId={productId}
+              artwork={artwork}
+              neckLabel={neckLabel}
+              interactive={false}
+              className="h-full w-full bg-[#F7F7F7]"
+            />
+          </ArtworkPositionProvider>
+        </div>
 
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 px-4 pb-4 lg:grid-cols-[360px_minmax(0,1fr)_310px] lg:px-5">
           <aside className="order-2 flex min-h-0 min-w-0 flex-col overflow-hidden rounded-[28px] border border-[#E5E5E5] bg-white lg:order-1">
             <div className="border-b border-[#E5E5E5] px-4 py-3">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-[#111111]/45">
-                  Build Steps
+                  Guided setup
                 </p>
                 <span
                   className={`text-[10px] font-medium uppercase tracking-wide text-[#111111]/35 transition-opacity ${
@@ -597,7 +515,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                   }`}
                   aria-live="polite"
                 >
-                  Draft saved
+                  Saved automatically
                 </span>
               </div>
               <h1 className="mt-1 text-lg font-semibold text-[#111111]">{productName}</h1>
@@ -606,14 +524,14 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
               </p>
               {draftRestored && (
                 <div className="mt-2 flex items-center justify-between gap-2 rounded-md bg-[#F7F7F7] px-2.5 py-1.5 text-xs text-[#111111]/65">
-                  <span>Restored your unsaved progress.</span>
+                  <span>Restored your saved progress.</span>
                   <button
                     type="button"
                     onClick={() => setDraftRestored(false)}
                     aria-label="Dismiss"
                     className="shrink-0 font-semibold text-[#111111]/50 hover:text-[#111111]"
                   >
-                    ✕
+                    x
                   </button>
                 </div>
               )}
@@ -622,20 +540,39 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
               <ConfiguratorSidebar
                 expandedStepId={expandedStepId}
                 onExpandedStepChange={applyExpandedStepChange}
-                onAttemptStepChange={handleExpandedStepChange}
                 selectedColour={colour}
                 onColourChange={(next) => {
-                  setColour({ ...next, confirmed: false });
+                  const pendingColour = { ...next, confirmed: false };
+                  setColour(pendingColour);
+                  updateStep("garment-colour", {
+                    confirmed: false,
+                    skipped: false,
+                    summary: `${next.type === "signature" ? "Signature" : "Custom Dye"} - ${next.name}`,
+                  });
                   if (next.type === "custom_dye") {
-                    setQuantity((prev) => Math.max(CUSTOM_DYE_MOQ_UNITS, prev));
+                    setQuantity((current) => Math.max(CUSTOM_DYE_MOQ_UNITS, current));
                   }
                 }}
                 steps={steps}
                 onStepsChange={setSteps}
                 artwork={artwork}
-                onArtworkChange={setArtwork}
+                onArtworkChange={(next) => {
+                  setArtwork(next);
+                  updateStep("artwork", {
+                    confirmed: false,
+                    skipped: false,
+                    summary: artworkSummary(next),
+                  });
+                }}
                 neckLabel={neckLabel}
-                onNeckLabelChange={setNeckLabel}
+                onNeckLabelChange={(next) => {
+                  setNeckLabel(next);
+                  updateStep("neck-label", {
+                    confirmed: false,
+                    skipped: false,
+                    summary: labelSummary(next),
+                  });
+                }}
                 activeView={activeView}
                 onViewChange={setActiveView}
                 unitBasePrice={unitBasePrice}
@@ -645,38 +582,10 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
             </div>
           </aside>
 
-          {unsavedStepId && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/78 px-4 backdrop-blur-[1px]">
-              <div className="w-full max-w-sm rounded-lg bg-white p-5 text-center shadow-xl ring-1 ring-[#111111]/10">
-                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF4DE] text-[#C47A00]">
-                  <AlertTriangle size={20} strokeWidth={2.3} />
-                </div>
-                <h2 className="mt-4 text-xl font-semibold text-[#111111]">Unsaved Changes</h2>
-                <p className="mt-2 text-sm leading-snug text-[#111111]/70">
-                  You didn&apos;t save your {getStepTitle(unsavedStepId, isToteProduct)}. Confirm it to keep your
-                  changes.
-                </p>
-                <div className="mt-5 grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={discardUnsavedChanges}
-                    className="min-h-11 rounded-full border border-[var(--color-teal)] px-3 text-sm font-semibold text-[var(--color-teal)] hover:bg-[var(--color-teal)] hover:text-white"
-                  >
-                    Discard Changes
-                  </button>
-                  <button
-                    type="button"
-                    onClick={keepEditing}
-                    className="min-h-11 rounded-full bg-[var(--color-teal)] px-3 text-sm font-semibold text-white hover:bg-[var(--color-teal-dark)]"
-                  >
-                    Keep Editing
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <main className="order-1 relative flex min-h-0 min-w-0 flex-col items-center justify-center overflow-hidden rounded-2xl border border-[#ECE7DF] bg-[#F5F5F5] lg:order-2">
+          <main
+            data-configurator-preview="true"
+            className="order-1 relative flex min-h-0 min-w-0 flex-col items-center justify-center overflow-hidden rounded-2xl border border-[#ECE7DF] bg-[#F5F5F5] lg:order-2"
+          >
             <GarmentPreview
               activeView={activeView}
               onViewChange={setActiveView}
@@ -692,9 +601,14 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
 
           <aside className="order-3 flex min-h-0 min-w-0 flex-col justify-between gap-3 overflow-y-auto">
             <div className="rounded-[28px] border border-[#ECE7DF] bg-white p-4 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#111111]/45">
-                Studio Summary
-              </p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-[#111111]/45">
+                  Studio summary
+                </p>
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#EAF7EA] px-2 py-1 text-[10px] font-semibold text-[#1B7F36]">
+                  <FileCheck2 size={12} strokeWidth={2.3} /> Autosaved
+                </span>
+              </div>
               <div className="mt-4 space-y-3 text-sm">
                 <div className="flex justify-between gap-4">
                   <span className="text-[#111111]/55">Colour</span>
@@ -702,21 +616,29 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 </div>
                 <div className="flex justify-between gap-4">
                   <span className="text-[#111111]/55">Fabric</span>
-                  <span className="text-right font-medium">{product?.details?.[0] ?? "—"}</span>
+                  <span className="text-right font-medium">{product?.details?.[0] ?? "-"}</span>
                 </div>
                 <div className="flex justify-between gap-4">
                   <span className="text-[#111111]/55">Artwork</span>
                   <span className="text-right font-medium">
-                    {[artwork.front?.confirmed && "Front", artwork.back?.confirmed && "Back"]
-                      .filter(Boolean)
-                      .join(" + ") || "Not added"}
+                    {[artwork.front && "Front", artwork.back && "Back"].filter(Boolean).join(" + ") || "Not added"}
                   </span>
                 </div>
                 <div className="flex justify-between gap-4">
                   <span className="text-[#111111]/55">{isToteProduct ? "Bag label" : "Neck label"}</span>
-                  <span className="text-right font-medium">
-                    {neckLabel?.confirmed ? "Added" : "Not added"}
-                  </span>
+                  <span className="text-right font-medium">{neckLabel?.fileUrl ? "Added" : "Not added"}</span>
+                </div>
+
+                <div className="rounded-xl border border-[var(--color-teal)]/25 bg-[var(--color-teal)]/5 p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-xs font-semibold text-[#111111]">Due today</span>
+                    <span className="text-lg font-bold text-[var(--color-teal-dark)]">
+                      {formatInr(RESERVATION_FEE)}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[11px] leading-relaxed text-[#111111]/60">
+                    Reservation fee credited against the final invoice. Production starts only after technical and commercial approval.
+                  </p>
                 </div>
 
                 <div className="border-t border-[#E5E5E5] pt-3">
@@ -734,125 +656,75 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                   </div>
                   <p className="mt-1.5 text-xs font-medium text-[#111111]/50">
                     {discountProgress.isMaxed
-                      ? "You've unlocked our best volume price."
-                      : `Add ${discountProgress.unitsToNext} more unit${
-                          discountProgress.unitsToNext === 1 ? "" : "s"
-                        } to reach ${discountProgress.nextPercent}% off.`}
+                      ? "You have unlocked our best volume price."
+                      : `Add ${discountProgress.unitsToNext} more unit${discountProgress.unitsToNext === 1 ? "" : "s"} to reach ${discountProgress.nextPercent}% off.`}
                   </p>
                 </div>
 
                 <div className="border-t border-[#E5E5E5] pt-3">
                   <div className="flex items-center justify-between gap-4">
-                    <span className="text-[#111111]/55">Unit price</span>
+                    <span className="text-[#111111]/55">Estimated unit price</span>
                     <span className="text-right font-medium">
-                      {formatInr(
-                        pricingBreakdown.unitPrice * (1 - pricingBreakdown.discountPercent / 100)
-                      )}
+                      {formatInr(pricingBreakdown.unitPrice * (1 - pricingBreakdown.discountPercent / 100))}
                     </span>
                   </div>
                   <div className="mt-1.5 flex items-center justify-between gap-4">
-                    <span className="text-[#111111]/55">Total incl. GST</span>
-                    <span className="text-right font-semibold">
-                      {formatInr(pricingBreakdown.total)}
-                    </span>
+                    <span className="text-[#111111]/55">Estimated total incl. GST</span>
+                    <span className="text-right font-semibold">{formatInr(pricingBreakdown.total)}</span>
                   </div>
 
                   <button
                     type="button"
-                    onClick={() => setBreakdownOpen((v) => !v)}
+                    onClick={() => setBreakdownOpen((value) => !value)}
                     aria-expanded={breakdownOpen}
-                    className="mt-2.5 flex w-full items-center justify-between gap-2 text-left text-xs font-semibold text-[#111111]/60 hover:text-[#111111]"
+                    className="mt-2.5 flex w-full items-center justify-between gap-2 rounded-xl border border-[#ECE7DF] px-3 py-2 text-left text-xs font-semibold text-[#111111]/70 hover:border-[var(--color-teal)]"
                   >
-                    <span className="flex items-center gap-1.5">
-                      See full breakdown
-                      {!breakdownOpen && pricingBreakdown.discountPercent > 0 && (
-                        <span className="rounded-full bg-[#EAF7EA] px-2 py-0.5 text-[10px] font-semibold text-[#1B7F36]">
-                          Save{" "}
-                          {formatInr(
-                            pricingBreakdown.unitPrice * (pricingBreakdown.discountPercent / 100)
-                          )}
-                          /unit
-                        </span>
-                      )}
-                    </span>
+                    <span>Pricing breakdown</span>
                     <ChevronDown
                       size={14}
                       strokeWidth={2.2}
-                      className={`shrink-0 transition-transform duration-200 ${
-                        breakdownOpen ? "rotate-180" : ""
-                      }`}
+                      className={`shrink-0 transition-transform duration-200 ${breakdownOpen ? "rotate-180" : ""}`}
                     />
                   </button>
 
-                  <div
-                    className={`grid transition-[grid-template-rows] duration-200 ease-in-out ${
-                      breakdownOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-                    }`}
-                  >
-                    <div className="overflow-hidden">
-                      <div className="mt-2 flex flex-col gap-1.5 rounded-md bg-[#F7F7F7] p-3 text-xs">
-                        {pricingBreakdown.rows.map((row) => (
-                          <div key={row.label} className="flex items-center justify-between gap-3">
-                            <span className="text-[#111111]/60">
-                              {row.label}
-                              {row.detail && (
-                                <span className="ml-1 text-[#111111]/40">({row.detail})</span>
-                              )}
-                            </span>
-                            <span className="font-medium text-[#111111]">
-                              {row.amount >= 0 ? "+" : "−"}
-                              {formatInr(Math.abs(row.amount))}
-                            </span>
-                          </div>
-                        ))}
-
-                        <div className="flex items-center justify-between gap-3 border-t border-[#E5E5E5] pt-1.5 font-semibold text-[#111111]">
-                          <span>Unit price</span>
-                          <span>{formatInr(pricingBreakdown.unitPrice)}</span>
-                        </div>
-
-                        <div className="flex items-center justify-between gap-3 text-[#111111]/60">
-                          <span>
-                            {formatInr(pricingBreakdown.unitPrice)} × {quantity} units
+                  {breakdownOpen && (
+                    <div className="mt-2 flex flex-col gap-1.5 rounded-xl bg-[#F7F7F7] p-3 text-xs">
+                      {pricingBreakdown.rows.map((row) => (
+                        <div key={`${row.label}-${row.detail ?? ""}`} className="flex items-center justify-between gap-3">
+                          <span className="text-[#111111]/60">
+                            {row.label}{row.detail ? ` (${row.detail})` : ""}
                           </span>
                           <span className="font-medium text-[#111111]">
-                            {formatInr(pricingBreakdown.lineSubtotal)}
+                            {row.amount >= 0 ? "+" : "-"}{formatInr(Math.abs(row.amount))}
                           </span>
                         </div>
-
-                        {pricingBreakdown.discountPercent > 0 && (
-                          <div className="flex items-center justify-between gap-3 text-[#2E7D32]">
-                            <span>Volume discount ({pricingBreakdown.discountPercent}%)</span>
-                            <span className="font-medium">
-                              −{formatInr(pricingBreakdown.discountAmount)}
-                            </span>
-                          </div>
-                        )}
-
-                        <div className="flex items-center justify-between gap-3 text-[#111111]/60">
-                          <span>GST ({GST_PERCENT}%)</span>
-                          <span className="font-medium text-[#111111]">
-                            {formatInr(pricingBreakdown.gst)}
-                          </span>
+                      ))}
+                      {pricingBreakdown.discountPercent > 0 && (
+                        <div className="flex items-center justify-between gap-3 text-[#2E7D32]">
+                          <span>Volume discount ({pricingBreakdown.discountPercent}%)</span>
+                          <span className="font-medium">-{formatInr(pricingBreakdown.discountAmount)}</span>
                         </div>
-
-                        <div className="flex items-center justify-between gap-3 border-t border-[#E5E5E5] pt-1.5 text-sm font-semibold text-[#111111]">
-                          <span>Order total</span>
-                          <span>{formatInr(pricingBreakdown.total)}</span>
-                        </div>
+                      )}
+                      <div className="flex items-center justify-between gap-3 text-[#111111]/60">
+                        <span>GST ({GST_PERCENT}%)</span>
+                        <span className="font-medium text-[#111111]">{formatInr(pricingBreakdown.gst)}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-3 border-t border-[#E5E5E5] pt-1.5 text-sm font-semibold text-[#111111]">
+                        <span>Estimated order total</span>
+                        <span>{formatInr(pricingBreakdown.total)}</span>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            <div className="shrink-0">
+            <div className="shrink-0 lg:sticky lg:bottom-0">
               <OrderBar
                 quantity={quantity}
                 onQuantityChange={setSafeQuantity}
                 minQuantity={minimumQuantity}
-                ctaLabel={getCtaLabel(expandedStepId)}
+                ctaLabel={getCtaLabel(expandedStepId, artwork, neckLabel)}
                 onCtaClick={handleCtaClick}
                 productId={productId}
                 steps={steps}

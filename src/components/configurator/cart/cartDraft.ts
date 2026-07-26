@@ -13,13 +13,13 @@ import type { Address } from "./AddressForm";
 import type { Size } from "./SizeQuantityGrid";
 import { SIZES } from "./SizeQuantityGrid";
 import { scheduleUploadCleanup } from "@/lib/configurator/objectUrls";
+import { RESERVATION_FEE } from "@/lib/configurator/reservation";
 
 const STORAGE_PREFIX = "mf_configurator_cart:";
 const ACTIVE_CART_KEY = `${STORAGE_PREFIX}active`;
 const ACTIVE_CART_ID_KEY = `${STORAGE_PREFIX}active_id`;
 export const CART_DRAFT_UPDATED_EVENT = "mf-cart-updated";
 
-export const RESERVATION_FEE = 499;
 
 const SIZE_DISTRIBUTION: Record<(typeof SIZES)[number], number> = {
   XS: 0.1,

@@ -1,10 +1,15 @@
 "use client";
 
-import type { ArtworkTechnique } from "@/lib/configurator/types/configurator";
+import { Sparkles } from "lucide-react";
+import type {
+  ArtworkFileType,
+  ArtworkTechnique,
+} from "@/lib/configurator/types/configurator";
 import { formatInr, TECHNIQUE_UNIT_PRICE_DELTAS } from "@/lib/configurator/pricing";
 
 export interface TechniqueSelectProps {
   value?: ArtworkTechnique;
+  fileType?: ArtworkFileType;
   onChange: (technique: ArtworkTechnique) => void;
 }
 
@@ -26,20 +31,49 @@ const TECHNIQUE_ORDER: ArtworkTechnique[] = [
   "embroidery",
 ];
 
-export function TechniqueSelect({ value, onChange }: TechniqueSelectProps) {
+export function getRecommendedTechnique(fileType?: ArtworkFileType): ArtworkTechnique {
+  return fileType === "svg" || fileType === "ai" ? "screen_print" : "dtf";
+}
+
+function recommendationReason(fileType?: ArtworkFileType): string {
+  return fileType === "svg" || fileType === "ai"
+    ? "Best-value starting point for clean vector logos. Our team will verify colour count and finish."
+    : "Works well with uploaded PNG/JPG artwork and does not require you to convert the file first.";
+}
+
+export function TechniqueSelect({ value, fileType, onChange }: TechniqueSelectProps) {
+  const recommendation = getRecommendedTechnique(fileType);
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-sm font-semibold text-[#111111]">Technique</span>
+        <span className="text-sm font-semibold text-[#111111]">Production technique</span>
         <a
           href="/how-it-works"
           target="_blank"
           rel="noopener noreferrer"
           className="text-xs font-medium text-[#111111]/65 underline underline-offset-2 hover:text-[#111111]"
         >
-          Techniques Guide
+          Techniques guide
         </a>
       </div>
+
+      <button
+        type="button"
+        onClick={() => onChange(recommendation)}
+        className="flex items-start gap-2 rounded-xl border border-[var(--color-teal)]/35 bg-[var(--color-teal)]/5 px-3 py-2.5 text-left hover:border-[var(--color-teal)]"
+      >
+        <Sparkles size={16} strokeWidth={2.2} className="mt-0.5 shrink-0 text-[var(--color-teal)]" />
+        <span className="min-w-0">
+          <span className="block text-xs font-semibold text-[#111111]">
+            Recommend for me: {TECHNIQUE_LABELS[recommendation]}
+          </span>
+          <span className="mt-0.5 block text-[11px] leading-relaxed text-[#111111]/55">
+            {recommendationReason(fileType)}
+          </span>
+        </span>
+      </button>
+
       <div className="grid grid-cols-2 gap-2">
         {TECHNIQUE_ORDER.map((technique) => {
           const selected = value === technique;
@@ -70,8 +104,8 @@ export function TechniqueSelect({ value, onChange }: TechniqueSelectProps) {
         })}
       </div>
       {!value && (
-        <p className="text-xs font-medium text-[#C47A00]">
-          Choose a technique to unlock production checks and confirm artwork.
+        <p className="text-xs font-medium text-[#8A6212]">
+          Choose a technique or use our recommendation. The production team will verify it before the final invoice.
         </p>
       )}
     </div>

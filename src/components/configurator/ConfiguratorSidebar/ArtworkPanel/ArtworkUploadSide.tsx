@@ -416,7 +416,7 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
         </span>
         {isPending && (
           <span className="rounded-full bg-[#111111]/5 px-2 py-0.5 text-[10px] uppercase tracking-wide text-[#111111]/60">
-            Unsaved changes
+            Uploading
           </span>
         )}
       </div>
@@ -493,15 +493,14 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
           {requiresVector && (
             <div className="flex flex-col gap-2 border border-amber-300 bg-amber-50 p-2 text-xs text-amber-900">
               <p>
-                Some advanced techniques require a vectorized artwork file.
-                Accepted formats .svg and .ai
+                This technique usually needs vector artwork for production. You can continue with this file - our team will review and prepare it before final approval.
               </p>
               <button
                 type="button"
                 onClick={handleConvertArtwork}
                 className="self-start border border-amber-900 px-2 py-1 uppercase tracking-wide hover:bg-amber-900 hover:text-amber-50"
               >
-                Convert Artwork
+                Convert file (optional)
               </button>
             </div>
           )}

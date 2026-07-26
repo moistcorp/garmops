@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Plus } from 'lucide-react';
+import { ArrowLeft, Download, LoaderCircle, Plus } from 'lucide-react';
 import type { ProductId } from '@/lib/configurator/pricing';
 import type { GarmentColour, Artwork, NeckLabel } from '@/lib/configurator/types/configurator';
 import type { GarmentView } from '@/lib/configurator/types/garment';
@@ -14,7 +14,6 @@ import {
   createDraft,
   getCartItemDiscountPercent,
   getCartItemUnitPrice,
-  itemSubtotal,
   readDraft,
   totalUnits,
   writeDraft,
@@ -26,6 +25,8 @@ import { getProduct } from '@/lib/configurator/products';
 import CanvasRenderer from '../GarmentPreview/CanvasRenderer';
 import { ArtworkPositionProvider } from '@/lib/configurator/ArtworkPositionContext';
 import { restoreConfigurationUploads } from '@/lib/configurator/objectUrls';
+import { generateApprovalPdf } from '@/lib/configurator/approvalPdf';
+import { RESERVATION_FEE } from '@/lib/configurator/reservation';
 
 export interface CartItem {
   id: string;
@@ -59,6 +60,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
   const [activeView, setActiveView] = useState<Record<string, GarmentView>>({});
   const [pendingDeleteItemId, setPendingDeleteItemId] = useState<string | null>(null);
   const [draftLoaded, setDraftLoaded] = useState(false);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -149,6 +151,59 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
     router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping`);
   }
 
+  async function handleDownloadApprovalPdf() {
+    if (!items.length) return;
+    setIsDownloadingPdf(true);
+    try {
+      const previewDataUrls: Record<string, string | undefined> = {};
+      items.forEach((item) => {
+        const canvas = document.querySelector<HTMLCanvasElement>(
+          `[data-approval-preview=\"${CSS.escape(item.id)}\"] canvas`
+        );
+        try {
+          previewDataUrls[item.id] = canvas?.toDataURL('image/jpeg', 0.86);
+        } catch {
+          previewDataUrls[item.id] = undefined;
+        }
+      });
+      await generateApprovalPdf({
+        projectReference: cartId,
+        documentTitle: 'Merch Approval Proposal',
+        items: items.map((item) => ({
+          id: item.id,
+          productName: item.productName,
+          previewImage: item.previewImage,
+          colour: item.colour,
+          artwork: item.artwork,
+          neckLabel: item.neckLabel,
+          sizeQuantities: item.sizeQuantities,
+          unitPrice: getCartItemUnitPrice(item),
+        })),
+        totals: {
+          subtotal: totals.subtotal,
+          volumeDiscount: totals.volumeDiscount,
+          gst: totals.gst,
+          total: totals.total,
+          reservationFee: RESERVATION_FEE,
+          balanceDue: totals.balanceDue,
+        },
+        companyName: draft.shippingAddress.company || undefined,
+        contactName: `${draft.shippingAddress.firstName} ${draft.shippingAddress.lastName}`.trim() || undefined,
+        deliveryLabel: draft.selectedDeliveryDateIso
+          ? new Date(draft.selectedDeliveryDateIso).toLocaleDateString('en-IN', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            })
+          : 'To be selected',
+        previewDataUrls,
+        filename: `Garmops-Approval-${cartId}.pdf`,
+      });
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  }
+
   const totals = calculateTotals(items);
   const cartUnitCount = items.reduce((sum, item) => sum + totalUnits(item.sizeQuantities), 0);
   const cartIsValid =
@@ -181,14 +236,34 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             </button>
             <button
               type="button"
+              onClick={handleDownloadApprovalPdf}
+              disabled={!draftLoaded || items.length === 0 || isDownloadingPdf}
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--color-teal)] px-4 py-2 text-sm font-semibold text-[var(--color-teal)] hover:bg-[var(--color-teal)] hover:text-white disabled:cursor-not-allowed disabled:border-[#E5E5E5] disabled:text-[#111111]/35"
+            >
+              {isDownloadingPdf ? (
+                <LoaderCircle size={16} strokeWidth={2.2} className="animate-spin" />
+              ) : (
+                <Download size={16} strokeWidth={2.2} />
+              )}
+              {isDownloadingPdf ? 'Creating PDF' : 'Download Approval PDF'}
+            </button>
+            <button
+              type="button"
               onClick={handleAddAnotherProduct}
-              className="inline-flex items-center gap-2 rounded-full border border-[var(--color-teal)] px-4 py-2 text-sm font-medium text-[var(--color-teal)] hover:bg-[var(--color-teal)] hover:text-white"
+              className="inline-flex items-center gap-2 rounded-full border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-teal)] hover:text-[#111111]"
             >
               <Plus size={16} strokeWidth={2.2} />
               Add another product
             </button>
           </div>
         </div>
+
+        <section className="rounded-lg border border-[var(--color-teal)]/25 bg-[var(--color-teal)]/5 p-4">
+          <p className="text-sm font-semibold text-[#111111]">Built for internal approvals</p>
+          <p className="mt-1 text-sm leading-relaxed text-[#111111]/60">
+            Download a dated proposal with customised product details, artwork placement, size allocation, pricing and the reservation workflow. Forward it to your manager, Finance or Procurement team.
+          </p>
+        </section>
 
         {!draftLoaded && <OrderItemSkeleton />}
 
@@ -225,6 +300,23 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                     <ArtworkPositionProvider activeView={selectedView}>
                       <CanvasRenderer
                         view={selectedView}
+                        colourHex={item.colour.hex}
+                        productId={item.productId}
+                        artwork={item.artwork}
+                        neckLabel={item.neckLabel}
+                        interactive={false}
+                        className="h-full w-full bg-[#F7F7F7]"
+                      />
+                    </ArtworkPositionProvider>
+                  </div>
+                  <div
+                    data-approval-preview={item.id}
+                    aria-hidden="true"
+                    className="pointer-events-none fixed -left-[10000px] top-0 h-[480px] w-[360px] opacity-0"
+                  >
+                    <ArtworkPositionProvider activeView="front">
+                      <CanvasRenderer
+                        view="front"
                         colourHex={item.colour.hex}
                         productId={item.productId}
                         artwork={item.artwork}
@@ -302,6 +394,10 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                     </div>
                   </div>
 
+                  <div className="rounded-xl border border-[#E5E5E5] bg-[#F7F7F7] px-3 py-2 text-xs leading-relaxed text-[#111111]/60">
+                    We applied a recommended company-order size mix to the quantity selected in Studio. Adjust any size below before continuing; the total and volume price update automatically.
+                  </div>
+
                   <SizeQuantityGrid
                     value={item.sizeQuantities}
                     onChange={(size, qty) => handleQtyChange(item.id, size, qty)}
@@ -358,10 +454,6 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                     </div>
                   </div>
 
-                  <div className="flex justify-between border-t border-[#E5E5E5] pt-3 text-sm font-medium text-[#111111]">
-                    <span>Item subtotal</span>
-                    <span>{formatInr(itemSubtotal(item))}</span>
-                  </div>
                 </div>
               </div>
             </section>
@@ -379,6 +471,11 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
         onNext={handleNext}
         nextLabel="Next: Invoice & Shipping"
         nextDisabled={!cartIsValid || cartUnitCount < 50}
+        disabledMessage={
+          !cartIsValid || cartUnitCount < 50
+            ? "Complete the size allocation and ensure every product meets its minimum order quantity."
+            : undefined
+        }
       />
     </div>
   );
