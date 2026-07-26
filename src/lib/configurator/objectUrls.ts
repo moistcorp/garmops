@@ -3,7 +3,7 @@ import type { Artwork, NeckLabel } from "@/lib/configurator/types/configurator";
 const UPLOAD_DB_NAME = "mf-configurator-uploads";
 const UPLOAD_STORE_NAME = "files";
 const UPLOAD_DB_VERSION = 1;
-let cleanupTimer: ReturnType<typeof setTimeout> | null = null;
+let cleanupTimer: number | null = null;
 
 function openUploadDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
