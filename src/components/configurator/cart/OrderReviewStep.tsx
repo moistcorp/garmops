@@ -162,7 +162,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-6">
-        <CheckoutSteps currentStep="summary" cartId={cartId} />
+        <CheckoutSteps currentStep="summary" />
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-[#111111]/50">

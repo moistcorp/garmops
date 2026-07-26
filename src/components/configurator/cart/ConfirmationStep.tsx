@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, LoaderCircle } from "lucide-react";
-import type { Address } from "./AddressForm";
+import { isAddressValid, type Address } from "./AddressForm";
 import { CartSummarySidebar } from "./CartSummarySidebar";
 import { CheckoutSteps } from "./CheckoutSteps";
 import { PaymentMethodSelect } from "./PaymentMethodSelect";
@@ -37,13 +37,30 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
   // on the client's first render too, which doesn't match what the server
   // sent and trips a hydration error).
   const [draft, setDraft] = useState(() => createDraft(cartId));
+  const [isDraftReady, setIsDraftReady] = useState(false);
   useEffect(() => {
     const loadDraft = window.setTimeout(() => {
-      setDraft(readDraft(cartId));
+      const savedDraft = readDraft(cartId);
+      const shippingComplete = isAddressValid(savedDraft.shippingAddress);
+      const billingComplete =
+        savedDraft.sameAsShipping || isAddressValid(savedDraft.billingAddress);
+      const deliveryComplete = Boolean(
+        savedDraft.deliveryType && savedDraft.selectedDeliveryDateIso
+      );
+
+      if (!shippingComplete || !billingComplete || !deliveryComplete) {
+        router.replace(
+          `/configurator/cart/${encodeURIComponent(cartId)}/shipping`
+        );
+        return;
+      }
+
+      setDraft(savedDraft);
+      setIsDraftReady(true);
     }, 0);
 
     return () => window.clearTimeout(loadDraft);
-  }, [cartId]);
+  }, [cartId, router]);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("payu");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -79,20 +96,16 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
         const minimum = item.colour.type === "custom_dye" ? CUSTOM_DYE_MOQ_UNITS : 50;
         return totalUnits(item.sizeQuantities) >= minimum;
       });
-    const firstname = (billingAddress.firstName || draft.shippingAddress.firstName).trim();
-    const email = (billingAddress.email || draft.shippingAddress.email).trim();
-    const hasAddress = [
-      billingAddress.addressLine1,
-      billingAddress.city,
-      billingAddress.zip,
-      billingAddress.country,
-    ].every((value) => value.trim().length > 0);
+    const shippingComplete = isAddressValid(draft.shippingAddress);
+    const billingComplete =
+      draft.sameAsShipping || isAddressValid(draft.billingAddress);
+    const firstname = billingAddress.firstName.trim();
+    const email = billingAddress.email.trim();
 
     if (
       !hasValidItems ||
-      !firstname ||
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
-      !hasAddress ||
+      !shippingComplete ||
+      !billingComplete ||
       !draft.deliveryType ||
       !draft.selectedDeliveryDateIso
     ) {
@@ -225,10 +238,27 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
     }
   };
 
+  if (!isDraftReady) {
+    return (
+      <div
+        className="flex min-h-[320px] items-center justify-center"
+        role="status"
+        aria-live="polite"
+      >
+        <LoaderCircle
+          className="animate-spin text-[var(--color-teal)]"
+          size={28}
+          aria-hidden="true"
+        />
+        <span className="sr-only">Validating shipping details</span>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-6">
-        <CheckoutSteps currentStep="payment" cartId={cartId} />
+        <CheckoutSteps currentStep="payment" />
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-[#111111]/50">

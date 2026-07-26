@@ -18,7 +18,7 @@ const accordionItems = [
   {
     title: 'Flexible MOQs from 50 pieces',
     body: 'No warehouse minimums, no padding. Order exactly what you need. Volume discounts kick in automatically from 100 pieces.',
-    image: '/images/flexible-moq.jpg',
+    image: '/images/flexiblemoq.jpg',
     alt: 'Small batch garment production run showing flexible order quantities',
   },
   {
@@ -51,7 +51,7 @@ export default function WhyGarmops() {
                 <div key={i}>
                   <button
                     type="button"
-                    onClick={() => setOpenIndex(openIndex === i ? -1 : i)}
+                    onClick={() => setOpenIndex(i)}
                     id={`why-garmops-button-${i}`}
                     aria-expanded={openIndex === i}
                     aria-controls={`why-garmops-panel-${i}`}

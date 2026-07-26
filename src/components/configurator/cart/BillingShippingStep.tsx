@@ -63,17 +63,18 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
   const isValid = useMemo(() => {
     const shippingOk = isAddressValid(draft.shippingAddress);
     const billingOk = draft.sameAsShipping || isAddressValid(draft.billingAddress);
-    return shippingOk && billingOk && !!selectedDeliveryDate;
-  }, [draft.shippingAddress, draft.billingAddress, draft.sameAsShipping, selectedDeliveryDate]);
+    return shippingOk && billingOk && !!selectedDeliveryDate && !!draft.deliveryType;
+  }, [draft.shippingAddress, draft.billingAddress, draft.sameAsShipping, draft.deliveryType, selectedDeliveryDate]);
 
   const handleNext = () => {
+    if (!isValid) return;
     router.push(`/configurator/cart/${encodeURIComponent(cartId)}/confirmation`);
   };
 
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-6">
-        <CheckoutSteps currentStep="shipping" cartId={cartId} />
+        <CheckoutSteps currentStep="shipping" />
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-[#111111]/50">
