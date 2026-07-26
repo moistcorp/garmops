@@ -557,7 +557,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         />
 
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 px-4 pb-4 lg:grid-cols-[360px_minmax(0,1fr)_310px] lg:px-5">
-          <aside className="order-2 flex min-h-0 min-w-0 flex-col overflow-hidden rounded-lg border border-[#E5E5E5] bg-white lg:order-1">
+          <aside className="order-2 flex min-h-0 min-w-0 flex-col overflow-hidden rounded-[28px] border border-[#E5E5E5] bg-white lg:order-1">
             <div className="border-b border-[#E5E5E5] px-4 py-3">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-[#111111]/45">
@@ -663,7 +663,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
           </main>
 
           <aside className="order-3 flex min-h-0 min-w-0 flex-col justify-between gap-3 overflow-hidden">
-            <div className="rounded-2xl border border-[#ECE7DF] bg-white p-4 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
+            <div className="rounded-[28px] border border-[#ECE7DF] bg-white p-4 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-[#111111]/45">
                 Studio Summary
               </p>

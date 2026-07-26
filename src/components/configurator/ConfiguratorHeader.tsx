@@ -116,7 +116,7 @@ export function ConfiguratorHeader({
   }
 
   return (
-    <header className="relative grid h-16 shrink-0 grid-cols-[1fr_auto] items-center px-5">
+    <header className="relative mx-4 mt-3 mb-3 grid h-16 shrink-0 grid-cols-[1fr_auto] items-center rounded-full border border-[#ECE7DF] bg-white px-5 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
       <Link
         href="/"
         aria-label="Garmops home"

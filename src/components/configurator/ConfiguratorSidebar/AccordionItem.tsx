@@ -68,7 +68,7 @@ export function AccordionItem({
 
   return (
     <div
-      className={`flex min-h-0 flex-col overflow-hidden rounded-2xl border bg-white shadow-[0_4px_16px_rgba(22,33,43,0.04)] ${
+      className={`flex min-h-0 flex-col overflow-hidden rounded-[28px] border bg-white shadow-[0_4px_16px_rgba(22,33,43,0.04)] ${
         expanded ? "border-[var(--color-teal)]" : "border-[#ECE7DF]"
       } ${
         expanded ? "flex-1" : "shrink-0"

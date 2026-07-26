@@ -327,7 +327,7 @@ export function OrderBar({
   }
 
   return (
-    <div className="grid gap-3 rounded-2xl border border-[#ECE7DF] bg-white p-3 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
+    <div className="grid gap-3 rounded-[28px] border border-[#ECE7DF] bg-white p-3 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
       <div className="grid min-h-11 grid-cols-2 gap-4 text-xs">
         <div className="min-w-0">
           <div className="font-semibold leading-tight text-[#111111]">Unit Cost</div>
