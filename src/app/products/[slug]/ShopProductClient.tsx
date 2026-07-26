@@ -126,7 +126,7 @@ export default function ShopProductClient({
                       key={s}
                       type="button"
                       onClick={() => { setSelectedSize(s); setError('') }}
-                      className={`w-12 h-12 text-sm border transition-colors ${
+                      className={`min-w-12 h-12 px-3 text-sm whitespace-nowrap border transition-colors ${
                         selectedSize === s
                           ? 'bg-[var(--color-teal)] text-white border-[var(--color-teal)]'
                           : 'border-[#E5E5E5] text-[#111111] hover:border-[var(--color-teal)] hover:text-[var(--color-teal)]'

@@ -10,6 +10,7 @@
 
 import type { GarmentColour, Artwork, NeckLabel } from "./types/configurator";
 import type { AccordionStepState } from "@/components/configurator/ConfiguratorSidebar/ConfiguratorSidebar";
+import { scheduleUploadCleanup } from "./objectUrls";
 
 const STORAGE_PREFIX = "mf_configurator_build:";
 const DRAFT_VERSION = 1;
@@ -143,6 +144,7 @@ export function writeBuildDraft(
       savedAt: new Date().toISOString(),
     };
     window.localStorage.setItem(storageKey(configId), JSON.stringify(payload));
+    scheduleUploadCleanup();
   } catch {
     // Ignore quota/availability errors — autosave is a convenience, not a
     // requirement for the configurator to keep working.
@@ -155,6 +157,7 @@ export function clearBuildDraft(configId: string): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.removeItem(storageKey(configId));
+    scheduleUploadCleanup();
   } catch {
     // No-op — nothing meaningful to recover from here.
   }

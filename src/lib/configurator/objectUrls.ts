@@ -3,6 +3,7 @@ import type { Artwork, NeckLabel } from "@/lib/configurator/types/configurator";
 const UPLOAD_DB_NAME = "mf-configurator-uploads";
 const UPLOAD_STORE_NAME = "files";
 const UPLOAD_DB_VERSION = 1;
+let cleanupTimer: ReturnType<typeof setTimeout> | null = null;
 
 function openUploadDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -66,6 +67,108 @@ async function readUploadedFile(key: string): Promise<Blob | undefined> {
   } catch {
     return undefined;
   }
+}
+
+async function listUploadedFileKeys(): Promise<string[]> {
+  try {
+    const db = await openUploadDatabase();
+    const keys = await new Promise<IDBValidKey[]>((resolve, reject) => {
+      const request = db
+        .transaction(UPLOAD_STORE_NAME, "readonly")
+        .objectStore(UPLOAD_STORE_NAME)
+        .getAllKeys();
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () =>
+        reject(request.error ?? new Error("Could not list uploaded files"));
+    });
+    db.close();
+    return keys.filter((key): key is string => typeof key === "string");
+  } catch {
+    return [];
+  }
+}
+
+async function deleteUploadedFiles(keys: string[]): Promise<void> {
+  if (keys.length === 0) return;
+
+  try {
+    const db = await openUploadDatabase();
+    await new Promise<void>((resolve, reject) => {
+      const transaction = db.transaction(UPLOAD_STORE_NAME, "readwrite");
+      const store = transaction.objectStore(UPLOAD_STORE_NAME);
+      keys.forEach((key) => store.delete(key));
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () =>
+        reject(transaction.error ?? new Error("Could not clean uploaded files"));
+      transaction.onabort = () =>
+        reject(transaction.error ?? new Error("Upload cleanup was aborted"));
+    });
+    db.close();
+  } catch {
+    // Cleanup is best-effort. A failed cleanup must never block the builder.
+  }
+}
+
+function collectFileKeys(value: unknown, output: Set<string>): void {
+  if (Array.isArray(value)) {
+    value.forEach((entry) => collectFileKeys(entry, output));
+    return;
+  }
+  if (!value || typeof value !== "object") return;
+
+  Object.entries(value as Record<string, unknown>).forEach(([key, entry]) => {
+    if (key === "fileKey" && typeof entry === "string" && entry) {
+      output.add(entry);
+      return;
+    }
+    collectFileKeys(entry, output);
+  });
+}
+
+function referencedUploadKeys(): Set<string> {
+  const referenced = new Set<string>();
+  if (typeof window === "undefined") return referenced;
+
+  try {
+    for (let index = 0; index < window.localStorage.length; index += 1) {
+      const storageKey = window.localStorage.key(index);
+      if (!storageKey?.startsWith("mf_configurator_")) continue;
+      const raw = window.localStorage.getItem(storageKey);
+      if (!raw) continue;
+      try {
+        collectFileKeys(JSON.parse(raw), referenced);
+      } catch {
+        // Ignore malformed/legacy entries; normal draft readers handle them.
+      }
+    }
+  } catch {
+    // localStorage may be unavailable in private/restricted browsing modes.
+  }
+
+  return referenced;
+}
+
+/** Removes IndexedDB uploads that are no longer referenced by any saved
+ * configurator build or cart. Referenced files are never deleted, including
+ * files still attached to an older cart item while that item is being edited. */
+export async function cleanupUnreferencedUploadedFiles(): Promise<void> {
+  if (typeof window === "undefined") return;
+  const [storedKeys, referenced] = await Promise.all([
+    listUploadedFileKeys(),
+    Promise.resolve(referencedUploadKeys()),
+  ]);
+  await deleteUploadedFiles(storedKeys.filter((key) => !referenced.has(key)));
+}
+
+/** Debounces cleanup so localStorage autosave has time to persist the newest
+ * file references before unreferenced IndexedDB records are removed. */
+export function scheduleUploadCleanup(delayMs = 1800): void {
+  if (typeof window === "undefined") return;
+  if (cleanupTimer) window.clearTimeout(cleanupTimer);
+  cleanupTimer = window.setTimeout(() => {
+    cleanupTimer = null;
+    void cleanupUnreferencedUploadedFiles();
+  }, delayMs);
 }
 
 async function blobUrlStillWorks(url: string): Promise<boolean> {

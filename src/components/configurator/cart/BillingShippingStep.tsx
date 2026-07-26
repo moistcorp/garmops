@@ -8,7 +8,7 @@ import { AddressForm, isAddressValid } from "@/components/configurator/cart/Addr
 import { CartSummarySidebar } from "@/components/configurator/cart/CartSummarySidebar";
 import { CheckoutSteps } from "@/components/configurator/cart/CheckoutSteps";
 import { calculateTotals, createDraft, readDraft, type CartDraft, writeDraft } from "./cartDraft";
-import { formatDeliveryLabel } from "@/lib/configurator/delivery";
+import { formatDeliveryLabel, isDeliverySelectionValid } from "@/lib/configurator/delivery";
 import { CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS } from "@/lib/configurator/colours";
 
 export interface BillingShippingStepProps {
@@ -63,8 +63,22 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
   const isValid = useMemo(() => {
     const shippingOk = isAddressValid(draft.shippingAddress);
     const billingOk = draft.sameAsShipping || isAddressValid(draft.billingAddress);
-    return shippingOk && billingOk && !!selectedDeliveryDate && !!draft.deliveryType;
-  }, [draft.shippingAddress, draft.billingAddress, draft.sameAsShipping, draft.deliveryType, selectedDeliveryDate]);
+    const deliveryOk = isDeliverySelectionValid(
+      draft.deliveryType,
+      selectedDeliveryDate,
+      deliveryBaseDate ?? new Date(),
+      extraLeadTimeDays
+    );
+    return shippingOk && billingOk && deliveryOk;
+  }, [
+    draft.shippingAddress,
+    draft.billingAddress,
+    draft.sameAsShipping,
+    draft.deliveryType,
+    selectedDeliveryDate,
+    deliveryBaseDate,
+    extraLeadTimeDays,
+  ]);
 
   const handleNext = () => {
     if (!isValid) return;

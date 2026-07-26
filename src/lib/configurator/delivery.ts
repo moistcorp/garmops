@@ -10,6 +10,14 @@ function startOfDay(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
+function isValidDate(date: Date): boolean {
+  return Number.isFinite(date.getTime());
+}
+
+function isSameDay(a: Date, b: Date): boolean {
+  return isValidDate(a) && isValidDate(b) && startOfDay(a).getTime() === startOfDay(b).getTime();
+}
+
 export type DeliveryOptions = {
   rush: Date;
   standard: Date;
@@ -25,6 +33,22 @@ export function getDeliveryOptions(orderConfirmedDate: Date, extraLeadTimeDays =
     standard,
     flexible: (customDate: Date) => startOfDay(customDate) >= startOfDay(standard),
   };
+}
+
+export function isDeliverySelectionValid(
+  deliveryType: "rush" | "standard" | "flexible" | undefined,
+  selectedDate: Date | undefined,
+  orderConfirmedDate: Date,
+  extraLeadTimeDays = 0
+): boolean {
+  if (!deliveryType || !selectedDate || !isValidDate(selectedDate) || !isValidDate(orderConfirmedDate)) {
+    return false;
+  }
+
+  const options = getDeliveryOptions(orderConfirmedDate, extraLeadTimeDays);
+  if (deliveryType === "rush") return isSameDay(selectedDate, options.rush);
+  if (deliveryType === "standard") return isSameDay(selectedDate, options.standard);
+  return options.flexible(selectedDate);
 }
 
 export function formatDate(date: Date): string {

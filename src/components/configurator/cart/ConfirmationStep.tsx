@@ -7,7 +7,6 @@ import { isAddressValid, type Address } from "./AddressForm";
 import { CartSummarySidebar } from "./CartSummarySidebar";
 import { CheckoutSteps } from "./CheckoutSteps";
 import { PaymentMethodSelect } from "./PaymentMethodSelect";
-import { SIZES } from "./SizeQuantityGrid";
 import type { CartItem } from "./OrderReviewStep";
 import {
   calculateTotals,
@@ -18,9 +17,13 @@ import {
   RESERVATION_FEE,
   totalUnits,
 } from "./cartDraft";
-import { formatDeliveryLabel } from "@/lib/configurator/delivery";
+import { formatDeliveryLabel, isDeliverySelectionValid } from "@/lib/configurator/delivery";
 import { formatInr } from "@/lib/configurator/pricing";
-import { CUSTOM_DYE_MOQ_UNITS } from "@/lib/configurator/colours";
+import {
+  CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS,
+  CUSTOM_DYE_MOQ_UNITS,
+} from "@/lib/configurator/colours";
+import { getProduct } from "@/lib/configurator/products";
 import CanvasRenderer from "../GarmentPreview/CanvasRenderer";
 import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionContext";
 
@@ -44,8 +47,20 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
       const shippingComplete = isAddressValid(savedDraft.shippingAddress);
       const billingComplete =
         savedDraft.sameAsShipping || isAddressValid(savedDraft.billingAddress);
-      const deliveryComplete = Boolean(
-        savedDraft.deliveryType && savedDraft.selectedDeliveryDateIso
+      const selectedDeliveryDate = savedDraft.selectedDeliveryDateIso
+        ? new Date(savedDraft.selectedDeliveryDateIso)
+        : undefined;
+      const deliveryBaseDate = savedDraft.orderConfirmedDateIso
+        ? new Date(savedDraft.orderConfirmedDateIso)
+        : new Date();
+      const extraLeadTimeDays = savedDraft.items.some(
+        (item) => item.colour.type === "custom_dye"
+      );
+      const deliveryComplete = isDeliverySelectionValid(
+        savedDraft.deliveryType,
+        selectedDeliveryDate,
+        deliveryBaseDate,
+        extraLeadTimeDays ? CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS.max : 0
       );
 
       if (!shippingComplete || !billingComplete || !deliveryComplete) {
@@ -99,6 +114,23 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
     const shippingComplete = isAddressValid(draft.shippingAddress);
     const billingComplete =
       draft.sameAsShipping || isAddressValid(draft.billingAddress);
+    const selectedDeliveryDate = draft.selectedDeliveryDateIso
+      ? new Date(draft.selectedDeliveryDateIso)
+      : undefined;
+    const deliveryBaseDate = draft.orderConfirmedDateIso
+      ? new Date(draft.orderConfirmedDateIso)
+      : new Date();
+    const extraLeadTimeDays = draft.items.some(
+      (item) => item.colour.type === "custom_dye"
+    )
+      ? CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS.max
+      : 0;
+    const deliveryComplete = isDeliverySelectionValid(
+      draft.deliveryType,
+      selectedDeliveryDate,
+      deliveryBaseDate,
+      extraLeadTimeDays
+    );
     const firstname = billingAddress.firstName.trim();
     const email = billingAddress.email.trim();
 
@@ -106,8 +138,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
       !hasValidItems ||
       !shippingComplete ||
       !billingComplete ||
-      !draft.deliveryType ||
-      !draft.selectedDeliveryDateIso
+      !deliveryComplete
     ) {
       setPaymentError(
         "Your order or billing details are incomplete. Return to the previous steps and review them."
@@ -166,9 +197,12 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
           neckLabel: draft.items.some((item) => item.neckLabel?.confirmed) ? "Added" : "Not added",
           totalQty: draft.items.reduce((sum, item) => sum + totalUnits(item.sizeQuantities), 0),
           sizeBreakdown: draft.items
-            .map((item) =>
-              SIZES.map((size) => `${size}: ${item.sizeQuantities[size] ?? 0}`).join(", ")
-            )
+            .map((item) => {
+              const sizes = getProduct(item.productId)?.sizes ?? Object.keys(item.sizeQuantities);
+              return sizes
+                .map((size) => `${size}: ${item.sizeQuantities[size] ?? 0}`)
+                .join(", ");
+            })
             .join(" | "),
           estimatedTotal: formatInr(orderTotal),
           retryHref: `/configurator/cart/${encodeURIComponent(cartId)}/confirmation`,
@@ -336,11 +370,13 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
               onChange={(e) => setTermsAccepted(e.target.checked)}
               className="mt-0.5 h-4 w-4 accent-[var(--color-teal)]"
             />
-            Agree to terms & conditions
+            I understand and agree to the reservation terms below
           </label>
-          <p className="mt-3 text-xs text-[#111111]/60">
-            Payments are processed securely via PayU. Full terms apply.
-          </p>
+          <ul className="mt-3 list-disc space-y-1 pl-5 text-xs leading-relaxed text-[#111111]/60">
+            <li>₹499 reserves the production review and is charged today.</li>
+            <li>The final invoice, including confirmed shipping, is shared after feasibility review.</li>
+            <li>Production starts only after final approval and the agreed balance-payment terms.</li>
+          </ul>
         </section>
       </div>
 
@@ -426,6 +462,7 @@ function ProductRecapCard({ item }: { item: CartItem }) {
   const units = totalUnits(item.sizeQuantities);
   const unitPrice = getCartItemUnitPrice(item);
   const discountPercent = getCartItemDiscountPercent(item);
+  const productSizes = getProduct(item.productId)?.sizes ?? Object.keys(item.sizeQuantities);
 
   return (
     <div className="flex gap-4 border border-[#E5E5E5] rounded-lg p-4">
@@ -448,8 +485,11 @@ function ProductRecapCard({ item }: { item: CartItem }) {
           {item.colour.name || "Bright White"} · {units} units · {formatInr(unitPrice)}/unit
           {discountPercent > 0 ? ` · ${discountPercent}% off` : ""}
         </p>
-        <div className="mt-2 grid grid-cols-6 gap-1 text-[10px] text-[#111111]/60">
-          {SIZES.map((size) => (
+        <div
+          className="mt-2 grid gap-1 text-[10px] text-[#111111]/60"
+          style={{ gridTemplateColumns: `repeat(${Math.max(1, productSizes.length)}, minmax(0, 1fr))` }}
+        >
+          {productSizes.map((size) => (
             <div key={size} className="text-center">
               <div className="font-medium text-[#111111]">{size}</div>
               <div>{item.sizeQuantities[size] ?? 0}</div>

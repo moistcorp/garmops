@@ -5,18 +5,9 @@ import Link from 'next/link'
 
 const countryCodes = [
   { code: '+91', country: 'IN', flag: '🇮🇳' },
-  { code: '+1', country: 'US', flag: '🇺🇸' },
-  { code: '+44', country: 'GB', flag: '🇬🇧' },
-  { code: '+971', country: 'AE', flag: '🇦🇪' },
-  { code: '+65', country: 'SG', flag: '🇸🇬' },
-  { code: '+60', country: 'MY', flag: '🇲🇾' },
-  { code: '+61', country: 'AU', flag: '🇦🇺' },
-  { code: '+49', country: 'DE', flag: '🇩🇪' },
-  { code: '+33', country: 'FR', flag: '🇫🇷' },
-  { code: '+81', country: 'JP', flag: '🇯🇵' },
 ]
 
-const countries = ['India', 'United States', 'United Kingdom', 'UAE', 'Singapore', 'Malaysia', 'Australia', 'Germany', 'France', 'Japan', 'Other']
+const countries = ['India']
 
 const indianStates = [
   'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
@@ -68,8 +59,8 @@ export default function Checkout() {
   const shipping = cartTotal >= 2000 ? 0 : 99
   const grandTotal = cartTotal + shipping
 
-  const [countryCode, setCountryCode] = useState('+91')
-  const [selectedCountry, setSelectedCountry] = useState('India')
+  const countryCode = '+91'
+  const selectedCountry = 'India'
   const [selectedState, setSelectedState] = useState('')
   const [selectedCity, setSelectedCity] = useState('')
   const [customCity, setCustomCity] = useState('')
@@ -86,7 +77,11 @@ export default function Checkout() {
   }
 
   const availableCities = selectedState && indianCities[selectedState] ? indianCities[selectedState] : []
-  const cityValue = customCity || selectedCity
+  const cityValue = availableCities.length > 0
+    ? selectedCity === 'other'
+      ? customCity.trim()
+      : selectedCity.trim()
+    : customCity.trim()
 
   if (!hasHydrated) {
     return (
@@ -123,8 +118,13 @@ export default function Checkout() {
       setError('Please select your state and city')
       return
     }
-    if (selectedCountry === 'India' && !/^[1-9][0-9]{5}$/.test(form.pincode.trim())) {
+    if (!/^[1-9][0-9]{5}$/.test(form.pincode.trim())) {
       setError('Please enter a valid 6-digit pincode')
+      return
+    }
+    const normalizedPhone = form.phone.replace(/\D/g, '').replace(/^91(?=[6-9][0-9]{9}$)/, '')
+    if (!/^[6-9][0-9]{9}$/.test(normalizedPhone)) {
+      setError('Please enter a valid 10-digit Indian mobile number')
       return
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
@@ -211,9 +211,9 @@ export default function Checkout() {
         firstname,
         lastname: form.lastname,
         email,
-        phone: `${countryCode}${form.phone}`,
+        phone: `${countryCode}${normalizedPhone}`,
         address1: form.address,
-        city: cityValue || selectedCity,
+        city: cityValue,
         state: selectedState,
         zipcode: form.pincode,
         country: selectedCountry,
@@ -278,7 +278,7 @@ export default function Checkout() {
                     <select
                       aria-label="Phone country code"
                       value={countryCode}
-                      onChange={e => setCountryCode(e.target.value)}
+                      disabled
                       className="border border-[#E5E5E5] border-r-0 bg-white pl-3 pr-8 py-3 rounded-l-xl text-sm focus:outline-none focus:border-[var(--color-teal)] transition-colors appearance-none cursor-pointer shrink-0"
                       style={{ minWidth: 90 }}
                     >
@@ -318,12 +318,7 @@ export default function Checkout() {
                     id="checkout-country"
                     autoComplete="country-name"
                     value={selectedCountry}
-                    onChange={e => {
-                      setSelectedCountry(e.target.value)
-                      setSelectedState('')
-                      setSelectedCity('')
-                      setCustomCity('')
-                    }}
+                    disabled
                     className={selectClass}
                   >
                     {countries.map(c => (
@@ -343,41 +338,30 @@ export default function Checkout() {
                 {/* State */}
                 <div>
                   <label htmlFor="checkout-state" className={labelClass}>State *</label>
-                  {selectedCountry === 'India' ? (
-                    <SelectWrapper>
-                      <select
-                        id="checkout-state"
-                        autoComplete="address-level1"
-                        value={selectedState}
-                        onChange={e => {
-                          setSelectedState(e.target.value)
-                          setSelectedCity('')
-                          setCustomCity('')
-                        }}
-                        className={selectClass}
-                      >
-                        <option value="">Select state</option>
-                        {indianStates.map(s => (
-                          <option key={s} value={s}>{s}</option>
-                        ))}
-                      </select>
-                    </SelectWrapper>
-                  ) : (
-                    <input
+                  <SelectWrapper>
+                    <select
                       id="checkout-state"
                       autoComplete="address-level1"
                       value={selectedState}
-                      onChange={e => setSelectedState(e.target.value)}
-                      className={inputClass}
-                      placeholder="State / Province"
-                    />
-                  )}
+                      onChange={e => {
+                        setSelectedState(e.target.value)
+                        setSelectedCity('')
+                        setCustomCity('')
+                      }}
+                      className={selectClass}
+                    >
+                      <option value="">Select state</option>
+                      {indianStates.map(s => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  </SelectWrapper>
                 </div>
 
                 {/* City */}
                 <div>
                   <label htmlFor="checkout-city" className={labelClass}>City *</label>
-                  {selectedCountry === 'India' && availableCities.length > 0 ? (
+                  {availableCities.length > 0 ? (
                     <div className="flex flex-col gap-2">
                       <SelectWrapper>
                         <select
@@ -413,10 +397,10 @@ export default function Checkout() {
                     <input
                       id="checkout-city"
                       autoComplete="address-level2"
-                      value={customCity || selectedCity}
+                      value={customCity}
                       onChange={e => setCustomCity(e.target.value)}
                       className={inputClass}
-                      placeholder={selectedCountry === 'India' && !selectedState ? 'Select state first' : 'City'}
+                      placeholder={!selectedState ? 'Select state first' : 'City'}
                     />
                   )}
                 </div>
@@ -425,11 +409,11 @@ export default function Checkout() {
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="checkout-pincode" className={labelClass}>
-                    {selectedCountry === 'India' ? 'Pincode *' : 'Postal code'}
+                    Pincode *
                   </label>
                   <input id="checkout-pincode" name="pincode" inputMode="numeric" autoComplete="postal-code" value={form.pincode} onChange={handle}
                     className={inputClass}
-                    placeholder={selectedCountry === 'India' ? '110001' : 'Postal code'} />
+                    placeholder="110001" />
                 </div>
               </div>
             </div>

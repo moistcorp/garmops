@@ -290,6 +290,7 @@ export default function CanvasRenderer({
 }: CanvasRendererProps) {
   const { positions, updatePosition } = useArtworkPosition();
   const dragOrigin = useRef<DragOrigin | null>(null);
+  const canvasRef = useRef<HTMLDivElement | null>(null);
   const garmentFolder = getGarmentFolder(productId);
 
   const showBox = DRAGGABLE_VIEWS.includes(view);
@@ -351,13 +352,25 @@ export default function CanvasRenderer({
   const handlePointerMove = (e: PointerEvent) => {
     const origin = dragOrigin.current;
     if (!origin) return;
-    const dPxX = e.clientX - origin.pointerX;
-    const dPxY = e.clientY - origin.pointerY;
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect || rect.width <= 0 || rect.height <= 0) return;
+
+    // Convert screen pixels back into the renderer's fixed 1000×1000 design
+    // coordinate space before applying the cm scale. This keeps movement and
+    // resizing consistent when the desktop window/canvas is resized.
+    const dCanvasPxX = (e.clientX - origin.pointerX) * (CANVAS_SIZE.width / rect.width);
+    const dCanvasPxY = (e.clientY - origin.pointerY) * (CANVAS_SIZE.height / rect.height);
 
     if (origin.mode === "move") {
       updatePosition(view, {
-        fromCenterCm: clampDim(origin.startFromCenterCm + dPxX / PX_PER_CM_X, MIN_OFFSET),
-        fromNeckCm: clampDim(origin.startFromNeckCm + dPxY / PX_PER_CM_Y, MIN_OFFSET),
+        fromCenterCm: clampDim(
+          origin.startFromCenterCm + dCanvasPxX / PX_PER_CM_X,
+          MIN_OFFSET
+        ),
+        fromNeckCm: clampDim(
+          origin.startFromNeckCm + dCanvasPxY / PX_PER_CM_Y,
+          MIN_OFFSET
+        ),
       });
       return;
     }
@@ -367,7 +380,7 @@ export default function CanvasRenderer({
       resizeWithAspect(
         { ...boxState, widthCm: origin.startWidthCm, heightCm: origin.startHeightCm },
         "width",
-        origin.startWidthCm + dPxX / PX_PER_CM_X
+        origin.startWidthCm + dCanvasPxX / PX_PER_CM_X
       )
     );
   };
@@ -396,7 +409,7 @@ export default function CanvasRenderer({
   };
 
   return (
-    <div className={`relative overflow-hidden ${className}`}>
+    <div ref={canvasRef} className={`relative overflow-hidden ${className}`}>
       {!garmentFolder && (
         <div className="absolute inset-0 z-30 flex items-center justify-center bg-[#F7F7F7] p-6 text-center text-sm font-semibold text-[#C62828]">
           Preview assets are not mapped for this product.

@@ -14,12 +14,16 @@ import {
   DEFAULT_COLOUR,
 } from "./ConfiguratorSidebar/ConfiguratorSidebar";
 import { TECHNIQUE_LABELS } from "./ConfiguratorSidebar/ArtworkPanel/TechniqueSelect";
-import { computeConfiguredUnitCost, OrderBar } from "./OrderBar";
+import { OrderBar } from "./OrderBar";
 import { ConfiguratorHeader } from "./ConfiguratorHeader";
 import { WhatsAppAssistantBar } from "./WhatsAppAssistantBar";
 import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionContext";
 import { getProduct } from "@/lib/configurator/products";
-import { formatInr, getBasePrice } from "@/lib/configurator/pricing";
+import {
+  formatInr,
+  getBasePrice,
+  getConfiguredPricingSummary,
+} from "@/lib/configurator/pricing";
 import { CUSTOM_DYE_MOQ_UNITS } from "@/lib/configurator/colours";
 import {
   readDraft,
@@ -193,14 +197,13 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   // Lifted (7B) so the CTA/confirm flow can validate fileUrl/dimensions/
   // position and build the summary string, mirroring the artwork lift above.
   const [neckLabel, setNeckLabel] = useState<NeckLabel>({} as NeckLabel);
-  const configuredUnitCost = computeConfiguredUnitCost(
+  const configuredPricing = getConfiguredPricingSummary(
     productId,
     colour,
     artwork,
     neckLabel,
     quantity
   );
-  const configuredOrderTotal = configuredUnitCost * quantity;
   const minimumQuantity = colour.type === "custom_dye" ? CUSTOM_DYE_MOQ_UNITS : 50;
 
   // Autosave: whether a saved draft was restored on load (drives the small
@@ -686,13 +689,13 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 <div className="flex justify-between gap-4 border-t border-[#E5E5E5] pt-3">
                   <span className="text-[#111111]/55">Unit price</span>
                   <span className="text-right font-medium">
-                    {formatInr(configuredUnitCost)}
+                    {formatInr(configuredPricing.discountedUnitPrice)}
                   </span>
                 </div>
                 <div className="flex justify-between gap-4">
-                  <span className="text-[#111111]/55">Order total</span>
+                  <span className="text-[#111111]/55">Total incl. GST</span>
                   <span className="text-right font-semibold">
-                    {formatInr(configuredOrderTotal)}
+                    {formatInr(configuredPricing.total)}
                   </span>
                 </div>
               </div>

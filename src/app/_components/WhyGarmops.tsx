@@ -11,7 +11,7 @@ const accordionItems = [
   },
   {
     title: 'Extensive Customisation',
-    body: 'Over 2500 colours to match your brand identity and 6 professional embellishment techniques to bring your merch vision to life.',
+    body: 'Choose from ready-stock colours, custom dye references, and professional print and embroidery techniques to bring your merch vision to life.',
     image: '/images/print-techniques.webp',
     alt: 'Our 6 print and embroidery techniques — Screen Print, DTG, DTF, Reflective Heat Transfer, Embroidery, 3D Embroidery, Puff',
   },

@@ -6,9 +6,8 @@ import type { ProductId } from "@/lib/configurator/pricing";
 import {
   formatInr,
   getBasePrice,
-  getConfiguredUnitPrice,
+  getConfiguredPricingSummary,
   getUnitPriceAdjustments,
-  getVolumeDiscountAmount,
   getVolumeDiscountPercent,
   VOLUME_DISCOUNT_TIERS,
   GST_PERCENT,
@@ -57,9 +56,14 @@ export function computeConfiguredUnitCost(
   quantity = 1,
   rushDelivery = false
 ): number {
-  const undiscounted = getConfiguredUnitPrice(productId, colour, artwork, neckLabel, rushDelivery);
-  const discount = getVolumeDiscountAmount(undiscounted, quantity);
-  return undiscounted - discount;
+  return getConfiguredPricingSummary(
+    productId,
+    colour,
+    artwork,
+    neckLabel,
+    quantity,
+    rushDelivery
+  ).discountedUnitPrice;
 }
 
 function computeDeliveryDate(extraLeadTimeDays = 0): string {
@@ -106,15 +110,25 @@ function buildPricingBreakdown(
     });
   }
 
-  const unitPrice = running;
-  const lineSubtotal = unitPrice * quantity;
-  const discountPercent = getVolumeDiscountPercent(quantity);
-  const discountAmount = (lineSubtotal * discountPercent) / 100;
-  const taxable = lineSubtotal - discountAmount;
-  const gst = (taxable * GST_PERCENT) / 100;
-  const total = taxable + gst;
+  const summary = getConfiguredPricingSummary(
+    productId,
+    colour,
+    artwork,
+    neckLabel,
+    quantity,
+    rushDelivery
+  );
 
-  return { rows, unitPrice, lineSubtotal, discountPercent, discountAmount, taxable, gst, total };
+  return {
+    rows,
+    unitPrice: summary.undiscountedUnitPrice,
+    lineSubtotal: summary.lineSubtotal,
+    discountPercent: summary.discountPercent,
+    discountAmount: summary.discountAmount,
+    taxable: summary.taxableSubtotal,
+    gst: summary.gst,
+    total: summary.total,
+  };
 }
 
 // Finds the next tier that would actually beat the customer's current

@@ -4,11 +4,57 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { ArrowLeft, Link2 } from "lucide-react";
+import type { Artwork, NeckLabel } from "@/lib/configurator/types/configurator";
 
 interface ConfiguratorHeaderProps {
   configId: string;
   productName?: string;
   designPayload?: unknown;
+}
+
+type SharePayload = Record<string, unknown> & {
+  artwork?: Artwork;
+  neckLabel?: Partial<NeckLabel>;
+};
+
+function isBrowserOnlyUpload(fileUrl?: string, fileKey?: string): boolean {
+  return Boolean(fileKey || fileUrl?.startsWith("blob:"));
+}
+
+function prepareSharePayload(payload: unknown): {
+  payload: unknown;
+  omittedUploads: number;
+} {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return { payload, omittedUploads: 0 };
+  }
+
+  const source = payload as SharePayload;
+  const next: SharePayload = { ...source };
+  let omittedUploads = 0;
+
+  if (source.artwork) {
+    const artwork: Artwork = { ...source.artwork };
+    if (artwork.front && isBrowserOnlyUpload(artwork.front.fileUrl, artwork.front.fileKey)) {
+      artwork.front = undefined;
+      omittedUploads += 1;
+    }
+    if (artwork.back && isBrowserOnlyUpload(artwork.back.fileUrl, artwork.back.fileKey)) {
+      artwork.back = undefined;
+      omittedUploads += 1;
+    }
+    next.artwork = artwork;
+  }
+
+  if (
+    source.neckLabel &&
+    isBrowserOnlyUpload(source.neckLabel.fileUrl, source.neckLabel.fileKey)
+  ) {
+    next.neckLabel = {};
+    omittedUploads += 1;
+  }
+
+  return { payload: next, omittedUploads };
 }
 
 // ---------------------------------------------------------------------------
@@ -26,12 +72,16 @@ export function ConfiguratorHeader({
   const [shareCount, setShareCount] = useState(0);
   const [justCopied, setJustCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
+  const [shareNotice, setShareNotice] = useState("");
 
   async function handleShareClick() {
     const baseUrl = `${window.location.origin}/configurator/build/${encodeURIComponent(configId)}`;
     let url = baseUrl;
+    let omittedUploads = 0;
     if (designPayload) {
-      const json = JSON.stringify(designPayload);
+      const prepared = prepareSharePayload(designPayload);
+      omittedUploads = prepared.omittedUploads;
+      const json = JSON.stringify(prepared.payload);
       const encoded = btoa(
         Array.from(new TextEncoder().encode(json), (byte) =>
           String.fromCharCode(byte)
@@ -45,11 +95,23 @@ export function ConfiguratorHeader({
       setShareCount((prev) => prev + 1);
       setJustCopied(true);
       setCopyFailed(false);
-      window.setTimeout(() => setJustCopied(false), 2000);
+      setShareNotice(
+        omittedUploads > 0
+          ? `Link copied without ${omittedUploads} uploaded file${omittedUploads === 1 ? "" : "s"}. Uploads stay on this browser until cloud storage is added.`
+          : "Share link copied."
+      );
+      window.setTimeout(() => {
+        setJustCopied(false);
+        setShareNotice("");
+      }, 4500);
     } catch {
       setCopyFailed(true);
       setJustCopied(false);
-      window.setTimeout(() => setCopyFailed(false), 2000);
+      setShareNotice("Could not copy the share link.");
+      window.setTimeout(() => {
+        setCopyFailed(false);
+        setShareNotice("");
+      }, 2000);
     }
   }
 
@@ -90,6 +152,15 @@ export function ConfiguratorHeader({
           </span>
         </button>
       </div>
+      {shareNotice && (
+        <p
+          role="status"
+          aria-live="polite"
+          className="absolute right-5 top-[calc(100%-2px)] z-50 max-w-sm rounded-lg border border-[#E5E5E5] bg-white px-3 py-2 text-xs leading-relaxed text-[#111111]/70 shadow-lg"
+        >
+          {shareNotice}
+        </p>
+      )}
     </header>
   );
 }

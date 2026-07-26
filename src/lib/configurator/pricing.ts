@@ -118,6 +118,61 @@ export function getConfiguredUnitPrice(
   );
 }
 
+export interface ConfiguredPricingSummary {
+  undiscountedUnitPrice: number;
+  discountedUnitPrice: number;
+  lineSubtotal: number;
+  discountPercent: number;
+  discountAmount: number;
+  taxableSubtotal: number;
+  gst: number;
+  total: number;
+}
+
+/**
+ * Single source of truth for the configurator's customer-facing totals.
+ * Keeping this calculation in the pricing library prevents the studio
+ * summary and the expandable breakdown from showing different meanings for
+ * "Order total".
+ */
+export function getConfiguredPricingSummary(
+  productId: ProductId,
+  colour: GarmentColour | undefined,
+  artwork: Artwork,
+  neckLabel: NeckLabel | undefined,
+  quantity: number,
+  rushDelivery = false
+): ConfiguredPricingSummary {
+  const safeQuantity = Number.isFinite(quantity) && quantity > 0
+    ? Math.floor(quantity)
+    : 1;
+  const undiscountedUnitPrice = getConfiguredUnitPrice(
+    productId,
+    colour,
+    artwork,
+    neckLabel,
+    rushDelivery
+  );
+  const discountPercent = getVolumeDiscountPercent(safeQuantity);
+  const discountedUnitPrice =
+    undiscountedUnitPrice - getVolumeDiscountAmount(undiscountedUnitPrice, safeQuantity);
+  const lineSubtotal = undiscountedUnitPrice * safeQuantity;
+  const discountAmount = lineSubtotal - discountedUnitPrice * safeQuantity;
+  const taxableSubtotal = lineSubtotal - discountAmount;
+  const gst = (taxableSubtotal * GST_PERCENT) / 100;
+
+  return {
+    undiscountedUnitPrice,
+    discountedUnitPrice,
+    lineSubtotal,
+    discountPercent,
+    discountAmount,
+    taxableSubtotal,
+    gst,
+    total: taxableSubtotal + gst,
+  };
+}
+
 // ============================================================
 // PHASE 9A — volume discount
 // ============================================================

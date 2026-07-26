@@ -129,6 +129,9 @@ export default function GarmentColourPanel({ value, onChange, unitBasePrice }: G
           and adds {CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS.min}–{CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS.max} days
           to your production lead time.
         </p>
+        <p className="text-xs leading-relaxed text-[#111111]/55">
+          Screen swatches are previews only. The final shade is confirmed using a physical lab dip before production.
+        </p>
         <CustomDyePantoneGrid
           colours={PANTONE_COLOURS}
           selectedCode={value.type === "custom_dye" ? value.name : null}

@@ -13,6 +13,7 @@ interface PaymentSuccessClientProps {
 }
 
 type EmailStatus = "idle" | "sending" | "sent" | "failed" | "skipped";
+type OrderDetailsStatus = "checking" | "found" | "missing";
 
 type PendingOrder = {
   kind?: PaymentKind;
@@ -54,6 +55,8 @@ export default function PaymentSuccessClient({
   const clearCart = useCartStore((state) => state.clearCart);
   const [orderSummary, setOrderSummary] = useState({ name: "", email: "" });
   const [emailStatus, setEmailStatus] = useState<EmailStatus>("idle");
+  const [orderDetailsStatus, setOrderDetailsStatus] =
+    useState<OrderDetailsStatus>("checking");
 
   useEffect(() => {
     if (!verified || hasHandled.current) return;
@@ -70,7 +73,14 @@ export default function PaymentSuccessClient({
       order = null;
     }
 
-    if (!order) return;
+    if (!order) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setOrderDetailsStatus("missing");
+      return;
+    }
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setOrderDetailsStatus("found");
 
     // One-time hydration from localStorage on mount, guarded by hasHandled
     // above — not a derived/cascading update, so the lint rule's general
@@ -216,6 +226,13 @@ export default function PaymentSuccessClient({
             ? "Your sample order has been received."
             : "Your production slot has been reserved."}
         </p>
+
+        {orderDetailsStatus === "missing" && (
+          <p role="alert" className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-800">
+            Your payment was verified, but this browser could not restore the local order details.
+            Save the transaction ID below and contact support so we can match the payment safely.
+          </p>
+        )}
 
         {emailStatus === "sending" && (
           <p className="mb-1 text-sm text-[#111111]/55">Sending your confirmation…</p>

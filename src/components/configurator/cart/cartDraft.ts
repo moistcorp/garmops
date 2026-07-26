@@ -12,6 +12,7 @@ import type { CartItem } from "./OrderReviewStep";
 import type { Address } from "./AddressForm";
 import type { Size } from "./SizeQuantityGrid";
 import { SIZES } from "./SizeQuantityGrid";
+import { scheduleUploadCleanup } from "@/lib/configurator/objectUrls";
 
 const STORAGE_PREFIX = "mf_configurator_cart:";
 const ACTIVE_CART_KEY = `${STORAGE_PREFIX}active`;
@@ -256,6 +257,7 @@ export function writeDraft(cartId: string, draft: CartDraft): void {
         detail: { cartId },
       })
     );
+    scheduleUploadCleanup();
   } catch {
     // Storage can be unavailable or full. The caller's in-memory state should
     // remain usable even when persistence is not.

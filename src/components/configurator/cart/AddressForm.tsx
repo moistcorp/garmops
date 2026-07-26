@@ -131,6 +131,7 @@ function isGstinValid(gstin?: string): boolean {
 }
 
 export function isAddressValid(a: Address): boolean {
+  const gstin = a.gstin?.trim() ?? "";
   return Boolean(
     a.firstName.trim() &&
       a.lastName.trim() &&
@@ -138,8 +139,10 @@ export function isAddressValid(a: Address): boolean {
       a.addressLine1.trim() &&
       isPinCodeValid(a.zip) &&
       a.city.trim() &&
+      a.state?.trim() &&
       EMAIL_RE.test(a.email.trim()) &&
-      isGstinValid(a.gstin) &&
+      isGstinValid(gstin) &&
+      (!gstin || doesGstinMatchState(gstin, a.state)) &&
       isIndianPhoneValid(a.phone)
   );
 }
@@ -176,8 +179,8 @@ export function AddressForm({
   const gstinHasValue = Boolean(gstin);
   const gstinFormatValid = !gstinHasValue || GSTIN_RE.test(gstin.toUpperCase());
   const gstinStateMatches = !gstinHasValue || doesGstinMatchState(gstin, value.state);
-  const stateInvalidForGstin =
-    gstinHasValue && gstinFormatValid && Boolean(value.state?.trim()) && !gstinStateMatches;
+  const stateMissing = !value.state?.trim();
+  const stateInvalidForGstin = gstinHasValue && gstinFormatValid && !gstinStateMatches;
 
   return (
     <div className="space-y-4">
@@ -245,9 +248,9 @@ export function AddressForm({
             {showError("gstin", gstinHasValue && !gstinFormatValid) && (
               <p className="mt-1 text-xs text-red-600">Enter a valid 15-character GSTIN</p>
             )}
-            {stateInvalidForGstin && (
-              <p className="mt-1 text-xs text-amber-700">
-                GSTIN state code doesn&apos;t match the address state — double check this.
+            {stateInvalidForGstin && !stateMissing && (
+              <p className="mt-1 text-xs text-red-600">
+                GSTIN state code must match the address state.
               </p>
             )}
           </div>
@@ -342,7 +345,7 @@ export function AddressForm({
 
       {showState && (
         <div>
-          <label htmlFor={id("state")} className={labelClass}>State {gstinHasValue ? "" : "(optional)"}</label>
+          <label htmlFor={id("state")} className={labelClass}>State</label>
           <input
             id={id("state")}
             autoComplete="address-level1"
@@ -351,6 +354,12 @@ export function AddressForm({
             onChange={(e) => set("state", e.target.value)}
             onBlur={() => markTouched("state")}
           />
+          {showError("state", stateMissing) && (
+            <p className="mt-1 text-xs text-red-600">Required</p>
+          )}
+          {showError("state", stateInvalidForGstin && !stateMissing) && (
+            <p className="mt-1 text-xs text-red-600">State must match the GSTIN state code</p>
+          )}
         </div>
       )}
 

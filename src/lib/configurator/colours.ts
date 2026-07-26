@@ -1,6 +1,6 @@
-// TODO: placeholder hex values — replace with real  Corp signature swatch
-// set before launch. Names are final per Appendix §4 Section A; hex values are
-// approximations only.
+// On-screen hex values are visual previews only. Final production colour must
+// be approved against the physical fabric/lab dip because screens cannot
+// reproduce dyed fabric consistently.
 
 export interface SignatureColour {
   name: string;
@@ -24,9 +24,9 @@ export const SIGNATURE_COLOURS: SignatureColour[] = [
   { name: "Polar Night", hex: "#0D0D12" },
 ];
 
-// TODO: placeholder codes/hex — small illustrative subset, not the full
-// "thousands of unique references" Pantone TPG/U library described in
-// Appendix §4 Section B. Replace with real reference data before launch.
+// Curated custom-dye reference set currently available in the configurator.
+// The swatches are on-screen previews; final dye approval uses a physical lab
+// dip/reference rather than the browser colour.
 export interface PantoneColour {
   code: string; // e.g. "100 U", "7401 U"
   hex: string;

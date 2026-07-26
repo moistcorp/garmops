@@ -57,10 +57,10 @@ export function DeliveryDatePicker({
   const isSame = (a?: Date, b?: Date) =>
     !!a && !!b && a.toDateString() === b.toDateString();
 
-  const matchesRush = isSame(selectedDate, options.rush);
-  const matchesStandard = isSame(selectedDate, options.standard);
-  const isFlexibleSelected = !!selectedDate && !matchesRush && !matchesStandard;
-  const showCalendar = isFlexibleSelected || userCalendarOpen;
+  const matchesRush = selectedType === "rush" && isSame(selectedDate, options.rush);
+  const matchesStandard = selectedType === "standard" && isSame(selectedDate, options.standard);
+  const isFlexibleSelected = selectedType === "flexible" && !!selectedDate;
+  const showCalendar = selectedType === "flexible" || userCalendarOpen;
   const savedFlexibleDateInvalid =
     isFlexibleSelected && !options.flexible(selectedDate);
 
@@ -85,7 +85,7 @@ export function DeliveryDatePicker({
       <div className="flex flex-col sm:flex-row gap-3">
         <button
           type="button"
-          className={chipClass(matchesRush && (selectedType === "rush" || !selectedType))}
+          className={chipClass(matchesRush)}
           onClick={() => {
             setUserCalendarOpen(false);
             onDateSelect(options.rush, "rush");
@@ -100,7 +100,7 @@ export function DeliveryDatePicker({
         <button
           type="button"
           className={chipClass(
-            matchesStandard && (selectedType === "standard" || !selectedType)
+            matchesStandard
           )}
           onClick={() => {
             setUserCalendarOpen(false);
