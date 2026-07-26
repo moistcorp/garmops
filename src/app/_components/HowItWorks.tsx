@@ -1,7 +1,13 @@
 'use client'
+
 import Image from 'next/image'
 import Link from 'next/link'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 
 const STEP_DURATION = 5000
 
@@ -28,94 +34,281 @@ const steps = [
 
 export default function HowItWorks() {
   const [active, setActive] = useState(0)
-  const [progress, setProgress] = useState(0)
   const [isMobile, setIsMobile] = useState(false)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const startTimeRef = useRef<number>(0)
+  const [isTimerRunning, setIsTimerRunning] = useState(false)
+  const [animationVersion, setAnimationVersion] = useState(0)
+
+  const sectionRef = useRef<HTMLElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const cardRefs = useRef<(HTMLDivElement | null)[]>([])
+
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const timerStartedAtRef = useRef(0)
+  const remainingTimeRef = useRef(STEP_DURATION)
+
+  const isSectionVisibleRef = useRef(false)
+  const isPageVisibleRef = useRef(true)
   const isUserScrolling = useRef(false)
 
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+
+    checkScreenSize()
+    window.addEventListener('resize', checkScreenSize)
+
+    return () => {
+      window.removeEventListener('resize', checkScreenSize)
+    }
   }, [])
 
-  const startTimer = useCallback(() => {
-    if (intervalRef.current) clearInterval(intervalRef.current)
-    startTimeRef.current = Date.now()
+  const pauseTimer = useCallback(() => {
+    if (timeoutRef.current !== null) {
+      const elapsed = performance.now() - timerStartedAtRef.current
 
-    intervalRef.current = setInterval(() => {
-      const elapsed = Date.now() - startTimeRef.current
-      const pct = Math.min((elapsed / STEP_DURATION) * 100, 100)
-      setProgress(pct)
+      remainingTimeRef.current = Math.max(
+        0,
+        remainingTimeRef.current - elapsed,
+      )
 
-      if (elapsed >= STEP_DURATION) {
-        startTimeRef.current = Date.now()
-        setProgress(0)
-        setActive(prev => (prev + 1) % steps.length)
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
+
+    setIsTimerRunning(false)
+  }, [])
+
+  const scheduleTimer = useCallback(function schedule() {
+    const canRun =
+      isSectionVisibleRef.current &&
+      isPageVisibleRef.current
+
+    if (!canRun || timeoutRef.current !== null) {
+      return
+    }
+
+    const remainingTime = Math.max(
+      0,
+      remainingTimeRef.current,
+    )
+
+    timerStartedAtRef.current = performance.now()
+    setIsTimerRunning(true)
+
+    timeoutRef.current = setTimeout(() => {
+      timeoutRef.current = null
+      remainingTimeRef.current = STEP_DURATION
+
+      setActive(previousActive => {
+        return (previousActive + 1) % steps.length
+      })
+
+      setAnimationVersion(version => version + 1)
+
+      schedule()
+    }, remainingTime)
+  }, [])
+
+  const restartTimer = useCallback(() => {
+    if (timeoutRef.current !== null) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
+
+    remainingTimeRef.current = STEP_DURATION
+    setAnimationVersion(version => version + 1)
+
+    if (
+      isSectionVisibleRef.current &&
+      isPageVisibleRef.current
+    ) {
+      scheduleTimer()
+    } else {
+      setIsTimerRunning(false)
+    }
+  }, [scheduleTimer])
+
+  useEffect(() => {
+    const section = sectionRef.current
+
+    if (!section) {
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      entries => {
+        const entry = entries[0]
+        const isVisible = entry.isIntersecting
+
+        isSectionVisibleRef.current = isVisible
+
+        if (isVisible && isPageVisibleRef.current) {
+          scheduleTimer()
+        } else {
+          pauseTimer()
+        }
+      },
+      {
+        threshold: 0.05,
+      },
+    )
+
+    observer.observe(section)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [pauseTimer, scheduleTimer])
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const isVisible = document.visibilityState === 'visible'
+
+      isPageVisibleRef.current = isVisible
+
+      if (isVisible && isSectionVisibleRef.current) {
+        scheduleTimer()
+      } else {
+        pauseTimer()
       }
-    }, 16)
+    }
+
+    handleVisibilityChange()
+
+    document.addEventListener(
+      'visibilitychange',
+      handleVisibilityChange,
+    )
+
+    return () => {
+      document.removeEventListener(
+        'visibilitychange',
+        handleVisibilityChange,
+      )
+    }
+  }, [pauseTimer, scheduleTimer])
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current !== null) {
+        clearTimeout(timeoutRef.current)
+      }
+    }
   }, [])
 
   useEffect(() => {
-    startTimer()
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
-  }, [startTimer])
+    if (!isMobile || isUserScrolling.current) {
+      return
+    }
 
-  useEffect(() => {
-    if (!isMobile || isUserScrolling.current) return
     const card = cardRefs.current[active]
     const container = scrollRef.current
-    if (!card || !container) return
-    container.scrollTo({ left: card.offsetLeft, behavior: 'smooth' })
+
+    if (!card || !container) {
+      return
+    }
+
+    container.scrollTo({
+      left: card.offsetLeft,
+      behavior: 'smooth',
+    })
   }, [active, isMobile])
+
+  const selectStep = useCallback(
+    (stepIndex: number) => {
+      setActive(stepIndex)
+      restartTimer()
+    },
+    [restartTimer],
+  )
 
   const handleScrollEnd = () => {
     const container = scrollRef.current
-    if (!container) return
+
+    if (!container) {
+      return
+    }
+
     isUserScrolling.current = false
+
     const scrollLeft = container.scrollLeft
     let closest = 0
-    let minDist = Infinity
-    cardRefs.current.forEach((card, i) => {
-      if (!card) return
-      const dist = Math.abs(card.offsetLeft - scrollLeft)
-      if (dist < minDist) { minDist = dist; closest = i }
+    let minimumDistance = Infinity
+
+    cardRefs.current.forEach((card, index) => {
+      if (!card) {
+        return
+      }
+
+      const distance = Math.abs(
+        card.offsetLeft - scrollLeft,
+      )
+
+      if (distance < minimumDistance) {
+        minimumDistance = distance
+        closest = index
+      }
     })
+
     if (closest !== active) {
-      setActive(closest)
-      setProgress(0)
-      startTimer()
+      selectStep(closest)
     }
   }
 
-  return (
-    <section className="py-20 bg-white">
+  const renderProgressBar = (stepIndex: number) => {
+    if (active !== stepIndex) {
+      return null
+    }
 
-      {/* Header — always inside max-w container */}
-      <div className="max-w-7xl mx-auto px-6 mb-10">
-        <p className="text-xs text-[#595959] font-medium mb-4 tracking-widest uppercase">How it works</p>
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <h2 className="text-4xl font-bold text-[#111111] tracking-tight leading-tight">
-            Launch your merch<br />project today.
+    return (
+      <div
+        key={`${stepIndex}-${animationVersion}`}
+        className="how-it-works-progress"
+        style={{
+          height: '100%',
+          background: 'var(--color-teal)',
+          animationDuration: `${STEP_DURATION}ms`,
+          animationPlayState: isTimerRunning
+            ? 'running'
+            : 'paused',
+        }}
+      />
+    )
+  }
+
+  return (
+    <section
+      ref={sectionRef}
+      className="bg-white py-20"
+    >
+      <div className="mx-auto mb-10 max-w-7xl px-6">
+        <p className="mb-4 text-xs font-medium uppercase tracking-widest text-[#595959]">
+          How it works
+        </p>
+
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <h2 className="text-4xl font-bold leading-tight tracking-tight text-[#111111]">
+            Launch your merch
+            <br />
+            project today.
           </h2>
+
           <Link
             href="/configurator"
-            className="text-sm font-medium text-[#111111] underline underline-offset-4 hover:opacity-50 transition-opacity whitespace-nowrap"
+            className="whitespace-nowrap text-sm font-medium text-[#111111] underline underline-offset-4 transition-opacity hover:opacity-50"
           >
             Start designing →
           </Link>
         </div>
       </div>
 
-      {/* MOBILE — outside max-w, goes full viewport width */}
       {isMobile && (
         <div
           ref={scrollRef}
-          onScrollCapture={() => { isUserScrolling.current = true }}
+          onScrollCapture={() => {
+            isUserScrolling.current = true
+          }}
           onScrollEnd={handleScrollEnd}
           style={{
             display: 'flex',
@@ -132,10 +325,12 @@ export default function HowItWorks() {
             scrollPaddingLeft: '24px',
           }}
         >
-          {steps.map((step, i) => (
+          {steps.map((step, index) => (
             <div
-              key={i}
-              ref={el => { cardRefs.current[i] = el }}
+              key={step.number}
+              ref={element => {
+                cardRefs.current[index] = element
+              }}
               style={{
                 scrollSnapAlign: 'start',
                 flexShrink: 0,
@@ -145,57 +340,112 @@ export default function HowItWorks() {
                 gap: '12px',
               }}
             >
-              {/* Text */}
               <div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '6px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#666666' }}>{step.number}.</span>
-                  <span style={{ fontSize: '19px', fontWeight: 700, color: '#111111', lineHeight: 1.2 }}>{step.title}</span>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'baseline',
+                    gap: '6px',
+                    marginBottom: '6px',
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      color: '#666666',
+                    }}
+                  >
+                    {step.number}.
+                  </span>
+
+                  <span
+                    style={{
+                      fontSize: '19px',
+                      fontWeight: 700,
+                      color: '#111111',
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {step.title}
+                  </span>
                 </div>
-                <div style={{ height: '1px', background: '#E5E5E5', marginBottom: '10px', overflow: 'hidden' }}>
-                  {active === i && (
-                    <div style={{ height: '100%', background: 'var(--color-teal)', width: `${progress}%` }} />
-                  )}
+
+                <div
+                  style={{
+                    height: '1px',
+                    background: '#E5E5E5',
+                    marginBottom: '10px',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {renderProgressBar(index)}
                 </div>
-                <p style={{ fontSize: '13px', color: '#4a4a4a', lineHeight: 1.6, margin: 0 }}>{step.body}</p>
+
+                <p
+                  style={{
+                    fontSize: '13px',
+                    color: '#4a4a4a',
+                    lineHeight: 1.6,
+                    margin: 0,
+                  }}
+                >
+                  {step.body}
+                </p>
               </div>
-              {/* Image */}
-              <div style={{
-                position: 'relative',
-                width: '100%',
-                aspectRatio: '4/3',
-                borderRadius: '14px',
-                overflow: 'hidden',
-                background: '#F7F7F7',
-                flexShrink: 0,
-              }}>
+
+              <div
+                style={{
+                  position: 'relative',
+                  width: '100%',
+                  aspectRatio: '4/3',
+                  borderRadius: '14px',
+                  overflow: 'hidden',
+                  background: '#F7F7F7',
+                  flexShrink: 0,
+                }}
+              >
                 <Image
                   src={step.image}
                   alt={step.title}
                   fill
                   style={{ objectFit: 'cover' }}
                   sizes="85vw"
-                  priority={i === 0}
+                  priority={index === 0}
                 />
               </div>
             </div>
           ))}
-          {/* Trailing spacer so last card doesn't sit flush right */}
-          <div style={{ flexShrink: 0, width: '24px' }} />
+
+          <div
+            aria-hidden="true"
+            style={{
+              flexShrink: 0,
+              width: '24px',
+            }}
+          />
         </div>
       )}
 
-      {/* DESKTOP — inside max-w container */}
       {!isMobile && (
-        <div className="max-w-7xl mx-auto px-6">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '64px', alignItems: 'center' }}>
+        <div className="mx-auto max-w-7xl px-6">
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '64px',
+              alignItems: 'center',
+            }}
+          >
             <div>
-              {steps.map((step, i) => {
-                const isActive = active === i
+              {steps.map((step, index) => {
+                const isActive = active === index
+
                 return (
                   <button
-                    key={i}
+                    key={step.number}
                     type="button"
-                    onClick={() => { setActive(i); setProgress(0); startTimer() }}
+                    onClick={() => selectStep(index)}
                     style={{
                       width: '100%',
                       textAlign: 'left',
@@ -205,31 +455,108 @@ export default function HowItWorks() {
                       cursor: 'pointer',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '12px', fontWeight: 700, color: isActive ? 'var(--color-teal)' : '#666666' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'baseline',
+                        gap: '12px',
+                        marginBottom: '8px',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          color: isActive
+                            ? 'var(--color-teal)'
+                            : '#666666',
+                        }}
+                      >
                         {step.number}.
                       </span>
-                      <span style={{ fontSize: '20px', fontWeight: 700, color: isActive ? 'var(--color-teal)' : '#555555', lineHeight: 1.2 }}>
+
+                      <span
+                        style={{
+                          fontSize: '20px',
+                          fontWeight: 700,
+                          color: isActive
+                            ? 'var(--color-teal)'
+                            : '#555555',
+                          lineHeight: 1.2,
+                        }}
+                      >
                         {step.title}
                       </span>
                     </div>
-                    <div style={{ overflow: 'hidden', maxHeight: isActive ? '160px' : '0px', opacity: isActive ? 1 : 0, transition: 'max-height 0.3s ease, opacity 0.3s ease' }}>
-                      <p style={{ fontSize: '14px', color: '#4a4a4a', lineHeight: 1.6, paddingLeft: '20px', paddingBottom: '16px' }}>
+
+                    <div
+                      style={{
+                        overflow: 'hidden',
+                        maxHeight: isActive
+                          ? '160px'
+                          : '0px',
+                        opacity: isActive ? 1 : 0,
+                        transition:
+                          'max-height 0.3s ease, opacity 0.3s ease',
+                      }}
+                    >
+                      <p
+                        style={{
+                          fontSize: '14px',
+                          color: '#4a4a4a',
+                          lineHeight: 1.6,
+                          paddingLeft: '20px',
+                          paddingBottom: '16px',
+                        }}
+                      >
                         {step.body}
                       </p>
                     </div>
-                    <div style={{ height: '1px', background: '#E5E5E5', marginTop: '4px', overflow: 'hidden' }}>
-                      {isActive && <div style={{ height: '100%', background: 'var(--color-teal)', width: `${progress}%` }} />}
+
+                    <div
+                      style={{
+                        height: '1px',
+                        background: '#E5E5E5',
+                        marginTop: '4px',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {renderProgressBar(index)}
                     </div>
                   </button>
                 )
               })}
             </div>
 
-            <div style={{ position: 'relative', width: '100%', aspectRatio: '4/3', background: '#F7F7F7', border: '1px solid #E5E5E5', borderRadius: '16px', overflow: 'hidden' }}>
-              {steps.map((step, i) => (
-                <div key={i} style={{ position: 'absolute', inset: 0, opacity: active === i ? 1 : 0, transition: 'opacity 0.7s ease' }}>
-                  <Image src={step.image} alt={step.title} fill style={{ objectFit: 'cover' }} sizes="50vw" priority={i === 0} />
+            <div
+              style={{
+                position: 'relative',
+                width: '100%',
+                aspectRatio: '4/3',
+                background: '#F7F7F7',
+                border: '1px solid #E5E5E5',
+                borderRadius: '16px',
+                overflow: 'hidden',
+              }}
+            >
+              {steps.map((step, index) => (
+                <div
+                  key={step.number}
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    opacity: active === index ? 1 : 0,
+                    transition: 'opacity 0.7s ease',
+                  }}
+                >
+                  <Image
+                    src={step.image}
+                    alt={step.title}
+                    fill
+                    style={{ objectFit: 'cover' }}
+                    sizes="50vw"
+                    priority={index === 0}
+                  />
                 </div>
               ))}
             </div>
@@ -237,6 +564,34 @@ export default function HowItWorks() {
         </div>
       )}
 
+      <style jsx>{`
+        .how-it-works-progress {
+          width: 100%;
+          transform: scaleX(0);
+          transform-origin: left center;
+          animation-name: how-it-works-progress;
+          animation-timing-function: linear;
+          animation-fill-mode: forwards;
+          will-change: transform;
+        }
+
+        @keyframes how-it-works-progress {
+          from {
+            transform: scaleX(0);
+          }
+
+          to {
+            transform: scaleX(1);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .how-it-works-progress {
+            animation: none;
+            transform: scaleX(1);
+          }
+        }
+      `}</style>
     </section>
   )
 }
