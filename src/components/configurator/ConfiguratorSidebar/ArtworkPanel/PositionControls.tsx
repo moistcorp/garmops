@@ -51,7 +51,7 @@ function Stepper({ label, value, onChange, min, max = MAX_DIM, tooltip, disabled
         )}
       </div>
       <div
-        className={`flex items-center rounded-md border border-neutral-300 bg-white ${
+        className={`configurator-glass-control flex items-center rounded-lg border ${
           disabled ? "opacity-50" : ""
         }`}
       >
@@ -133,7 +133,7 @@ export function PositionControls({ onDebugChange }: PositionControlsProps): JSX.
   ];
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border border-neutral-200 p-3">
+    <div className="configurator-glass-subtle flex flex-col gap-4 rounded-xl p-3">
       <div>
         <span className="text-xs font-medium text-neutral-600">Alignment (snaps within print area)</span>
         <div className="mt-1 flex gap-1">
@@ -147,7 +147,7 @@ export function PositionControls({ onDebugChange }: PositionControlsProps): JSX.
               className={`rounded-md border p-1.5 ${
                 state.alignH === value
                   ? "border-neutral-900 bg-neutral-900 text-white"
-                  : "border-neutral-300 text-neutral-500 hover:text-neutral-900"
+                  : "configurator-glass-control border text-neutral-500 hover:!bg-white/60 hover:text-neutral-900"
               }`}
             >
               <Icon className="h-4 w-4" />
@@ -164,7 +164,7 @@ export function PositionControls({ onDebugChange }: PositionControlsProps): JSX.
               className={`rounded-md border p-1.5 ${
                 state.alignV === value
                   ? "border-neutral-900 bg-neutral-900 text-white"
-                  : "border-neutral-300 text-neutral-500 hover:text-neutral-900"
+                  : "configurator-glass-control border text-neutral-500 hover:!bg-white/60 hover:text-neutral-900"
               }`}
             >
               <Icon className="h-4 w-4" />
@@ -183,7 +183,7 @@ export function PositionControls({ onDebugChange }: PositionControlsProps): JSX.
           className={`mb-1 rounded-md border p-1.5 ${
             state.aspectLocked
               ? "border-neutral-900 bg-neutral-900 text-white"
-              : "border-neutral-300 text-neutral-500 hover:text-neutral-900"
+              : "configurator-glass-control border text-neutral-500 hover:!bg-white/60 hover:text-neutral-900"
           }`}
         >
           {state.aspectLocked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}

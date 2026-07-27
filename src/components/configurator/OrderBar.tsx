@@ -1,155 +1,185 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronDown, TrendingUp } from "lucide-react";
-import type { PricingBreakdown, ProductId } from "@/lib/configurator/pricing";
+import { CheckCircle2, CircleAlert, TrendingUp } from "lucide-react";
+import type { DeliveryFeasibility } from "@/lib/configurator/deliveryFeasibility";
+import type { PricingBreakdown } from "@/lib/configurator/pricing";
+import { formatInr } from "@/lib/configurator/pricing";
 import {
-  formatInr,
-  getConfiguredPricingSummary,
-  getVolumeDiscountPercent,
-  GST_PERCENT,
   VOLUME_DISCOUNT_TIERS,
-} from "@/lib/configurator/pricing";
-import { getDeliveryOptions } from "@/lib/configurator/delivery";
-import { CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS } from "@/lib/configurator/colours";
-import type { Artwork, GarmentColour, NeckLabel } from "@/lib/configurator/types/configurator";
-import type { AccordionStepState } from "@/components/configurator/ConfiguratorSidebar/ConfiguratorSidebar";
+  type VolumeDiscountTier,
+} from "@/lib/pricingRules";
 import { RESERVATION_FEE } from "@/lib/configurator/reservation";
 
 export interface OrderBarProps {
-  unitCost?: string;
-  deliveryDate?: string;
-
   quantity: number;
   onQuantityChange: (quantity: number) => void;
   minQuantity?: number;
   ctaLabel: string;
   onCtaClick?: () => void;
-
-  // NEW — live pricing/delivery inputs
-  productId?: ProductId;
-  steps?: AccordionStepState[];
-  colour?: GarmentColour;
-  artwork?: Artwork;
-  neckLabel?: NeckLabel;
   pricingBreakdown: PricingBreakdown;
-
-  /** Validation message for the currently expanded step's last failed CTA
-   *  click, if any (mirrors the message shown inline on the accordion). */
+  preferredTargetDate?: string;
+  onPreferredTargetDateChange?: (date: string) => void;
+  deliveryFeasibility?: DeliveryFeasibility;
   ctaErrorMessage?: string | null;
-  /** Bumped by the parent on every failed CTA click, even if the message
-   *  text is unchanged, so the attention flash can re-trigger. */
   ctaErrorNonce?: number;
 }
 
-const MINIMUM_ORDER_QUANTITY = 50;
-
-function formatDate(date: Date): string {
-  return date.toLocaleDateString("en-IN", { month: "short", day: "numeric" });
+export interface VolumeDiscountProgressState {
+  currentDiscountPercent: number;
+  nextDiscountPercent: number | null;
+  unitsToNextTier: number;
+  progress: number;
+  progressMin: number;
+  progressMax: number | null;
+  isHighestTier: boolean;
 }
 
-export function computeConfiguredUnitCost(
-  productId: ProductId,
-  colour: GarmentColour | undefined,
-  artwork: Artwork,
-  neckLabel: NeckLabel | undefined,
-  quantity = 1,
-  rushDelivery = false
-): number {
-  return getConfiguredPricingSummary(
-    productId,
-    colour,
-    artwork,
-    neckLabel,
-    quantity,
-    rushDelivery
-  ).discountedUnitPrice;
+function clamp(value: number, minimum: number, maximum: number): number {
+  return Math.min(maximum, Math.max(minimum, value));
 }
 
-function computeDeliveryDate(extraLeadTimeDays = 0): string {
-  const orderConfirmedDate = new Date();
-  const { standard } = getDeliveryOptions(orderConfirmedDate, extraLeadTimeDays);
-  return formatDate(standard);
-}
+export function getVolumeDiscountProgress(
+  quantity: number,
+  tiers: VolumeDiscountTier[] = VOLUME_DISCOUNT_TIERS
+): VolumeDiscountProgressState {
+  const safeQuantity = Number.isFinite(quantity) ? Math.max(0, Math.floor(quantity)) : 0;
+  const validTiers = tiers
+    .filter(
+      (tier) =>
+        Number.isFinite(tier.minQty) &&
+        tier.minQty >= 0 &&
+        Number.isFinite(tier.discountPercent) &&
+        tier.discountPercent >= 0
+    )
+    .sort((a, b) => a.minQty - b.minQty);
 
-// Finds the next tier that would actually beat the customer's current
-// discount (skips e.g. the 50–99 "base price" tier once already inside it),
-// so the nudge always points at a meaningfully better price.
-function getNextDiscountTier(quantity: number) {
-  const currentPercent = getVolumeDiscountPercent(quantity);
-  const next = VOLUME_DISCOUNT_TIERS.find((tier) => tier.discountPercent > currentPercent);
-  if (!next) return null;
-  return { neededQty: Math.max(0, next.minQty - quantity), nextPercent: next.discountPercent };
-}
-
-function getBestDiscountPercent() {
-  return VOLUME_DISCOUNT_TIERS.reduce(
-    (best, tier) => Math.max(best, tier.discountPercent),
-    0
-  );
-}
-
-function DiscountStatus({
-  quantity,
-  unitDiscount,
-  discountPercent,
-}: {
-  quantity: number;
-  unitDiscount: number;
-  discountPercent: number;
-}) {
-  const nextTier = getNextDiscountTier(quantity);
-  const bestDiscountPercent = getBestDiscountPercent();
-
-  if (unitDiscount > 0) {
-    return (
-      <p className="flex items-center gap-1.5 text-[11px] font-medium text-[#2E7D32]">
-        <TrendingUp size={12} strokeWidth={2.4} className="shrink-0" />
-        {discountPercent}% off applied
-      </p>
+  const currentTier = [...validTiers]
+    .reverse()
+    .find(
+      (tier) =>
+        safeQuantity >= tier.minQty &&
+        (tier.maxQty === null ||
+          (Number.isFinite(tier.maxQty) && safeQuantity <= tier.maxQty))
     );
+  const currentDiscountPercent = currentTier?.discountPercent ?? 0;
+  const nextTier = validTiers.find(
+    (tier) =>
+      tier.minQty > safeQuantity && tier.discountPercent > currentDiscountPercent
+  );
+  const progressMin = currentTier?.minQty ?? 0;
+
+  if (!nextTier) {
+    return {
+      currentDiscountPercent,
+      nextDiscountPercent: null,
+      unitsToNextTier: 0,
+      progress: currentDiscountPercent > 0 ? 1 : 0,
+      progressMin,
+      progressMax: null,
+      isHighestTier: currentDiscountPercent > 0,
+    };
   }
 
-  if (!nextTier || bestDiscountPercent === 0) return null;
+  const progressRange = nextTier.minQty - progressMin;
+  const progress =
+    progressRange > 0
+      ? clamp((safeQuantity - progressMin) / progressRange, 0, 1)
+      : 0;
+
+  return {
+    currentDiscountPercent,
+    nextDiscountPercent: nextTier.discountPercent,
+    unitsToNextTier: Math.max(0, nextTier.minQty - safeQuantity),
+    progress,
+    progressMin,
+    progressMax: nextTier.minQty,
+    isHighestTier: false,
+  };
+}
+
+function VolumeDiscountProgress({ quantity }: { quantity: number }) {
+  const state = getVolumeDiscountProgress(quantity);
+  const hasNextTier = state.nextDiscountPercent !== null && state.progressMax !== null;
+  const message = state.isHighestTier
+    ? `${state.currentDiscountPercent}% volume discount applied · Highest discount tier`
+    : hasNextTier && state.currentDiscountPercent > 0
+      ? `${state.currentDiscountPercent}% volume discount applied · ${state.unitsToNextTier} more unit${state.unitsToNextTier === 1 ? "" : "s"} to unlock ${state.nextDiscountPercent}%`
+      : hasNextTier
+        ? `${state.unitsToNextTier <= 20 ? "Only " : "Add "}${state.unitsToNextTier} more unit${state.unitsToNextTier === 1 ? "" : "s"} to unlock ${state.nextDiscountPercent}% off`
+        : "Volume pricing updates automatically in the Quantity step";
 
   return (
-    <p className="flex items-center gap-1.5 text-[11px] font-medium text-[#111111]/60">
-      <TrendingUp size={12} strokeWidth={2.4} className="shrink-0" />
-      Add {nextTier.neededQty} more unit{nextTier.neededQty === 1 ? "" : "s"} for{" "}
-      {nextTier.nextPercent}% off
-    </p>
+    <div className="configurator-glass-subtle rounded-2xl px-3 py-2.5">
+      <div className="flex items-start gap-2 text-[11px] font-semibold leading-snug text-[#315D55]">
+        <TrendingUp size={14} strokeWidth={2.4} className="mt-0.5 shrink-0" aria-hidden="true" />
+        <span>{message}</span>
+      </div>
+      {hasNextTier && (
+        <div
+          role="progressbar"
+          aria-label={`Progress toward ${state.nextDiscountPercent}% volume discount`}
+          aria-valuemin={state.progressMin}
+          aria-valuemax={state.progressMax ?? undefined}
+          aria-valuenow={Math.min(quantity, state.progressMax ?? quantity)}
+          className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#DCE8E4]"
+        >
+          <div
+            className="h-full rounded-full bg-[var(--color-teal)] transition-[width] duration-200"
+            style={{ width: `${Math.round(state.progress * 100)}%` }}
+          />
+        </div>
+      )}
+    </div>
   );
+}
+
+function tomorrowInputValue(): string {
+  const date = new Date();
+  date.setDate(date.getDate() + 1);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 export function OrderBar({
-  unitCost,
-  deliveryDate,
   quantity,
   onQuantityChange,
-  minQuantity = MINIMUM_ORDER_QUANTITY,
+  minQuantity = 50,
   ctaLabel,
   onCtaClick,
-  colour,
   pricingBreakdown,
+  preferredTargetDate,
+  onPreferredTargetDateChange,
+  deliveryFeasibility,
   ctaErrorMessage,
   ctaErrorNonce,
 }: OrderBarProps) {
   const discountedUnitCost =
     pricingBreakdown.unitPrice * (1 - pricingBreakdown.discountPercent / 100);
-  const displayUnitCost = unitCost ?? formatInr(discountedUnitCost);
-  const unitDiscount = Math.max(
-    0,
-    pricingBreakdown.unitPrice - discountedUnitCost
-  );
-  const discountPercent = pricingBreakdown.discountPercent;
-  const extraLeadTimeDays =
-    colour?.type === "custom_dye" ? CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS.max : 0;
-  const displayDeliveryDate = deliveryDate ?? computeDeliveryDate(extraLeadTimeDays);
-
-  // Attention flash for a failed CTA click — mirrors the existing
-  // "Draft saved" pattern in ConfigureClient (brief true, then auto-reset).
   const [flashError, setFlashError] = useState(false);
-  const [breakdownOpen, setBreakdownOpen] = useState(false);
+  const [quantityDraft, setQuantityDraft] = useState(String(quantity));
+  const [lastSyncedQuantity, setLastSyncedQuantity] = useState(quantity);
+
+  if (quantity !== lastSyncedQuantity) {
+    setLastSyncedQuantity(quantity);
+    setQuantityDraft(String(quantity));
+  }
+
+  function commitQuantityDraft(raw: string) {
+    const trimmed = raw.trim();
+    const parsed = Number(trimmed);
+    const next =
+      trimmed !== "" && Number.isFinite(parsed)
+        ? Math.floor(parsed)
+        : minQuantity;
+    const safeNext = Math.max(minQuantity, next);
+    setQuantityDraft(String(safeNext));
+    setLastSyncedQuantity(safeNext);
+    onQuantityChange(safeNext);
+  }
+
   useEffect(() => {
     if (!ctaErrorNonce) return;
     const showTimer = setTimeout(() => setFlashError(true), 0);
@@ -160,124 +190,98 @@ export function OrderBar({
     };
   }, [ctaErrorNonce]);
 
-  // Free-typing draft for the quantity field — kept as text so the customer
-  // can clear it and type a new number without every keystroke snapping
-  // back to minQuantity. Re-synced from the committed `quantity` whenever it
-  // changes from elsewhere (the +/- buttons, or a parent-level reset) using
-  // React's render-time "adjust state when a prop changes" pattern; the
-  // draft is only clamped back to minQuantity on blur/Enter, not per-keystroke.
-  const [quantityDraft, setQuantityDraft] = useState(String(quantity));
-  const [lastSyncedQuantity, setLastSyncedQuantity] = useState(quantity);
-  if (quantity !== lastSyncedQuantity) {
-    setLastSyncedQuantity(quantity);
-    setQuantityDraft(String(quantity));
-  }
-
-  function commitQuantityDraft(raw: string) {
-    const trimmed = raw.trim();
-    const parsed = Number(trimmed);
-    const next =
-      trimmed !== "" && Number.isFinite(parsed) ? Math.floor(parsed) : minQuantity;
-    onQuantityChange(Math.max(minQuantity, next));
-  }
-
   return (
-    <div className="grid gap-3 rounded-[28px] border border-[#ECE7DF] bg-white p-3 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
-      <div className="grid min-h-11 grid-cols-3 gap-3 text-xs" aria-live="polite">
-        <div className="min-w-0">
-          <div className="font-semibold leading-tight text-[#111111]">Unit Cost</div>
-          <div className="mt-1 font-semibold text-[#111111]/80">{displayUnitCost}</div>
-          <div className="mt-1">
-            <DiscountStatus
-              quantity={quantity}
-              unitDiscount={unitDiscount}
-              discountPercent={discountPercent}
-            />
+    <section
+      aria-label="Order estimate"
+      className="configurator-glass-stack configurator-glass-surface grid gap-2.5 rounded-[28px] border p-3"
+    >
+      <VolumeDiscountProgress quantity={quantity} />
+
+      <div
+        className="grid grid-cols-3 divide-x divide-white/55 text-xs"
+        aria-live="polite"
+      >
+        <div className="min-w-0 pr-2">
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-[#111111]/45">
+            Unit cost
           </div>
-        </div>
-        <div className="min-w-0">
-          <div className="font-semibold leading-tight text-[#111111]">Target Delivery</div>
-          <div className="mt-1 font-semibold text-[#111111]/70">{displayDeliveryDate}</div>
-        </div>
-        <div className="min-w-0 text-right">
-          <div className="font-semibold leading-tight text-[#111111]">
-            Est. total{" "}
-            <span
-              title="Includes GST"
-              aria-label="Includes GST"
-              className="cursor-help text-[10px] font-normal text-[#111111]/45"
-            >
-              (?)
+          <div className="mt-1 flex min-w-0 items-baseline gap-1.5">
+            {pricingBreakdown.discountPercent > 0 && (
+              <span className="truncate text-[10px] font-medium text-[#111111]/45 line-through">
+                {formatInr(pricingBreakdown.unitPrice)}
+              </span>
+            )}
+            <span className="truncate text-sm font-semibold text-[#111111]">
+              {formatInr(discountedUnitCost)}
             </span>
           </div>
-          <div className="mt-1 font-semibold text-[#111111]/80">{formatInr(pricingBreakdown.total)}</div>
+          {pricingBreakdown.discountPercent > 0 && (
+            <p className="mt-0.5 text-[10px] font-medium text-[#2E7D32]">
+              {pricingBreakdown.discountPercent}% off
+            </p>
+          )}
+        </div>
+
+        <div className="min-w-0 px-2">
+          <label
+            htmlFor="configurator-target-date"
+            className="block text-[10px] font-semibold uppercase tracking-wide text-[#111111]/45"
+          >
+            Target delivery
+          </label>
+          <div className="mt-1 flex min-w-0 items-center gap-1">
+            {preferredTargetDate && deliveryFeasibility?.status === "comfortable" ? (
+              <CheckCircle2 size={13} className="shrink-0 text-[#2E7D32]" aria-hidden="true" />
+            ) : preferredTargetDate ? (
+              <CircleAlert size={13} className="shrink-0 text-[#8A6212]" aria-hidden="true" />
+            ) : null}
+            <input
+              id="configurator-target-date"
+              type="date"
+              min={tomorrowInputValue()}
+              value={preferredTargetDate ?? ""}
+              onChange={(event) => onPreferredTargetDateChange?.(event.target.value)}
+              className="h-6 min-w-0 w-full bg-transparent text-xs font-semibold text-[#111111] outline-none"
+            />
+          </div>
+          <p
+            className="mt-0.5 truncate text-[10px] text-[#111111]/50"
+            title={deliveryFeasibility?.detail}
+          >
+            {preferredTargetDate
+              ? deliveryFeasibility?.label ?? "Timing review"
+              : "Select a date"}
+          </p>
+        </div>
+
+        <div className="min-w-0 pl-2 text-right">
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-[#111111]/45">
+            Due today
+          </div>
+          <div className="mt-1 truncate text-sm font-semibold text-[#111111]">
+            {formatInr(RESERVATION_FEE)}
+          </div>
+          <p className="mt-0.5 text-[10px] text-[#111111]/45">Reserve Slot</p>
         </div>
       </div>
 
-      <div className="grid gap-1.5">
-        <div className="flex items-center justify-between rounded-xl bg-[var(--color-teal)]/5 px-3 py-1.5 text-[10px]">
-          <span className="font-normal text-[#111111]/55">Due today to reserve review</span>
-          <span className="font-semibold text-[var(--color-teal-dark)]/80">{formatInr(RESERVATION_FEE)}</span>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setBreakdownOpen((value) => !value)}
-          aria-expanded={breakdownOpen}
-          aria-controls="order-price-breakdown"
-          className="flex w-full items-center justify-between gap-2 rounded-xl border border-[#ECE7DF] px-3 py-2 text-left text-xs font-semibold text-[#111111]/70 hover:border-[var(--color-teal)]"
-        >
-          <span>See price breakdown</span>
-          <ChevronDown
-            size={14}
-            strokeWidth={2.2}
-            className={`shrink-0 transition-transform duration-200 ${breakdownOpen ? "rotate-180" : ""}`}
-          />
-        </button>
-
-        {breakdownOpen && (
-          <div
-            id="order-price-breakdown"
-            className="flex flex-col gap-1.5 rounded-xl bg-[#F7F7F7] p-3 text-xs"
+      <div className="flex flex-col items-stretch justify-between gap-2 border-t border-white/55 pt-2 sm:flex-row sm:items-end">
+        <div className="min-w-0">
+          <label
+            htmlFor="configurator-quantity"
+            className="mb-0.5 block text-[9px] font-semibold uppercase tracking-wide text-[#111111]/45"
           >
-            {pricingBreakdown.rows.map((row) => (
-              <div key={`${row.label}-${row.detail ?? ""}`} className="flex items-center justify-between gap-3">
-                <span className="text-[#111111]/60">
-                  {row.label}{row.detail ? ` (${row.detail})` : ""}
-                </span>
-                <span className="font-medium text-[#111111]">
-                  {row.amount >= 0 ? "+" : "-"}{formatInr(Math.abs(row.amount))}
-                </span>
-              </div>
-            ))}
-            {pricingBreakdown.discountPercent > 0 && (
-              <div className="flex items-center justify-between gap-3 text-[#2E7D32]">
-                <span>Volume discount ({pricingBreakdown.discountPercent}%)</span>
-                <span className="font-medium">-{formatInr(pricingBreakdown.discountAmount)}</span>
-              </div>
-            )}
-            <div className="flex items-center justify-between gap-3 text-[#111111]/60">
-              <span>GST ({GST_PERCENT}%)</span>
-              <span className="font-medium text-[#111111]">{formatInr(pricingBreakdown.gst)}</span>
-            </div>
-            <div className="flex items-center justify-between gap-3 border-t border-[#E5E5E5] pt-1.5 text-sm font-semibold text-[#111111]">
-              <span>Estimated order total</span>
-              <span>{formatInr(pricingBreakdown.total)}</span>
-            </div>
-          </div>
-        )}
-
-        <div className="grid min-h-11 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
-          <label htmlFor="configurator-quantity" className="whitespace-nowrap text-xs font-semibold text-[#111111]">
             Quantity
           </label>
-          <div className="flex h-10 min-w-0 items-center justify-between rounded-full bg-[var(--color-cream-soft)] px-3">
+          <div className="configurator-glass-control flex h-10 w-full items-center justify-between rounded-full border px-1.5 sm:w-32">
             <button
               type="button"
               aria-label="Decrease quantity"
               disabled={quantity <= minQuantity}
-              onClick={() => onQuantityChange(Math.max(minQuantity, quantity - 1))}
-              className="flex h-7 w-7 items-center justify-center rounded-full text-lg leading-none text-[#111111]/80 hover:bg-white disabled:cursor-not-allowed disabled:text-[#111111]/25"
+              onClick={() =>
+                onQuantityChange(Math.max(minQuantity, quantity - 1))
+              }
+              className="flex h-8 w-8 items-center justify-center rounded-full text-lg leading-none text-[#111111]/80 hover:bg-white disabled:cursor-not-allowed disabled:text-[#111111]/25"
             >
               −
             </button>
@@ -286,49 +290,49 @@ export function OrderBar({
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
+              aria-label={`Order quantity, minimum ${minQuantity} units`}
               value={quantityDraft}
-              onChange={(e) => {
-                const raw = e.target.value;
+              onChange={(event) => {
+                const raw = event.target.value;
                 if (/^[0-9]*$/.test(raw)) setQuantityDraft(raw);
               }}
               onBlur={() => commitQuantityDraft(quantityDraft)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
                   commitQuantityDraft(quantityDraft);
-                  e.currentTarget.blur();
+                  event.currentTarget.blur();
                 }
               }}
-              className="h-full w-12 bg-transparent text-center text-sm font-medium text-[#111111] outline-none"
+              className="h-full w-10 bg-transparent text-center text-sm font-semibold text-[#111111] outline-none"
             />
             <button
               type="button"
               aria-label="Increase quantity"
               onClick={() => onQuantityChange(quantity + 1)}
-              className="flex h-7 w-7 items-center justify-center rounded-full text-lg leading-none text-[#111111]/80 hover:bg-white"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-lg leading-none text-[#111111]/80 hover:bg-white"
             >
               +
             </button>
           </div>
-
-          <button
-            type="button"
-            onClick={onCtaClick}
-            className={`min-h-10 w-32 rounded-full px-4 text-sm font-semibold text-white transition-all hover:opacity-90 ${
-              flashError
-                ? "bg-[#C62828] ring-2 ring-[#C62828]/40 ring-offset-2"
-                : "bg-[var(--color-teal)] hover:bg-[var(--color-teal-dark)]"
-            }`}
-          >
-            {ctaLabel}
-          </button>
         </div>
-
-        {ctaErrorMessage && (
-          <p role="alert" className="text-right text-[11px] font-medium text-[#C62828]">
-            {ctaErrorMessage}
-          </p>
-        )}
+        <button
+          type="button"
+          onClick={onCtaClick}
+          className={`min-h-10 w-full shrink-0 rounded-full px-5 text-sm font-semibold text-white transition-all hover:opacity-90 sm:w-auto ${
+            flashError
+              ? "bg-[#C62828] ring-2 ring-[#C62828]/40 ring-offset-2"
+              : "bg-[var(--color-teal)] hover:bg-[var(--color-teal-dark)]"
+          }`}
+        >
+          {ctaLabel}
+        </button>
       </div>
-    </div>
+
+      {ctaErrorMessage && (
+        <p role="alert" className="text-right text-[11px] font-medium text-[#C62828]">
+          {ctaErrorMessage}
+        </p>
+      )}
+    </section>
   );
 }

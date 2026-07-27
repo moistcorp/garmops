@@ -1,3 +1,5 @@
+import * as pantoneTable from "pantone-table";
+
 // On-screen hex values are visual previews only. Final production colour must
 // be approved against the physical fabric/lab dip because screens cannot
 // reproduce dyed fabric consistently.
@@ -36,7 +38,7 @@ export interface PantoneColour {
   aliases: string[];
 }
 
-export const PANTONE_COLOURS: PantoneColour[] = [
+const CURATED_PANTONE_COLOURS: PantoneColour[] = [
   { code: "100 U", hex: "#F5E657", aliases: ["yellow", "lemon"] },
   { code: "101 U", hex: "#F5E13F", aliases: ["yellow", "canary"] },
   { code: "102 U", hex: "#F7E017", aliases: ["yellow", "sunshine"] },
@@ -57,6 +59,49 @@ export const PANTONE_COLOURS: PantoneColour[] = [
   { code: "425 U", hex: "#565A5C", aliases: ["grey", "gray", "steel"] },
   { code: "431 U", hex: "#4B535A", aliases: ["grey", "gray", "slate"] },
   { code: "446 U", hex: "#3A3D3C", aliases: ["charcoal", "grey", "gray"] },
+];
+
+const curatedPantonesByCode = new Map(
+  CURATED_PANTONE_COLOURS.map((colour) => [colour.code.toLowerCase(), colour])
+);
+
+function pantoneCodeFromKey(key: string): string {
+  const value = key
+    .slice("pantone_".length, -"_u".length)
+    .replaceAll("_", " ");
+
+  return `${value.replace(/\b[a-z]/g, (letter) => letter.toUpperCase())} U`;
+}
+
+const uncoatedPantoneLibrary = Object.entries(pantoneTable)
+  .filter(
+    ([key, hex]) =>
+      key.startsWith("pantone_") &&
+      key.endsWith("_u") &&
+      /^#[0-9a-f]{6}$/i.test(hex)
+  )
+  .map(([key, hex]) => {
+    const code = pantoneCodeFromKey(key);
+    return (
+      curatedPantonesByCode.get(code.toLowerCase()) ?? {
+        code,
+        hex: hex.toUpperCase(),
+        aliases: [],
+      }
+    );
+  });
+
+const libraryCodes = new Set(
+  uncoatedPantoneLibrary.map((colour) => colour.code.toLowerCase())
+);
+
+// Curated entries retain buyer-friendly search aliases. Any curated reference
+// absent from the imported Uncoated library remains selectable.
+export const PANTONE_COLOURS: PantoneColour[] = [
+  ...uncoatedPantoneLibrary,
+  ...CURATED_PANTONE_COLOURS.filter(
+    (colour) => !libraryCodes.has(colour.code.toLowerCase())
+  ),
 ];
 
 // ============================================================

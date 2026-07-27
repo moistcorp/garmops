@@ -213,44 +213,50 @@ export function AddressForm({
     const pin = value.zip.trim();
     if (!isPinCodeValid(pin)) {
       lastLookedUpPin.current = "";
-      setLookupStatus("idle");
       return;
     }
     if (lastLookedUpPin.current === pin) return;
     lastLookedUpPin.current = pin;
 
     const controller = new AbortController();
-    setLookupStatus("loading");
+    window.queueMicrotask(() => {
+      if (controller.signal.aborted) return;
+      setLookupStatus("loading");
 
-    void fetch(`/api/pincode/${encodeURIComponent(pin)}`, {
-      signal: controller.signal,
-      headers: { Accept: "application/json" },
-    })
-      .then(async (response) => {
-        const data = (await response.json()) as {
-          city?: string;
-          state?: string;
-          error?: string;
-        };
-        if (!response.ok || !data.city || !data.state) {
-          setLookupStatus(response.status === 404 ? "not-found" : "error");
-          return;
-        }
-        const current = latestValue.current;
-        latestOnChange.current({
-          ...current,
-          city: data.city,
-          state: data.state,
-        });
-        setLookupStatus("success");
+      void fetch(`/api/pincode/${encodeURIComponent(pin)}`, {
+        signal: controller.signal,
+        headers: { Accept: "application/json" },
       })
-      .catch((error: unknown) => {
-        if (error instanceof DOMException && error.name === "AbortError") return;
-        setLookupStatus("error");
-      });
+        .then(async (response) => {
+          const data = (await response.json()) as {
+            city?: string;
+            state?: string;
+            error?: string;
+          };
+          if (!response.ok || !data.city || !data.state) {
+            setLookupStatus(response.status === 404 ? "not-found" : "error");
+            return;
+          }
+          const current = latestValue.current;
+          latestOnChange.current({
+            ...current,
+            city: data.city,
+            state: data.state,
+          });
+          setLookupStatus("success");
+        })
+        .catch((error: unknown) => {
+          if (error instanceof DOMException && error.name === "AbortError") return;
+          setLookupStatus("error");
+        });
+    });
 
     return () => controller.abort();
   }, [value.zip, lookupNonce]);
+
+  const visibleLookupStatus = isPinCodeValid(value.zip)
+    ? lookupStatus
+    : "idle";
 
   const set = <K extends keyof Address>(key: K, val: Address[K]) => {
     onChange({ ...value, [key]: val });
@@ -326,9 +332,9 @@ export function AddressForm({
               onBlur={() => markTouched("zip")}
             />
             <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#111111]/35">
-              {lookupStatus === "loading" ? (
+              {visibleLookupStatus === "loading" ? (
                 <LoaderCircle size={15} className="animate-spin" aria-label="Looking up PIN code" />
-              ) : lookupStatus === "success" ? (
+              ) : visibleLookupStatus === "success" ? (
                 <CheckCircle2 size={15} className="text-[var(--color-teal-dark)]" aria-label="PIN code found" />
               ) : (
                 <MapPin size={15} aria-hidden="true" />
@@ -338,9 +344,9 @@ export function AddressForm({
           {showError("zip", !isPinCodeValid(value.zip)) && (
             <p className="mt-1 text-xs text-red-600">Enter a valid 6-digit PIN code</p>
           )}
-          {lookupStatus === "loading" && <p className="mt-1 text-xs text-[#111111]/50">Finding city and state…</p>}
-          {lookupStatus === "success" && <p className="mt-1 text-xs text-[var(--color-teal-dark)]">City and state filled from PIN code.</p>}
-          {(lookupStatus === "not-found" || lookupStatus === "error") && (
+          {visibleLookupStatus === "loading" && <p className="mt-1 text-xs text-[#111111]/50">Finding city and state…</p>}
+          {visibleLookupStatus === "success" && <p className="mt-1 text-xs text-[var(--color-teal-dark)]">City and state filled from PIN code.</p>}
+          {(visibleLookupStatus === "not-found" || visibleLookupStatus === "error") && (
             <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-amber-700">
               <span>We could not auto-fill this PIN code. Enter city and state manually.</span>
               <button type="button" onClick={() => { lastLookedUpPin.current = ""; setLookupNonce((value) => value + 1); }} className="font-semibold underline underline-offset-2">Retry lookup</button>

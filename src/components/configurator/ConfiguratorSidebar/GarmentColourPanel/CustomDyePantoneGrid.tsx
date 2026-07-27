@@ -1,9 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Star } from "lucide-react";
 import type { PantoneColour } from "@/lib/configurator/colours";
-import { useFavouritePantones } from "./useColourMemory";
 
 interface CustomDyePantoneGridProps {
   colours: PantoneColour[];
@@ -11,13 +9,15 @@ interface CustomDyePantoneGridProps {
   onSelect: (colour: PantoneColour) => void;
 }
 
+const PAGE_SIZE = 60;
+
 export default function CustomDyePantoneGrid({
   colours,
   selectedCode,
   onSelect,
 }: CustomDyePantoneGridProps) {
   const [query, setQuery] = useState("");
-  const { favourites, toggleFavourite } = useFavouritePantones();
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -28,16 +28,7 @@ export default function CustomDyePantoneGrid({
         c.aliases.some((alias) => alias.toLowerCase().includes(q))
     );
   }, [colours, query]);
-
-  // Favourited colours (that also match the current search) surface first
-  // so a buyer who's dye-matched before doesn't have to hunt for it again.
-  const sorted = useMemo(() => {
-    return [...filtered].sort((a, b) => {
-      const aFav = favourites.includes(a.code) ? 0 : 1;
-      const bFav = favourites.includes(b.code) ? 0 : 1;
-      return aFav - bFav;
-    });
-  }, [filtered, favourites]);
+  const visibleColours = filtered.slice(0, visibleCount);
 
   return (
     <div className="flex flex-col gap-3">
@@ -45,27 +36,33 @@ export default function CustomDyePantoneGrid({
         <input
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(event) => {
+            setQuery(event.target.value);
+            setVisibleCount(PAGE_SIZE);
+          }}
           placeholder="Search by Pantone code or colour name (e.g. navy, maroon)"
           aria-label="Search Colour"
-          className="w-full rounded-md border border-[#E5E5E5] bg-white px-3 py-2 text-sm placeholder:text-[#111111]/40 focus:outline-none focus:ring-1 focus:ring-[var(--color-teal)]"
+          className="configurator-glass-control w-full rounded-xl border px-3 py-2 text-sm placeholder:text-[#111111]/40 focus:outline-none focus:ring-1 focus:ring-[var(--color-teal)]"
         />
+        <p className="mt-1.5 text-[10px] text-[#111111]/45">
+          {filtered.length.toLocaleString("en-IN")} uncoated colour
+          {filtered.length === 1 ? "" : "s"}
+        </p>
       </div>
 
-      <div className="grid max-h-72 grid-cols-2 gap-3 overflow-y-auto pr-1">
-        {sorted.map((colour) => {
+      <div className="grid grid-cols-2 gap-3">
+        {visibleColours.map((colour) => {
           const isActive = colour.code === selectedCode;
-          const isFavourite = favourites.includes(colour.code);
           return (
             <button
               key={colour.code}
               type="button"
               onClick={() => onSelect(colour)}
               aria-pressed={isActive}
-              className={`group relative flex items-center gap-2 rounded-full border py-1.5 pl-2 pr-1 text-left text-sm transition-colors ${
+              className={`group relative flex items-center gap-2 rounded-full border px-2 py-1.5 text-left text-sm transition-colors ${
                 isActive
-                  ? "border-[var(--color-teal)] bg-white"
-                  : "border-[#E5E5E5] bg-transparent hover:bg-[#E5E5E5]/40"
+                  ? "border-[var(--color-teal)] bg-white/60 shadow-sm backdrop-blur-lg"
+                  : "configurator-glass-control border hover:!border-[var(--color-teal)]/35 hover:!bg-white/55"
               }`}
             >
               <span
@@ -74,36 +71,26 @@ export default function CustomDyePantoneGrid({
                 aria-hidden="true"
               />
               <span className="min-w-0 flex-1 truncate">{colour.code}</span>
-              <span
-                role="button"
-                tabIndex={0}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleFavourite(colour.code);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    toggleFavourite(colour.code);
-                  }
-                }}
-                aria-label={isFavourite ? `Unfavourite ${colour.code}` : `Favourite ${colour.code}`}
-                aria-pressed={isFavourite}
-                className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[#111111]/35 hover:text-[#111111]"
-              >
-                <Star size={13} strokeWidth={2.2} fill={isFavourite ? "currentColor" : "none"} />
-              </span>
             </button>
           );
         })}
 
-        {sorted.length === 0 && (
+        {filtered.length === 0 && (
           <p className="col-span-2 py-4 text-center text-sm text-[#111111]/50">
             No colours match &ldquo;{query}&rdquo;.
           </p>
         )}
       </div>
+
+      {visibleCount < filtered.length && (
+        <button
+          type="button"
+          onClick={() => setVisibleCount((current) => current + PAGE_SIZE)}
+          className="configurator-glass-control self-center rounded-full border px-4 py-2 text-xs font-semibold text-[#111111]/65 hover:!border-[var(--color-teal)]/45 hover:!bg-white/60 hover:text-[#111111]"
+        >
+          Show more colours
+        </button>
+      )}
     </div>
   );
 }

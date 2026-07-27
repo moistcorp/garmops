@@ -7,6 +7,7 @@ interface ViewTabsProps {
   activeView: GarmentView;
   onChange: (view: GarmentView) => void;
   productId: ProductId;
+  hideBackView?: boolean;
 }
 
 const VIEW_OPTIONS: { id: GarmentView; label: string }[] = [
@@ -15,17 +16,24 @@ const VIEW_OPTIONS: { id: GarmentView; label: string }[] = [
   { id: "back", label: "Back" },
 ];
 
-export default function ViewTabs({ activeView, onChange, productId }: ViewTabsProps) {
+export default function ViewTabs({
+  activeView,
+  onChange,
+  productId,
+  hideBackView = false,
+}: ViewTabsProps) {
   const isTote = productId.includes("tote");
-  const viewOptions = VIEW_OPTIONS.map((option) =>
-    option.id === "neck" && isTote ? { ...option, label: "Label" } : option
-  );
+  const viewOptions = VIEW_OPTIONS
+    .filter((option) => !(hideBackView && option.id === "back"))
+    .map((option) =>
+      option.id === "neck" && isTote ? { ...option, label: "Label" } : option
+    );
 
   return (
     <div
       role="tablist"
       aria-label="Garment preview view"
-      className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#E5E5E5] bg-white/85 p-1 shadow-sm"
+      className="configurator-glass-control inline-flex shrink-0 items-center gap-1 rounded-full border p-1"
     >
       {viewOptions.map((opt, index) => {
         const isActive = opt.id === activeView;

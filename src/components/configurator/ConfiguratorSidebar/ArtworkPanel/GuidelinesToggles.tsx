@@ -64,7 +64,7 @@ export function GuidelinesToggles(props: GuidelinesTogglesProps): JSX.Element {
 
       {(maximumArea || leftChest) && (
         <div
-          className="relative border border-solid border-gray-300 bg-gray-50"
+          className="configurator-glass-control relative border border-solid"
           style={{ width: maxW * PX_PER_CM, height: maxH * PX_PER_CM }}
         >
           {maximumArea && (

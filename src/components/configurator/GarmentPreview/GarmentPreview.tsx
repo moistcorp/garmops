@@ -14,6 +14,7 @@ interface GarmentPreviewProps {
   productId: ProductId;
   artwork: Artwork;
   neckLabel?: NeckLabel;
+  hideBackView?: boolean;
 }
 
 function luminance(hex: string): number {
@@ -45,6 +46,7 @@ export default function GarmentPreview({
   productId,
   artwork,
   neckLabel,
+  hideBackView = false,
 }: GarmentPreviewProps) {
   const activeArtwork = activeView === "front" ? artwork.front : activeView === "back" ? artwork.back : undefined;
   const quality = getArtworkQuality(activeArtwork);
@@ -55,8 +57,8 @@ export default function GarmentPreview({
   }, [activeArtwork, colourHex]);
 
   return (
-    <div className="flex h-full w-full min-h-0 flex-col p-3 sm:p-4">
-      <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl bg-[#F5F5F5]">
+    <div className="relative h-full w-full min-h-0">
+      <div className="absolute inset-3 overflow-hidden rounded-xl bg-white sm:inset-4">
         <div className="flex h-full w-full items-center justify-center">
           <CanvasRenderer
             view={activeView}
@@ -65,20 +67,34 @@ export default function GarmentPreview({
             artwork={artwork}
             neckLabel={neckLabel}
             showProductionGuides
-            className="aspect-square h-[min(68dvh,760px)] max-h-full max-w-full rounded-lg"
+            className={
+              activeView === "neck"
+                ? "aspect-square h-[165%] max-w-none shrink-0 translate-y-[3%] rounded-lg sm:h-[180%] sm:translate-y-[4%] lg:h-[190%] lg:translate-y-[5%]"
+                : "aspect-square h-[min(68dvh,760px)] max-h-full max-w-full scale-110 rounded-lg"
+            }
           />
         </div>
       </div>
 
-      <div className="mt-3 flex flex-col items-center gap-2">
-        {(quality.warning || contrastWarning) && (
-          <div role="status" className="w-full rounded-xl border border-[#E7C56A] bg-[#FFF8E7] px-3 py-2 text-xs leading-relaxed text-[#6E4D08]">
-            {quality.warning ?? contrastWarning}
-          </div>
-        )}
+      {(quality.warning || contrastWarning) && (
+        <div
+          role="status"
+          className="absolute inset-x-6 top-16 z-20 rounded-xl border border-[#E7C56A] bg-[#FFF8E7]/90 px-3 py-2 text-xs leading-relaxed text-[#6E4D08] backdrop-blur-md"
+        >
+          {quality.warning ?? contrastWarning}
+        </div>
+      )}
+
+      <div className="pointer-events-none absolute inset-x-4 bottom-2 z-20 flex flex-col items-center gap-2">
         {quality.metadata && <p className="text-[11px] text-[#111111]/50">File check: {quality.metadata}</p>}
-        <ViewTabs activeView={activeView} onChange={onViewChange} productId={productId} />
-        <p className="text-center text-[10px] leading-relaxed text-[#111111]/45">Digital preview is indicative. Final artwork size, colour and placement are confirmed during production review.</p>
+        <div className="pointer-events-auto">
+          <ViewTabs
+            activeView={activeView}
+            onChange={onViewChange}
+            productId={productId}
+            hideBackView={hideBackView}
+          />
+        </div>
       </div>
     </div>
   );

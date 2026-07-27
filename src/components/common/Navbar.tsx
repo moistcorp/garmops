@@ -16,9 +16,10 @@ const links = [
 ]
 
 export default function Navbar() {
-  const [open, setOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
+  const [openPathname, setOpenPathname] = useState<string | null>(null)
+  const [scrolled, setScrolled] = useState(false)
+  const open = openPathname === pathname
   const menuButtonRef = useRef<HTMLButtonElement>(null)
   const firstMenuLinkRef = useRef<HTMLAnchorElement>(null)
   const mobileNavRef = useRef<HTMLElement>(null)
@@ -32,10 +33,6 @@ export default function Navbar() {
   }, [])
 
   useEffect(() => {
-    setOpen(false)
-  }, [pathname])
-
-  useEffect(() => {
     if (!open) return
 
     const previousOverflow = document.body.style.overflow
@@ -44,7 +41,7 @@ export default function Navbar() {
 
     const handleMenuKeys = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setOpen(false)
+        setOpenPathname(null)
         requestAnimationFrame(() => menuButtonRef.current?.focus())
         return
       }
@@ -73,7 +70,7 @@ export default function Navbar() {
     }
   }, [open])
 
-  const closeMenu = () => setOpen(false)
+  const closeMenu = () => setOpenPathname(null)
 
   return (
     <header className="sticky top-0 z-50 w-full px-3 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-4 sm:pt-4">
@@ -149,7 +146,7 @@ export default function Navbar() {
               ref={menuButtonRef}
               type="button"
               className="relative flex h-9 w-9 items-center justify-center rounded-full text-[#111111] transition-colors hover:bg-black/5"
-              onClick={() => setOpen(current => !current)}
+              onClick={() => setOpenPathname(open ? null : pathname)}
               aria-label={open ? 'Close menu' : 'Open menu'}
               aria-expanded={open}
               aria-controls="mobile-navigation"

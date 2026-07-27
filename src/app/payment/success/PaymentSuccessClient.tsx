@@ -126,13 +126,11 @@ export default function PaymentSuccessClient({
       });
     }
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOrderDetailsStatus("found");
 
     // One-time hydration from localStorage on mount, guarded by hasHandled
     // above — not a derived/cascading update, so the lint rule's general
     // "don't setState in an effect" guidance doesn't apply here.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOrderSummary({
       name: order.name ?? "",
       email: order.email ?? "",

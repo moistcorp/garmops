@@ -255,7 +255,7 @@ function buildOverviewPage(
   page.commands.push(pdfText(`Estimate valid until ${validUntilLabel}`, 340, 674, 7.5, false, [0.35, 0.35, 0.35]));
 
   page.commands.push(pdfText("Configured products", MARGIN, 640, 13, true));
-  let cardY = 488;
+  const cardY = 488;
   options.items.slice(0, 3).forEach((item, index) => {
     const x = MARGIN + index * 174;
     page.commands.push(roundedRect(x, cardY, 163, 136, [0.985, 0.985, 0.985]));
@@ -296,7 +296,7 @@ function buildOverviewPage(
   });
 
   page.commands.push(roundedRect(MARGIN, 230, 511, 72, [0.965, 0.985, 0.985], [0.75, 0.88, 0.88]));
-  page.commands.push(pdfText("DUE TODAY TO RESERVE PRODUCTION REVIEW", 58, 278, 8, true, [0.06, 0.38, 0.39]));
+  page.commands.push(pdfText("DUE TODAY TO RESERVE SLOT", 58, 278, 8, true, [0.06, 0.38, 0.39]));
   page.commands.push(pdfText(formatInr(options.totals.reservationFee), 58, 250, 22, true, [0.06, 0.38, 0.39]));
   page.commands.push(pdfText(`Estimated balance later: ${formatInr(options.totals.balanceDue)}`, 310, 258, 9, true));
   page.commands.push(pdfText("The reservation fee is credited in full against the final invoice.", 310, 242, 7.5, false, [0.35, 0.35, 0.35]));

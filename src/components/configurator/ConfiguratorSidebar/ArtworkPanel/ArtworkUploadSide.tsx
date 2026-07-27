@@ -502,19 +502,9 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
         }}
       />
 
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-medium uppercase tracking-wide text-[#111111]/70">
-          {side === "front" ? "Front" : "Back"}
-        </span>
-        {isPending && (
-          <span className="rounded-full bg-[#111111]/5 px-2 py-0.5 text-[10px] uppercase tracking-wide text-[#111111]/60">
-            Uploading
-          </span>
-        )}
-      </div>
-
       {!value ? (
         <div
+          data-dragging={dragging ? "true" : "false"}
           onDragOver={(event) => {
             event.preventDefault();
             setDragging(true);
@@ -525,23 +515,31 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
             setDragging(false);
             handleFiles(event.dataTransfer.files);
           }}
-          className={`flex flex-col items-center border border-dashed px-4 py-5 text-center transition-colors ${
-            dragging ? "border-[var(--color-teal)] bg-[var(--color-teal)]/10" : "border-[#E5E5E5]"
-          }`}
+          className="configurator-glass-dropzone relative flex flex-col items-center overflow-hidden rounded-[22px] px-4 py-5 text-center transition-all duration-200"
         >
+          {isPending && (
+            <span className="configurator-glass-control absolute right-3 top-3 z-20 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-teal-dark)]">
+              Uploading
+            </span>
+          )}
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            className="flex min-h-20 w-full flex-col items-center justify-center gap-1 rounded-md px-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-teal)]"
+            className="group relative z-10 flex min-h-24 w-full flex-col items-center justify-center gap-1.5 rounded-2xl px-3 transition-colors hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-teal)]"
           >
-            <span className="text-sm text-[#111111]">Drag and drop artwork, or click to browse</span>
+            <span className="configurator-glass-control mb-1 flex h-10 w-10 items-center justify-center rounded-full border text-[var(--color-teal-dark)] transition-transform group-hover:-translate-y-0.5">
+              <Upload size={17} strokeWidth={2.2} aria-hidden="true" />
+            </span>
+            <span className="text-sm font-medium text-[#111111]">
+              Drag and drop artwork, or click to browse
+            </span>
             <span className="text-xs text-[#111111]/50">Accepts .jpg, .jpeg, .png, .svg, .ai up to 4.5MB</span>
           </button>
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+          <div className="relative z-10 mt-3 flex flex-wrap items-center justify-center gap-2">
             <a
               href={PRINT_TEMPLATES_HREF}
               download
-              className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-[#E5E5E5] px-3 text-xs font-medium uppercase tracking-wide text-[#111111] hover:border-[var(--color-teal)]"
+              className="configurator-glass-control inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-medium uppercase tracking-wide text-[#111111]/80 transition-colors hover:!border-[var(--color-teal)]/45 hover:text-[var(--color-teal-dark)]"
             >
               Download Templates
               <Download size={13} strokeWidth={2.2} />
@@ -549,16 +547,16 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
             <button
               type="button"
               onClick={handleTrySample}
-              className="min-h-9 rounded-full border border-[var(--color-teal)] bg-[var(--color-cream-soft)] px-3 text-xs font-semibold text-[var(--color-teal-dark)]"
+              className="configurator-glass-control min-h-9 rounded-full border !border-[var(--color-teal)]/30 px-3 text-xs font-semibold text-[var(--color-teal-dark)] transition-colors hover:!border-[var(--color-teal)]/55 hover:!bg-white/55"
             >
               Try sample artwork
             </button>
           </div>
         </div>
       ) : (
-        <div className="flex flex-col gap-2 border border-[#E5E5E5] p-3">
+        <div className="configurator-glass-subtle flex flex-col gap-2 rounded-2xl p-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-[#E5E5E5] bg-white text-[10px] uppercase text-[#111111]/50">
+            <div className="configurator-glass-control flex h-10 w-10 shrink-0 items-center justify-center border text-[10px] uppercase text-[#111111]/50">
               {value.fileType}
             </div>
             <div className="min-w-0 flex-1">

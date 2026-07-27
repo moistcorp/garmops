@@ -25,10 +25,13 @@ export default function ProductGrid() {
   const [compareIds, setCompareIds] = useState<string[]>([]);
 
   useEffect(() => {
-    const preferredQuantity = readPreferredQuantity() ?? 100;
-    setQuantity(preferredQuantity);
-    setQuantityDraft(String(preferredQuantity));
-    setTargetDate(readPreferredTargetDate());
+    const timer = window.setTimeout(() => {
+      const preferredQuantity = readPreferredQuantity() ?? 100;
+      setQuantity(preferredQuantity);
+      setQuantityDraft(String(preferredQuantity));
+      setTargetDate(readPreferredTargetDate());
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   const sortedProducts = useMemo(() => {

@@ -249,7 +249,7 @@ export function ArtworkPanel({ value, onChange, onViewChange }: ArtworkPanelProp
   function renderAdjustPanel(side: Side, current: ArtworkSide) {
     if (adjustingSide !== side) return null;
     return (
-      <div className="flex flex-col gap-4 rounded-2xl border border-[#ECE7DF] bg-[var(--color-cream-soft)] p-3">
+      <div className="configurator-glass-subtle flex flex-col gap-4 rounded-2xl p-3">
         <p className="text-xs text-[#111111]/55">
           Drag or resize the box on the {SIDE_LABELS[side].toLowerCase()} preview, or use these controls for precise placement. Every change is saved automatically.
         </p>
@@ -261,7 +261,7 @@ export function ArtworkPanel({ value, onChange, onViewChange }: ArtworkPanelProp
           <button
             type="button"
             onClick={() => restoreRecommendedPlacement(side)}
-            className="inline-flex items-center gap-1.5 rounded-full border border-[#DED8CE] bg-white px-3 py-1.5 text-xs font-semibold text-[#111111]/70 hover:border-[var(--color-teal)] hover:text-[var(--color-teal)]"
+            className="configurator-glass-control inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold text-[#111111]/70 hover:!border-[var(--color-teal)]/45 hover:!bg-white/60 hover:text-[var(--color-teal)]"
           >
             <RotateCcw size={13} strokeWidth={2.2} />
             Restore recommended centre
@@ -269,7 +269,7 @@ export function ArtworkPanel({ value, onChange, onViewChange }: ArtworkPanelProp
           <button
             type="button"
             onClick={() => applyLeftChestPreset(side)}
-            className="inline-flex items-center gap-1.5 rounded-full border border-[#DED8CE] bg-white px-3 py-1.5 text-xs font-semibold text-[#111111]/70 hover:border-[var(--color-teal)] hover:text-[var(--color-teal)]"
+            className="configurator-glass-control inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold text-[#111111]/70 hover:!border-[var(--color-teal)]/45 hover:!bg-white/60 hover:text-[var(--color-teal)]"
           >
             <MapPin size={13} strokeWidth={2.2} />
             Apply left-chest preset
@@ -296,17 +296,17 @@ export function ArtworkPanel({ value, onChange, onViewChange }: ArtworkPanelProp
     const isReady = Boolean(current?.fileUrl && current.technique);
 
     return (
-      <section className="flex flex-col gap-2 rounded-2xl border border-[#ECE7DF] p-3">
+      <section className="configurator-glass-subtle flex flex-col gap-2 rounded-2xl p-3">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-[#111111]/70">
               {SIDE_LABELS[side]}
             </p>
-            <p className="mt-0.5 text-[11px] text-[#111111]/50">
-              {isReady && current?.technique
-                ? `${TECHNIQUE_LABELS[current.technique]} selected - saved automatically`
-                : "Optional - upload only when you need branding on this side"}
-            </p>
+            {isReady && current?.technique && (
+              <p className="mt-0.5 text-[11px] text-[#111111]/50">
+                {TECHNIQUE_LABELS[current.technique]} selected - saved automatically
+              </p>
+            )}
           </div>
           {isReady && (
             <span className="inline-flex items-center gap-1 rounded-full bg-[#EAF7EA] px-2 py-1 text-[10px] font-semibold text-[#1B7F36]">
@@ -337,7 +337,7 @@ export function ArtworkPanel({ value, onChange, onViewChange }: ArtworkPanelProp
                 className={`flex items-center justify-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
                   adjustingSide === side
                     ? "border-[var(--color-teal)] bg-[var(--color-teal)] text-white"
-                    : "border-[#E5E5E5] text-[#111111]/70 hover:border-[var(--color-teal)] hover:text-[var(--color-teal)]"
+                    : "configurator-glass-control border text-[#111111]/70 hover:!border-[var(--color-teal)]/45 hover:text-[var(--color-teal)]"
                 }`}
               >
                 <SlidersHorizontal size={13} strokeWidth={2.2} />
@@ -347,7 +347,7 @@ export function ArtworkPanel({ value, onChange, onViewChange }: ArtworkPanelProp
                 <button
                   type="button"
                   onClick={copyFrontArtworkToBack}
-                  className="flex items-center gap-1.5 rounded-full border border-[#E5E5E5] px-3 py-1.5 text-xs font-semibold text-[#111111]/70 hover:border-[var(--color-teal)] hover:text-[var(--color-teal)]"
+                  className="configurator-glass-control flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold text-[#111111]/70 hover:!border-[var(--color-teal)]/45 hover:text-[var(--color-teal)]"
                 >
                   <Copy size={13} strokeWidth={2.2} />
                   Copy to back
@@ -371,9 +371,6 @@ export function ArtworkPanel({ value, onChange, onViewChange }: ArtworkPanelProp
 
   return (
     <div className="flex flex-col gap-4 text-sm text-[#111111]">
-      <div className="rounded-xl bg-[#F7F7F7] px-3 py-2 text-xs leading-relaxed text-[#111111]/60">
-        Artwork is optional. Upload what you have, choose a technique or use our recommendation, then continue. Non-vector files are accepted and checked by the production team.
-      </div>
       {renderSide("front")}
       {renderSide("back")}
     </div>

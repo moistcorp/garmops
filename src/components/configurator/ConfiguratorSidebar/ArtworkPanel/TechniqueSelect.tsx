@@ -62,7 +62,7 @@ export function TechniqueSelect({ value, fileType, onChange }: TechniqueSelectPr
       <button
         type="button"
         onClick={() => { onChange(recommendation); trackConfiguratorEvent("technique_recommended", { technique: recommendation, file_type: fileType ?? null }); }}
-        className="flex items-start gap-2 rounded-xl border border-[var(--color-teal)]/35 bg-[var(--color-teal)]/5 px-3 py-2.5 text-left hover:border-[var(--color-teal)]"
+        className="configurator-glass-subtle flex items-start gap-2 rounded-xl !border-[var(--color-teal)]/25 !bg-[var(--color-teal)]/8 px-3 py-2.5 text-left hover:!border-[var(--color-teal)]/50"
       >
         <Sparkles size={16} strokeWidth={2.2} className="mt-0.5 shrink-0 text-[var(--color-teal)]" />
         <span className="min-w-0">
@@ -87,7 +87,7 @@ export function TechniqueSelect({ value, fileType, onChange }: TechniqueSelectPr
               className={`min-h-[58px] rounded-md border px-3 py-2 text-left transition-colors ${
                 selected
                   ? "border-[var(--color-teal)] bg-[var(--color-teal)] text-white"
-                  : "border-[#E5E5E5] bg-white text-[#111111] hover:border-[var(--color-teal)]"
+                  : "configurator-glass-control border text-[#111111] hover:!border-[var(--color-teal)]/45 hover:!bg-white/60"
               }`}
             >
               <span className="block text-xs font-semibold leading-tight">

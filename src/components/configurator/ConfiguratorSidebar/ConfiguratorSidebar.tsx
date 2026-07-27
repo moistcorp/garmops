@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Redo2, RotateCcw, Trash2, Undo2, X } from "lucide-react";
+import { useState } from "react";
+import { CloudOff, FileCheck2, LoaderCircle, X } from "lucide-react";
 import GarmentColourPanel from "./GarmentColourPanel/GarmentColourPanel";
 import ArtworkPanel from "./ArtworkPanel/ArtworkPanel";
 import NeckLabelPanel from "./NeckLabelPanel/NeckLabelPanel";
@@ -22,7 +22,6 @@ export interface AccordionStepState {
 
 export interface ConfiguratorSidebarProps {
   expandedStepId?: AccordionStepId | null;
-  onExpandedStepChange?: (id: AccordionStepId | null) => void;
   selectedColour?: GarmentColour;
   onColourChange?: (colour: GarmentColour) => void;
   steps?: AccordionStepState[];
@@ -34,14 +33,12 @@ export interface ConfiguratorSidebarProps {
   activeView?: GarmentView;
   onViewChange?: (view: GarmentView) => void;
   unitBasePrice?: number;
-  onAttemptStepChange?: (id: AccordionStepId | null) => void;
   isToteProduct?: boolean;
   onResetStep?: (id: AccordionStepId) => void;
-  canUndo?: boolean;
-  canRedo?: boolean;
-  onUndo?: () => void;
-  onRedo?: () => void;
-  onResetAll?: () => void;
+  activeStepSummary?: string;
+  saveStatus?: "restoring" | "saving" | "saved" | "error";
+  draftRestored?: boolean;
+  onDismissDraftRestored?: () => void;
 }
 
 export const INITIAL_STEPS: AccordionStepState[] = [
@@ -62,7 +59,6 @@ export const DEFAULT_COLOUR: GarmentColour = {
 
 export function ConfiguratorSidebar({
   expandedStepId: controlledExpandedStepId,
-  onExpandedStepChange,
   selectedColour,
   onColourChange,
   steps: controlledSteps,
@@ -74,14 +70,12 @@ export function ConfiguratorSidebar({
   activeView,
   onViewChange,
   unitBasePrice,
-  onAttemptStepChange,
   isToteProduct = false,
   onResetStep,
-  canUndo = false,
-  canRedo = false,
-  onUndo,
-  onRedo,
-  onResetAll,
+  activeStepSummary,
+  saveStatus = "restoring",
+  draftRestored = false,
+  onDismissDraftRestored,
 }: ConfiguratorSidebarProps = {}) {
   const [internalSteps, setInternalSteps] = useState<AccordionStepState[]>(INITIAL_STEPS);
   const steps = controlledSteps ?? internalSteps;
@@ -91,38 +85,18 @@ export function ConfiguratorSidebar({
   const artwork = controlledArtwork ?? internalArtwork;
   const [internalNeckLabel, setInternalNeckLabel] = useState<NeckLabel | undefined>(undefined);
   const neckLabel = controlledNeckLabel ?? internalNeckLabel;
-  const [internalExpandedStepId, setInternalExpandedStepId] = useState<AccordionStepId | null>(
-    "garment-colour"
-  );
   const expandedStepId =
-    controlledExpandedStepId !== undefined ? controlledExpandedStepId : internalExpandedStepId;
+    controlledExpandedStepId !== undefined ? controlledExpandedStepId : "garment-colour";
   const activeStepIndex = Math.max(
     0,
     steps.findIndex((step) => step.id === expandedStepId)
   );
   const activeStep = steps[activeStepIndex] ?? INITIAL_STEPS[0];
-  const [confirmingReset, setConfirmingReset] = useState(false);
-  const cancelResetButtonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (confirmingReset) cancelResetButtonRef.current?.focus();
-  }, [confirmingReset]);
 
   function updateSteps(updater: (current: AccordionStepState[]) => AccordionStepState[]) {
     const next = updater(steps);
     if (controlledSteps === undefined) setInternalSteps(next);
     onStepsChange?.(next);
-  }
-
-  function selectStep(id: AccordionStepId) {
-    setConfirmingReset(false);
-    if (id === activeStep.id) return;
-    if (onAttemptStepChange) {
-      onAttemptStepChange(id);
-      return;
-    }
-    if (controlledExpandedStepId === undefined) setInternalExpandedStepId(id);
-    onExpandedStepChange?.(id);
   }
 
   function resetStep(id: AccordionStepId) {
@@ -148,96 +122,71 @@ export function ConfiguratorSidebar({
     );
   }
 
+  const activeStepTitle =
+    isToteProduct && activeStep.id === "neck-label"
+      ? "Bag Label"
+      : activeStep.title.replace("Garment ", "");
+  const saveStatusLabel =
+    saveStatus === "restoring"
+      ? "Restoring…"
+      : saveStatus === "saving"
+        ? "Saving…"
+        : saveStatus === "error"
+          ? "Save unavailable"
+          : "Autosaved";
+  const SaveStatusIcon =
+    saveStatus === "error"
+      ? CloudOff
+      : saveStatus === "saving" || saveStatus === "restoring"
+        ? LoaderCircle
+        : FileCheck2;
+
   return (
-    <section className="flex h-full min-h-0 flex-col overflow-hidden bg-white">
-      <div className="flex items-center gap-3 border-b border-[#ECE7DF] px-4 py-2.5">
-        {activeStepIndex > 0 && (
-          <button
-            type="button"
-            onClick={() => selectStep(steps[activeStepIndex - 1].id)}
-            className="flex h-8 shrink-0 items-center gap-1 rounded-full px-2 text-xs font-semibold text-[#111111]/65 hover:bg-[#F7F7F7] hover:text-[#111111]"
-          >
-            <ArrowLeft size={14} strokeWidth={2.2} />
-            Back
-          </button>
-        )}
+    <section className="flex h-full min-h-0 flex-col overflow-hidden bg-transparent">
+      <div className="shrink-0 border-b border-white/55 bg-white/15 px-4 py-3 backdrop-blur-xl">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-[#111111]">{activeStepTitle}</h2>
+            </div>
+            <p className="mt-0.5 truncate text-xs text-[#111111]/55" title={activeStepSummary}>
+              {activeStepSummary ?? activeStep.summary ?? "Not added yet"}
+            </p>
+          </div>
 
-        <button
-          type="button"
-          onClick={() => setConfirmingReset(true)}
-          className="ml-auto flex h-8 shrink-0 items-center gap-1 rounded-full px-2 text-[11px] font-semibold text-[#A63A3A] hover:bg-[#FFF5F5]"
-        >
-          <RotateCcw size={12} strokeWidth={2.2} />
-          Reset this step
-        </button>
-
-        <div
-          className="flex shrink-0 items-center gap-1 border-l border-[#ECE7DF] pl-3"
-          aria-label="Configuration history controls"
-        >
-          <button
-            type="button"
-            onClick={onUndo}
-            disabled={!canUndo}
-            title="Undo"
-            aria-label="Undo configuration change"
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-[#E5E5E5] text-[#111111]/60 hover:bg-[#F7F7F7] disabled:opacity-35"
+          <span
+            aria-live="polite"
+            className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold ${
+              saveStatus === "error"
+                ? "border border-white/60 bg-[#FFF0F0]/65 text-[#A63A3A] shadow-sm backdrop-blur-lg"
+                : "border border-white/60 bg-[#EDF6F3]/65 text-[var(--color-teal-dark)] shadow-sm backdrop-blur-lg"
+            }`}
           >
-            <Undo2 size={14} />
-          </button>
-          <button
-            type="button"
-            onClick={onRedo}
-            disabled={!canRedo}
-            title="Redo"
-            aria-label="Redo configuration change"
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-[#E5E5E5] text-[#111111]/60 hover:bg-[#F7F7F7] disabled:opacity-35"
-          >
-            <Redo2 size={14} />
-          </button>
-          <button
-            type="button"
-            onClick={onResetAll}
-            title="Reset all"
-            aria-label="Reset entire configuration"
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-[#E5E5E5] text-[#A63A3A] hover:bg-[#FFF5F5]"
-          >
-            <RotateCcw size={14} />
-          </button>
+            <SaveStatusIcon
+              size={12}
+              strokeWidth={2.3}
+              aria-hidden="true"
+              className={
+                saveStatus === "saving" || saveStatus === "restoring" ? "animate-spin" : ""
+              }
+            />
+            {saveStatusLabel}
+          </span>
         </div>
+
       </div>
 
-      {confirmingReset && (
-        <div
-          role="alertdialog"
-          aria-label={`Remove ${activeStep.title} selection`}
-          className="flex items-center justify-between gap-3 border-b border-[#F3D9D9] bg-[#FDF3F3] px-4 py-2.5"
-        >
-          <p className="text-xs font-medium text-[#8A2E2E]">
-            Remove this {activeStep.title.toLowerCase()} selection?
-          </p>
-          <span className="flex shrink-0 items-center gap-1.5">
-            <button
-              ref={cancelResetButtonRef}
-              type="button"
-              onClick={() => setConfirmingReset(false)}
-              className="flex h-8 items-center gap-1 rounded-full border border-[#E5E5E5] bg-white px-2.5 text-xs font-semibold text-[#111111]/70"
-            >
-              <X size={13} />
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setConfirmingReset(false);
-                resetStep(activeStep.id);
-              }}
-              className="flex h-8 items-center gap-1 rounded-full bg-[#C62828] px-2.5 text-xs font-semibold text-white"
-            >
-              <Trash2 size={13} />
-              Remove
-            </button>
-          </span>
+      {draftRestored && (
+        <div className="configurator-glass-subtle flex shrink-0 items-center justify-between gap-2 border-x-0 border-t-0 px-4 py-2 text-xs text-[#315D55]">
+          <span>Restored your saved progress.</span>
+          <button
+            type="button"
+            onClick={onDismissDraftRestored}
+            aria-label="Dismiss restored progress message"
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full hover:bg-white"
+          >
+            <X size={13} aria-hidden="true" />
+          </button>
         </div>
       )}
 

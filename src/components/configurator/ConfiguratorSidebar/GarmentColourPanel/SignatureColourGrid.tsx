@@ -14,7 +14,7 @@ export default function SignatureColourGrid({
   onSelect,
 }: SignatureColourGridProps) {
   return (
-    <div className="grid max-h-72 grid-cols-2 gap-3 overflow-y-auto pr-1 pt-3">
+    <div className="grid grid-cols-2 gap-3 pt-3">
       {colours.map((colour) => {
         const isActive = colour.name.toLowerCase() === selectedName.toLowerCase();
         return (
@@ -25,8 +25,8 @@ export default function SignatureColourGrid({
             aria-pressed={isActive}
             className={`group relative flex items-center gap-2 rounded-full border px-2 py-1.5 text-left text-sm transition-colors ${
               isActive
-                ? "border-[var(--color-teal)] bg-white"
-                : "border-[#E5E5E5] bg-transparent hover:bg-[#E5E5E5]/40"
+                ? "border-[var(--color-teal)] bg-white/60 shadow-sm backdrop-blur-lg"
+                : "configurator-glass-control border hover:!border-[var(--color-teal)]/35 hover:!bg-white/55"
             }`}
           >
             <span

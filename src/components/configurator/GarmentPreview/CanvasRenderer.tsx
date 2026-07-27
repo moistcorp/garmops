@@ -190,15 +190,7 @@ function NeckLabelPreview({ neckLabel }: { neckLabel: NeckLabel }) {
   // Stitch type only applies to a "below neck tape" hang-tag — an "on neck
   // tape" label is sewn flush into the tape on all four sides instead.
   const stitch = neckLabel.position === "below_neck_tape" ? neckLabel.stitch : undefined;
-  const tick = Math.min(w, h) * 0.22;
-  const corners = [
-    { x: 0, y: 0, dx: 1, dy: 1 },
-    { x: w, y: 0, dx: -1, dy: 1 },
-    { x: 0, y: h, dx: 1, dy: -1 },
-    { x: w, y: h, dx: -1, dy: -1 },
-  ];
-  const activeCorners =
-    stitch === "4_corner" ? corners : stitch === "2_corner" ? corners.slice(0, 2) : [];
+  const cornerBarTack = Math.min(w * 0.12, h * 0.5);
 
   return (
     <svg
@@ -228,7 +220,7 @@ function NeckLabelPreview({ neckLabel }: { neckLabel: NeckLabel }) {
           height={h * 0.8}
           preserveAspectRatio="xMidYMid meet"
         />
-      ) : neckLabel.fileUrl === SAMPLE_NECK_LABEL_HREF ? null : (
+      ) : !neckLabel.fileUrl || neckLabel.fileUrl === SAMPLE_NECK_LABEL_HREF ? null : (
         <text
           x={w / 2}
           y={h / 2}
@@ -265,19 +257,58 @@ function NeckLabelPreview({ neckLabel }: { neckLabel: NeckLabel }) {
         </>
       )}
 
-      {/* Below-tape hang-tags: bar-tack stitch ticks at 2 or 4 corners. */}
-      {activeCorners.map((c, i) => (
-        <line
-          key={i}
-          x1={c.x}
-          y1={c.y}
-          x2={c.x + c.dx * tick}
-          y2={c.y + c.dy * tick}
-          stroke={stitchColor}
-          strokeWidth={1.6}
-          strokeLinecap="round"
-        />
-      ))}
+      {/* Two-corner labels use short horizontal bar-tacks crossing the upper
+          corners, matching how the physical label is attached. */}
+      {(stitch === "2_corner" || stitch === "4_corner") && (
+        <>
+          <line
+            x1={-cornerBarTack * 0.55}
+            y1={1.5}
+            x2={cornerBarTack * 0.45}
+            y2={1.5}
+            stroke={stitchColor}
+            strokeWidth={1.6}
+            strokeDasharray="2 1"
+            strokeLinecap="round"
+          />
+          <line
+            x1={w - cornerBarTack * 0.45}
+            y1={1.5}
+            x2={w + cornerBarTack * 0.55}
+            y2={1.5}
+            stroke={stitchColor}
+            strokeWidth={1.6}
+            strokeDasharray="2 1"
+            strokeLinecap="round"
+          />
+        </>
+      )}
+
+      {/* Four-corner labels repeat those horizontal bar-tacks at the bottom. */}
+      {stitch === "4_corner" && (
+        <>
+          <line
+            x1={-cornerBarTack * 0.55}
+            y1={h - 1.5}
+            x2={cornerBarTack * 0.45}
+            y2={h - 1.5}
+            stroke={stitchColor}
+            strokeWidth={1.6}
+            strokeDasharray="2 1"
+            strokeLinecap="round"
+          />
+          <line
+            x1={w - cornerBarTack * 0.45}
+            y1={h - 1.5}
+            x2={w + cornerBarTack * 0.55}
+            y2={h - 1.5}
+            stroke={stitchColor}
+            strokeWidth={1.6}
+            strokeDasharray="2 1"
+            strokeLinecap="round"
+          />
+        </>
+      )}
     </svg>
   );
 }
@@ -313,7 +344,12 @@ export default function CanvasRenderer({
   const isNeckLabelView = (v: GarmentView): v is NeckLabelView =>
     (NECK_LABEL_VIEWS as readonly GarmentView[]).includes(v);
   const showNeckLabel =
-    isNeckLabelView(view) && Boolean(neckLabel?.fileUrl && neckLabel?.dimensions);
+    isNeckLabelView(view) &&
+    Boolean(
+      neckLabel?.dimensions &&
+        neckLabel?.position &&
+        (neckLabel.fileUrl || view === "neck")
+    );
 
   let neckLabelBoxStyle: { left: string; top: string; width: string; height: string; transform: string } | undefined;
   if (showNeckLabel && neckLabel?.dimensions && isNeckLabelView(view)) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Copy, Plus, Tag } from 'lucide-react';
 import type { ProductId } from '@/lib/configurator/pricing';
@@ -20,6 +20,7 @@ import {
   readDraft,
   totalUnits,
   writeDraft,
+  type CartDraft,
 } from './cartDraft';
 import { formatInr } from '@/lib/configurator/pricing';
 import { CUSTOM_DYE_MOQ_UNITS } from '@/lib/configurator/colours';
@@ -67,17 +68,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
   const [draftLoaded, setDraftLoaded] = useState(false);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [feedback, setFeedback] = useState<{ tone: ActionFeedbackTone; title: string; detail?: string } | null>(null);
-
-  function persistCartDraft(next: typeof draft) {
-    const saved = writeDraft(cartId, next);
-    if (!saved) {
-      window.queueMicrotask(() => setFeedback({
-        tone: 'error',
-        title: 'Cart autosave is unavailable',
-        detail: 'Your latest edits are still visible in this tab. Keep it open and try again before continuing.',
-      }));
-    }
-  }
+  const draftNeedsPersistenceRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -113,43 +104,58 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
     };
   }, [cartId]);
 
+  useEffect(() => {
+    if (!draftLoaded || !draftNeedsPersistenceRef.current) return;
+    draftNeedsPersistenceRef.current = false;
+    const saved = writeDraft(cartId, draft);
+    if (!saved) {
+      window.queueMicrotask(() => {
+        setFeedback({
+          tone: 'error',
+          title: 'Cart autosave is unavailable',
+          detail: 'Your latest edits are still visible in this tab. Keep it open and try again before continuing.',
+        });
+      });
+    }
+  }, [cartId, draft, draftLoaded]);
+
+  function updateDraft(updater: (previous: CartDraft) => CartDraft) {
+    draftNeedsPersistenceRef.current = true;
+    setDraft(updater);
+  }
+
   function handleQtyChange(itemId: string, size: Size, qty: number) {
-    setDraft((prev) => {
-      const next = {
-        ...prev,
-        items: prev.items.map((item) => {
-          if (item.id !== itemId) return item;
+    updateDraft((prev) => ({
+      ...prev,
+      items: prev.items.map((item) => {
+        if (item.id !== itemId) return item;
 
-          const currentSizeQty = item.sizeQuantities[size] ?? 0;
-          const currentTotal = totalUnits(item.sizeQuantities);
-          const minimumUnits = item.colour.type === 'custom_dye' ? CUSTOM_DYE_MOQ_UNITS : 50;
-          const minimumAllowedQty = Math.max(
-            0,
-            currentSizeQty - Math.max(0, currentTotal - minimumUnits)
-          );
-          const safeQty = Math.max(minimumAllowedQty, qty);
+        const currentSizeQty = item.sizeQuantities[size] ?? 0;
+        const currentTotal = totalUnits(item.sizeQuantities);
+        const minimumUnits = item.colour.type === 'custom_dye' ? CUSTOM_DYE_MOQ_UNITS : 50;
+        const minimumAllowedQty = Math.max(
+          0,
+          currentSizeQty - Math.max(0, currentTotal - minimumUnits)
+        );
+        const safeQty = Math.max(minimumAllowedQty, qty);
 
-          const sizeQuantities = { ...item.sizeQuantities, [size]: safeQty };
-          return {
-            ...item,
-            sizeQuantities,
-            unitPrice: getCartItemUnitPrice({ ...item, sizeQuantities }),
-          };
-        }),
-      };
-      persistCartDraft(next);
-      return next;
-    });
+        const sizeQuantities = { ...item.sizeQuantities, [size]: safeQty };
+        return {
+          ...item,
+          sizeQuantities,
+          unitPrice: getCartItemUnitPrice({ ...item, sizeQuantities }),
+        };
+      }),
+    }));
     trackConfiguratorEvent("size_allocation_edited", { cart_id: cartId, item_id: itemId, size, quantity: qty });
   }
 
 
   function handleProjectNameChange(projectName: string) {
-    setDraft((previous) => {
-      const next = { ...previous, projectName: projectName.slice(0, 120) };
-      persistCartDraft(next);
-      return next;
-    });
+    updateDraft((previous) => ({
+      ...previous,
+      projectName: projectName.slice(0, 120),
+    }));
     trackConfiguratorEvent("cart_item_updated", {
       cart_id: cartId,
       change: "project_name",
@@ -164,11 +170,10 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
   }
 
   function handleDelete(itemId: string) {
-    setDraft((prev) => {
-      const next = { ...prev, items: prev.items.filter((item) => item.id !== itemId) };
-      persistCartDraft(next);
-      return next;
-    });
+    updateDraft((prev) => ({
+      ...prev,
+      items: prev.items.filter((item) => item.id !== itemId),
+    }));
     setActiveView((prev) => {
       const next = { ...prev };
       delete next[itemId];
@@ -189,26 +194,23 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
       },
       neckLabel: item.neckLabel ? { ...item.neckLabel } : undefined,
     };
-    setDraft((previous) => {
-      const next = { ...previous, items: [...previous.items, duplicate] };
-      persistCartDraft(next);
-      return next;
-    });
+    updateDraft((previous) => ({
+      ...previous,
+      items: [...previous.items, duplicate],
+    }));
     setActiveView((previous) => ({ ...previous, [duplicate.id]: "front" }));
     setFeedback({ tone: "success", title: "Product duplicated", detail: "Adjust the copy without rebuilding the design from scratch." });
     trackConfiguratorEvent("cart_item_duplicated", { cart_id: cartId, product_id: item.productId });
   }
 
   function handleRemoveNeckLabel(itemId: string) {
-    setDraft((previous) => {
+    updateDraft((previous) => {
       const nextItems = previous.items.map((item) => {
         if (item.id !== itemId) return item;
         const updated = { ...item, neckLabel: undefined, baseUnitPrice: undefined };
         return { ...updated, unitPrice: getCartItemUnitPrice(updated) };
       });
-      const next = { ...previous, items: nextItems };
-      persistCartDraft(next);
-      return next;
+      return { ...previous, items: nextItems };
     });
     setFeedback({ tone: "success", title: "Custom label removed", detail: "The product will use the standard label unless you add one again in Studio." });
     trackConfiguratorEvent("cart_item_updated", { cart_id: cartId, item_id: itemId, change: "neck_label_removed" });
@@ -216,16 +218,14 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
 
 
   function handleRemoveArtworkSide(itemId: string, side: "front" | "back") {
-    setDraft((previous) => {
+    updateDraft((previous) => {
       const nextItems = previous.items.map((item) => {
         if (item.id !== itemId) return item;
         const artwork = { ...item.artwork, [side]: undefined };
         const updated = { ...item, artwork, baseUnitPrice: undefined };
         return { ...updated, unitPrice: getCartItemUnitPrice(updated) };
       });
-      const next = { ...previous, items: nextItems };
-      persistCartDraft(next);
-      return next;
+      return { ...previous, items: nextItems };
     });
     setFeedback({
       tone: "success",
