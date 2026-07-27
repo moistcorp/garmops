@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FileCheck2, Redo2, RotateCcw, Undo2 } from "lucide-react";
+import { ChevronUp, FileCheck2 } from "lucide-react";
 import type { GarmentView } from "@/lib/configurator/types/garment";
 import type { GarmentColour, Artwork, NeckLabel } from "@/lib/configurator/types/configurator";
 import GarmentPreview from "./GarmentPreview/GarmentPreview";
@@ -17,6 +17,7 @@ import {
 import { TECHNIQUE_LABELS } from "./ConfiguratorSidebar/ArtworkPanel/TechniqueSelect";
 import { OrderBar } from "./OrderBar";
 import { ConfiguratorTopBar } from "./ConfiguratorTopBar";
+import type { ConfiguratorJourneyStep } from "./ConfiguratorJourney";
 import { WhatsAppAssistantBar } from "./WhatsAppAssistantBar";
 import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionContext";
 import { getProduct } from "@/lib/configurator/products";
@@ -83,6 +84,11 @@ const POSITION_LABELS: Record<NeckLabel["position"], string> = {
 };
 
 const FALLBACK_PRODUCT_ID = "regular-fit-tee-200gsm";
+const JOURNEY_STEP_FOR_CUSTOMISATION: Record<AccordionStepId, ConfiguratorJourneyStep> = {
+  "garment-colour": "colour",
+  artwork: "artwork",
+  "neck-label": "neck-label",
+};
 
 function safeQuantity(value: unknown, minimum = 50): number {
   const parsed = Number(value);
@@ -180,6 +186,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   const [steps, setSteps] = useState<AccordionStepState[]>(() =>
     stepsForConfiguration(DEFAULT_COLOUR, {}, undefined)
   );
+  const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const [draftRestored, setDraftRestored] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
@@ -198,6 +205,32 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
 
   const pricingBreakdown = buildPricingBreakdown(productId, colour, artwork, neckLabel, quantity);
   const minimumQuantity = colour.type === "custom_dye" ? CUSTOM_DYE_MOQ_UNITS : 50;
+  const activeCustomisationStepId = expandedStepId ?? "garment-colour";
+  const activeDrawerStep =
+    steps.find((step) => step.id === activeCustomisationStepId) ?? INITIAL_STEPS[0];
+  const activeDrawerStepLabel =
+    isToteProduct && activeDrawerStep.id === "neck-label"
+      ? "Bag Label"
+      : activeDrawerStep.title.replace("Garment ", "");
+  const completedCustomisationSteps = new Set(
+    steps
+      .filter((step) => step.confirmed || step.skipped)
+      .map((step) => step.id)
+  );
+  const journeyStepSelection: Partial<Record<ConfiguratorJourneyStep, () => void>> = {};
+  if (completedCustomisationSteps.has("garment-colour")) {
+    journeyStepSelection.colour = () => applyExpandedStepChange("garment-colour");
+  }
+  if (completedCustomisationSteps.has("artwork")) {
+    journeyStepSelection.artwork = () => applyExpandedStepChange("artwork");
+  }
+  if (completedCustomisationSteps.has("neck-label")) {
+    journeyStepSelection["neck-label"] = () => applyExpandedStepChange("neck-label");
+  }
+
+  useEffect(() => {
+    setIsDrawerOpen(true);
+  }, [expandedStepId]);
 
   useEffect(() => {
     [artwork.front?.fileUrl, artwork.back?.fileUrl, neckLabel?.fileUrl].forEach((url) => {
@@ -492,6 +525,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         summary: `${confirmedColour.type === "signature" ? "Signature" : "Custom Dye"} - ${confirmedColour.name}`,
       });
       setActiveView("front");
+      setIsDrawerOpen(false);
       applyExpandedStepChange("artwork");
       return;
     }
@@ -505,6 +539,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
           skipped: true,
           summary: "Skipped - blank garment",
         });
+        setIsDrawerOpen(false);
         applyExpandedStepChange("neck-label");
         return;
       }
@@ -527,6 +562,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         skipped: false,
         summary: artworkSummary(readyArtwork),
       });
+      setIsDrawerOpen(false);
       applyExpandedStepChange("neck-label");
       return;
     }
@@ -539,6 +575,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
           skipped: true,
           summary: "Skipped - standard label only",
         });
+        setIsDrawerOpen(false);
         addConfigurationToCart();
         return;
       }
@@ -558,6 +595,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         skipped: false,
         summary: labelSummary(readyLabel),
       });
+      setIsDrawerOpen(false);
       addConfigurationToCart({ neckLabel: readyLabel });
       return;
     }
@@ -629,13 +667,14 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
     <ArtworkPositionProvider activeView={activeView}>
       <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-white text-[#111111]">
         <ConfiguratorTopBar
-          currentStep="customise"
+          currentStep={JOURNEY_STEP_FOR_CUSTOMISATION[activeCustomisationStepId]}
           backHref="/configurator"
           title={productName}
           onDownloadPdf={handleDownloadPdf}
           isDownloadingPdf={isDownloadingPdf}
           showCart
           links={{ product: "/configurator" }}
+          onStepSelect={journeyStepSelection}
           className="px-4"
         />
 
@@ -663,106 +702,135 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
           </ArtworkPositionProvider>
         </div>
 
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 px-4 pb-4 lg:grid-cols-[320px_minmax(0,1fr)_280px] xl:grid-cols-[360px_minmax(0,1fr)_310px] lg:px-5">
-          <aside className="order-2 flex min-h-0 min-w-0 flex-col overflow-hidden rounded-[28px] border border-[#E5E5E5] bg-white lg:order-1">
-            <div className="border-b border-[#E5E5E5] px-4 py-3">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-[#111111]/45">
-                  Guided setup
-                </p>
-                <span
-                  className={`text-[10px] font-medium uppercase tracking-wide transition-opacity ${
-                    saveStatus === "error" ? "text-[#A63A3A]" : "text-[#111111]/45"
-                  }`}
-                  aria-live="polite"
-                >
-                  {saveStatus === "saving" ? "Saving…" : saveStatus === "saved" ? "Saved" : saveStatus === "error" ? "Could not save" : "Autosave on"}
-                </span>
-              </div>
-              <h1 className="mt-1 text-lg font-semibold text-[#111111]">{productName}</h1>
-              <div className="mt-2 flex items-center gap-1" aria-label="Configuration history controls">
-                <button type="button" onClick={undoConfiguration} disabled={!canUndo} className="flex h-8 items-center gap-1 rounded-full border border-[#E5E5E5] px-2.5 text-[11px] font-semibold text-[#111111]/60 disabled:opacity-35"><Undo2 size={13} /> Undo</button>
-                <button type="button" onClick={redoConfiguration} disabled={!canRedo} className="flex h-8 items-center gap-1 rounded-full border border-[#E5E5E5] px-2.5 text-[11px] font-semibold text-[#111111]/60 disabled:opacity-35"><Redo2 size={13} /> Redo</button>
-                <button type="button" onClick={resetConfiguration} className="flex h-8 items-center gap-1 rounded-full border border-[#E5E5E5] px-2.5 text-[11px] font-semibold text-[#A63A3A]"><RotateCcw size={13} /> Reset</button>
-              </div>
-              {draftRestored && (
-                <div className="mt-2 flex items-center justify-between gap-2 rounded-md bg-[#F7F7F7] px-2.5 py-1.5 text-xs text-[#111111]/65">
-                  <span>Restored your saved progress.</span>
-                  <button
-                    type="button"
-                    onClick={() => setDraftRestored(false)}
-                    aria-label="Dismiss"
-                    className="shrink-0 font-semibold text-[#111111]/50 hover:text-[#111111]"
-                  >
-                    x
-                  </button>
-                </div>
-              )}
-            </div>
-            <div className="min-h-0 flex-1 overflow-y-auto px-3">
-              <ConfiguratorSidebar
-                expandedStepId={expandedStepId}
-                onExpandedStepChange={applyExpandedStepChange}
-                selectedColour={colour}
-                onColourChange={(next) => {
-                  const pendingColour = { ...next, confirmed: false };
-                  setColour(pendingColour);
-                  updateStep("garment-colour", {
-                    confirmed: false,
-                    skipped: false,
-                    summary: `${next.type === "signature" ? "Signature" : "Custom Dye"} - ${next.name}`,
-                  });
-                  if (next.type === "custom_dye") {
-                    setQuantity((current) => Math.max(CUSTOM_DYE_MOQ_UNITS, current));
-                  }
-                }}
-                steps={steps}
-                onStepsChange={setSteps}
-                artwork={artwork}
-                onArtworkChange={(next) => {
-                  setArtwork(next);
-                  updateStep("artwork", {
-                    confirmed: false,
-                    skipped: false,
-                    summary: artworkSummary(next),
-                  });
-                }}
-                neckLabel={neckLabel}
-                onNeckLabelChange={(next) => {
-                  setNeckLabel(next);
-                  updateStep("neck-label", {
-                    confirmed: false,
-                    skipped: false,
-                    summary: labelSummary(next),
-                  });
-                }}
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-y-auto px-4 pb-4 lg:grid-cols-[minmax(0,1fr)_300px] lg:overflow-hidden lg:px-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <main className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#ECE7DF] bg-[#F5F5F5]">
+            <div
+              data-configurator-preview="true"
+              className="flex min-h-0 flex-1 items-center justify-center overflow-hidden"
+            >
+              <GarmentPreview
                 activeView={activeView}
                 onViewChange={setActiveView}
-                unitBasePrice={unitBasePrice}
-                isToteProduct={isToteProduct}
-                onResetStep={resetStepDraft}
+                colourHex={colour.hex}
+                productId={productId}
+                artwork={artwork}
+                neckLabel={neckLabel}
               />
             </div>
-          </aside>
 
-          <main
-            data-configurator-preview="true"
-            className="order-1 relative flex min-h-0 min-w-0 flex-col items-center justify-center overflow-hidden rounded-2xl border border-[#ECE7DF] bg-[#F5F5F5] lg:order-2"
-          >
-            <GarmentPreview
-              activeView={activeView}
-              onViewChange={setActiveView}
-              colourHex={colour.hex}
-              productId={productId}
-              artwork={artwork}
-              neckLabel={neckLabel}
-            />
-            <div className="fixed bottom-4 right-4 z-40 lg:absolute lg:z-10">
+            <div
+              className={`absolute right-4 z-10 transition-[bottom] duration-300 ease-in-out ${
+                isDrawerOpen ? "bottom-[calc(42%+1rem)]" : "bottom-16"
+              }`}
+            >
               <WhatsAppAssistantBar configId={configId} />
             </div>
+
+            <section
+              aria-label="Customisation drawer"
+              className={`absolute inset-x-0 bottom-0 z-20 flex flex-col overflow-hidden rounded-t-2xl border-t border-[#E5E5E5] bg-white shadow-[0_-8px_24px_rgba(0,0,0,0.08)] transition-[height] duration-300 ease-in-out ${
+                isDrawerOpen ? "h-[42%]" : "h-14"
+              }`}
+            >
+              <button
+                type="button"
+                onClick={() => setIsDrawerOpen((open) => !open)}
+                aria-expanded={isDrawerOpen}
+                aria-controls="customisation-drawer-content"
+                className="flex h-14 shrink-0 items-center justify-between gap-3 px-4 text-left hover:bg-[#F7F7F7]"
+              >
+                <span className="min-w-0 truncate text-sm font-medium text-[#111111]">
+                  {activeDrawerStepLabel}
+                  <span className="font-normal text-[#111111]/50">
+                    {" · "}
+                    {activeDrawerStep.summary ?? "Not added yet"}
+                  </span>
+                </span>
+                <ChevronUp
+                  size={17}
+                  strokeWidth={2.2}
+                  aria-hidden="true"
+                  className={`shrink-0 transition-transform duration-300 ${
+                    isDrawerOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              <div
+                id="customisation-drawer-content"
+                aria-hidden={!isDrawerOpen}
+                className={`flex min-h-0 flex-1 flex-col overflow-hidden transition-opacity duration-200 ${
+                  isDrawerOpen ? "opacity-100" : "pointer-events-none opacity-0"
+                }`}
+              >
+                {draftRestored && (
+                  <div className="flex shrink-0 items-center justify-between gap-2 bg-[#F7F7F7] px-3 py-1.5 text-xs text-[#111111]/65">
+                    <span>Restored your saved progress.</span>
+                    <button
+                      type="button"
+                      onClick={() => setDraftRestored(false)}
+                      aria-label="Dismiss"
+                      className="shrink-0 font-semibold text-[#111111]/50 hover:text-[#111111]"
+                    >
+                      x
+                    </button>
+                  </div>
+                )}
+
+                <div className="min-h-0 flex-1">
+                  <ConfiguratorSidebar
+                    expandedStepId={expandedStepId}
+                    onExpandedStepChange={applyExpandedStepChange}
+                    selectedColour={colour}
+                    onColourChange={(next) => {
+                      const pendingColour = { ...next, confirmed: false };
+                      setColour(pendingColour);
+                      updateStep("garment-colour", {
+                        confirmed: false,
+                        skipped: false,
+                        summary: `${next.type === "signature" ? "Signature" : "Custom Dye"} - ${next.name}`,
+                      });
+                      if (next.type === "custom_dye") {
+                        setQuantity((current) => Math.max(CUSTOM_DYE_MOQ_UNITS, current));
+                      }
+                    }}
+                    steps={steps}
+                    onStepsChange={setSteps}
+                    artwork={artwork}
+                    onArtworkChange={(next) => {
+                      setArtwork(next);
+                      updateStep("artwork", {
+                        confirmed: false,
+                        skipped: false,
+                        summary: artworkSummary(next),
+                      });
+                    }}
+                    neckLabel={neckLabel}
+                    onNeckLabelChange={(next) => {
+                      setNeckLabel(next);
+                      updateStep("neck-label", {
+                        confirmed: false,
+                        skipped: false,
+                        summary: labelSummary(next),
+                      });
+                    }}
+                    activeView={activeView}
+                    onViewChange={setActiveView}
+                    unitBasePrice={unitBasePrice}
+                    isToteProduct={isToteProduct}
+                    onResetStep={resetStepDraft}
+                    canUndo={canUndo}
+                    canRedo={canRedo}
+                    onUndo={undoConfiguration}
+                    onRedo={redoConfiguration}
+                    onResetAll={resetConfiguration}
+                  />
+                </div>
+              </div>
+            </section>
           </main>
 
-          <aside className="order-3 flex min-h-0 min-w-0 flex-col justify-between gap-3 overflow-y-auto">
+          <aside className="flex min-h-0 min-w-0 flex-col justify-between gap-3 overflow-y-auto">
             <div className="rounded-[28px] border border-[#ECE7DF] bg-white p-4 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-[#111111]/45">

@@ -4,7 +4,9 @@ import { ConfiguratorStageTracker } from "./ConfiguratorStageTracker";
 
 export type ConfiguratorJourneyStep =
   | "product"
-  | "customise"
+  | "colour"
+  | "artwork"
+  | "neck-label"
   | "quantity"
   | "company"
   | "review"
@@ -13,6 +15,7 @@ export type ConfiguratorJourneyStep =
 interface ConfiguratorJourneyProps {
   currentStep: ConfiguratorJourneyStep;
   links?: Partial<Record<ConfiguratorJourneyStep, string>>;
+  onStepSelect?: Partial<Record<ConfiguratorJourneyStep, () => void>>;
   compact?: boolean;
   className?: string;
 }
@@ -23,9 +26,11 @@ const STEPS: Array<{
   minutesRemaining: number;
 }> = [
   { id: "product", label: "Product", minutesRemaining: 8 },
-  { id: "customise", label: "Customise", minutesRemaining: 6 },
-  { id: "quantity", label: "Quantity", minutesRemaining: 4 },
-  { id: "company", label: "Company & delivery", minutesRemaining: 3 },
+  { id: "colour", label: "Colour", minutesRemaining: 6 },
+  { id: "artwork", label: "Artwork", minutesRemaining: 5 },
+  { id: "neck-label", label: "Neck Label", minutesRemaining: 4 },
+  { id: "quantity", label: "Quantity", minutesRemaining: 3 },
+  { id: "company", label: "Company & delivery", minutesRemaining: 2 },
   { id: "review", label: "Review", minutesRemaining: 1 },
   { id: "reserve", label: "Reserve", minutesRemaining: 0 },
 ];
@@ -33,6 +38,7 @@ const STEPS: Array<{
 export function ConfiguratorJourney({
   currentStep,
   links = {},
+  onStepSelect = {},
   compact = false,
   className = "",
 }: ConfiguratorJourneyProps) {
@@ -56,8 +62,9 @@ export function ConfiguratorJourney({
       </div>
       <ol className="scrollbar-hide flex gap-2 overflow-x-auto pb-0.5" role="list">
         {STEPS.map((step, index) => {
-          const complete = index < currentIndex;
           const active = index === currentIndex;
+          const selectHandler = onStepSelect[step.id];
+          const complete = !active && (index < currentIndex || Boolean(selectHandler));
           const href = complete ? links[step.id] : undefined;
           const content = (
             <>
@@ -78,7 +85,16 @@ export function ConfiguratorJourney({
 
           return (
             <li key={step.id} className="flex min-w-fit items-center">
-              {href ? (
+              {complete && selectHandler ? (
+                <button
+                  type="button"
+                  onClick={selectHandler}
+                  className="flex min-h-9 items-center gap-2 rounded-full px-2 hover:bg-[#F7F7F7]"
+                  aria-label={`Return to ${step.label}`}
+                >
+                  {content}
+                </button>
+              ) : href ? (
                 <Link
                   href={href}
                   className="flex min-h-9 items-center gap-2 rounded-full px-2 hover:bg-[#F7F7F7]"

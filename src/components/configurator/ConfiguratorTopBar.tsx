@@ -20,6 +20,7 @@ export interface ConfiguratorTopBarProps {
   isDownloadDisabled?: boolean;
   showCart?: boolean;
   links?: Partial<Record<ConfiguratorJourneyStep, string>>;
+  onStepSelect?: Partial<Record<ConfiguratorJourneyStep, () => void>>;
   className?: string;
 }
 
@@ -29,13 +30,15 @@ export function getCartJourneyLinks(
   firstItemId?: string
 ): Partial<Record<ConfiguratorJourneyStep, string>> {
   const encodedCartId = encodeURIComponent(cartId);
-  const customiseHref = firstProductId && firstItemId
+  const buildHref = firstProductId && firstItemId
     ? `/configurator/build/${encodeURIComponent(firstProductId)}?cartId=${encodedCartId}&itemId=${encodeURIComponent(firstItemId)}`
     : "/configurator";
 
   return {
     product: "/configurator",
-    customise: customiseHref,
+    colour: buildHref,
+    artwork: buildHref,
+    "neck-label": buildHref,
     quantity: `/configurator/cart/${encodedCartId}/review`,
     company: `/configurator/cart/${encodedCartId}/shipping`,
   };
@@ -50,6 +53,7 @@ export function ConfiguratorTopBar({
   isDownloadDisabled = false,
   showCart = false,
   links = {},
+  onStepSelect = {},
   className = "",
 }: ConfiguratorTopBarProps) {
   return (
@@ -121,6 +125,7 @@ export function ConfiguratorTopBar({
             currentStep={currentStep}
             compact
             links={links}
+            onStepSelect={onStepSelect}
             className="!rounded-none !border-0 !bg-transparent !shadow-none"
           />
         </div>
