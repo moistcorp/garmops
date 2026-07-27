@@ -3,7 +3,7 @@ import Image from 'next/image'
 
 export default function Footer() {
   return (
-    <footer className="border-t border-[#ECE7DF] px-6 py-14 bg-[var(--color-cream)]">
+    <footer className="border-t border-[#ECE7DF] bg-white px-6 py-14">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-10 text-sm text-[#111111]/50">
         <div>
           <Link href="/">

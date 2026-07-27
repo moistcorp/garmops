@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Copy, Plus, Tag } from 'lucide-react';
+import { ArrowLeft, Copy, Plus } from 'lucide-react';
 import type { ProductId } from '@/lib/configurator/pricing';
 import type { GarmentColour, Artwork, NeckLabel } from '@/lib/configurator/types/configurator';
 import type { GarmentView } from '@/lib/configurator/types/garment';
@@ -27,6 +27,8 @@ import { CUSTOM_DYE_MOQ_UNITS } from '@/lib/configurator/colours';
 import { getSizeChart } from '@/lib/sizecharts';
 import { getProduct } from '@/lib/configurator/products';
 import CanvasRenderer from '../GarmentPreview/CanvasRenderer';
+import { NECK_PREVIEW_CANVAS_CLASS } from '../GarmentPreview/GarmentPreview';
+import ViewTabs from '../GarmentPreview/ViewTabs';
 import { ArtworkPositionProvider } from '@/lib/configurator/ArtworkPositionContext';
 import { restoreConfigurationUploads } from '@/lib/configurator/objectUrls';
 import { generateApprovalPdf } from '@/lib/configurator/approvalPdf';
@@ -51,8 +53,6 @@ export interface CartItem {
 export interface OrderReviewStepProps {
   cartId: string;
 }
-
-const GARMENT_VIEWS: GarmentView[] = ['front', 'neck', 'back'];
 
 export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
   const router = useRouter();
@@ -90,7 +90,9 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
         const updatedMessage = window.sessionStorage.getItem('garmops:cart-update');
         if (updatedMessage) {
           window.sessionStorage.removeItem('garmops:cart-update');
-          setFeedback({ tone: 'success', title: updatedMessage });
+          if (updatedMessage !== 'Design updated successfully.') {
+            setFeedback({ tone: 'success', title: updatedMessage });
+          }
         }
       } catch {
         if (!cancelled) setFeedback({ tone: 'error', title: 'Could not restore the cart', detail: 'Your browser draft may be unavailable. Reload once or return to the configurator.' });
@@ -150,18 +152,6 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
     trackConfiguratorEvent("size_allocation_edited", { cart_id: cartId, item_id: itemId, size, quantity: qty });
   }
 
-
-  function handleProjectNameChange(projectName: string) {
-    updateDraft((previous) => ({
-      ...previous,
-      projectName: projectName.slice(0, 120),
-    }));
-    trackConfiguratorEvent("cart_item_updated", {
-      cart_id: cartId,
-      change: "project_name",
-    });
-  }
-
   function handleEdit(item: CartItem) {
     const query = new URLSearchParams({ cartId, itemId: item.id });
     router.push(
@@ -202,20 +192,6 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
     setFeedback({ tone: "success", title: "Product duplicated", detail: "Adjust the copy without rebuilding the design from scratch." });
     trackConfiguratorEvent("cart_item_duplicated", { cart_id: cartId, product_id: item.productId });
   }
-
-  function handleRemoveNeckLabel(itemId: string) {
-    updateDraft((previous) => {
-      const nextItems = previous.items.map((item) => {
-        if (item.id !== itemId) return item;
-        const updated = { ...item, neckLabel: undefined, baseUnitPrice: undefined };
-        return { ...updated, unitPrice: getCartItemUnitPrice(updated) };
-      });
-      return { ...previous, items: nextItems };
-    });
-    setFeedback({ tone: "success", title: "Custom label removed", detail: "The product will use the standard label unless you add one again in Studio." });
-    trackConfiguratorEvent("cart_item_updated", { cart_id: cartId, item_id: itemId, change: "neck_label_removed" });
-  }
-
 
   function handleRemoveArtworkSide(itemId: string, side: "front" | "back") {
     updateDraft((previous) => {
@@ -332,21 +308,6 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-6">
         {feedback && <ActionFeedback {...feedback} onDismiss={feedback.tone === 'loading' ? undefined : () => setFeedback(null)} actionLabel={feedback.tone === 'error' ? 'Retry PDF' : undefined} onAction={feedback.tone === 'error' ? handleDownloadApprovalPdf : undefined} />}
-        <section className="rounded-xl border border-[#ECE7DF] bg-white p-4">
-          <label htmlFor="project-name" className="text-xs font-semibold uppercase tracking-wide text-[#111111]/55">
-            Project name (optional)
-          </label>
-          <input
-            id="project-name"
-            type="text"
-            maxLength={120}
-            value={draft.projectName}
-            onChange={(event) => handleProjectNameChange(event.target.value)}
-            placeholder="Example: Employee Onboarding Kit — Q4"
-            className="mt-2 min-h-11 w-full rounded-xl border border-[#E5E5E5] bg-[#F7F7F7] px-3 text-sm text-[#111111] placeholder:text-[#111111]/35 focus:border-[var(--color-teal)] focus:outline-none"
-          />
-          <p className="mt-1 text-xs text-[#111111]/50">Shown on the approval PDF and final project review.</p>
-        </section>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-[#111111]/50">
@@ -373,13 +334,6 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             </button>
           </div>
         </div>
-
-        <section className="rounded-lg border border-[var(--color-teal)]/25 bg-[var(--color-teal)]/5 p-4">
-          <p className="text-sm font-semibold text-[#111111]">Built for internal approvals</p>
-          <p className="mt-1 text-sm leading-relaxed text-[#111111]/60">
-            Download a dated proposal with customised product details, artwork placement, size allocation, pricing and the reservation workflow. Forward it to your manager, Finance or Procurement team.
-          </p>
-        </section>
 
         {!draftLoaded && <OrderItemSkeleton />}
 
@@ -412,18 +366,36 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             <section key={item.id} className="rounded-lg border border-[#E5E5E5] bg-white p-5">
               <div className="flex flex-col gap-5 md:flex-row">
                 <div className="w-full shrink-0 md:w-44">
-                  <div className="aspect-[3/4] overflow-hidden rounded-md bg-[#F7F7F7]">
-                    <ArtworkPositionProvider activeView={selectedView}>
-                      <CanvasRenderer
-                        view={selectedView}
-                        colourHex={item.colour.hex}
+                  <div className="relative aspect-[3/4] overflow-hidden rounded-md bg-[#F7F7F7]">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <ArtworkPositionProvider activeView={selectedView}>
+                        <CanvasRenderer
+                          view={selectedView}
+                          colourHex={item.colour.hex}
+                          productId={item.productId}
+                          artwork={item.artwork}
+                          neckLabel={item.neckLabel}
+                          interactive={false}
+                          className={
+                            selectedView === "neck"
+                              ? NECK_PREVIEW_CANVAS_CLASS
+                              : "h-full w-full scale-[0.82] bg-[#F7F7F7]"
+                          }
+                        />
+                      </ArtworkPositionProvider>
+                    </div>
+                    <div className="absolute bottom-2 left-1/2 z-30 -translate-x-1/2">
+                      <ViewTabs
+                        activeView={selectedView}
+                        onChange={(view) =>
+                          setActiveView((previous) => ({
+                            ...previous,
+                            [item.id]: view,
+                          }))
+                        }
                         productId={item.productId}
-                        artwork={item.artwork}
-                        neckLabel={item.neckLabel}
-                        interactive={false}
-                        className="h-full w-full bg-[#F7F7F7]"
                       />
-                    </ArtworkPositionProvider>
+                    </div>
                   </div>
                   <div
                     data-approval-preview={item.id}
@@ -438,27 +410,9 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                         artwork={item.artwork}
                         neckLabel={item.neckLabel}
                         interactive={false}
-                        className="h-full w-full bg-[#F7F7F7]"
+                        className="h-full w-full scale-[0.82] bg-[#F7F7F7]"
                       />
                     </ArtworkPositionProvider>
-                  </div>
-                  <div className="mt-3 grid grid-cols-3 gap-1">
-                    {GARMENT_VIEWS.map((view) => (
-                      <button
-                        key={view}
-                        type="button"
-                        onClick={() =>
-                          setActiveView((prev) => ({ ...prev, [item.id]: view }))
-                        }
-                        className={`rounded border px-2 py-1 text-xs capitalize ${
-                          selectedView === view
-                            ? 'border-[var(--color-teal)] bg-[var(--color-teal)] text-white'
-                            : 'border-[#E5E5E5] text-[#111111]/70 hover:text-[#111111]'
-                        }`}
-                      >
-                        {view}
-                      </button>
-                    ))}
                   </div>
                 </div>
 
@@ -483,7 +437,6 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                       <button type="button" onClick={() => handleDuplicate(item)} className="inline-flex items-center gap-1 rounded-full border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-teal)]"><Copy size={13} /> Duplicate</button>
                       {item.artwork.front && <button type="button" onClick={() => handleRemoveArtworkSide(item.id, "front")} className="rounded-full border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-teal)]">Remove front print</button>}
                       {item.artwork.back && <button type="button" onClick={() => handleRemoveArtworkSide(item.id, "back")} className="rounded-full border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-teal)]">Remove back print</button>}
-                      {item.neckLabel && <button type="button" onClick={() => handleRemoveNeckLabel(item.id)} className="inline-flex items-center gap-1 rounded-full border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-teal)]"><Tag size={13} /> Remove label</button>}
                       {pendingDeleteItemId === item.id ? (
                         <div className="flex items-center gap-2 rounded-md border border-[#E5E5E5] px-2 py-1.5 text-xs text-[#111111]/70">
                           <span>Remove this item?</span>

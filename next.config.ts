@@ -15,8 +15,8 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-              "style-src 'self' 'unsafe-inline'",
-              "font-src 'self'",
+              "style-src 'self' 'unsafe-inline' https://api.fontshare.com",
+              "font-src 'self' https://cdn.fontshare.com",
               "img-src 'self' data: blob: https:",
               "connect-src 'self' https://api.resend.com https://formspree.io https://secure.payu.in https://test.payu.in",
               "frame-src https://secure.payu.in https://test.payu.in",

@@ -625,7 +625,7 @@ function ProductRecapCard({ item }: { item: CartItem }) {
             artwork={item.artwork}
             neckLabel={item.neckLabel}
             interactive={false}
-            className="h-full w-full bg-[#F7F7F7]"
+            className="h-full w-full scale-[0.82] bg-[#F7F7F7]"
           />
         </ArtworkPositionProvider>
       </div>

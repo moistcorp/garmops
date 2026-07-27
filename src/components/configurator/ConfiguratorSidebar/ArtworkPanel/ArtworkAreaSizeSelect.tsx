@@ -1,4 +1,5 @@
-import { JSX, useState } from 'react';
+import { JSX, useId, useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import type { PrintAreaSize } from '@/lib/configurator/types/configurator';
 import { PRINT_AREA_SIZE_CHART } from '@/lib/configurator/sizecharts';
 
@@ -13,6 +14,7 @@ export interface ArtworkAreaSizeSelectProps {
 }
 
 export function ArtworkAreaSizeSelect(props?: ArtworkAreaSizeSelectProps): JSX.Element {
+  const selectId = useId();
   const controlled = props?.value !== undefined;
   const [internalValue, setInternalValue] = useState<PrintAreaSize>(
     props?.value ?? SIZE_ORDER[0]
@@ -27,35 +29,41 @@ export function ArtworkAreaSizeSelect(props?: ArtworkAreaSizeSelectProps): JSX.E
   const maxSize = SIZE_ORDER[SIZE_ORDER.length - 1];
 
   return (
-    <div className="flex flex-col gap-1">
-      <span className="text-sm font-medium">Smallest Size (Sets Artwork Area)</span>
-      <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Smallest artwork size">
-        {SIZE_ORDER.map((size) => {
-          const dims = PRINT_AREA_SIZE_CHART[size];
-          const selected = value === size;
-          return (
-            <button
-              key={size}
-              type="button"
-              role="radio"
-              aria-checked={selected}
-              onClick={() => handleChange(size)}
-              className={`rounded-md border px-2 py-2 text-left text-xs transition-colors ${
-                selected
-                  ? 'border-[var(--color-teal)] bg-[var(--color-teal)] text-white'
-                  : 'configurator-glass-control border text-[#111111] hover:!border-[var(--color-teal)]/45 hover:!bg-white/60'
-              }`}
-            >
-              <span className="block font-semibold">{size}</span>
-              <span className={selected ? 'text-white/70' : 'text-[#111111]/50'}>
-                {dims.width}×{dims.height}cm
-              </span>
-            </button>
-          );
-        })}
+    <div className="flex flex-col gap-1.5">
+      <label
+        htmlFor={selectId}
+        className="text-xs font-semibold leading-none tracking-normal text-[#111111]/70"
+      >
+        Smallest Size{" "}
+        <span className="font-normal text-[#111111]/45">
+          (sets artwork area)
+        </span>
+      </label>
+      <div className="relative">
+        <select
+          id={selectId}
+          value={value}
+          onChange={(event) => handleChange(event.target.value as PrintAreaSize)}
+          className="configurator-glass-control h-11 w-full appearance-none rounded-xl border px-3 pr-9 text-sm font-medium leading-none tracking-normal text-[#111111]/80 outline-none focus:!border-[var(--color-teal)]/60"
+        >
+          {SIZE_ORDER.map((size) => {
+            const dims = PRINT_AREA_SIZE_CHART[size];
+            return (
+              <option key={size} value={size}>
+                {size} — {dims.width} × {dims.height} cm
+              </option>
+            );
+          })}
+        </select>
+        <ChevronDown
+          size={15}
+          strokeWidth={2.2}
+          aria-hidden="true"
+          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#111111]/45"
+        />
       </div>
-      <p className="text-xs text-muted-foreground">
-        Sizes to order: {value} - {maxSize}
+      <p className="text-xs leading-relaxed tracking-normal text-[#111111]/45">
+        Sizes to order: {value}–{maxSize}. The dotted boundary updates automatically.
       </p>
     </div>
   );

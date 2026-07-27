@@ -15,6 +15,7 @@ export type ConfiguratorAnalyticsEvent =
   | "artwork_placement_reset"
   | "artwork_left_chest_applied"
   | "artwork_copied_to_back"
+  | "artwork_copied_to_front"
   | "neck_label_skipped"
   | "configuration_undo"
   | "configuration_redo"

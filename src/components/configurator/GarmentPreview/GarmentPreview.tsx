@@ -15,7 +15,11 @@ interface GarmentPreviewProps {
   artwork: Artwork;
   neckLabel?: NeckLabel;
   hideBackView?: boolean;
+  showProductionGuides?: boolean;
 }
+
+export const NECK_PREVIEW_CANVAS_CLASS =
+  "aspect-square h-[165%] max-w-none shrink-0 translate-y-[3%] rounded-lg sm:h-[180%] sm:translate-y-[4%] lg:h-[190%] lg:translate-y-[5%]";
 
 function luminance(hex: string): number {
   const clean = hex.replace("#", "");
@@ -47,6 +51,7 @@ export default function GarmentPreview({
   artwork,
   neckLabel,
   hideBackView = false,
+  showProductionGuides = false,
 }: GarmentPreviewProps) {
   const activeArtwork = activeView === "front" ? artwork.front : activeView === "back" ? artwork.back : undefined;
   const quality = getArtworkQuality(activeArtwork);
@@ -66,10 +71,10 @@ export default function GarmentPreview({
             productId={productId}
             artwork={artwork}
             neckLabel={neckLabel}
-            showProductionGuides
+            showProductionGuides={showProductionGuides}
             className={
               activeView === "neck"
-                ? "aspect-square h-[165%] max-w-none shrink-0 translate-y-[3%] rounded-lg sm:h-[180%] sm:translate-y-[4%] lg:h-[190%] lg:translate-y-[5%]"
+                ? NECK_PREVIEW_CANVAS_CLASS
                 : "aspect-square h-[min(68dvh,760px)] max-h-full max-w-full scale-110 rounded-lg"
             }
           />

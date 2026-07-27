@@ -122,7 +122,7 @@ function stepsForConfiguration(
         ...step,
         confirmed: restored?.confirmed ?? Boolean(summary),
         skipped: !summary && restored?.skipped === true,
-        summary: summary ?? (restored?.skipped ? "Skipped - blank garment" : null),
+        summary: summary ?? (restored?.skipped ? "No artwork added" : null),
       };
     }
     const summary = labelSummary(neckLabel);
@@ -221,9 +221,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
             ? "Front artwork added · Back not added"
             : artwork.back?.fileUrl
               ? "Back artwork added · Front not added"
-              : activeDrawerStep.skipped
-                ? "Artwork skipped"
-                : "No artwork added"
+              : "No artwork added"
         : neckLabel?.fileUrl
           ? `${isToteProduct ? "Bag" : "Neck"} label added`
           : activeDrawerStep.skipped
@@ -246,7 +244,10 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   if (completedCustomisationSteps.has("garment-colour")) {
     journeyStepSelection.colour = () => applyExpandedStepChange("garment-colour");
   }
-  if (completedCustomisationSteps.has("artwork")) {
+  if (
+    completedCustomisationSteps.has("artwork") ||
+    activeCustomisationStepId === "neck-label"
+  ) {
     journeyStepSelection.artwork = () => applyExpandedStepChange("artwork");
   }
   if (completedCustomisationSteps.has("neck-label")) {
@@ -474,13 +475,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         }
       }
     }
-    if (editCartId && typeof window !== "undefined") {
-      try {
-        window.sessionStorage.setItem("garmops:cart-update", "Design updated successfully.");
-      } catch {
-        // The cart itself is already saved; this success toast is optional.
-      }
-    }
     trackConfiguratorEvent("added_to_cart", { product_id: productId, quantity, editing: Boolean(editCartId) });
     clearBuildDraft(configId);
     router.push(`/configurator/cart/${encodeURIComponent(targetCartId)}/review`);
@@ -514,7 +508,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         updateStep("artwork", {
           confirmed: true,
           skipped: true,
-          summary: "Skipped - blank garment",
+          summary: "No artwork added",
         });
         applyExpandedStepChange("neck-label");
         return;
@@ -712,6 +706,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 artwork={artwork}
                 neckLabel={previewNeckLabel}
                 hideBackView={activeCustomisationStepId === "neck-label"}
+                showProductionGuides={activeCustomisationStepId === "artwork"}
               />
             </div>
 

@@ -60,7 +60,7 @@ export default function HeroScrollVideo() {
   return (
     <>
       <section className="grid lg:grid-cols-2 min-h-[90vh]">
-        <div className="flex flex-col justify-center px-8 md:px-16 py-20 lg:py-0 bg-[var(--color-cream)]">
+        <div className="flex flex-col justify-center bg-white px-8 py-20 md:px-16 lg:py-0">
           <p className="text-xs text-[#595959] font-medium mb-6 tracking-widest uppercase">
             Custom apparel for businesses
           </p>

@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
 import type { ProductId } from "@/lib/configurator/pricing";
 import type {
@@ -18,43 +18,35 @@ import {
   PX_PER_CM_X,
   PX_PER_CM_Y,
   PRINT_ORIGIN_PX,
+  PRINT_AREA_TOP_OFFSET_CM,
   DRAGGABLE_VIEWS,
-  MIN_OFFSET,
+  constrainArtworkToPrintArea,
   resizeWithAspect,
-  clampDim,
 } from "@/lib/configurator/ArtworkPositionContext";
 import { PRINT_AREA_SIZE_CHART } from "@/lib/configurator/sizecharts";
-import { LEFT_CHEST_DIMENSIONS } from "@/components/configurator/ConfiguratorSidebar/ArtworkPanel/GuidelinesToggles";
+import {
+  LEFT_CHEST_DIMENSIONS,
+  LEFT_CHEST_PLACEMENT,
+} from "@/components/configurator/ConfiguratorSidebar/ArtworkPanel/GuidelinesToggles";
 import GarmentComposite, { getDisplayPreviewHex } from "./GarmentComposite";
 
 // Matches the small top margin PositionControls/the box default use as the
 // garment's overall printable boundary — the guideline overlays anchor here
 // rather than to the user's current (adjustable) artwork box position, since
 // they represent a fixed manufacturing limit, not the artwork placement.
-const GUIDELINE_TOP_MARGIN_CM = 3;
-const LEFT_CHEST_FROM_CENTER_CM = 9;
-
-// Neck label sizing/position calibration, per view. "neck" is the zoomed
-// close-up crop; "front" is the full garment shot — the label should still
-// show there (a woven tag typically peeks up just above the back collar
-// even in a front-facing shot) but much smaller and higher up than in the
-// close-up. Neither view has a defined cm scale of its own (see
-// PX_PER_CM_X/Y note above), so these are separate constants — tune them
-// against the real garment art if the label looks under/oversized or
-// misaligned with the collar/tape.
-const NECK_LABEL_VIEWS = ["front", "neck"] as const;
+// Neck labels are internal details, so they render only in the dedicated
+// close-up instead of floating above the garment in front/back views.
+const NECK_LABEL_VIEWS = ["neck"] as const;
 const SAMPLE_NECK_LABEL_HREF = "/garments/neck-label-sample.svg";
 type NeckLabelView = (typeof NECK_LABEL_VIEWS)[number];
 
+const BASE_GARMENT_INSET_PERCENT = 2;
+const ENLARGED_GARMENT_INSET_PERCENT = -8.3;
+
 const NECK_LABEL_PX_PER_MM: Record<NeckLabelView, number> = {
-  front: 0.55, // front is zoomed out relative to the neck close-up crop
   neck: 2.4,
 };
 const NECK_LABEL_TOP_PERCENT: Record<NeckLabelView, Record<NeckLabelPosition, number>> = {
-  front: {
-    below_neck_tape: 14, // small peek just above the back collar seam
-    on_neck_tape: 13,
-  },
   neck: {
     below_neck_tape: 35, // hangs just under the neck binding, as a sewn-in tag
     on_neck_tape: 33, // sits directly over/on the binding tape itself
@@ -96,6 +88,12 @@ interface CanvasRendererProps {
 const CANVAS_SIZE = CANVAS_PX;
 
 type DragMode = "move" | "resize";
+
+function formatPlacementCm(value: number, signed = false): string {
+  const normalized = Math.abs(value) < 0.05 ? 0 : value;
+  const formatted = normalized.toFixed(1).replace(/\.0$/, "");
+  return signed && normalized > 0 ? `+${formatted}` : formatted;
+}
 
 interface DragOrigin {
   mode: DragMode;
@@ -327,6 +325,7 @@ export default function CanvasRenderer({
   const { positions, updatePosition } = useArtworkPosition();
   const dragOrigin = useRef<DragOrigin | null>(null);
   const canvasRef = useRef<HTMLDivElement | null>(null);
+  const [dragMode, setDragMode] = useState<DragMode | null>(null);
   const garmentFolder = getGarmentFolder(productId);
 
   const showBox = DRAGGABLE_VIEWS.includes(view);
@@ -373,94 +372,150 @@ export default function CanvasRenderer({
 
   // Print guideline overlays (maximum printable area / left-chest reference),
   // anchored to the garment's fixed boundaries rather than the user's
-  // adjustable artwork box — see GUIDELINE_TOP_MARGIN_CM note above.
+  // adjustable artwork box.
   const printAreaDims = activeArtwork
     ? PRINT_AREA_SIZE_CHART[activeArtwork.printArea]
     : undefined;
+  const canEditArtwork = Boolean(
+    interactive &&
+      showProductionGuides &&
+      showBox &&
+      activeArtwork?.technique &&
+      printAreaDims
+  );
   const showMaxArea = showProductionGuides && interactive && showBox && !!activeArtwork?.guidelines.maximumArea && !!printAreaDims;
   const showLeftChest = showProductionGuides && interactive && showBox && !!activeArtwork?.guidelines.leftChest;
 
   const maxAreaWidthPx = printAreaDims ? printAreaDims.width * PX_PER_CM_X : 0;
   const maxAreaHeightPx = printAreaDims ? printAreaDims.height * PX_PER_CM_Y : 0;
   const maxAreaLeftPx = PRINT_ORIGIN_PX.x - maxAreaWidthPx / 2;
-  const maxAreaTopPx = PRINT_ORIGIN_PX.y + GUIDELINE_TOP_MARGIN_CM * PX_PER_CM_Y;
+  const maxAreaTopPx = PRINT_ORIGIN_PX.y + PRINT_AREA_TOP_OFFSET_CM * PX_PER_CM_Y;
 
   const chestWidthPx = LEFT_CHEST_DIMENSIONS.width * PX_PER_CM_X;
   const chestHeightPx = LEFT_CHEST_DIMENSIONS.height * PX_PER_CM_Y;
-  const chestLeftPx = PRINT_ORIGIN_PX.x + LEFT_CHEST_FROM_CENTER_CM * PX_PER_CM_X - chestWidthPx / 2;
-  const chestTopPx = PRINT_ORIGIN_PX.y + GUIDELINE_TOP_MARGIN_CM * PX_PER_CM_Y;
+  const chestLeftPx =
+    PRINT_ORIGIN_PX.x +
+    LEFT_CHEST_PLACEMENT.fromCenterCm * PX_PER_CM_X -
+    chestWidthPx / 2;
+  const chestTopPx =
+    PRINT_ORIGIN_PX.y +
+    LEFT_CHEST_PLACEMENT.fromNeckCm * PX_PER_CM_Y;
 
   const handlePointerMove = (e: PointerEvent) => {
     const origin = dragOrigin.current;
-    if (!origin) return;
+    if (!origin || !printAreaDims) return;
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect || rect.width <= 0 || rect.height <= 0) return;
 
-    // Convert screen pixels back into the renderer's fixed 1000×1000 design
+    // Convert screen pixels back into the renderer's fixed 600×600 design
     // coordinate space before applying the cm scale. This keeps movement and
     // resizing consistent when the desktop window/canvas is resized.
     const dCanvasPxX = (e.clientX - origin.pointerX) * (CANVAS_SIZE.width / rect.width);
     const dCanvasPxY = (e.clientY - origin.pointerY) * (CANVAS_SIZE.height / rect.height);
+    const originState = {
+      ...boxState,
+      widthCm: origin.startWidthCm,
+      heightCm: origin.startHeightCm,
+      fromNeckCm: origin.startFromNeckCm,
+      fromCenterCm: origin.startFromCenterCm,
+      alignH: null,
+      alignV: null,
+    };
 
     if (origin.mode === "move") {
-      updatePosition(view, {
-        fromCenterCm: clampDim(
-          origin.startFromCenterCm + dCanvasPxX / PX_PER_CM_X,
-          MIN_OFFSET
-        ),
-        fromNeckCm: clampDim(
-          origin.startFromNeckCm + dCanvasPxY / PX_PER_CM_Y,
-          MIN_OFFSET
-        ),
-      });
+      updatePosition(
+        view,
+        constrainArtworkToPrintArea(
+          {
+            ...originState,
+            fromCenterCm:
+              origin.startFromCenterCm + dCanvasPxX / PX_PER_CM_X,
+            fromNeckCm:
+              origin.startFromNeckCm + dCanvasPxY / PX_PER_CM_Y,
+          },
+          printAreaDims
+        )
+      );
       return;
     }
 
+    const resized = resizeWithAspect(
+      originState,
+      "height",
+      origin.startHeightCm + dCanvasPxY / PX_PER_CM_Y
+    );
     updatePosition(
       view,
-      resizeWithAspect(
-        { ...boxState, widthCm: origin.startWidthCm, heightCm: origin.startHeightCm },
-        "width",
-        origin.startWidthCm + dCanvasPxX / PX_PER_CM_X
+      constrainArtworkToPrintArea(
+        { ...originState, ...resized },
+        printAreaDims
       )
     );
   };
 
   const handleCanvasKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
-    if (!interactive || !activeArtwork || !DRAGGABLE_VIEWS.includes(view)) return;
+    if (!canEditArtwork || !printAreaDims) return;
     const step = event.shiftKey ? 1 : 0.5;
     if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
       event.preventDefault();
       if (event.altKey) {
         const delta = event.key === "ArrowLeft" || event.key === "ArrowDown" ? -step : step;
-        updatePosition(view, resizeWithAspect(boxState, "width", boxState.widthCm + delta));
+        updatePosition(
+          view,
+          constrainArtworkToPrintArea(
+            {
+              ...boxState,
+              ...resizeWithAspect(
+                boxState,
+                "width",
+                boxState.widthCm + delta
+              ),
+              alignH: null,
+              alignV: null,
+            },
+            printAreaDims
+          )
+        );
         return;
       }
-      updatePosition(view, {
-        fromCenterCm: event.key === "ArrowLeft"
-          ? clampDim(boxState.fromCenterCm - step, MIN_OFFSET)
-          : event.key === "ArrowRight"
-            ? clampDim(boxState.fromCenterCm + step, MIN_OFFSET)
-            : boxState.fromCenterCm,
-        fromNeckCm: event.key === "ArrowUp"
-          ? clampDim(boxState.fromNeckCm - step, MIN_OFFSET)
-          : event.key === "ArrowDown"
-            ? clampDim(boxState.fromNeckCm + step, MIN_OFFSET)
-            : boxState.fromNeckCm,
-      });
+      updatePosition(
+        view,
+        constrainArtworkToPrintArea(
+          {
+            ...boxState,
+            alignH: null,
+            alignV: null,
+            fromCenterCm:
+              event.key === "ArrowLeft"
+                ? boxState.fromCenterCm - step
+                : event.key === "ArrowRight"
+                  ? boxState.fromCenterCm + step
+                  : boxState.fromCenterCm,
+            fromNeckCm:
+              event.key === "ArrowUp"
+                ? boxState.fromNeckCm - step
+                : event.key === "ArrowDown"
+                  ? boxState.fromNeckCm + step
+                  : boxState.fromNeckCm,
+          },
+          printAreaDims
+        )
+      );
     }
   };
 
   const handlePointerUp = () => {
     dragOrigin.current = null;
+    setDragMode(null);
     window.removeEventListener("pointermove", handlePointerMove);
     window.removeEventListener("pointerup", handlePointerUp);
   };
 
   const handleDragStart = (e: ReactPointerEvent<HTMLDivElement>, mode: DragMode) => {
-    if (!interactive) return;
+    if (!canEditArtwork) return;
     e.preventDefault();
     e.stopPropagation();
+    setDragMode(mode);
     dragOrigin.current = {
       mode,
       pointerX: e.clientX,
@@ -477,18 +532,34 @@ export default function CanvasRenderer({
   return (
     <div
       ref={canvasRef}
-      className={`relative overflow-hidden ${className}`}
+      className={`relative ${
+        view === "front" || view === "back"
+          ? "overflow-visible"
+          : "overflow-hidden"
+      } ${className}`}
       style={style}
-      tabIndex={interactive && activeArtwork ? 0 : undefined}
+      tabIndex={canEditArtwork ? 0 : undefined}
       onKeyDown={handleCanvasKeyDown}
-      aria-label={activeArtwork ? `${view} garment preview. Use arrow keys to move artwork; Alt plus arrow keys resize it.` : `${view} garment preview`}
+      aria-label={
+        canEditArtwork
+          ? `${view} garment preview. Use arrow keys to move artwork; Alt plus arrow keys resize it.`
+          : `${view} garment preview`
+      }
     >
       {!garmentFolder && (
         <div className="absolute inset-0 z-30 flex items-center justify-center bg-[#F7F7F7] p-6 text-center text-sm font-semibold text-[#C62828]">
           Preview assets are not mapped for this product.
         </div>
       )}
-      <div className="absolute inset-[2%]">
+      <div
+        className="absolute"
+        style={{
+          inset:
+            view === "front" || view === "back"
+              ? `${ENLARGED_GARMENT_INSET_PERCENT}%`
+              : `${BASE_GARMENT_INSET_PERCENT}%`,
+        }}
+      >
         {/* Immediate colour fallback while the detail-rich canvas composite loads. */}
         <div
           className="absolute inset-0"
@@ -516,7 +587,9 @@ export default function CanvasRenderer({
       {activeArtwork && (
         <div
           onPointerDown={(e) => handleDragStart(e, "move")}
-          className={`absolute z-20 ${interactive ? "cursor-move" : "pointer-events-none"}`}
+          className={`absolute z-20 ${
+            canEditArtwork ? "cursor-move touch-none" : "pointer-events-none"
+          }`}
           style={{
             left: `${(boxLeftPx / CANVAS_SIZE.width) * 100}%`,
             top: `${(boxTopPx / CANVAS_SIZE.height) * 100}%`,
@@ -525,13 +598,45 @@ export default function CanvasRenderer({
           }}
         >
           <ArtworkPreview side={activeArtwork} />
-          {showBox && interactive && (
+          {showBox && canEditArtwork && (
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 border border-[#B534CC]"
+            />
+          )}
+          {showBox && canEditArtwork && (
             <div
               role="presentation"
               onPointerDown={(e) => handleDragStart(e, "resize")}
-              aria-label="Resize artwork"
-              className="absolute -bottom-1.5 -right-1.5 h-3 w-3 cursor-nwse-resize rounded-sm border border-white bg-[#111111]"
+              className="absolute -bottom-5 left-1/2 z-20 h-3 w-3 -translate-x-1/2 cursor-ns-resize rounded-full bg-[#B534CC] ring-1 ring-white/90"
             />
+          )}
+          {dragMode && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="pointer-events-none absolute left-1/2 top-[calc(100%+30px)] z-30 min-w-max -translate-x-1/2 rounded-xl border border-white/65 bg-[#111111]/78 px-3 py-2 font-sans text-[11px] font-semibold leading-4 text-white shadow-lg backdrop-blur-md"
+            >
+              {dragMode === "move" ? (
+                <>
+                  <span className="block">
+                    Centre: {formatPlacementCm(boxState.fromCenterCm, true)} cm
+                  </span>
+                  <span className="block">
+                    From neck: {formatPlacementCm(boxState.fromNeckCm)} cm
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="block">
+                    Width: {formatPlacementCm(boxState.widthCm)} cm
+                  </span>
+                  <span className="block">
+                    Height: {formatPlacementCm(boxState.heightCm)} cm
+                  </span>
+                </>
+              )}
+            </div>
           )}
         </div>
       )}
@@ -546,7 +651,7 @@ export default function CanvasRenderer({
         <div
           role="presentation"
           aria-label="Maximum print area guideline"
-          className="pointer-events-none absolute z-[15] border-2 border-dashed border-blue-500/70"
+          className="pointer-events-none absolute z-[15] border border-dashed border-[#B534CC]/60"
           style={{
             left: `${(maxAreaLeftPx / CANVAS_SIZE.width) * 100}%`,
             top: `${(maxAreaTopPx / CANVAS_SIZE.height) * 100}%`,
@@ -556,18 +661,22 @@ export default function CanvasRenderer({
         />
       )}
 
-      {showProductionGuides && interactive && showBox && activeArtwork && (
-        <>
-          <div aria-hidden="true" className="pointer-events-none absolute bottom-[12%] left-1/2 top-[20%] z-[14] border-l border-dashed border-[#111111]/20" />
-          <span className="pointer-events-none absolute left-1/2 top-[18%] z-[14] -translate-x-1/2 rounded-full bg-white/85 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[#111111]/45">Centre line</span>
-        </>
+      {showProductionGuides &&
+        interactive &&
+        showBox &&
+        activeArtwork &&
+        dragMode === "move" && (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute bottom-[12%] left-1/2 top-[20%] z-[14] border-l border-dashed border-[#B534CC]/60"
+          />
       )}
 
       {showLeftChest && (
         <div
           role="presentation"
           aria-label="Left chest print guideline"
-          className="pointer-events-none absolute z-[15] border-2 border-dashed border-amber-500/80"
+          className="pointer-events-none absolute z-[15] border border-dashed border-[#B534CC]/60"
           style={{
             left: `${(chestLeftPx / CANVAS_SIZE.width) * 100}%`,
             top: `${(chestTopPx / CANVAS_SIZE.height) * 100}%`,

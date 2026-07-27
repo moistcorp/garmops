@@ -23,7 +23,7 @@ export function WhatsAppAssistantBar({ configId, productName }: WhatsAppAssistan
         href={whatsappHref}
         target="_blank"
         rel="noopener noreferrer"
-        className="configurator-glass-control rounded-full border px-4 py-2 text-xs font-medium text-[#111111]/75 hover:!border-[var(--color-teal)]/45 hover:!bg-white/60 hover:text-[var(--color-teal)] lg:px-5 lg:py-2.5 lg:text-sm"
+        className="configurator-glass-control inline-flex h-8 items-center rounded-full border px-3 text-[10px] font-semibold text-[#111111]/70 hover:!border-[var(--color-teal)]/45 hover:!bg-white/60 hover:text-[var(--color-teal)]"
       >
         Ask me anything...
       </a>

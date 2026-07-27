@@ -6,7 +6,6 @@ import {
   useMemo,
   useRef,
   useState,
-  type MouseEvent,
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
@@ -61,15 +60,6 @@ const INPUT_CLASS =
 const LABEL_CLASS = "mb-1 block text-xs font-medium text-[#111111]/70";
 const PO_MAX_BYTES = 3 * 1024 * 1024;
 const PO_TYPES = ["application/pdf", "image/jpeg", "image/png"];
-const CHECKOUT_SECTIONS = [
-  { id: "company-information", label: "Company" },
-  { id: "project-contact", label: "Contact" },
-  { id: "shipping-information", label: "Shipping" },
-  { id: "delivery-target", label: "Delivery" },
-  { id: "billing-information", label: "Billing" },
-  { id: "order-notes", label: "Notes" },
-] as const;
-
 function formatIndianPhone(value: string): string {
   let digits = digitsOnly(value);
   if (digits.startsWith("91") && digits.length > 10) digits = digits.slice(2);
@@ -118,38 +108,6 @@ function sectionHeading(
         <p className="mt-1 text-xs leading-relaxed text-[#111111]/55">{description}</p>
       </div>
     </div>
-  );
-}
-
-function CheckoutSectionNav() {
-  const handleSectionJump = (
-    event: MouseEvent<HTMLAnchorElement>,
-    sectionId: string
-  ) => {
-    event.preventDefault();
-    document
-      .getElementById(sectionId)
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
-  return (
-    <nav
-      aria-label="Checkout sections"
-      className="sticky top-36 z-20 rounded-full border border-[#ECE7DF] bg-white/95 p-1 shadow-[0_2px_10px_rgba(22,33,43,0.04)] backdrop-blur-md"
-    >
-      <div className="scrollbar-hide flex gap-1 overflow-x-auto">
-        {CHECKOUT_SECTIONS.map((section) => (
-          <a
-            key={section.id}
-            href={`#${section.id}`}
-            onClick={(event) => handleSectionJump(event, section.id)}
-            className="flex h-8 shrink-0 items-center rounded-full px-3 text-xs font-semibold text-[#111111]/60 transition-colors hover:bg-[var(--color-cream-soft)] hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-teal)] focus-visible:ring-offset-1"
-          >
-            {section.label}
-          </a>
-        ))}
-      </div>
-    </nav>
   );
 }
 
@@ -404,9 +362,6 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-[#111111]/50">Cart {cartId}</p>
             <h1 className="text-2xl font-semibold text-[#111111]">Company, Billing & Shipping</h1>
-            <p className="mt-1 max-w-2xl text-sm text-[#111111]/55">
-              Structured for HR, Operations, Procurement and Finance approval workflows.
-            </p>
           </div>
           <button
             type="button"
@@ -417,8 +372,6 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
             Back to Order Summary
           </button>
         </div>
-
-        <CheckoutSectionNav />
 
         <section id="company-information" className="scroll-mt-16 rounded-lg border border-[#E5E5E5] bg-white p-5">
           {sectionHeading(

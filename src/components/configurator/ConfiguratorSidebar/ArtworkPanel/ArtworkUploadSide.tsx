@@ -19,7 +19,8 @@ import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 
 const ACCEPTED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".svg", ".ai"];
 const MAX_FILE_BYTES = 4.5 * 1024 * 1024;
-const SAMPLE_ARTWORK_HREF = "/garments/neck-label-sample.svg";
+export const SAMPLE_ARTWORK_HREF = "/garments/neck-label-sample.svg";
+export const SAMPLE_ARTWORK_DIMENSIONS = { width: 20, height: 3 } as const;
 const PRINT_TEMPLATES_HREF = "/downloads/Garmops-print_templates-1.0.zip";
 const VECTORIZER_HREF = "https://vectorizer.ai/";
 const DEFAULT_ARTWORK_WIDTH_CM = 20;
@@ -85,6 +86,10 @@ async function getDefaultArtworkDimensions(
   fileUrl: string,
   fileType: ArtworkFileType
 ): Promise<{ width: number; height: number }> {
+  if (fileUrl === SAMPLE_ARTWORK_HREF) {
+    return { ...SAMPLE_ARTWORK_DIMENSIONS };
+  }
+
   if (fileType === "ai") {
     return { width: DEFAULT_ARTWORK_WIDTH_CM, height: FALLBACK_VECTOR_HEIGHT_CM };
   }

@@ -17,14 +17,16 @@ import {
   useArtworkPosition,
   resizeWithAspect,
   clampDim,
+  constrainArtworkToPrintArea,
+  getArtworkPlacementBounds,
   STEP,
   MIN_DIM,
   MAX_DIM,
-  MIN_OFFSET,
   type PositionControlsState,
   type HorizontalAlign,
   type VerticalAlign,
 } from "@/lib/configurator/ArtworkPositionContext";
+import type { PrintAreaDimensions } from "@/lib/configurator/sizecharts";
 
 interface StepperProps {
   label: string;
@@ -92,24 +94,47 @@ function Stepper({ label, value, onChange, min, max = MAX_DIM, tooltip, disabled
 
 export interface PositionControlsProps {
   onDebugChange?: (state: PositionControlsState) => void;
+  printAreaDimensions: PrintAreaDimensions;
+  view?: "front" | "back";
 }
 
-export function PositionControls({ onDebugChange }: PositionControlsProps): JSX.Element {
+export function PositionControls({
+  onDebugChange,
+  printAreaDimensions,
+  view,
+}: PositionControlsProps): JSX.Element {
   const { positions, activeView, updatePosition } = useArtworkPosition();
-  const state = positions[activeView];
+  const targetView = view ?? activeView;
+  const state = positions[targetView];
+  const bounds = getArtworkPlacementBounds(state, printAreaDimensions);
 
   function update(partial: Partial<PositionControlsState>) {
-    const next = { ...state, ...partial };
+    const next = constrainArtworkToPrintArea(
+      { ...state, ...partial },
+      printAreaDimensions
+    );
     onDebugChange?.(next);
-    updatePosition(activeView, partial);
+    updatePosition(targetView, next);
   }
 
   function setAlignH(alignH: HorizontalAlign) {
-    update({ alignH: state.alignH === alignH ? null : alignH });
+    const fromCenterCm =
+      alignH === "left"
+        ? bounds.minFromCenterCm
+        : alignH === "right"
+          ? bounds.maxFromCenterCm
+          : 0;
+    update({ alignH, fromCenterCm });
   }
 
   function setAlignV(alignV: VerticalAlign) {
-    update({ alignV: state.alignV === alignV ? null : alignV });
+    const fromNeckCm =
+      alignV === "top"
+        ? bounds.minFromNeckCm
+        : alignV === "bottom"
+          ? bounds.maxFromNeckCm
+          : (bounds.minFromNeckCm + bounds.maxFromNeckCm) / 2;
+    update({ alignV, fromNeckCm });
   }
 
   function setWidth(next: number) {
@@ -133,7 +158,7 @@ export function PositionControls({ onDebugChange }: PositionControlsProps): JSX.
   ];
 
   return (
-    <div className="configurator-glass-subtle flex flex-col gap-4 rounded-xl p-3">
+    <div className="flex flex-col gap-4">
       <div>
         <span className="text-xs font-medium text-neutral-600">Alignment (snaps within print area)</span>
         <div className="mt-1 flex gap-1">
@@ -174,7 +199,13 @@ export function PositionControls({ onDebugChange }: PositionControlsProps): JSX.
       </div>
 
       <div className="flex items-end gap-2">
-        <Stepper label="Width" value={state.widthCm} onChange={setWidth} min={MIN_DIM} max={MAX_DIM} />
+        <Stepper
+          label="Width"
+          value={state.widthCm}
+          onChange={setWidth}
+          min={MIN_DIM}
+          max={printAreaDimensions.width}
+        />
         <button
           type="button"
           onClick={() => update({ aspectLocked: !state.aspectLocked })}
@@ -193,7 +224,7 @@ export function PositionControls({ onDebugChange }: PositionControlsProps): JSX.
           value={state.heightCm}
           onChange={setHeight}
           min={MIN_DIM}
-          max={MAX_DIM}
+          max={printAreaDimensions.height}
           disabled={state.aspectLocked}
         />
       </div>
@@ -203,15 +234,17 @@ export function PositionControls({ onDebugChange }: PositionControlsProps): JSX.
           label="From Neck"
           value={state.fromNeckCm}
           onChange={(v) => update({ fromNeckCm: v })}
-          min={MIN_OFFSET}
+          min={bounds.minFromNeckCm}
+          max={bounds.maxFromNeckCm}
           tooltip="Distance from the collar seam to the top edge of the artwork."
         />
         <Stepper
           label="From Center"
           value={state.fromCenterCm}
           onChange={(v) => update({ fromCenterCm: v })}
-          min={MIN_OFFSET}
-          tooltip="Horizontal distance from the garment's center line to the artwork's center."
+          min={bounds.minFromCenterCm}
+          max={bounds.maxFromCenterCm}
+          tooltip="Signed horizontal distance from the garment centre. Negative values move left; positive values move right."
         />
       </div>
     </div>

@@ -1,19 +1,14 @@
 import { JSX, useState } from 'react';
 import type { PrintAreaDimensions } from '@/lib/configurator/sizecharts';
 
-// PLACEHOLDER — not specified in Appendix, needs confirmation.
-// "Left Chest" is documented only as "a smaller reference box"; this is a
-// commonly-used left-chest print size, not a value sourced from the ledger.
-// Exported so CanvasRenderer can draw the same reference box on the live
-// preview instead of only in this sidebar diagram.
-export const LEFT_CHEST_DIMENSIONS: PrintAreaDimensions = { width: 10, height: 12 };
-
-// px-per-cm scale for the illustrative overlay rendered by this component.
-const PX_PER_CM = 6;
+// Matches the horizontal left-chest reference used by Assembly.
+export const LEFT_CHEST_DIMENSIONS: PrintAreaDimensions = { width: 10, height: 6 };
+export const LEFT_CHEST_PLACEMENT = {
+  fromCenterCm: 9,
+  fromNeckCm: 6,
+} as const;
 
 export interface GuidelinesTogglesProps {
-  /** Max print-area dimensions for the currently selected artwork area size. */
-  printAreaDimensions: PrintAreaDimensions;
   maximumArea?: boolean;
   leftChest?: boolean;
   onMaximumAreaChange?: (value: boolean) => void;
@@ -46,42 +41,65 @@ export function GuidelinesToggles(props: GuidelinesTogglesProps): JSX.Element {
     props.onLeftChestChange?.(next);
   };
 
-  const { width: maxW, height: maxH } = props.printAreaDimensions;
-  const { width: chestW, height: chestH } = LEFT_CHEST_DIMENSIONS;
-
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex gap-4">
-        <label className="flex items-center gap-1 text-sm">
-          <input type="checkbox" checked={maximumArea} onChange={toggleMaxArea} />
-          Maximum Area
-        </label>
-        <label className="flex items-center gap-1 text-sm">
-          <input type="checkbox" checked={leftChest} onChange={toggleLeftChest} />
-          Left Chest
-        </label>
-      </div>
-
-      {(maximumArea || leftChest) && (
-        <div
-          className="configurator-glass-control relative border border-solid"
-          style={{ width: maxW * PX_PER_CM, height: maxH * PX_PER_CM }}
+    <div className="flex flex-col gap-2" aria-label="Artwork guidelines">
+      <button
+        type="button"
+        role="switch"
+        aria-checked={maximumArea}
+        onClick={toggleMaxArea}
+        className="configurator-glass-control flex w-full items-center justify-between gap-4 rounded-xl border px-3 py-2.5 text-left"
+      >
+        <span className="min-w-0">
+          <span className="block text-xs font-semibold text-[#111111]/80">
+            Maximum area
+          </span>
+          <span className="block text-[11px] text-[#111111]/45">
+            Show the selected size boundary
+          </span>
+        </span>
+        <span
+          aria-hidden="true"
+          className={`relative h-6 w-11 shrink-0 rounded-full p-0.5 transition-colors ${
+            maximumArea ? "bg-[var(--color-teal)]" : "bg-[#111111]/15"
+          }`}
         >
-          {maximumArea && (
-            <div
-              className="absolute inset-0 border-2 border-dashed border-blue-500"
-              aria-label="Maximum area guideline"
-            />
-          )}
-          {leftChest && (
-            <div
-              className="absolute left-2 top-2 border-2 border-dashed border-amber-500"
-              style={{ width: chestW * PX_PER_CM, height: chestH * PX_PER_CM }}
-              aria-label="Left chest guideline"
-            />
-          )}
-        </div>
-      )}
+          <span
+            className={`block h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
+              maximumArea ? "translate-x-5" : "translate-x-0"
+            }`}
+          />
+        </span>
+      </button>
+
+      <button
+        type="button"
+        role="switch"
+        aria-checked={leftChest}
+        onClick={toggleLeftChest}
+        className="configurator-glass-control flex w-full items-center justify-between gap-4 rounded-xl border px-3 py-2.5 text-left"
+      >
+        <span className="min-w-0">
+          <span className="block text-xs font-semibold text-[#111111]/80">
+            Left chest
+          </span>
+          <span className="block text-[11px] text-[#111111]/45">
+            Show the left-chest reference
+          </span>
+        </span>
+        <span
+          aria-hidden="true"
+          className={`relative h-6 w-11 shrink-0 rounded-full p-0.5 transition-colors ${
+            leftChest ? "bg-[var(--color-teal)]" : "bg-[#111111]/15"
+          }`}
+        >
+          <span
+            className={`block h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
+              leftChest ? "translate-x-5" : "translate-x-0"
+            }`}
+          />
+        </span>
+      </button>
     </div>
   );
 }

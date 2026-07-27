@@ -40,16 +40,33 @@ function fileTypeFromName(name: string): NeckLabelFileType | undefined {
   return undefined;
 }
 
-function DimensionPreview({ option }: { option: NeckLabelDimensions }) {
-  const isSquare = option === '45x45';
+function DimensionPreview({
+  option,
+  selected,
+}: {
+  option: NeckLabelDimensions;
+  selected: boolean;
+}) {
+  const [widthMm, heightMm] = option.split('x').map(Number);
+
   return (
     <span className="flex h-8 items-center justify-center" aria-hidden="true">
       <span
-        className={`block border border-[#111111]/70 bg-white ${
-          isSquare ? 'h-7 w-7' : 'h-3 w-12'
+        className={`block rounded-[3px] border shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] ${
+          selected
+            ? 'border-white/90 bg-white/30'
+            : 'border-[#315F66]/45 bg-[#4F959F]/14'
         }`}
+        style={{
+          width: `${Math.max(22, widthMm * 0.75)}px`,
+          height: `${Math.max(9, heightMm * 0.58)}px`,
+        }}
       >
-        <span className="block h-full w-full border-t border-dashed border-[#111111]/30" />
+        <span
+          className={`block h-full w-full border-t border-dashed ${
+            selected ? 'border-white/90' : 'border-[#315F66]/65'
+          }`}
+        />
       </span>
     </span>
   );
@@ -217,7 +234,9 @@ export default function NeckLabelPanel({
       )}
 
       <div>
-        <div className="mb-2 text-xs font-bold text-[#111111]">Dimensions</div>
+        <div className="mb-2 font-sans text-[11px] font-semibold uppercase tracking-[0.08em] text-[#111111]/70">
+          Dimensions
+        </div>
         <div className="grid grid-cols-4 gap-2">
           {DIMENSION_OPTIONS.map((option) => {
             const selected = dimensions === option;
@@ -227,13 +246,13 @@ export default function NeckLabelPanel({
                 type="button"
                 onClick={() => handleDimensionsSelected(option)}
                 aria-pressed={selected}
-                className={`flex min-h-[78px] flex-col items-center justify-center gap-2 rounded-xl border text-xs font-semibold transition-all ${
+                className={`flex min-h-[78px] flex-col items-center justify-center gap-2 rounded-xl border font-sans text-[12px] font-semibold leading-tight tracking-normal transition-all ${
                   selected
                     ? 'configurator-glass-selected'
-                    : 'configurator-glass-control border text-[#111111]/55 hover:!bg-white/60 hover:text-[#111111]'
+                    : 'configurator-glass-control border text-[#111111]/70 hover:!bg-white/60 hover:text-[#111111]'
                 }`}
               >
-                <DimensionPreview option={option} />
+                <DimensionPreview option={option} selected={selected} />
                 {option.replace('x', '×')}mm
               </button>
             );
@@ -253,28 +272,26 @@ export default function NeckLabelPanel({
           }}
         />
         {fileUrl ? (
-          <div className="configurator-glass-subtle flex min-h-[112px] items-center gap-4 rounded-2xl px-4 py-4">
-            <div className="configurator-glass-control flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border">
+          <div className="configurator-glass-subtle flex min-h-[88px] items-center gap-3 rounded-[22px] p-3">
+            <div className="configurator-glass-control flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border">
               {source === 'sample' ? (
-                <Image src={SAMPLE_ARTWORK_HREF} alt="" width={64} height={64} className="h-full w-full object-contain p-2" unoptimized />
+                <Image src={SAMPLE_ARTWORK_HREF} alt="" width={56} height={56} className="h-full w-full object-contain p-2" unoptimized />
               ) : (
-                <span className="text-[10px] font-semibold uppercase text-[#111111]/45">
+                <span className="font-sans text-[10px] font-semibold uppercase tracking-wide text-[#111111]/45">
                   {fileType ?? 'file'}
                 </span>
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-3">
-                <p className="truncate text-sm font-bold text-[#111111]">
-                  {source === 'sample'
-                    ? `NeckLabel-${(dimensions ?? DEFAULT_DIMENSIONS).replace('x', 'x')}.ai`
-                    : fileName ?? `${isToteProduct ? 'BagLabel' : 'NeckLabel'}.${fileType ?? 'ai'}`}
-                </p>
-                <Check size={18} strokeWidth={2.4} className="shrink-0 text-[#16A34A]" />
-              </div>
-              <div className="mt-5 h-2.5 overflow-hidden rounded-full bg-[#E5E5E5]">
-                <div className="h-full w-full rounded-full bg-[#16A34A]" />
-              </div>
+              <p className="truncate font-sans text-[13px] font-semibold leading-tight tracking-normal text-[#111111]/85">
+                {source === 'sample'
+                  ? `Garmops sample · ${dimensions.replace('x', '×')}mm`
+                  : fileName ?? `${isToteProduct ? 'Bag label' : 'Neck label'}.${fileType ?? 'ai'}`}
+              </p>
+              <span className="mt-1.5 inline-flex items-center gap-1 font-sans text-[11px] font-medium leading-none text-[#2E7D32]">
+                <Check size={13} strokeWidth={2.5} aria-hidden="true" />
+                Ready for preview
+              </span>
             </div>
             <button
               type="button"
@@ -282,7 +299,7 @@ export default function NeckLabelPanel({
               aria-label={`Remove ${isToteProduct ? 'bag label' : 'neck label'} artwork`}
               className="configurator-glass-control flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-[#C62828] transition-colors hover:!border-[#C62828]/25 hover:!bg-[#FFF1F1]/70"
             >
-              <Trash2 size={21} strokeWidth={1.8} />
+              <Trash2 size={17} strokeWidth={2} />
             </button>
           </div>
         ) : (
@@ -344,13 +361,17 @@ export default function NeckLabelPanel({
       )}
 
       <div>
-        <div className="mb-2 text-xs font-bold text-[#111111]">Position</div>
+        <div className="mb-2 font-sans text-[11px] font-semibold uppercase tracking-[0.08em] text-[#111111]/70">
+          Position
+        </div>
         <PositionSelect value={position} onChange={handlePositionChange} isToteProduct={isToteProduct} />
       </div>
 
       {position === 'below_neck_tape' && (
         <div>
-          <div className="mb-2 text-xs font-bold text-[#111111]">Stitch</div>
+          <div className="mb-2 font-sans text-[11px] font-semibold uppercase tracking-[0.08em] text-[#111111]/70">
+            Stitch
+          </div>
           <StitchSelect value={stitch} onChange={handleStitchChange} />
         </div>
       )}

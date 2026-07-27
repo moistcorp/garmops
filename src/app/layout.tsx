@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import AppChrome from '@/components/common/AppChrome'
+import SatoshiFontResources from '@/components/common/SatoshiFontResources'
 
 export const metadata: Metadata = {
   title: {
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className="bg-white text-[#111111] antialiased">
+        <SatoshiFontResources />
         <AppChrome>{children}</AppChrome>
       </body>
     </html>

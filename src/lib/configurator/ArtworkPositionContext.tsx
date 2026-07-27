@@ -4,6 +4,7 @@
 import { createContext, useCallback, useContext, useState } from "react";
 import type { ReactNode } from "react";
 import type { GarmentView } from "@/lib/configurator/types/garment";
+import type { PrintAreaDimensions } from "@/lib/configurator/sizecharts";
 
 // ---------------------------------------------------------------------------
 // Shared types (moved from PositionControls.tsx — now consumed by both
@@ -13,6 +14,9 @@ import type { GarmentView } from "@/lib/configurator/types/garment";
 
 export type HorizontalAlign = "left" | "center" | "right";
 export type VerticalAlign = "top" | "center" | "bottom";
+
+// Production print areas begin three inches below the neck seam.
+export const PRINT_AREA_TOP_OFFSET_CM = 3 * 2.54;
 
 export interface PositionControlsState {
   alignH: HorizontalAlign | null;
@@ -30,7 +34,7 @@ export const DEFAULT_POSITION_STATE: PositionControlsState = {
   widthCm: 20,
   heightCm: 20,
   aspectLocked: true,
-  fromNeckCm: 5,
+  fromNeckCm: PRINT_AREA_TOP_OFFSET_CM,
   fromCenterCm: 0,
 };
 
@@ -40,7 +44,65 @@ export const MAX_DIM = 50;
 export const MIN_OFFSET = 0;
 
 export function clampDim(value: number, min: number = MIN_DIM, max: number = MAX_DIM): number {
-  return Math.min(max, Math.max(min, Math.round(value * 2) / 2));
+  const rounded = Math.round(value * 2) / 2;
+  return Math.min(max, Math.max(min, rounded));
+}
+
+export interface ArtworkPlacementBounds {
+  minFromCenterCm: number;
+  maxFromCenterCm: number;
+  minFromNeckCm: number;
+  maxFromNeckCm: number;
+}
+
+export function getArtworkPlacementBounds(
+  state: Pick<PositionControlsState, "widthCm" | "heightCm">,
+  printArea: PrintAreaDimensions
+): ArtworkPlacementBounds {
+  const horizontalTravel = Math.max(0, (printArea.width - state.widthCm) / 2);
+  const maxFromNeckCm = Math.max(
+    PRINT_AREA_TOP_OFFSET_CM,
+    PRINT_AREA_TOP_OFFSET_CM + printArea.height - state.heightCm
+  );
+
+  return {
+    minFromCenterCm: -horizontalTravel,
+    maxFromCenterCm: horizontalTravel,
+    minFromNeckCm: PRINT_AREA_TOP_OFFSET_CM,
+    maxFromNeckCm,
+  };
+}
+
+export function constrainArtworkToPrintArea(
+  state: PositionControlsState,
+  printArea: PrintAreaDimensions
+): PositionControlsState {
+  const rawWidth = Math.max(MIN_DIM, state.widthCm);
+  const rawHeight = Math.max(MIN_DIM, state.heightCm);
+  const fitScale = Math.min(
+    1,
+    printArea.width / rawWidth,
+    printArea.height / rawHeight
+  );
+  const widthCm = clampDim(rawWidth * fitScale, MIN_DIM, printArea.width);
+  const heightCm = clampDim(rawHeight * fitScale, MIN_DIM, printArea.height);
+  const bounds = getArtworkPlacementBounds({ widthCm, heightCm }, printArea);
+
+  return {
+    ...state,
+    widthCm,
+    heightCm,
+    fromCenterCm: clampDim(
+      state.fromCenterCm,
+      bounds.minFromCenterCm,
+      bounds.maxFromCenterCm
+    ),
+    fromNeckCm: clampDim(
+      state.fromNeckCm,
+      bounds.minFromNeckCm,
+      bounds.maxFromNeckCm
+    ),
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -51,8 +113,8 @@ export function clampDim(value: number, min: number = MIN_DIM, max: number = MAX
 
 export const PRINT_AREA_CM = { width: 31, height: 43 };
 export const CANVAS_PX = { width: 600, height: 600 };
-export const PX_PER_CM_X = 9.2;
-export const PX_PER_CM_Y = 8.7;
+export const PX_PER_CM_X = 7.8;
+export const PX_PER_CM_Y = 7.4;
 export const PRINT_ORIGIN_PX = { x: CANVAS_PX.width / 2, y: 146 };
 
 // Views that render/support the draggable + resizable artwork box.

@@ -36,8 +36,8 @@ const STEPS: Array<{
   { id: "colour", label: "Colour" },
   { id: "artwork", label: "Artwork" },
   { id: "neck-label", label: "Neck Label" },
-  { id: "quantity", label: "Quantity" },
-  { id: "company", label: "Company & delivery" },
+  { id: "quantity", label: "Summary" },
+  { id: "company", label: "Delivery" },
   { id: "review", label: "Review" },
   { id: "reserve", label: "Reserve" },
 ];
