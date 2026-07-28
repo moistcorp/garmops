@@ -5,9 +5,15 @@ import Link from 'next/link'
 import { caseStudies } from '@/lib/casestudies'
 
 export const metadata: Metadata = generateMeta({
-  title: 'Work',
-  description: 'Case studies from Garmops — custom apparel for restaurants, events, gyms, and creative studios.',
+  title: 'Custom Merchandise Case Studies',
+  description: 'See how Garmops plans and produces custom uniforms, event merchandise, team apparel and branded clothing for businesses in India.',
   path: '/work',
+  keywords: [
+    'custom merchandise case studies',
+    'corporate apparel examples',
+    'event merchandise India',
+    'restaurant staff uniforms India',
+  ],
 })
 
 export default function Work() {
@@ -17,7 +23,7 @@ export default function Work() {
       <section className="max-w-7xl mx-auto px-4 pb-10 pt-10 sm:px-6 sm:pb-16 sm:pt-20">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Case studies</p>
         <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] leading-tight mb-6 tracking-tight">
-          Our work
+          Custom merchandise case studies
         </h1>
         <p className="max-w-lg text-base leading-relaxed text-[#111111]/50 sm:text-lg">
           A selection of projects across restaurants, events, gyms, and creative studios. Real briefs, real timelines, real results.

@@ -1,8 +1,28 @@
+import type { Metadata } from 'next'
+
 export const siteConfig = {
   name: 'Garmops',
-  description: 'Small batch custom apparel for brands, cafes, and companies. MOQ 50 pieces. Ships in 35 days. Manufactured in India.',
-  url: 'https://garmops.com',
+  description: 'Premium custom apparel and bulk branded merchandise for businesses, made in India. Start at 50 pieces with transparent pricing and an online configurator.',
+  url: 'https://www.garmops.com',
   ogImage: '/products/boxy-fit-tee-260gsm.jpg',
+  locale: 'en_IN',
+  language: 'en-IN',
+  email: 'hello@garmops.com',
+  phone: '+91-8800711169',
+  address: {
+    locality: 'Greater Noida',
+    region: 'Uttar Pradesh',
+    country: 'IN',
+  },
+  social: {
+    instagram: 'https://www.instagram.com/garmops/',
+    linkedin: 'https://www.linkedin.com/company/garmops',
+  },
+} as const
+
+export function absoluteUrl(path = '') {
+  if (/^https?:\/\//.test(path)) return path
+  return new URL(path || '/', siteConfig.url).toString()
 }
 
 export function generateMeta({
@@ -10,33 +30,62 @@ export function generateMeta({
   description,
   path = '',
   image,
+  type = 'website',
+  publishedTime,
+  modifiedTime,
+  authors,
+  keywords,
+  noIndex = false,
 }: {
   title?: string
   description?: string
   path?: string
   image?: string
-}) {
+  type?: 'website' | 'article'
+  publishedTime?: string
+  modifiedTime?: string
+  authors?: string[]
+  keywords?: string[]
+  noIndex?: boolean
+}): Metadata {
   const fullTitle = title ? `${title} — Garmops` : 'Garmops — Custom Apparel, Made to Order'
   const fullDescription = description ?? siteConfig.description
-  const url = `${siteConfig.url}${path}`
-  const ogImage = image ?? siteConfig.ogImage
+  const url = absoluteUrl(path)
+  const ogImage = absoluteUrl(image ?? siteConfig.ogImage)
+  const openGraph: Metadata['openGraph'] = type === 'article'
+    ? {
+        title: fullTitle,
+        description: fullDescription,
+        url,
+        siteName: siteConfig.name,
+        images: [{ url: ogImage, alt: fullTitle }],
+        type: 'article',
+        locale: siteConfig.locale,
+        publishedTime,
+        modifiedTime,
+        authors,
+      }
+    : {
+        title: fullTitle,
+        description: fullDescription,
+        url,
+        siteName: siteConfig.name,
+        images: [{ url: ogImage, alt: fullTitle }],
+        type: 'website',
+        locale: siteConfig.locale,
+      }
 
   return {
     title: title ?? 'Custom Apparel, Made to Order',
     description: fullDescription,
     metadataBase: new URL(siteConfig.url),
     alternates: { canonical: url },
-    openGraph: {
-      title: fullTitle,
-      description: fullDescription,
-      url,
-      siteName: siteConfig.name,
-      // Catalog and case-study images use different aspect ratios. Omitting
-      // invented dimensions lets crawlers inspect each image accurately.
-      images: [{ url: ogImage, alt: fullTitle }],
-      type: 'website',
-      locale: 'en_IN',
-    },
+    applicationName: siteConfig.name,
+    authors: authors?.map(name => ({ name })),
+    creator: siteConfig.name,
+    publisher: siteConfig.name,
+    keywords,
+    openGraph,
     twitter: {
       card: 'summary_large_image',
       title: fullTitle,
@@ -44,9 +93,15 @@ export function generateMeta({
       images: [ogImage],
     },
     robots: {
-      index: true,
-      follow: true,
-      googleBot: { index: true, follow: true },
+      index: !noIndex,
+      follow: !noIndex,
+      googleBot: {
+        index: !noIndex,
+        follow: !noIndex,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+        'max-video-preview': -1,
+      },
     },
   }
 }

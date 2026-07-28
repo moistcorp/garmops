@@ -1,11 +1,19 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { generateMeta } from '@/lib/seo'
+import JsonLd from '@/components/seo/JsonLd'
+import { faqSchema } from '@/lib/structuredData'
 
 export const metadata: Metadata = generateMeta({
-  title: 'How It Works',
-  description: 'From brief to delivery in 35 days. Learn how Garmops handles custom apparel orders — configuration, production, QA, and shipping.',
+  title: 'Custom Apparel Manufacturing Process',
+  description: 'See how a Garmops bulk custom apparel order moves from garment selection and artwork to sampling, production, quality control and delivery.',
   path: '/how-it-works',
+  keywords: [
+    'custom apparel manufacturing process',
+    'bulk T-shirt order process',
+    'custom merchandise production India',
+    'apparel quality control',
+  ],
 })
 
 const steps = [
@@ -27,10 +35,11 @@ const faqs = [
 export default function HowItWorks() {
   return (
     <div className="app-liquid-bg">
+      <JsonLd data={faqSchema(faqs)} />
       <section className="max-w-7xl mx-auto px-4 pb-10 pt-10 sm:px-6 sm:pb-16 sm:pt-20">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">The process</p>
         <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] max-w-xl leading-tight mb-6 tracking-tight">
-          From brief to <span className="text-[var(--color-teal)]">delivery</span>
+          Custom apparel, from brief to <span className="text-[var(--color-teal)]">delivery</span>
         </h1>
         <p className="max-w-lg text-base leading-relaxed text-[#111111]/50 sm:text-lg">
           A straightforward process built around your timeline. No back-and-forth, no surprises.

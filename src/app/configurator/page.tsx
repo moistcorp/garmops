@@ -1,5 +1,19 @@
 import ProductGrid from "@/components/configurator/products/ProductGrid";
 import { ConfiguratorTopBar } from "@/components/configurator/ConfiguratorTopBar";
+import type { Metadata } from "next";
+import { generateMeta } from "@/lib/seo";
+
+export const metadata: Metadata = generateMeta({
+  title: "Online Custom Apparel Designer",
+  description: "Design a bulk custom T-shirt, hoodie, polo, sweatshirt or tote online. Choose colours, upload artwork, select decoration and order from 50 pieces.",
+  path: "/configurator",
+  keywords: [
+    "online custom T-shirt designer India",
+    "custom apparel configurator",
+    "design branded merchandise online",
+    "bulk T-shirt design tool",
+  ],
+});
 
 export default function ConfiguratorPage() {
   return (
@@ -14,10 +28,10 @@ export default function ConfiguratorPage() {
         <div className="flex items-start justify-between">
           <div className="flex flex-col gap-2">
             <span className="text-sm font-medium uppercase tracking-wide text-[#111111]/60">
-              Start your project
+              Online custom apparel designer
             </span>
             <h1 className="text-3xl font-semibold text-[#111111] sm:text-4xl">
-              Choose from our products
+              Choose a product to customise
             </h1>
           </div>
         </div>

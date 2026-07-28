@@ -2,22 +2,48 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { products } from '@/lib/products'
 import type { Metadata } from 'next'
-import { generateMeta } from '@/lib/seo'
+import { absoluteUrl, generateMeta, siteConfig } from '@/lib/seo'
+import JsonLd from '@/components/seo/JsonLd'
 
 export const metadata: Metadata = generateMeta({
-  title: 'Products',
-  description: 'Shop Garmops\'s own line — designed and manufactured in-house. Heavyweight tees, hoodies, sweatshirts, polos, and totes.',
+  title: 'Custom Apparel Products & Samples',
+  description: 'Compare and order samples of custom-ready T-shirts, hoodies, sweatshirts, polos and canvas totes made by Garmops in India.',
   path: '/products',
+  keywords: [
+    'custom T-shirts India',
+    'custom hoodies India',
+    'bulk polo T-shirts',
+    'heavyweight T-shirt manufacturer India',
+    'custom apparel samples',
+  ],
 })
 
 export default function Products() {
   return (
     <div className="app-liquid-bg">
+      <JsonLd data={{
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        '@id': `${absoluteUrl('/products')}#collection`,
+        name: 'Garmops custom apparel products',
+        description: 'Custom-ready garments and sample products manufactured by Garmops in India.',
+        isPartOf: { '@id': `${siteConfig.url}/#website` },
+        mainEntity: {
+          '@type': 'ItemList',
+          numberOfItems: products.length,
+          itemListElement: products.map((product, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            url: absoluteUrl(`/products/${product.slug}`),
+            name: product.name,
+          })),
+        },
+      }} />
       <section className="max-w-7xl mx-auto px-4 pb-10 pt-10 sm:px-6 sm:pb-12 sm:pt-20">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Garmops</p>
-        <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] leading-tight mb-4 tracking-tight">Products</h1>
+        <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] leading-tight mb-4 tracking-tight">Custom apparel products</h1>
         <p className="max-w-lg text-base leading-relaxed text-[#111111]/50 sm:text-lg">
-          Order samples of our products before placing a bulk order. All pieces are manufactured in-house.
+          Compare T-shirts, hoodies, sweatshirts, polos and totes, then order a sample before placing a bulk custom run. All pieces are manufactured in India.
         </p>
       </section>
 

@@ -1,0 +1,25 @@
+# Garmops
+
+> Garmops is a B2B custom apparel and branded merchandise manufacturer and online ordering platform operated by Moist Corp in Greater Noida, India.
+
+Garmops helps brands, startups, companies, hospitality teams, creative studios, sports organisations, artists and event organisers produce custom apparel in bulk. The minimum custom order is 50 pieces per style. Standard delivery is 35 days from order confirmation, and an 18-day rush option is available for feasible orders.
+
+## Core pages
+
+- [Home](https://www.garmops.com/): Company overview, industries served, key order facts and common questions.
+- [Products](https://www.garmops.com/products): Samples and specifications for T-shirts, polos, hoodies, sweatshirts, long-sleeve tees and canvas totes.
+- [Online configurator](https://www.garmops.com/configurator): Select a garment, colour, artwork position, decoration and neck-label options.
+- [Pricing](https://www.garmops.com/pricing): Current product pricing, inclusions, quantity discounts, GST and rush options.
+- [How it works](https://www.garmops.com/how-it-works): Order, approval, production, quality-control and delivery process.
+- [Work](https://www.garmops.com/work): Custom merchandise case studies.
+- [Journal](https://www.garmops.com/journal): Production-led custom apparel and merchandise guides.
+- [About](https://www.garmops.com/about): Garmops identity, location, products and operating facts.
+- [Contact](https://www.garmops.com/contact): Request a production-ready custom apparel quote.
+
+## Contact
+
+- Email: hello@garmops.com
+- Telephone and WhatsApp: +91 88007 11169
+- Location: Greater Noida, Uttar Pradesh, India
+
+For a fuller machine-readable company and content guide, see [llms-full.txt](https://www.garmops.com/llms-full.txt).

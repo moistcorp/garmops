@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 import WorkDetailClient from './WorkDetailClient'
 import { generateMeta } from '@/lib/seo'
 import type { Metadata } from 'next'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbSchema } from '@/lib/structuredData'
 
 export function generateStaticParams() {
   return caseStudies.map(caseStudy => ({ slug: caseStudy.slug }))
@@ -33,5 +35,14 @@ export default async function WorkDetailPage({
   const cs = caseStudies.find(c => c.slug === slug)
   if (!cs) notFound()
   const related = caseStudies.filter(c => c.slug !== cs.slug).slice(0, 2)
-  return <WorkDetailClient cs={cs} related={related} />
+  return (
+    <>
+      <JsonLd data={breadcrumbSchema([
+        { name: 'Home', path: '/' },
+        { name: 'Work', path: '/work' },
+        { name: cs.client, path: `/work/${cs.slug}` },
+      ])} />
+      <WorkDetailClient cs={cs} related={related} />
+    </>
+  )
 }

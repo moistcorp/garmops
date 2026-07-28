@@ -9,6 +9,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
 import { PRODUCT_PRICES, DELIVERY_DAYS, RUSH_DELIVERY_DAYS } from '@/lib/pricing'
+import { homeFaqs as faqs } from '@/lib/homeContent'
 
 const industries = [
   { name: 'Hotels & Restaurants', desc: 'Merchandise designed for hospitality brands, from staff apparel to retail collections and guest experiences.', image: '/industries/hotels-restaurants.jpg' },
@@ -17,12 +18,6 @@ const industries = [
   { name: 'Arts & Culture', desc: 'Merchandise developed for exhibitions, institutions, and artists, from limited releases to curated retail collections.', image: '/industries/arts-culture.jpg' },
   { name: 'Creative Studios', desc: 'Design-led merchandise for studios and agencies, built to extend brand systems into physical products.', image: '/industries/creative-studios.jpg' },
   { name: 'Companies & Startups', desc: 'Custom merchandise for teams and organisations, from onboarding kits to team apparel and client gifting.', image: '/industries/companies-startups.jpg' },
-]
-
-const faqs = [
-  { q: "What's the minimum order quantity?", a: 'Just 50 pieces per style, with volume discounts kicking in as quantity increases.' },
-  { q: 'How long does delivery take?', a: `Standard delivery takes ${DELIVERY_DAYS} days from order confirmation. Need it sooner? Rush delivery is available in ${RUSH_DELIVERY_DAYS} days.` },
-  { q: 'Do you provide GST-compliant invoices and accept company POs?', a: 'Yes to both. Every order includes a GST-compliant tax invoice with HSN codes, and we accept Purchase Orders with 50% advance on confirmation, balance due before dispatch.' },
 ]
 
 // Lowest starting price across the catalog, used for the homepage pricing teaser

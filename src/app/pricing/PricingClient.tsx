@@ -62,7 +62,7 @@ export default function PricingClient() {
       <section className="max-w-7xl mx-auto px-4 pb-10 pt-10 sm:px-6 sm:pb-12 sm:pt-20">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Pricing</p>
         <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] max-w-xl leading-tight mb-4 tracking-tight">
-          Simple, transparent pricing
+          Bulk custom apparel pricing
         </h1>
         <p className="max-w-lg text-base leading-relaxed text-[#111111]/50 sm:text-lg">
           Base prices include fabric, stitching, single-color screen print, neck label, and our margin. The estimate shows GST separately and includes it in the final total. Shipping is excluded.

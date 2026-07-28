@@ -4,9 +4,15 @@ import { generateMeta } from '@/lib/seo'
 import { journalPosts as posts } from '@/lib/journal'
 
 export const metadata: Metadata = generateMeta({
-  title: 'Journal',
-  description: 'Production guides, industry insights, and notes on custom apparel from the Garmops team.',
+  title: 'Custom Apparel & Merchandise Guides',
+  description: 'Practical guides to bulk custom T-shirt printing, apparel manufacturing, print methods, low MOQs and corporate merchandise in India.',
   path: '/journal',
+  keywords: [
+    'custom apparel guides',
+    'bulk T-shirt printing India',
+    'custom merchandise India',
+    'apparel manufacturing guide',
+  ],
 })
 
 export default function Journal() {
@@ -14,8 +20,8 @@ export default function Journal() {
     <div className="app-liquid-bg">
       <section className="max-w-7xl mx-auto px-4 pb-10 pt-10 sm:px-6 sm:pb-16 sm:pt-20">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Journal</p>
-        <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] max-w-xl leading-tight mb-6 tracking-tight">Notes on making things</h1>
-        <p className="max-w-lg text-base leading-relaxed text-[#111111]/50 sm:text-lg">Guides, production insights, and industry notes from the Garmops team.</p>
+        <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] max-w-2xl leading-tight mb-6 tracking-tight">Custom apparel &amp; merchandise guides</h1>
+        <p className="max-w-2xl text-base leading-relaxed text-[#111111]/50 sm:text-lg">Clear, production-led answers about bulk T-shirt printing, garment specifications, decoration methods, pricing, MOQs and planning branded merchandise in India.</p>
       </section>
 
       {/* Featured */}
@@ -26,7 +32,7 @@ export default function Journal() {
             <h2 className="text-3xl font-bold text-white mb-4 leading-tight tracking-tight">{posts[0].title}</h2>
             <p className="text-white/50 leading-relaxed mb-6 max-w-lg text-sm">{posts[0].excerpt}</p>
             <div className="flex items-center gap-4 text-xs text-white/30">
-              <span>{posts[0].date}</span>
+              <time dateTime={posts[0].publishedAt}>{posts[0].date}</time>
               <span>{posts[0].readTime}</span>
             </div>
           </div>
@@ -48,7 +54,7 @@ export default function Journal() {
               </div>
               <h3 className="text-sm font-semibold text-[#111111] leading-snug group-hover:underline">{post.title}</h3>
               <p className="text-xs text-[#111111]/50 leading-relaxed flex-1">{post.excerpt}</p>
-              <p className="text-xs text-[#111111]/30">{post.date}</p>
+              <time dateTime={post.publishedAt} className="text-xs text-[#111111]/30">{post.date}</time>
             </Link>
           ))}
         </div>

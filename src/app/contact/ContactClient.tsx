@@ -48,7 +48,7 @@ export default function ContactClient() {
       <section className="max-w-7xl mx-auto px-4 pb-10 pt-10 sm:px-6 sm:pb-16 sm:pt-20">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Get in touch</p>
         <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] max-w-xl leading-tight mb-6 tracking-tight">
-          Tell us about your project
+          Tell us about your custom apparel project
         </h1>
         <p className="max-w-lg text-base leading-relaxed text-[#111111]/50 sm:text-lg">
           Fill in the form and we&apos;ll get back to you with a quote within 24 hours.

@@ -57,6 +57,7 @@ error.
 | `RESEND_FROM_EMAIL` | Sender on a domain verified by Resend |
 | `CONTACT_TO_EMAIL` | Recipient for contact enquiries and paid sample-order notifications |
 | `NEXT_PUBLIC_FORMSPREE_ENDPOINT` | Optional Formspree endpoint for email capture |
+| `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | Optional Google Search Console HTML-tag verification token |
 
 Never expose `PAYU_SALT`, `PAYMENT_SIGNING_SECRET`, or `RESEND_API_KEY` with
 a `NEXT_PUBLIC_` prefix.

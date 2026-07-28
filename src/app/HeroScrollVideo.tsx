@@ -62,13 +62,13 @@ export default function HeroScrollVideo() {
       <section className="app-liquid-bg grid lg:min-h-[90vh] lg:grid-cols-2">
         <div className="flex flex-col justify-center px-4 py-12 min-[360px]:px-5 sm:px-8 sm:py-16 md:px-16 lg:py-0">
           <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.16em] text-[#595959] sm:mb-6 sm:text-xs sm:tracking-widest">
-            Custom apparel for businesses
+            Custom apparel manufacturer in India
           </p>
           <h1 className="mb-5 text-[2.5rem] font-bold leading-[1.02] tracking-tight text-[#111111] min-[360px]:text-5xl md:text-6xl lg:text-7xl">
-            Custom merch<br />for your<br /><span className="text-[var(--color-teal)]">business</span>
+            Custom apparel<br />for your<br /><span className="text-[var(--color-teal)]">business</span>
           </h1>
           <p className="mb-8 max-w-sm text-[15px] leading-relaxed text-[#4a4a4a] sm:mb-10 sm:text-base">
-            From design to delivery: premium custom merch, made in India. Create, customise and place your order in just a few simple steps.
+            Premium custom T-shirts, hoodies, polos and branded merchandise, made in India. Design online and order from 50 pieces.
           </p>
           <div className="mb-8 grid grid-cols-3 gap-0 sm:mb-10 sm:flex sm:gap-6">
             <div className="min-w-0">
@@ -103,7 +103,7 @@ export default function HeroScrollVideo() {
         <div className="relative bg-[var(--color-cream-soft)] flex items-center justify-center min-h-64 lg:min-h-full overflow-hidden">
           <Image
             src="/products/boxy-fit-tee-260gsm.jpg"
-            alt="Custom merch made in India"
+            alt="Heavyweight custom T-shirt manufactured and printed in India by Garmops"
             fill
             className="object-cover"
             sizes="(max-width: 1023px) 100vw, 50vw"

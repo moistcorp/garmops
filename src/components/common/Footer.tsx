@@ -23,6 +23,7 @@ export default function Footer() {
           <Link href="/pricing" className="py-1 hover:text-[var(--color-teal)] transition-colors">Pricing</Link>
           <Link href="/journal" className="py-1 hover:text-[var(--color-teal)] transition-colors">Journal</Link>
           <Link href="/work" className="py-1 hover:text-[var(--color-teal)] transition-colors">Work</Link>
+          <Link href="/about" className="py-1 hover:text-[var(--color-teal)] transition-colors">About</Link>
           <Link href="/contact" className="py-1 hover:text-[var(--color-teal)] transition-colors">Contact</Link>
         </nav>
 
