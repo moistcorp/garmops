@@ -2,6 +2,12 @@
   "name": "garmops",
   "version": "0.1.0",
   "private": true,
+  "description": "Garmops custom-apparel storefront and production configurator.",
+  "homepage": "https://www.garmops.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/moistcorp/garmops.git"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",

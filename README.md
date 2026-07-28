@@ -4,6 +4,9 @@ Garmops is a custom-apparel storefront and order configurator for small-batch
 production. The application includes a sample shop, bulk-pricing calculator,
 garment configurator, checkout flows, case studies, and a journal.
 
+- Production: [www.garmops.com](https://www.garmops.com)
+- Repository: [moistcorp/garmops](https://github.com/moistcorp/garmops)
+
 ## Stack
 
 - Next.js 16 App Router and React 19
