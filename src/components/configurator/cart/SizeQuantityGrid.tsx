@@ -68,18 +68,18 @@ export function SizeQuantityGrid({
           <button type="button" onClick={() => applyPreset(ALLOCATION_PRESETS.larger)} className="rounded-full border border-[#E5E5E5] px-2.5 py-1 text-[11px] font-semibold text-[#111111]/65 hover:border-[var(--color-teal)]">More L–XXL</button>
         </div>
       )}
-      <div className={`grid ${columnsClass} gap-px overflow-hidden rounded-md border border-[#E5E5E5] bg-[#E5E5E5]`}>
+      <div className={`liquid-glass-control grid ${columnsClass} gap-px overflow-hidden rounded-xl border`}>
         {sizes.map((size) => (
-          <div key={size} className="bg-[#F7F7F7] px-2 py-2 text-center text-xs font-medium tracking-wide text-[#111111]">
+          <div key={size} className="bg-white/25 px-2 py-2 text-center text-xs font-medium tracking-wide text-[#111111]">
             {size}
           </div>
         ))}
         {sizes.map((size) => (
-          <div key={`${size}-input`} className="bg-white px-1.5 py-1.5">
+          <div key={`${size}-input`} className="bg-white/15 px-1.5 py-1.5">
             <label className="sr-only" htmlFor={inputId(size)}>
               Quantity for size {size}
             </label>
-            <div className="flex h-9 items-center justify-between rounded-md bg-[#F7F7F7] px-1">
+            <div className="flex h-9 items-center justify-between rounded-lg bg-white/30 px-1">
               <button
                 type="button"
                 aria-label={`Decrease ${size} quantity`}

@@ -40,7 +40,7 @@ export default function HomeClient() {
      <HeroScrollVideo />
 
       {/* INDUSTRIES */}
-      <section className="bg-white"> <div className="max-w-7xl mx-auto px-6 py-24">
+      <section className="app-liquid-section"> <div className="max-w-7xl mx-auto px-6 py-24">
         <Reveal>
           <p className="text-xs text-[#595959] font-medium mb-4 tracking-widest uppercase">Who we work with</p>
           <h2 className="text-4xl font-bold mb-3 tracking-tight">Premium merch for every <span className="text-[var(--color-teal)]">industry</span></h2>
@@ -51,7 +51,7 @@ export default function HomeClient() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {industries.map((i, idx) => (
             <Reveal key={i.name} delay={idx * 80}>
-              <div className="group flex flex-col bg-white rounded-2xl border border-[#ECE7DF] overflow-hidden shadow-[0_4px_16px_rgba(22,33,43,0.04)] hover:shadow-[0_12px_30px_rgba(22,33,43,0.08)] hover:border-[var(--color-teal)] transition-all duration-300">
+              <div className="liquid-glass-panel group flex flex-col overflow-hidden rounded-[24px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-teal)]/45">
                 <div className="relative w-full h-[380px] bg-[var(--color-cream-soft)] flex items-center justify-center overflow-hidden">
                   {i.image ? (
                     <Image src={i.image} alt={i.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -60,12 +60,12 @@ export default function HomeClient() {
                   )}
                   {/* Pill tag overlay, Nugget-style */}
                   <div className="absolute top-4 left-4 z-10">
-                    <span className="bg-white/90 backdrop-blur-md rounded-full px-3.5 py-1.5 text-xs font-medium text-[#111111] shadow-sm">
+                    <span className="liquid-glass-chip rounded-full px-3.5 py-1.5 text-xs font-medium text-[#111111]">
                       {i.name}
                     </span>
                   </div>
                   {/* Liquid glass reveal button on hover */}
-                  <div className="absolute top-4 right-4 w-10 h-10 rounded-full backdrop-blur-md bg-white/80 border border-white/60 flex items-center justify-center opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-[0_4px_16px_rgba(0,0,0,0.12)]">
+                  <div className="liquid-glass-chip absolute right-4 top-4 flex h-10 w-10 translate-y-1 items-center justify-center rounded-full opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
                     <svg className="w-4 h-4 text-[var(--color-teal)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M17 7H8M17 7v9" />
                     </svg>
@@ -89,10 +89,10 @@ export default function HomeClient() {
 <HomepageCaseStudies />
 
       {/* PRICING TEASER — lightweight, links out to full estimator on /pricing */}
-      <section className="py-24 bg-white">
+      <section className="py-24">
         <div className="max-w-7xl mx-auto px-6">
           <Reveal>
-            <div className="relative overflow-hidden bg-[var(--color-navy)] rounded-3xl p-10 md:p-14 flex flex-col md:flex-row items-center justify-between gap-10">
+            <div className="liquid-glass-dark relative flex flex-col items-center justify-between gap-10 overflow-hidden rounded-3xl border p-10 md:flex-row md:p-14">
               {/* Ambient liquid-glass orbs */}
               <div className="pointer-events-none absolute -top-24 -right-16 w-72 h-72 bg-[var(--color-teal)]/20 rounded-full blur-3xl" />
               <div className="pointer-events-none absolute -bottom-28 left-1/3 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
@@ -129,7 +129,7 @@ export default function HomeClient() {
       </section>
 
       {/* FAQ */}
-      <section className="bg-white">
+      <section className="app-liquid-section">
         <div className="max-w-7xl mx-auto px-6 py-24">
           <div className="grid lg:grid-cols-[300px_1fr] gap-12">
             <Reveal>
@@ -142,7 +142,12 @@ export default function HomeClient() {
             <Reveal delay={100}>
               <div className="flex flex-col border-t border-[#E5E5E5]">
                 {faqs.map((item, i) => (
-                  <div key={item.q} className="border-b border-[#E5E5E5]">
+                  <div
+                    key={item.q}
+                    className={`border-b border-[#E5E5E5] transition-all duration-300 ${
+                      openFaq === i ? 'liquid-glass-panel my-2 rounded-2xl border px-5' : ''
+                    }`}
+                  >
                     <button
                       type="button"
                       onClick={() => setOpenFaq(openFaq === i ? null : i)}

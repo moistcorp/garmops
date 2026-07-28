@@ -11,7 +11,7 @@ export const metadata: Metadata = generateMeta({
 
 export default function Journal() {
   return (
-    <>
+    <div className="app-liquid-bg">
       <section className="max-w-7xl mx-auto px-6 pt-20 pb-16">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Journal</p>
         <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] max-w-xl leading-tight mb-6 tracking-tight">Notes on making things</h1>
@@ -20,7 +20,7 @@ export default function Journal() {
 
       {/* Featured */}
       <section className="max-w-7xl mx-auto px-6 pb-16">
-        <div className="bg-[var(--color-navy)] rounded-3xl p-10 md:p-14 flex flex-col md:flex-row gap-8 items-start">
+        <div className="liquid-glass-dark flex flex-col items-start gap-8 rounded-3xl border p-10 md:flex-row md:p-14">
           <div className="flex-1">
             <span className="inline-block text-xs px-2.5 py-1 border border-white/20 text-white/60 mb-4">{posts[0].category}</span>
             <h2 className="text-3xl font-bold text-white mb-4 leading-tight tracking-tight">{posts[0].title}</h2>
@@ -41,7 +41,7 @@ export default function Journal() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {posts.slice(1).map(post => (
             <Link key={post.slug} href={`/journal/${post.slug}`}
-              className="group bg-white p-6 flex flex-col gap-4 rounded-2xl border border-[#ECE7DF] shadow-[0_4px_16px_rgba(22,33,43,0.04)] hover:shadow-[0_12px_30px_rgba(22,33,43,0.08)] hover:border-[var(--color-teal)] transition-all duration-300">
+              className="liquid-glass-panel group flex flex-col gap-4 rounded-[24px] border p-6 transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-teal)]/45">
               <div className="flex items-center justify-between">
                 <span className="text-xs border border-[#ECE7DF] rounded-full px-2.5 py-1 text-[#111111]/50">{post.category}</span>
                 <span className="text-xs text-[#111111]/30">{post.readTime}</span>
@@ -54,7 +54,7 @@ export default function Journal() {
         </div>
       </section>
 
-      <section className="border-t border-[#E5E5E5] py-16">
+      <section className="app-liquid-section py-16">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <div>
             <h2 className="text-2xl font-bold mb-1 tracking-tight">Ready to place an order?</h2>
@@ -66,6 +66,6 @@ export default function Journal() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   )
 }

@@ -59,8 +59,8 @@ export default function HeroScrollVideo() {
 
   return (
     <>
-      <section className="grid lg:grid-cols-2 min-h-[90vh]">
-        <div className="flex flex-col justify-center bg-white px-8 py-20 md:px-16 lg:py-0">
+      <section className="app-liquid-bg grid min-h-[90vh] lg:grid-cols-2">
+        <div className="flex flex-col justify-center px-8 py-20 md:px-16 lg:py-0">
           <p className="text-xs text-[#595959] font-medium mb-6 tracking-widest uppercase">
             Custom apparel for businesses
           </p>
@@ -109,7 +109,7 @@ export default function HeroScrollVideo() {
             sizes="(max-width: 1023px) 100vw, 50vw"
             priority
           />
-          <div className="absolute bottom-8 left-8 bg-white/95 backdrop-blur-sm rounded-2xl px-5 py-4 shadow-[0_8px_30px_rgba(22,33,43,0.12)] z-10">
+          <div className="liquid-glass-surface absolute bottom-8 left-8 z-10 rounded-2xl border px-5 py-4">
             <p className="text-xs text-[#595959] uppercase tracking-widest mb-1">Starting from</p>
             <p className="text-2xl font-bold text-[#111111]">&#8377;350</p>
             <p className="text-xs text-[#4a4a4a]">per piece &middot; MOQ 50</p>

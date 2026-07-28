@@ -3,7 +3,7 @@ import { ConfiguratorTopBar } from "@/components/configurator/ConfiguratorTopBar
 
 export default function ConfiguratorPage() {
   return (
-    <main className="min-h-screen bg-white px-4 pb-10 sm:px-6">
+    <main className="app-liquid-bg min-h-screen px-4 pb-10 sm:px-6">
       <div className="mx-auto flex max-w-7xl flex-col gap-8">
         <ConfiguratorTopBar
           currentStep="product"

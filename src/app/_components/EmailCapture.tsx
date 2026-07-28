@@ -31,7 +31,7 @@ export default function EmailCapture() {
   }
 
   return (
-    <section className="bg-white">
+    <section className="app-liquid-section">
       <div className="max-w-7xl mx-auto px-6 py-20">
         <div className="max-w-xl mx-auto flex flex-col items-center text-center gap-5">
           <p className="text-xs text-[#595959] font-medium tracking-widest uppercase">Stay in the loop</p>
@@ -52,7 +52,7 @@ export default function EmailCapture() {
               <form
                 onSubmit={handleSubmit}
                 aria-busy={status === 'loading'}
-                className="flex items-center gap-2 bg-white border border-[#ECE7DF] rounded-full pl-6 pr-2 py-2 max-w-sm mx-auto shadow-[0_2px_10px_rgba(22,33,43,0.04)]"
+                className="liquid-glass-surface mx-auto flex max-w-sm items-center gap-2 rounded-full border py-2 pl-6 pr-2"
               >
                 <input
                   type="email"

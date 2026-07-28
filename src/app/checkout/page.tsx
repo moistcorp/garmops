@@ -36,8 +36,8 @@ const indianCities: Record<string, string[]> = {
   'Kerala': ['Thiruvananthapuram', 'Kochi', 'Kozhikode', 'Thrissur'],
 }
 
-const selectClass = "border border-[#E5E5E5] bg-white px-4 py-3 rounded-xl text-sm focus:outline-none focus:border-[var(--color-teal)] transition-colors appearance-none w-full cursor-pointer"
-const inputClass = "border border-[#E5E5E5] bg-white px-4 py-3 rounded-xl text-sm focus:outline-none focus:border-[var(--color-teal)] transition-colors w-full"
+const selectClass = "liquid-glass-control border px-4 py-3 rounded-xl text-sm focus:outline-none focus:!border-[var(--color-teal)] transition-colors appearance-none w-full cursor-pointer"
+const inputClass = "liquid-glass-control border px-4 py-3 rounded-xl text-sm focus:outline-none focus:!border-[var(--color-teal)] transition-colors w-full"
 const labelClass = "text-xs font-medium text-[#111111]/50 uppercase tracking-wide mb-1.5 block"
 
 function SelectWrapper({ children }: { children: React.ReactNode }) {
@@ -85,14 +85,16 @@ export default function Checkout() {
 
   if (!hasHydrated) {
     return (
-      <div className="max-w-7xl mx-auto px-6 py-16 animate-pulse">
+      <div className="app-liquid-bg min-h-[70vh] px-6 py-16 animate-pulse">
+        <div className="mx-auto max-w-7xl">
         <div className="h-9 w-64 bg-[#ECE7DF] rounded-lg mb-12" />
         <div className="grid lg:grid-cols-3 gap-12">
           <div className="lg:col-span-2 flex flex-col gap-4">
-            <div className="h-64 bg-white rounded-2xl border border-[#E5E5E5]" />
-            <div className="h-40 bg-white rounded-2xl border border-[#E5E5E5]" />
+            <div className="liquid-glass-panel h-64 rounded-2xl border" />
+            <div className="liquid-glass-panel h-40 rounded-2xl border" />
           </div>
-          <div className="h-56 bg-white rounded-2xl border border-[#E5E5E5]" />
+          <div className="liquid-glass-panel h-56 rounded-2xl border" />
+        </div>
         </div>
       </div>
     )
@@ -100,11 +102,13 @@ export default function Checkout() {
 
   if (items.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto px-6 py-24 text-center">
-        <h1 className="text-3xl font-bold mb-4 tracking-tight">Nothing to checkout</h1>
-        <Link href="/products" className="inline-block bg-[var(--color-teal)] text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-[var(--color-teal-dark)] transition">
-          Back to shop
-        </Link>
+      <div className="app-liquid-bg flex min-h-[70vh] items-center justify-center px-6 py-24 text-center">
+        <div className="liquid-glass-surface w-full max-w-lg rounded-[30px] border p-10">
+          <h1 className="text-3xl font-bold mb-4 tracking-tight">Nothing to checkout</h1>
+          <Link href="/products" className="inline-block bg-[var(--color-teal)] text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-[var(--color-teal-dark)] transition">
+            Back to shop
+          </Link>
+        </div>
       </div>
     )
   }
@@ -240,7 +244,8 @@ export default function Checkout() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-16">
+    <div className="app-liquid-bg min-h-[70vh] px-6 py-16">
+      <div className="mx-auto max-w-7xl">
       <h1 className="text-4xl font-bold mb-12 tracking-tight">Checkout</h1>
 
       <div className="grid lg:grid-cols-3 gap-12">
@@ -249,7 +254,7 @@ export default function Checkout() {
           <form id="checkout-details" className="lg:col-span-2 flex flex-col gap-8" onSubmit={(event) => { event.preventDefault(); void handlePayment() }}>
 
           {/* Contact */}
-          <div>
+          <div className="liquid-glass-panel rounded-[26px] border p-5 sm:p-7">
             <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-5">Contact details</p>
             <div className="flex flex-col gap-4">
               <div className="grid sm:grid-cols-2 gap-4">
@@ -279,7 +284,7 @@ export default function Checkout() {
                       aria-label="Phone country code"
                       value={countryCode}
                       disabled
-                      className="border border-[#E5E5E5] border-r-0 bg-white pl-3 pr-8 py-3 rounded-l-xl text-sm focus:outline-none focus:border-[var(--color-teal)] transition-colors appearance-none cursor-pointer shrink-0"
+                      className="liquid-glass-control shrink-0 appearance-none rounded-l-xl border border-r-0 py-3 pl-3 pr-8 text-sm transition-colors focus:outline-none focus:!border-[var(--color-teal)]"
                       style={{ minWidth: 90 }}
                     >
                       {countryCodes.map(c => (
@@ -297,7 +302,7 @@ export default function Checkout() {
                     required
                     value={form.phone}
                     onChange={handle}
-                    className="border border-[#E5E5E5] bg-white px-4 py-3 rounded-r-xl text-sm focus:outline-none focus:border-[var(--color-teal)] transition-colors flex-1"
+                    className="liquid-glass-control flex-1 rounded-r-xl border px-4 py-3 text-sm transition-colors focus:outline-none focus:!border-[var(--color-teal)]"
                     placeholder="98765 43210"
                   />
                 </div>
@@ -306,7 +311,7 @@ export default function Checkout() {
           </div>
 
           {/* Delivery address */}
-          <div>
+          <div className="liquid-glass-panel rounded-[26px] border p-5 sm:p-7">
             <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-5">Delivery address</p>
             <div className="flex flex-col gap-4">
 
@@ -426,7 +431,7 @@ export default function Checkout() {
 
         {/* Order summary */}
         <div className="flex flex-col gap-4">
-          <div className="rounded-2xl border border-[#ECE7DF] bg-white p-6 flex flex-col gap-4 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
+          <div className="liquid-glass-surface flex flex-col gap-4 rounded-[28px] border p-6 lg:sticky lg:top-28">
             <p className="text-sm font-semibold">Order summary</p>
 
             <div className="flex flex-col gap-3 border-t border-[#ECE7DF] pt-4">
@@ -486,6 +491,7 @@ export default function Checkout() {
             Back to cart
           </Link>
         </div>
+      </div>
       </div>
     </div>
   )

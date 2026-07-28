@@ -33,7 +33,7 @@ export default function WhyGarmops() {
   const [openIndex, setOpenIndex] = useState<number>(0)
 
   return (
-    <section className="py-20 bg-white">
+    <section className="app-liquid-section py-20">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid md:grid-cols-2 gap-16 items-start">
 
@@ -48,7 +48,10 @@ export default function WhyGarmops() {
 
             <div className="flex flex-col divide-y divide-[#E5E5E5] border-t border-b border-[#E5E5E5]">
               {accordionItems.map((item, i) => (
-                <div key={i}>
+                <div
+                  key={i}
+                  className={openIndex === i ? 'liquid-glass-panel my-2 rounded-2xl border px-4' : 'px-4'}
+                >
                   <button
                     type="button"
                     onClick={() => setOpenIndex(i)}

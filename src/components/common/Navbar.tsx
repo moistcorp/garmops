@@ -75,10 +75,10 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full px-3 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-4 sm:pt-4">
       <div
-        className={`relative z-50 mx-auto max-w-7xl rounded-full border border-[#ECE7DF] bg-white/95 backdrop-blur-md transition-shadow duration-200 ${
+        className={`liquid-glass-nav relative z-50 mx-auto max-w-7xl rounded-full border transition-all duration-200 ${
           scrolled
-            ? 'shadow-[0_8px_24px_rgba(22,33,43,0.08)]'
-            : 'shadow-[0_2px_10px_rgba(22,33,43,0.04)]'
+            ? 'liquid-glass-nav-scrolled'
+            : ''
         }`}
       >
         <div className="flex min-h-12 items-center justify-between gap-4 px-5 py-2.5 sm:px-6 sm:py-3">
@@ -182,7 +182,7 @@ export default function Navbar() {
           aria-label="Close menu"
           tabIndex={-1}
           onClick={closeMenu}
-          className={`absolute inset-0 bg-[#111111]/20 backdrop-blur-[2px] transition-opacity duration-200 ${
+          className={`absolute inset-0 bg-[#111111]/20 backdrop-blur-sm transition-opacity duration-200 ${
             open ? 'opacity-100' : 'opacity-0'
           }`}
         />
@@ -191,7 +191,7 @@ export default function Navbar() {
           ref={mobileNavRef}
           id="mobile-navigation"
           aria-label="Mobile navigation"
-          className={`absolute inset-x-3 top-[calc(max(0.75rem,env(safe-area-inset-top))+3.75rem)] max-h-[calc(100dvh-5.5rem-env(safe-area-inset-bottom))] overflow-y-auto rounded-[28px] border border-[#ECE7DF] bg-white px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 shadow-[0_18px_50px_rgba(22,33,43,0.16)] transition-all duration-200 sm:inset-x-4 ${
+          className={`liquid-glass-nav absolute inset-x-3 top-[calc(max(0.75rem,env(safe-area-inset-top))+3.75rem)] max-h-[calc(100dvh-5.5rem-env(safe-area-inset-bottom))] overflow-y-auto rounded-[28px] border px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 transition-all duration-200 sm:inset-x-4 ${
             open ? 'translate-y-0 opacity-100' : '-translate-y-3 opacity-0'
           }`}
         >
@@ -206,7 +206,7 @@ export default function Navbar() {
                   tabIndex={open ? 0 : -1}
                   aria-current={isActive ? 'page' : undefined}
                   onClick={closeMenu}
-                  className={`border-b border-[#ECE7DF] px-1 py-4 text-[17px] leading-none transition-colors ${
+                  className={`border-b border-white/60 px-1 py-4 text-[17px] leading-none transition-colors ${
                     isActive ? 'font-semibold text-[var(--color-teal)]' : 'text-[#111111]/65'
                   }`}
                 >

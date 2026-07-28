@@ -35,7 +35,7 @@ export function CartSummarySidebar({
   const balanceDue = Math.max(0, total - RESERVATION_FEE);
 
   return (
-    <aside className={`w-full shrink-0 self-start rounded-lg border border-[#E5E5E5] bg-white p-5 shadow-sm lg:w-80 ${sticky ? "lg:sticky lg:top-6" : ""}`}>
+    <aside className={`liquid-glass-surface w-full shrink-0 self-start rounded-[28px] border p-5 lg:w-80 ${sticky ? "lg:sticky lg:top-6" : ""}`}>
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-[#111111]/50">
           Invoice summary
@@ -49,7 +49,7 @@ export function CartSummarySidebar({
           <span>{formatInr(subtotal)}</span>
         </div>
         {volumeDiscount > 0 && (
-          <div className="flex justify-between rounded-md bg-[#EAF7EA] px-2 py-1.5 font-medium text-[#1B7F36]">
+          <div className="flex justify-between rounded-xl border border-white/55 bg-[#EAF7EA]/65 px-2 py-1.5 font-medium text-[#1B7F36] backdrop-blur-md">
             <span>Volume discount</span>
             <span>-{formatInr(volumeDiscount)}</span>
           </div>
@@ -80,7 +80,7 @@ export function CartSummarySidebar({
         </div>
       </div>
 
-      <div className="mt-4 rounded-xl border border-[var(--color-teal)]/25 bg-[var(--color-teal)]/5 p-3">
+      <div className="liquid-glass-panel mt-4 rounded-2xl border !border-[var(--color-teal)]/25 p-3">
         <div className="flex items-center justify-between gap-3">
           <span className="text-xs font-semibold text-[#111111]">Due today</span>
           <span className="text-lg font-bold text-[var(--color-teal-dark)]">

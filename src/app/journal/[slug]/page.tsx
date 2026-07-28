@@ -26,6 +26,7 @@ export default async function JournalPostPage({ params }: { params: Promise<{ sl
   if (!post) notFound()
 
   return (
+    <div className="app-liquid-bg">
     <article className="mx-auto max-w-3xl px-6 pb-24 pt-12 sm:pt-20">
       <Breadcrumbs crumbs={[
         { label: 'Home', href: '/' },
@@ -34,7 +35,7 @@ export default async function JournalPostPage({ params }: { params: Promise<{ sl
       ]} />
       <div className="mb-10 border-b border-[#ECE7DF] pb-10">
         <div className="mb-5 flex flex-wrap items-center gap-3 text-xs text-[#111111]/45">
-          <span className="rounded-full border border-[#ECE7DF] px-3 py-1">{post.category}</span>
+          <span className="liquid-glass-chip rounded-full px-3 py-1">{post.category}</span>
           <time>{post.date}</time>
           <span aria-hidden="true">·</span>
           <span>{post.readTime}</span>
@@ -54,7 +55,7 @@ export default async function JournalPostPage({ params }: { params: Promise<{ sl
           </section>
         ))}
       </div>
-      <div className="mt-14 flex flex-col gap-4 rounded-3xl bg-[var(--color-cream)] p-7 sm:flex-row sm:items-center sm:justify-between">
+      <div className="liquid-glass-surface mt-14 flex flex-col gap-4 rounded-3xl border p-7 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="font-semibold text-[#111111]">Planning a production run?</h2>
           <p className="mt-1 text-sm text-[#111111]/55">Configure your order or ask us about the right specification.</p>
@@ -64,5 +65,6 @@ export default async function JournalPostPage({ params }: { params: Promise<{ sl
         </Link>
       </div>
     </article>
+    </div>
   )
 }

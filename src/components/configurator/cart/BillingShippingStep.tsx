@@ -56,7 +56,7 @@ export interface BillingShippingStepProps {
 }
 
 const INPUT_CLASS =
-  "w-full rounded-md border border-[#E5E5E5] bg-[#F7F7F7] px-3 py-2 text-sm text-[#111111] placeholder:text-[#111111]/40 focus:border-[var(--color-teal)] focus:outline-none";
+  "liquid-glass-control w-full rounded-xl border px-3 py-2 text-sm text-[#111111] placeholder:text-[#111111]/40 focus:!border-[var(--color-teal)] focus:outline-none";
 const LABEL_CLASS = "mb-1 block text-xs font-medium text-[#111111]/70";
 const PO_MAX_BYTES = 3 * 1024 * 1024;
 const PO_TYPES = ["application/pdf", "image/jpeg", "image/png"];
@@ -373,7 +373,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
           </button>
         </div>
 
-        <section id="company-information" className="scroll-mt-16 rounded-lg border border-[#E5E5E5] bg-white p-5">
+        <section id="company-information" className="liquid-glass-panel scroll-mt-16 rounded-[24px] border p-5">
           {sectionHeading(
             <Building2 size={18} />,
             "Company information",
@@ -461,7 +461,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
           </div>
         </section>
 
-        <section id="project-contact" className="scroll-mt-16 rounded-lg border border-[#E5E5E5] bg-white p-5">
+        <section id="project-contact" className="liquid-glass-panel scroll-mt-16 rounded-[24px] border p-5">
           {sectionHeading(
             <UserRound size={18} />,
             "Primary project contact",
@@ -538,7 +538,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
           </div>
         </section>
 
-        <section id="shipping-information" className="scroll-mt-16 rounded-lg border border-[#E5E5E5] bg-white p-5">
+        <section id="shipping-information" className="liquid-glass-panel scroll-mt-16 rounded-[24px] border p-5">
           {sectionHeading(
             <MapPin size={18} />,
             "Shipping information",
@@ -596,7 +596,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
           </div>
         </section>
 
-        <section id="delivery-target" className="scroll-mt-16 rounded-lg border border-[#E5E5E5] bg-white p-5">
+        <section id="delivery-target" className="liquid-glass-panel scroll-mt-16 rounded-[24px] border p-5">
           <DeliveryDatePicker
             orderConfirmedDate={deliveryBaseDate}
             extraLeadTimeDays={extraLeadTimeDays}
@@ -615,13 +615,13 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
           </p>
         </section>
 
-        <section id="billing-information" className="scroll-mt-16 rounded-lg border border-[#E5E5E5] bg-white p-5">
+        <section id="billing-information" className="liquid-glass-panel scroll-mt-16 rounded-[24px] border p-5">
           {sectionHeading(
             <ReceiptText size={18} />,
             "Billing information",
             "Details Finance or Procurement needs for the final GST invoice."
           )}
-          <label className="mb-5 flex cursor-pointer items-start gap-3 rounded-lg border border-[#E5E5E5] bg-[#F7F7F7] p-3 text-sm text-[#111111]">
+          <label className="liquid-glass-control mb-5 flex cursor-pointer items-start gap-3 rounded-xl border p-3 text-sm text-[#111111]">
             <input
               type="checkbox"
               className="mt-0.5 h-4 w-4 accent-[var(--color-teal)]"
@@ -719,7 +719,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
               onChange={(event) => void handlePoUpload(event.target.files?.[0])}
             />
             {draft.billingInformation.purchaseOrder ? (
-              <div className="flex items-center justify-between gap-3 rounded-lg border border-[#E5E5E5] bg-[#F7F7F7] p-3">
+              <div className="liquid-glass-control flex items-center justify-between gap-3 rounded-xl border p-3">
                 <div className="flex min-w-0 items-center gap-3">
                   <FileText size={18} className="shrink-0 text-[var(--color-teal-dark)]" />
                   <div className="min-w-0">
@@ -744,7 +744,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
                 type="button"
                 disabled={poUploadStatus === "saving"}
                 onClick={() => poInputRef.current?.click()}
-                className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-[#CFCFCF] bg-[#F7F7F7] px-4 py-4 text-sm font-medium text-[#111111]/70 hover:border-[var(--color-teal)] hover:text-[#111111] disabled:cursor-wait disabled:opacity-60"
+                className="liquid-glass-control flex w-full items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-4 text-sm font-medium text-[#111111]/70 hover:!border-[var(--color-teal)] hover:text-[#111111] disabled:cursor-wait disabled:opacity-60"
               >
                 <Upload size={17} />
                 {poUploadStatus === "saving" ? "Saving purchase order…" : "Upload PO (PDF, JPG or PNG, up to 3 MB)"}
@@ -754,7 +754,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
           </div>
         </section>
 
-        <section id="order-notes" className="scroll-mt-16 rounded-lg border border-[#E5E5E5] bg-white p-5">
+        <section id="order-notes" className="liquid-glass-panel scroll-mt-16 rounded-[24px] border p-5">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-[#111111]">Order notes & communication</h2>
           <p className="mt-1 text-xs text-[#111111]/55">These preferences apply once to the complete order and are no longer duplicated inside address forms.</p>
           <div className="mt-4">
@@ -780,7 +780,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
           </label>
         </section>
 
-        <section className="space-y-2 rounded-lg border border-[#E5E5E5] bg-white p-5">
+        <section className="liquid-glass-panel space-y-2 rounded-[24px] border p-5">
           <p className="text-sm font-medium text-[#111111]">Have a promo code?</p>
           <p className="text-sm text-[#111111]/60">Contact your account manager before reserving the production review.</p>
         </section>

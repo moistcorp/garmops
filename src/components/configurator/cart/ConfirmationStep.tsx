@@ -457,7 +457,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
         </ReviewSection>
 
         {(draft.projectPreferences.orderNotes || draft.projectPreferences.receiveEmails) && (
-          <section className="rounded-lg border border-[#E5E5E5] bg-white p-5">
+          <section className="liquid-glass-panel rounded-[24px] border p-5">
             <h3 className="text-sm font-medium text-[#111111]">Project notes & communication</h3>
             {draft.projectPreferences.orderNotes && (
               <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[#111111]/70">{draft.projectPreferences.orderNotes}</p>
@@ -468,14 +468,14 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
           </section>
         )}
 
-        <section className="rounded-lg border border-[#E5E5E5] bg-white p-5">
+        <section className="liquid-glass-panel rounded-[24px] border p-5">
           <h3 className="mb-4 text-sm font-medium text-[#111111]">Order summary</h3>
           <div className="space-y-4">
             {draft.items.map((item) => <ProductRecapCard key={item.id} item={item} />)}
           </div>
         </section>
 
-        <section className="rounded-lg border border-[var(--color-teal)]/25 bg-[var(--color-teal)]/5 p-5">
+        <section className="liquid-glass-panel rounded-[24px] border !border-[var(--color-teal)]/25 p-5">
           <div className="flex items-start gap-3">
             <span className="rounded-full bg-white p-2 text-[var(--color-teal-dark)]"><ShieldCheck size={18} /></span>
             <div className="min-w-0 flex-1">
@@ -498,7 +498,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
           </div>
         </section>
 
-        <section className="rounded-lg border border-[#E5E5E5] bg-white p-5">
+        <section className="liquid-glass-panel rounded-[24px] border p-5">
           <label className="flex cursor-pointer items-start gap-3 text-sm text-[#111111]">
             <input
               type="checkbox"
@@ -527,7 +527,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
             total={orderTotal}
             sticky={false}
           />
-          <div className="rounded-lg border border-[var(--color-teal)]/25 bg-white p-5 text-sm shadow-sm">
+          <div className="liquid-glass-surface rounded-[24px] border !border-[var(--color-teal)]/25 p-5 text-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-[#111111]/50">Reservation payment</p>
             <div className="mt-3 flex items-end justify-between gap-3">
               <span className="font-medium text-[#111111]">Due today</span>
@@ -578,7 +578,7 @@ function ReviewSection({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-lg border border-[#E5E5E5] bg-white p-5">
+    <section className="liquid-glass-panel rounded-[24px] border p-5">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className="text-[var(--color-teal-dark)]">{icon}</span>
@@ -615,7 +615,7 @@ function ProductRecapCard({ item }: { item: CartItem }) {
   const productSizes = getProduct(item.productId)?.sizes ?? Object.keys(item.sizeQuantities);
 
   return (
-    <div className="flex gap-4 rounded-lg border border-[#E5E5E5] p-4">
+    <div className="liquid-glass-control flex gap-4 rounded-2xl border p-4">
       <div className="h-24 w-20 shrink-0 overflow-hidden rounded-md bg-[#F7F7F7]">
         <ArtworkPositionProvider activeView="front">
           <CanvasRenderer

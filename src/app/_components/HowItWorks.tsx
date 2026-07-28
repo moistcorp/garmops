@@ -280,7 +280,7 @@ export default function HowItWorks() {
   return (
     <section
       ref={sectionRef}
-      className="bg-white py-20"
+      className="app-liquid-section py-20"
     >
       <div className="mx-auto mb-10 max-w-7xl px-6">
         <p className="mb-4 text-xs font-medium uppercase tracking-widest text-[#595959]">
@@ -331,6 +331,7 @@ export default function HowItWorks() {
               ref={element => {
                 cardRefs.current[index] = element
               }}
+              className="liquid-glass-panel rounded-[24px] border p-4"
               style={{
                 scrollSnapAlign: 'start',
                 flexShrink: 0,
@@ -446,10 +447,11 @@ export default function HowItWorks() {
                     key={step.number}
                     type="button"
                     onClick={() => selectStep(index)}
+                    className={isActive ? 'liquid-glass-panel rounded-2xl border' : ''}
                     style={{
                       width: '100%',
                       textAlign: 'left',
-                      padding: '28px 0',
+                      padding: '28px 20px',
                       display: 'block',
                       background: 'none',
                       cursor: 'pointer',

@@ -26,7 +26,7 @@ const faqs = [
 
 export default function HowItWorks() {
   return (
-    <>
+    <div className="app-liquid-bg">
       <section className="max-w-7xl mx-auto px-6 pt-20 pb-16">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">The process</p>
         <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] max-w-xl leading-tight mb-6 tracking-tight">
@@ -38,9 +38,9 @@ export default function HowItWorks() {
       </section>
 
       <section className="max-w-7xl mx-auto px-6 pb-24">
-        <div className="border-t border-[#E5E5E5]">
+        <div className="flex flex-col gap-4">
           {steps.map(s => (
-            <div key={s.num} className="grid md:grid-cols-12 gap-6 py-10 border-b border-[#E5E5E5] items-start">
+            <div key={s.num} className="liquid-glass-panel grid items-start gap-6 rounded-[24px] border p-6 md:grid-cols-12 md:p-8">
               <p className="md:col-span-1 text-2xl font-bold text-[#111111]/15">{s.num}</p>
               <h3 className="md:col-span-4 text-base font-semibold text-[#111111]">{s.title}</h3>
               <p className="md:col-span-7 text-[#111111]/50 leading-relaxed text-sm">{s.desc}</p>
@@ -49,13 +49,13 @@ export default function HowItWorks() {
         </div>
       </section>
 
-      <section className="bg-[var(--color-cream)] py-20">
+      <section className="app-liquid-section py-20">
         <div className="max-w-7xl mx-auto px-6">
           <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">FAQ</p>
           <h2 className="text-4xl font-bold text-[#111111] mb-12 tracking-tight">Common questions</h2>
-          <div className="divide-y divide-[#E5E5E5]">
+          <div className="grid gap-4">
             {faqs.map(f => (
-              <div key={f.q} className="py-8 grid md:grid-cols-2 gap-6">
+              <div key={f.q} className="liquid-glass-panel grid gap-6 rounded-2xl border p-6 md:grid-cols-2">
                 <p className="text-[#111111] font-medium text-sm">{f.q}</p>
                 <p className="text-[#111111]/50 leading-relaxed text-sm">{f.a}</p>
               </div>
@@ -71,6 +71,6 @@ export default function HowItWorks() {
           Start designing
         </Link>
       </section>
-    </>
+    </div>
   )
 }

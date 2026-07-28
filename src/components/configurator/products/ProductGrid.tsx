@@ -74,7 +74,7 @@ export default function ProductGrid() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-[#ECE7DF] bg-[#FAF8F5] p-4 sm:p-5" aria-labelledby="product-guidance-title">
+      <section className="liquid-glass-surface rounded-[28px] border p-4 sm:p-5" aria-labelledby="product-guidance-title">
         <div className="flex flex-col gap-1">
           <h2 id="product-guidance-title" className="text-base font-semibold text-[#111111]">Help us recommend the right product</h2>
           <p className="text-sm text-[#111111]/60">These details only improve recommendations and delivery guidance. You can still browse every product.</p>
@@ -86,7 +86,7 @@ export default function ProductGrid() {
               id="product-use-case"
               value={useCase}
               onChange={(event) => setUseCase(event.target.value as ProductUseCase | "")}
-              className="min-h-11 w-full rounded-xl border border-[#E5E5E5] bg-white px-3 text-sm text-[#111111]"
+              className="liquid-glass-control min-h-11 w-full rounded-xl border px-3 text-sm text-[#111111]"
             >
               <option value="">Show all products</option>
               {PRODUCT_USE_CASES.map((option) => <option key={option} value={option}>{option}</option>)}
@@ -108,7 +108,7 @@ export default function ProductGrid() {
                   event.currentTarget.blur();
                 }
               }}
-              className="min-h-11 w-full rounded-xl border border-[#E5E5E5] bg-white px-3 text-sm text-[#111111]"
+              className="liquid-glass-control min-h-11 w-full rounded-xl border px-3 text-sm text-[#111111]"
             />
           </div>
           <div>
@@ -119,14 +119,14 @@ export default function ProductGrid() {
               min={todayInputValue()}
               value={targetDate}
               onChange={(event) => updateTargetDate(event.target.value)}
-              className="min-h-11 w-full rounded-xl border border-[#E5E5E5] bg-white px-3 text-sm text-[#111111]"
+              className="liquid-glass-control min-h-11 w-full rounded-xl border px-3 text-sm text-[#111111]"
             />
           </div>
         </div>
         <p className="mt-3 text-xs text-[#111111]/55">Current volume tier: {discount}% off blank garment pricing. Customisation is calculated in Studio.</p>
       </section>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {sortedProducts.map((product, index) => (
           <ProductCard
             key={product.id}
@@ -143,15 +143,15 @@ export default function ProductGrid() {
       </div>
 
       {comparedProducts.length > 0 && (
-        <section className="sticky bottom-4 z-30 overflow-hidden rounded-2xl border border-[var(--color-teal)]/35 bg-white shadow-[0_18px_50px_rgba(22,33,43,0.18)]" aria-labelledby="comparison-title">
-          <div className="flex items-center justify-between gap-3 border-b border-[#ECE7DF] px-4 py-3">
+        <section className="liquid-glass-surface sticky bottom-4 z-30 overflow-hidden rounded-[26px] border !border-[var(--color-teal)]/30" aria-labelledby="comparison-title">
+          <div className="flex items-center justify-between gap-3 border-b border-white/60 bg-white/15 px-4 py-3">
             <div><h2 id="comparison-title" className="text-sm font-semibold text-[#111111]">Product comparison</h2><p className="text-xs text-[#111111]/55">Compare up to three options before customising.</p></div>
-            <button type="button" onClick={() => setCompareIds([])} className="rounded-full border border-[#E5E5E5] px-3 py-1.5 text-xs font-semibold text-[#111111]/65">Clear comparison</button>
+            <button type="button" onClick={() => setCompareIds([])} className="liquid-glass-control rounded-full border px-3 py-1.5 text-xs font-semibold text-[#111111]/65">Clear comparison</button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-left text-xs">
               <thead>
-                <tr className="bg-[#F7F7F7]">
+                <tr className="bg-white/20">
                   <th className="w-40 px-4 py-3 font-semibold text-[#111111]/55">Attribute</th>
                   {comparedProducts.map((product) => (
                     <th key={product.id} className="px-4 py-3 text-sm font-semibold text-[#111111]">

@@ -45,7 +45,7 @@ export function AccordionItem({
 
   return (
     <section
-      className={`flex min-h-0 flex-col overflow-hidden rounded-[28px] border bg-white shadow-[0_4px_16px_rgba(22,33,43,0.04)] ${
+      className={`configurator-glass-subtle flex min-h-0 flex-col overflow-hidden rounded-[28px] border ${
         expanded ? "flex-1 border-[var(--color-teal)]" : "shrink-0 border-[#ECE7DF]"
       }`}
     >
@@ -97,13 +97,13 @@ export function AccordionItem({
         <div role="alertdialog" aria-label={`Remove ${title} selection`} className="flex items-center justify-between gap-3 border-t border-[#F3D9D9] bg-[#FDF3F3] px-4 py-2.5">
           <p className="text-xs font-medium text-[#8A2E2E]">Remove this {title.toLowerCase()} selection?</p>
           <span className="flex shrink-0 items-center gap-1.5">
-            <button ref={cancelButtonRef} type="button" onClick={() => setConfirmingDelete(false)} className="flex h-8 items-center gap-1 rounded-full border border-[#E5E5E5] bg-white px-2.5 text-xs font-semibold text-[#111111]/70"><X size={13} /> Cancel</button>
+            <button ref={cancelButtonRef} type="button" onClick={() => setConfirmingDelete(false)} className="configurator-glass-control flex h-8 items-center gap-1 rounded-full border px-2.5 text-xs font-semibold text-[#111111]/70"><X size={13} /> Cancel</button>
             <button type="button" onClick={() => { setConfirmingDelete(false); onDelete(); }} className="flex h-8 items-center gap-1 rounded-full bg-[#C62828] px-2.5 text-xs font-semibold text-white"><Trash2 size={13} /> Remove</button>
           </span>
         </div>
       )}
 
-      <div id={panelId} hidden={!expanded} className="min-h-0 flex-1 overflow-y-auto border-t border-[#ECE7DF] bg-white px-4 py-4">
+      <div id={panelId} hidden={!expanded} className="min-h-0 flex-1 overflow-y-auto border-t border-white/55 bg-white/10 px-4 py-4">
         {expanded ? children : null}
       </div>
     </section>

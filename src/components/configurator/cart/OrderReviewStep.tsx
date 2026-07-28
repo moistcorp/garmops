@@ -338,7 +338,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
         {!draftLoaded && <OrderItemSkeleton />}
 
         {draftLoaded && items.length === 0 && (
-          <section className="rounded-lg border border-[#E5E5E5] bg-white p-8 text-center">
+          <section className="liquid-glass-surface rounded-[28px] border p-8 text-center">
             <h2 className="text-lg font-medium text-[#111111]">Your cart is empty</h2>
             <p className="mt-1 text-sm text-[#111111]/60">
               Add a product to continue your order.
@@ -363,7 +363,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
           const itemDiscountPercent = getCartItemDiscountPercent(item);
           const garmentTotal = itemUnitPrice * itemUnits;
           return (
-            <section key={item.id} className="rounded-lg border border-[#E5E5E5] bg-white p-5">
+            <section key={item.id} className="liquid-glass-panel rounded-[24px] border p-5">
               <div className="flex flex-col gap-5 md:flex-row">
                 <div className="w-full shrink-0 md:w-44">
                   <div className="relative aspect-[3/4] overflow-hidden rounded-md bg-[#F7F7F7]">
@@ -481,7 +481,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                   />
 
                   {sizeChart && (
-                    <details className="rounded-md border border-[#E5E5E5] bg-white p-3 text-xs text-[#111111]">
+                    <details className="liquid-glass-control rounded-xl border p-3 text-xs text-[#111111]">
                       <summary className="cursor-pointer font-semibold">Fit / measurement chart</summary>
                       <div className="mt-3 overflow-x-auto">
                         <table className="w-full min-w-[420px] text-left">
@@ -560,7 +560,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
 
 function OrderItemSkeleton() {
   return (
-    <section className="rounded-lg border border-[#E5E5E5] bg-white p-5" aria-label="Loading order items">
+    <section className="liquid-glass-panel rounded-[24px] border p-5" aria-label="Loading order items">
       <div className="flex flex-col gap-5 md:flex-row">
         <div className="h-56 w-full shrink-0 rounded-md bg-[#F7F7F7] md:w-44" />
         <div className="min-w-0 flex-1 space-y-5">

@@ -212,7 +212,7 @@ function VectorConversionDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-white/60 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#111111]/20 p-4 backdrop-blur-md"
       role="dialog"
       aria-modal="true"
       aria-labelledby="vector-conversion-title"
@@ -221,7 +221,7 @@ function VectorConversionDialog({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div ref={dialogRef} className="relative w-full max-w-[720px] rounded-lg bg-white p-6 shadow-2xl sm:p-8">
+      <div ref={dialogRef} className="liquid-glass-surface relative w-full max-w-[720px] rounded-[30px] border p-6 sm:p-8">
         <button
           ref={closeButtonRef}
           type="button"
@@ -250,7 +250,7 @@ function VectorConversionDialog({
           </div>
 
           <div className="flex flex-col gap-3">
-            <div className="grid gap-4 rounded-md bg-[#F1F1F1] p-5 sm:grid-cols-[32px_minmax(0,1fr)_auto] sm:items-center">
+            <div className="liquid-glass-panel grid gap-4 rounded-2xl border p-5 sm:grid-cols-[32px_minmax(0,1fr)_auto] sm:items-center">
               <span className="text-2xl font-bold">1</span>
               <div className="flex flex-col gap-2">
                 <h3 className="text-base font-bold">Access Converter and upload your file</h3>
@@ -269,7 +269,7 @@ function VectorConversionDialog({
               </button>
             </div>
 
-            <div className="grid gap-4 rounded-md bg-[#F1F1F1] p-5 sm:grid-cols-[32px_minmax(0,1fr)]">
+            <div className="liquid-glass-panel grid gap-4 rounded-2xl border p-5 sm:grid-cols-[32px_minmax(0,1fr)]">
               <span className="text-2xl font-bold">2</span>
               <div className="flex flex-col gap-2">
                 <h3 className="text-base font-bold">Download your converted file</h3>
@@ -280,7 +280,7 @@ function VectorConversionDialog({
               </div>
             </div>
 
-            <div className="grid gap-4 rounded-md bg-[#F1F1F1] p-5 sm:grid-cols-[32px_minmax(0,1fr)_auto] sm:items-center">
+            <div className="liquid-glass-panel grid gap-4 rounded-2xl border p-5 sm:grid-cols-[32px_minmax(0,1fr)_auto] sm:items-center">
               <span className="text-2xl font-bold">3</span>
               <div className="flex flex-col gap-2">
                 <h3 className="text-base font-bold">Upload your .svg in Studio</h3>

@@ -31,8 +31,8 @@ export default function PaymentFailurePage() {
   }, [])
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-6">
-      <div className="max-w-md w-full text-center">
+    <div className="app-liquid-bg flex min-h-[80vh] items-center justify-center px-6 py-12">
+      <div className="liquid-glass-surface w-full max-w-md rounded-[30px] border p-7 text-center sm:p-9">
         <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.5">
             <circle cx="12" cy="12" r="10" />
@@ -54,7 +54,7 @@ export default function PaymentFailurePage() {
         )}
 
         {/* Important notice */}
-        <div className="bg-[var(--color-cream)] border border-[#ECE7DF] rounded-2xl p-4 text-xs text-[#111111]/70 text-left leading-relaxed mb-6">
+        <div className="liquid-glass-panel mb-6 rounded-2xl border p-4 text-left text-xs leading-relaxed text-[#111111]/70">
           <p className="font-semibold mb-1">Important — please read before retrying</p>
           <p>
             If an amount was deducted from your bank account, <strong>do not retry payment</strong>.

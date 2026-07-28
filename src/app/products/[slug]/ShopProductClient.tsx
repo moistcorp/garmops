@@ -65,7 +65,7 @@ export default function ShopProductClient({
   }
 
   return (
-    <>
+    <div className="app-liquid-bg">
       <div className="max-w-7xl mx-auto px-6 py-16">
         <Breadcrumbs crumbs={[
           { label: 'Home', href: '/' },
@@ -95,7 +95,7 @@ export default function ShopProductClient({
           </div>
 
           {/* Info */}
-          <div className="flex flex-col gap-6">
+          <div className="liquid-glass-surface flex flex-col gap-6 rounded-[30px] border p-5 sm:p-7">
             <div>
               <p className="text-xs text-[#111111]/40 uppercase tracking-widest mb-2">
                 {product.category}
@@ -126,10 +126,10 @@ export default function ShopProductClient({
                       key={s}
                       type="button"
                       onClick={() => { setSelectedSize(s); setError('') }}
-                      className={`min-w-12 h-12 px-3 text-sm whitespace-nowrap border transition-colors ${
+                      className={`min-w-12 h-12 rounded-xl px-3 text-sm whitespace-nowrap border transition-colors ${
                         selectedSize === s
-                          ? 'bg-[var(--color-teal)] text-white border-[var(--color-teal)]'
-                          : 'border-[#E5E5E5] text-[#111111] hover:border-[var(--color-teal)] hover:text-[var(--color-teal)]'
+                          ? 'liquid-glass-selected'
+                          : 'liquid-glass-control text-[#111111] hover:!border-[var(--color-teal)] hover:text-[var(--color-teal)]'
                       }`}
                     >
                       {s}
@@ -149,7 +149,7 @@ export default function ShopProductClient({
                 <button
                   type="button"
                   onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                  className="w-10 h-10 rounded-full border border-[#E5E5E5] hover:border-[var(--color-teal)] hover:text-[var(--color-teal)] transition-colors flex items-center justify-center text-lg"
+                  className="liquid-glass-control flex h-10 w-10 items-center justify-center rounded-full border text-lg transition-colors hover:!border-[var(--color-teal)] hover:text-[var(--color-teal)]"
                 >
                   -
                 </button>
@@ -158,7 +158,7 @@ export default function ShopProductClient({
                   type="button"
                   onClick={() => setQuantity(q => Math.min(MAX_SAMPLE_ITEM_QUANTITY, q + 1))}
                   disabled={quantity >= MAX_SAMPLE_ITEM_QUANTITY}
-                  className="w-10 h-10 rounded-full border border-[#E5E5E5] hover:border-[var(--color-teal)] hover:text-[var(--color-teal)] transition-colors flex items-center justify-center text-lg disabled:cursor-not-allowed disabled:opacity-40"
+                  className="liquid-glass-control flex h-10 w-10 items-center justify-center rounded-full border text-lg transition-colors hover:!border-[var(--color-teal)] hover:text-[var(--color-teal)] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   +
                 </button>
@@ -225,7 +225,7 @@ export default function ShopProductClient({
                 <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-3">
                   Size chart
                 </p>
-                <div className="border border-[#ECE7DF] rounded-2xl overflow-hidden">
+                <div className="liquid-glass-panel overflow-hidden rounded-2xl border">
                   <div className="overflow-x-auto" role="region" aria-label="Product size chart" tabIndex={0}>
                   <table className="min-w-max w-full text-xs">
                     <thead>
@@ -292,7 +292,7 @@ export default function ShopProductClient({
 
       {/* Related */}
       {related.length > 0 && (
-        <section className="max-w-7xl mx-auto px-6 pb-24 border-t border-[#ECE7DF] pt-16">
+        <section className="mx-auto max-w-7xl px-6 pb-24 pt-16">
           <h2 className="text-xs font-medium uppercase tracking-widest text-[#111111]/40 mb-8">
             More in {product.category}
           </h2>
@@ -301,7 +301,7 @@ export default function ShopProductClient({
               <Link
                 key={p.id}
                 href={`/products/${p.slug}`}
-                className="group bg-white flex flex-col overflow-hidden rounded-2xl border border-[#ECE7DF] shadow-[0_4px_16px_rgba(22,33,43,0.04)] hover:border-[var(--color-teal)] hover:shadow-[0_12px_30px_rgba(22,33,43,0.08)] transition-all duration-300"
+                className="liquid-glass-panel group flex flex-col overflow-hidden rounded-[24px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-teal)]/45"
               >
                 <div className="relative w-full aspect-[3/4] bg-[var(--color-cream-soft)] flex items-center justify-center overflow-hidden">
                   {p.image ? (
@@ -334,6 +334,6 @@ export default function ShopProductClient({
           </div>
         </section>
       )}
-    </>
+    </div>
   )
 }

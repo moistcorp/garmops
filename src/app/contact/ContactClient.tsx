@@ -41,10 +41,10 @@ export default function ContactClient() {
     }
   }
 
-  const inputClass = "border border-[#E5E5E5] bg-white px-4 py-3 rounded-xl text-sm focus:outline-none focus:border-[var(--color-teal)] transition-colors"
+  const inputClass = "liquid-glass-control border px-4 py-3 rounded-xl text-sm focus:outline-none focus:!border-[var(--color-teal)] transition-colors"
 
   return (
-    <>
+    <div className="app-liquid-bg">
       <section className="max-w-7xl mx-auto px-6 pt-20 pb-16">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Get in touch</p>
         <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] max-w-xl leading-tight mb-6 tracking-tight">
@@ -58,12 +58,12 @@ export default function ContactClient() {
       <section className="max-w-7xl mx-auto px-6 pb-24 grid md:grid-cols-2 gap-16">
         <div>
           {submitted ? (
-            <div role="status" className="bg-[var(--color-navy)] text-white rounded-3xl p-10">
+            <div role="status" className="liquid-glass-dark rounded-3xl border p-10 text-white">
               <h2 className="text-2xl font-bold mb-2">We&apos;ve got your request.</h2>
               <p className="text-white/50 text-sm">Our team will reach out within 24 hours with a detailed quote.</p>
             </div>
           ) : (
-            <form onSubmit={submit} aria-busy={submitting} className="flex flex-col gap-4">
+            <form onSubmit={submit} aria-busy={submitting} className="liquid-glass-surface flex flex-col gap-4 rounded-[30px] border p-5 sm:p-7">
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="contact-name" className="text-xs font-medium text-[#111111]/60 uppercase tracking-wide">Full name *</label>
@@ -115,7 +115,7 @@ export default function ContactClient() {
             { label: 'Email', content: 'hello@garmops.com', isEmail: true },
             { label: 'MOQ & Turnaround', content: `50 pieces minimum. ${DELIVERY_DAYS}-day standard production. ${RUSH_DELIVERY_DAYS}-day rush production available.` },
           ].map(item => (
-            <div key={item.label}>
+            <div key={item.label} className="liquid-glass-panel rounded-2xl border p-5">
               <p className="text-xs font-medium text-[#111111]/40 mb-2 uppercase tracking-widest">{item.label}</p>
               {item.isEmail ? (
                 <a href={`mailto:${item.content}`} className="text-sm text-[#111111] hover:underline">{item.content}</a>
@@ -124,7 +124,7 @@ export default function ContactClient() {
               )}
             </div>
           ))}
-          <div>
+          <div className="liquid-glass-panel rounded-2xl border p-5">
             <p className="text-xs font-medium text-[#111111]/40 mb-2 uppercase tracking-widest">Or start directly</p>
             <Link href="/configurator" className="inline-block border border-[var(--color-teal)] text-[var(--color-teal)] px-5 py-2.5 rounded-full text-sm hover:bg-[var(--color-teal)] hover:text-white transition-colors">
               Open the configurator
@@ -132,6 +132,6 @@ export default function ContactClient() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   )
 }

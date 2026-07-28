@@ -84,8 +84,8 @@ export default function ProductCard({
           : "bg-[#F2F0EA] text-[#111111]/55";
 
   return (
-    <article ref={cardRef} className={`group relative flex self-start flex-col overflow-hidden rounded-2xl border bg-white shadow-[0_4px_16px_rgba(22,33,43,0.04)] transition-all duration-300 hover:shadow-[0_12px_30px_rgba(22,33,43,0.08)] ${recommended ? "border-[var(--color-teal)]" : "border-[#ECE7DF] hover:border-[var(--color-teal)]"}`}>
-      <div className="relative aspect-[3/4] w-full overflow-hidden bg-white">
+    <article ref={cardRef} className={`liquid-glass-panel group relative flex h-full self-stretch flex-col overflow-hidden rounded-[24px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-teal)]/45 ${recommended ? "!border-[var(--color-teal)]/60" : ""}`}>
+      <div className="relative aspect-[3/4] w-full shrink-0 overflow-hidden bg-white">
         <Link
           href={configuratorHref}
           onClick={() => trackConfiguratorEvent("product_selected", { product_id: product.id, quantity, use_case: selectedUseCase || null })}
@@ -121,13 +121,13 @@ export default function ProductCard({
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 px-4 py-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
+      <div className="flex flex-1 flex-col gap-3 px-4 py-4">
+        <div className="flex min-h-[78px] items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
             <Link
               href={configuratorHref}
               onClick={() => trackConfiguratorEvent("product_selected", { product_id: product.id, quantity, use_case: selectedUseCase || null })}
-              className="block text-sm font-semibold text-[#111111] hover:text-[var(--color-teal-dark)]"
+              className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-[#111111] hover:text-[var(--color-teal-dark)]"
             >
               {product.name}
             </Link>
@@ -140,41 +140,21 @@ export default function ProductCard({
             aria-expanded={detailsOpen}
             aria-controls={`product-details-${product.id}`}
             aria-label={`${detailsOpen ? "Hide" : "Show"} details for ${product.name}`}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#E5E5E5] bg-white text-[#111111]/60 hover:border-[var(--color-teal)] hover:text-[var(--color-teal)]"
+            className="liquid-glass-control flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-[#111111]/60 hover:!border-[var(--color-teal)] hover:text-[var(--color-teal)]"
           >
             <ChevronDown size={15} strokeWidth={2.2} className={`transition-transform ${detailsOpen ? "rotate-180" : ""}`} />
           </button>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 text-[11px]">
-          <div className="rounded-xl bg-[#F7F7F7] p-2.5">
+        <div className="grid min-h-[92px] grid-cols-2 gap-2 text-[11px]">
+          <div className="h-full rounded-xl bg-[#F7F7F7] p-2.5">
             <p className="font-semibold text-[#111111]">Best for</p>
             <p className="mt-0.5 leading-snug text-[#111111]/60">{product.bestFor.slice(0, 2).join(", ")}</p>
           </div>
-          <div className="rounded-xl bg-[#F7F7F7] p-2.5">
+          <div className="h-full rounded-xl bg-[#F7F7F7] p-2.5">
             <p className="font-semibold text-[#111111]">Feel & fit</p>
             <p className="mt-0.5 leading-snug text-[#111111]/60">{product.fabricFeel} · {product.fit}</p>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Link
-            href={configuratorHref}
-            onClick={() => trackConfiguratorEvent("product_selected", { product_id: product.id, quantity, use_case: selectedUseCase || null })}
-            className="flex min-h-10 flex-1 items-center justify-center rounded-full bg-[var(--color-teal)] px-4 text-sm font-semibold text-white hover:bg-[var(--color-teal-dark)]"
-          >
-            Customise
-          </Link>
-          <button
-            type="button"
-            aria-pressed={compared}
-            disabled={!compared && compareDisabled}
-            onClick={() => onCompareChange(!compared)}
-            className={`flex min-h-10 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${compared ? "border-[var(--color-teal)] bg-[var(--color-teal)]/10 text-[var(--color-teal-dark)]" : "border-[#E5E5E5] text-[#111111]/65 hover:border-[var(--color-teal)]"}`}
-          >
-            {compared ? <Check size={14} /> : <GitCompareArrows size={14} />}
-            {compared ? "Added" : "Compare"}
-          </button>
         </div>
 
         {detailsOpen && (
@@ -189,6 +169,27 @@ export default function ProductCard({
             <div><span className="font-semibold text-[#111111]">Sizes</span><p>{product.sizes.join(", ")}</p></div>
           </div>
         )}
+
+        <div className="mt-auto flex items-center gap-2 pt-1">
+          <Link
+            href={configuratorHref}
+            onClick={() => trackConfiguratorEvent("product_selected", { product_id: product.id, quantity, use_case: selectedUseCase || null })}
+            className="flex min-h-10 flex-1 items-center justify-center rounded-full bg-[var(--color-teal)] px-4 text-sm font-semibold text-white hover:bg-[var(--color-teal-dark)]"
+          >
+            Customise
+          </Link>
+          <button
+            type="button"
+            aria-pressed={compared}
+            disabled={!compared && compareDisabled}
+            onClick={() => onCompareChange(!compared)}
+            className={`flex min-h-10 w-28 shrink-0 items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${compared ? "border-[var(--color-teal)] bg-[var(--color-teal)]/10 text-[var(--color-teal-dark)]" : "border-[#E5E5E5] text-[#111111]/65 hover:border-[var(--color-teal)]"}`}
+          >
+            {compared ? <Check size={14} /> : <GitCompareArrows size={14} />}
+            {compared ? "Added" : "Compare"}
+          </button>
+        </div>
+
       </div>
     </article>
   );

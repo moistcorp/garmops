@@ -14,7 +14,7 @@ function initials(name: string) {
 
 export default function HomepageCaseStudies() {
   return (
-    <section className="py-24 bg-white">
+    <section className="app-liquid-section py-24">
       <div className="max-w-7xl mx-auto px-6">
 
         {/* Header */}
@@ -54,7 +54,7 @@ export default function HomepageCaseStudies() {
                 className="group w-[82vw] max-w-[430px] shrink-0 snap-start sm:w-[420px] lg:w-[380px] xl:w-[420px]"
               >
 
-                <div className="overflow-hidden rounded-xl border border-[#ECE7DF] hover:border-[var(--color-teal)] hover:shadow-[0_12px_30px_rgba(22,33,43,0.08)] transition-all duration-300 bg-white">
+                <div className="liquid-glass-panel overflow-hidden rounded-[24px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-teal)]/45">
 
                   {/* Image */}
 
@@ -64,15 +64,15 @@ export default function HomepageCaseStudies() {
 
                     <div className="absolute top-4 left-4 z-20 flex flex-wrap gap-2">
 
-                      <span className="px-3 py-1 rounded-full bg-white/90 backdrop-blur text-xs font-medium">
+                      <span className="liquid-glass-chip rounded-full px-3 py-1 text-xs font-medium">
                         ● {cs.color}
                       </span>
 
-                      <span className="px-3 py-1 rounded-full bg-white/90 backdrop-blur text-xs font-medium">
+                      <span className="liquid-glass-chip rounded-full px-3 py-1 text-xs font-medium">
                         {cs.product}
                       </span>
 
-                      <span className="px-3 py-1 rounded-full bg-white/90 backdrop-blur text-xs font-medium">
+                      <span className="liquid-glass-chip rounded-full px-3 py-1 text-xs font-medium">
                         {cs.printMethod}
                       </span>
 

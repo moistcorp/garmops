@@ -12,7 +12,7 @@ export const metadata: Metadata = generateMeta({
 
 export default function Products() {
   return (
-    <>
+    <div className="app-liquid-bg">
       <section className="max-w-7xl mx-auto px-6 pt-20 pb-12">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Garmops</p>
         <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] leading-tight mb-4 tracking-tight">Products</h1>
@@ -22,7 +22,7 @@ export default function Products() {
       </section>
 
       <section className="max-w-7xl mx-auto px-6 pb-12">
-        <div className="rounded-2xl border border-[#ECE7DF] bg-white px-5 sm:px-8 py-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
+        <div className="liquid-glass-surface flex flex-col items-start justify-between gap-4 rounded-[26px] border px-5 py-5 sm:px-8 md:flex-row md:items-center">
           <p className="text-sm text-[#111111]/60">
             Ships within 24 hours.
           </p>
@@ -37,7 +37,7 @@ export default function Products() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map(p => (
             <Link key={p.id} href={`/products/${p.slug}`}
-              className="group bg-white flex flex-col overflow-hidden rounded-2xl border border-[#ECE7DF] shadow-[0_4px_16px_rgba(22,33,43,0.04)] hover:shadow-[0_12px_30px_rgba(22,33,43,0.08)] hover:border-[var(--color-teal)] transition-all duration-300">
+              className="liquid-glass-panel group flex flex-col overflow-hidden rounded-[24px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-teal)]/45">
               <div className="relative w-full aspect-[3/4] bg-[var(--color-cream-soft)] flex items-center justify-center overflow-hidden">
                 {p.image ? (
                   <Image src={p.image} alt={p.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -58,7 +58,7 @@ export default function Products() {
         </div>
       </section>
 
-      <section className="bg-[var(--color-cream)] border-t border-[#ECE7DF] py-16">
+      <section className="app-liquid-section py-16">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <div>
             <h2 className="text-2xl font-bold mb-1 tracking-tight">Want merch like this for your brand?</h2>
@@ -69,6 +69,6 @@ export default function Products() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   )
 }

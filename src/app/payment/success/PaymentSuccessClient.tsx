@@ -6,7 +6,6 @@ import { useCartStore } from "@/lib/store";
 import type { PaymentKind } from "@/lib/payu";
 import { readUploadedFile } from "@/lib/configurator/objectUrls";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
-import { ConfiguratorJourney } from "@/components/configurator/ConfiguratorJourney";
 
 interface PaymentSuccessClientProps {
   verified: boolean;
@@ -243,8 +242,8 @@ export default function PaymentSuccessClient({
 
   if (!verified) {
     return (
-      <div className="flex min-h-[80vh] items-center justify-center px-6">
-        <div className="w-full max-w-md text-center">
+      <div className="app-liquid-bg flex min-h-[80vh] items-center justify-center px-6 py-12">
+        <div className="liquid-glass-surface w-full max-w-md rounded-[30px] border p-7 text-center sm:p-9">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 text-2xl text-amber-700">
             !
           </div>
@@ -279,11 +278,8 @@ export default function PaymentSuccessClient({
   const firstName = orderSummary.name.split(" ")[0];
 
   return (
-    <div className="flex min-h-[80vh] items-center justify-center px-6">
-      <div className="w-full max-w-md text-center">
-        {!isSampleOrder && (
-          <ConfiguratorJourney currentStep="reserve" compact className="mb-6 text-left" />
-        )}
+    <div className="app-liquid-bg flex min-h-[80vh] items-center justify-center px-6 py-12">
+      <div className="liquid-glass-surface w-full max-w-md rounded-[30px] border p-7 text-center sm:p-9">
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-teal)]/10">
           <svg
             width="28"
@@ -345,7 +341,7 @@ export default function PaymentSuccessClient({
           </p>
         )}
 
-        <div className="mb-8 rounded-2xl border border-[#ECE7DF] bg-[var(--color-cream)] p-5 text-left text-xs leading-relaxed text-[#111111]/60">
+        <div className="liquid-glass-panel mb-8 rounded-2xl border p-5 text-left text-xs leading-relaxed text-[#111111]/60">
           <p className="mb-2 font-medium text-[#111111]">What happens next</p>
           {isSampleOrder ? (
             <ul className="flex flex-col gap-1.5">

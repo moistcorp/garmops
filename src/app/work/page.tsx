@@ -12,7 +12,7 @@ export const metadata: Metadata = generateMeta({
 
 export default function Work() {
   return (
-    <>
+    <div className="app-liquid-bg">
       {/* Header */}
       <section className="max-w-7xl mx-auto px-6 pt-20 pb-16">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Case studies</p>
@@ -27,7 +27,7 @@ export default function Work() {
       {/* Featured — first case study */}
       <section className="max-w-7xl mx-auto px-6 pb-16">
         <Link href={`/work/${caseStudies[0].slug}`} className="group block">
-          <div className="grid md:grid-cols-2 gap-0 overflow-hidden rounded-2xl border border-[#ECE7DF] bg-white shadow-[0_4px_16px_rgba(22,33,43,0.04)] hover:border-[var(--color-teal)] hover:shadow-[0_12px_30px_rgba(22,33,43,0.08)] transition-all duration-300">
+          <div className="liquid-glass-surface grid gap-0 overflow-hidden rounded-[28px] border transition-all duration-300 hover:!border-[var(--color-teal)]/45 md:grid-cols-2">
             {/* Image */}
             <div className="relative aspect-video md:aspect-auto bg-[var(--color-cream-soft)] flex items-center justify-center min-h-64 overflow-hidden">
               {caseStudies[0].coverImage ? (
@@ -82,7 +82,7 @@ export default function Work() {
             <Link
               key={cs.slug}
               href={`/work/${cs.slug}`}
-              className="group bg-white flex flex-col overflow-hidden rounded-2xl border border-[#ECE7DF] shadow-[0_4px_16px_rgba(22,33,43,0.04)] hover:shadow-[0_12px_30px_rgba(22,33,43,0.08)] hover:border-[var(--color-teal)] transition-all duration-300"
+              className="liquid-glass-panel group flex flex-col overflow-hidden rounded-[24px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-teal)]/45"
             >
               {/* Image */}
               <div className="relative w-full aspect-video bg-[var(--color-cream-soft)] flex items-center justify-center overflow-hidden">
@@ -122,8 +122,9 @@ export default function Work() {
       </section>
 
       {/* CTA */}
-      <section className="bg-[var(--color-navy)] py-16">
+      <section className="app-liquid-section py-16">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="liquid-glass-dark flex w-full flex-col items-start justify-between gap-6 rounded-[30px] border p-8 md:flex-row md:items-center md:p-10">
           <div>
             <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">
               Want results like these?
@@ -144,8 +145,9 @@ export default function Work() {
               Contact us
             </Link>
           </div>
+          </div>
         </div>
       </section>
-    </>
+    </div>
   )
 }

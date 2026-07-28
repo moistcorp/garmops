@@ -19,23 +19,23 @@ export function PaymentMethodSelect({ value, onChange }: PaymentMethodSelectProp
         type="button"
         onClick={() => onChange(PAYU_METHOD_ID)}
         aria-pressed={selected}
-        className={`w-full text-left flex items-center justify-between gap-4 rounded-full border px-5 py-3 transition-colors ${
+        className={`flex w-full items-center justify-between gap-4 rounded-full border px-5 py-3 text-left transition-colors ${
           selected
-            ? "border-[var(--color-teal)] bg-white"
-            : "border-[#E5E5E5] bg-[#F7F7F7] hover:border-[var(--color-teal)]"
+            ? "liquid-glass-selected"
+            : "liquid-glass-control hover:!border-[var(--color-teal)]"
         }`}
       >
         <div className="flex items-center gap-3">
           <span
             className={`inline-flex h-4 w-4 items-center justify-center rounded-full border ${
-              selected ? "border-[var(--color-teal)]" : "border-[#E5E5E5]"
+              selected ? "border-white/80" : "border-[#E5E5E5]"
             }`}
           >
-            {selected && <span className="h-2 w-2 rounded-full bg-[var(--color-teal)]" />}
+            {selected && <span className="h-2 w-2 rounded-full bg-white" />}
           </span>
           <div>
-            <p className="text-sm font-medium text-[#111111]">PayU</p>
-            <p className="text-xs text-[#111111]/60">
+            <p className={`text-sm font-medium ${selected ? "text-white" : "text-[#111111]"}`}>PayU</p>
+            <p className={`text-xs ${selected ? "text-white/75" : "text-[#111111]/60"}`}>
               Secure card, UPI, and netbanking checkout
             </p>
           </div>

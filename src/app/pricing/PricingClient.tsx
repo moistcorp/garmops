@@ -58,7 +58,7 @@ export default function PricingClient() {
   const rushChargeTotal = rushCharge * qty
 
   return (
-    <>
+    <div className="app-liquid-bg">
       <section className="max-w-7xl mx-auto px-6 pt-20 pb-12">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Pricing</p>
         <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] max-w-xl leading-tight mb-4 tracking-tight">
@@ -80,7 +80,7 @@ export default function PricingClient() {
               <label className="text-xs font-medium text-[#111111]/50 uppercase tracking-widest block mb-3">
                 Select product
               </label>
-              <div ref={dropdownRef} className="overflow-hidden rounded-2xl border border-[#ECE7DF] bg-white shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
+              <div ref={dropdownRef} className="liquid-glass-surface overflow-hidden rounded-[24px] border">
                 {/* Selected product — always visible */}
                 <button
                   ref={dropdownButtonRef}
@@ -89,9 +89,9 @@ export default function PricingClient() {
                   aria-expanded={dropdownOpen}
                   aria-controls="pricing-product-options"
                   aria-haspopup="listbox"
-                  className="w-full flex items-center gap-4 px-4 py-4 bg-[var(--color-cream-soft)] hover:bg-[var(--color-cream)] transition-colors text-left"
+                  className="flex w-full items-center gap-4 bg-white/20 px-4 py-4 text-left transition-colors hover:bg-white/35"
                 >
-                  <div className="w-12 h-12 bg-white border border-[#ECE7DF] rounded-xl flex items-center justify-center shrink-0">
+                  <div className="liquid-glass-control flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border">
                     <Image src={selectedProduct.icon} alt={selectedProduct.name} width={36} height={36} className="object-contain" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -108,7 +108,7 @@ export default function PricingClient() {
 
                 {/* Dropdown options */}
                 {dropdownOpen && (
-                  <div id="pricing-product-options" role="listbox" aria-label="Products" className="border-t border-[#ECE7DF]">
+                  <div id="pricing-product-options" role="listbox" aria-label="Products" className="border-t border-white/60 bg-white/10">
                     {productList.filter(p => p.name !== selected).map((p, i, arr) => (
                       <button
                         key={p.name}
@@ -116,9 +116,9 @@ export default function PricingClient() {
                         role="option"
                         aria-selected={false}
                         onClick={() => { setSelected(p.name); setDropdownOpen(false); dropdownButtonRef.current?.focus() }}
-                        className={`w-full flex items-center gap-4 px-4 py-3.5 hover:bg-[var(--color-cream)] transition-colors text-left ${i < arr.length - 1 ? 'border-b border-[#ECE7DF]' : ''}`}
+                        className={`flex w-full items-center gap-4 px-4 py-3.5 text-left transition-colors hover:bg-white/35 ${i < arr.length - 1 ? 'border-b border-white/55' : ''}`}
                       >
-                        <div className="w-10 h-10 bg-[var(--color-cream-soft)] border border-[#ECE7DF] rounded-lg flex items-center justify-center shrink-0">
+                        <div className="liquid-glass-control flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border">
                           <Image src={p.icon} alt={p.name} width={30} height={30} className="object-contain" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -152,7 +152,7 @@ export default function PricingClient() {
             </div>
 
             {/* Rush order toggle */}
-            <div className="rounded-2xl border border-[#ECE7DF] bg-white p-4 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
+            <div className="liquid-glass-panel rounded-[24px] border p-4">
               <div className="flex items-center justify-between mb-1">
                 <div>
                   <p className="text-sm font-semibold text-[#111111]">Rush order</p>
@@ -183,12 +183,12 @@ export default function PricingClient() {
               <p className="text-xs font-medium text-[#111111]/50 uppercase tracking-widest mb-3">
                 Volume discounts
               </p>
-              <div className="flex flex-col rounded-2xl border border-[#ECE7DF] overflow-hidden shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
+              <div className="liquid-glass-panel flex flex-col overflow-hidden rounded-[24px] border">
                 {VOLUME_TIERS.map(t => (
                   <div
                     key={t.min}
-                    className={`flex justify-between text-xs px-4 py-3 border-b border-[#ECE7DF] last:border-0 transition-colors ${
-                      getDiscount(qty) === t.discount ? 'bg-[var(--color-teal)] text-white' : 'text-[#111111]/40'
+                    className={`flex justify-between border-b border-white/55 px-4 py-3 text-xs transition-colors last:border-0 ${
+                      getDiscount(qty) === t.discount ? 'liquid-glass-selected text-white' : 'text-[#111111]/50'
                     }`}
                   >
                     <span>{t.min}{t.max === Infinity ? '+' : `–${t.max}`} pcs</span>
@@ -204,14 +204,14 @@ export default function PricingClient() {
                 <p className="text-xs font-medium text-[#111111]/50 uppercase tracking-widest mb-3">
                   Rush premiums (per piece)
                 </p>
-                <div className="flex flex-col rounded-2xl border border-[#ECE7DF] overflow-hidden shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
+                <div className="liquid-glass-panel flex flex-col overflow-hidden rounded-[24px] border">
                   {RUSH_TIERS.map(t => (
                     <div
                       key={t.min}
-                      className={`flex justify-between text-xs px-4 py-3 border-b border-[#ECE7DF] last:border-0 transition-colors ${
+                      className={`flex justify-between border-b border-white/55 px-4 py-3 text-xs transition-colors last:border-0 ${
                         getRushCharge(qty) === t.charge && qty >= t.min && qty <= t.max
-                          ? 'bg-[var(--color-teal)] text-white'
-                          : 'text-[#111111]/40'
+                          ? 'liquid-glass-selected text-white'
+                          : 'text-[#111111]/50'
                       }`}
                     >
                       <span>{t.min}{t.max === Infinity ? '+' : `–${t.max}`} pcs</span>
@@ -225,7 +225,7 @@ export default function PricingClient() {
 
           {/* Output */}
           <div className="flex flex-col gap-4">
-            <div className="bg-[var(--color-navy)] rounded-3xl p-8 text-white">
+            <div className="liquid-glass-dark rounded-[30px] border p-8 text-white">
               <p className="text-xs text-white/50 mb-1 uppercase tracking-widest">Estimate for</p>
               <p className="text-base font-semibold mb-1">{selected}</p>
               <p className="text-xs text-white/40 mb-6">{qty} pieces &middot; {deliveryDays}-day delivery</p>
@@ -300,7 +300,7 @@ export default function PricingClient() {
       </section>
 
       {/* What's included */}
-      <section className="bg-[var(--color-cream)] border-t border-[#ECE7DF] py-16">
+      <section className="app-liquid-section py-16">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-2xl font-bold mb-2 tracking-tight">What&apos;s included in every order</h2>
           <p className="text-[#111111]/50 text-sm mb-8">Base prices include the following. GST is shown separately and included in the final estimated total.</p>
@@ -311,14 +311,14 @@ export default function PricingClient() {
               { title: 'Neck label', desc: 'Basic neck label included. Woven/custom labels quoted separately' },
               { title: 'QA & packing', desc: 'Every piece inspected and individually packed before dispatch' },
             ].map(i => (
-              <div key={i.title} className="rounded-2xl border border-[#ECE7DF] bg-white p-5 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
+              <div key={i.title} className="liquid-glass-panel rounded-2xl border p-5">
                 <p className="font-semibold text-sm mb-1">{i.title}</p>
                 <p className="text-xs text-[#111111]/50 leading-relaxed">{i.desc}</p>
               </div>
             ))}
           </div>
 
-          <div className="mt-6 rounded-2xl border border-[#ECE7DF] bg-white p-5 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
+          <div className="liquid-glass-panel mt-6 rounded-2xl border p-5">
             <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-3">Not included — quoted separately</p>
             <div className="grid md:grid-cols-3 gap-4 text-xs text-[#111111]/60">
               <p>Multi-color screen print (additional per color)</p>
@@ -330,6 +330,6 @@ export default function PricingClient() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   )
 }

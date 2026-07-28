@@ -12,7 +12,7 @@ export default function WorkDetailClient({
   related: CaseStudy[]
 }) {
   return (
-    <>
+    <div className="app-liquid-bg">
       <div className="max-w-7xl mx-auto px-6 py-16">
         <Breadcrumbs crumbs={[
           { label: 'Home', href: '/' },
@@ -65,7 +65,7 @@ export default function WorkDetailClient({
             </div>
 
             {/* Result */}
-            <div className="mb-12 bg-[var(--color-cream)] border border-[#ECE7DF] rounded-2xl p-8 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
+            <div className="liquid-glass-panel mb-12 rounded-[24px] border p-8">
               <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-3">
                 The result
               </p>
@@ -89,7 +89,7 @@ export default function WorkDetailClient({
 
             {/* Testimonial */}
             {cs.testimonial && (
-              <div className="bg-[var(--color-cream)] rounded-3xl border border-[#ECE7DF] p-8 mb-12 shadow-[0_8px_30px_rgba(22,33,43,0.06)]">
+              <div className="liquid-glass-surface mb-12 rounded-3xl border p-8">
                 <p className="text-2xl text-[#111111] leading-snug mb-6 font-semibold tracking-tight">
                   &ldquo;{cs.testimonial.quote}&rdquo;
                 </p>
@@ -110,7 +110,7 @@ export default function WorkDetailClient({
           <div className="flex flex-col gap-6 lg:pt-20">
 
             {/* Project details */}
-            <div className="border border-[#ECE7DF] rounded-2xl bg-white p-6 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
+            <div className="liquid-glass-surface rounded-[24px] border p-6">
               <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-4">
                 Project details
               </p>
@@ -131,7 +131,7 @@ export default function WorkDetailClient({
             </div>
 
             {/* Deliverables */}
-            <div className="border border-[#ECE7DF] rounded-2xl bg-white p-6 shadow-[0_4px_16px_rgba(22,33,43,0.04)]">
+            <div className="liquid-glass-panel rounded-[24px] border p-6">
               <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-4">
                 Deliverables
               </p>
@@ -146,7 +146,7 @@ export default function WorkDetailClient({
             </div>
 
             {/* CTA */}
-            <div className="bg-[var(--color-navy)] rounded-2xl p-6 flex flex-col gap-3">
+            <div className="liquid-glass-dark flex flex-col gap-3 rounded-[24px] border p-6">
               <p className="text-sm font-semibold text-white">Want something similar?</p>
               <p className="text-xs text-white/50 leading-relaxed">
                 We work with brands across India. MOQ 50 pieces, quote in 24 hours.
@@ -170,7 +170,7 @@ export default function WorkDetailClient({
 
       {/* Related case studies */}
       {related.length > 0 && (
-        <section className="border-t border-[#ECE7DF] py-16">
+        <section className="py-16">
           <div className="max-w-7xl mx-auto px-6">
             <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-8">
               More work
@@ -180,7 +180,7 @@ export default function WorkDetailClient({
                 <Link
                   key={cs.slug}
                   href={`/work/${cs.slug}`}
-                  className="group bg-white flex flex-col overflow-hidden rounded-2xl border border-[#ECE7DF] shadow-[0_4px_16px_rgba(22,33,43,0.04)] hover:border-[var(--color-teal)] hover:shadow-[0_12px_30px_rgba(22,33,43,0.08)] transition-all duration-300"
+                  className="liquid-glass-panel group flex flex-col overflow-hidden rounded-[24px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-teal)]/45"
                 >
                   <div className="relative w-full aspect-video bg-[var(--color-cream-soft)] flex items-center justify-center overflow-hidden">
                     {cs.coverImage ? (
@@ -208,6 +208,6 @@ export default function WorkDetailClient({
           </div>
         </section>
       )}
-    </>
+    </div>
   )
 }

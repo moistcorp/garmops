@@ -39,7 +39,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
 
   return (
     <>
-      <div className="fixed inset-0 z-50 bg-black/40" onClick={onClose} aria-hidden="true" />
+      <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
 
       <div
         ref={drawerRef}
@@ -47,9 +47,9 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
         aria-modal="true"
         aria-labelledby="cart-drawer-title"
         tabIndex={-1}
-        className="fixed right-0 top-0 z-50 flex h-full w-full max-w-md flex-col bg-white shadow-xl outline-none"
+        className="liquid-glass-surface fixed right-0 top-0 z-50 flex h-full w-full max-w-md flex-col overflow-hidden border-l outline-none sm:my-3 sm:mr-3 sm:h-[calc(100%-1.5rem)] sm:rounded-[30px] sm:border"
       >
-        <div className="flex items-center justify-between border-b border-[#ECE7DF] px-6 py-5">
+        <div className="flex items-center justify-between border-b border-white/60 bg-white/15 px-6 py-5">
           <p id="cart-drawer-title" className="text-sm font-semibold text-[#111111]">
             Cart ({hasHydrated ? items.length : 0})
           </p>
@@ -75,7 +75,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
             <p className="mt-12 text-center text-sm text-[#111111]/40">Your cart is empty</p>
           ) : (
             items.map(item => (
-              <div key={`${item.id}-${item.size}`} className="flex items-start gap-4 border-b border-[#ECE7DF] pb-4">
+              <div key={`${item.id}-${item.size}`} className="liquid-glass-panel flex items-start gap-4 rounded-2xl border p-3">
                 <div className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[var(--color-cream-soft)]">
                   {item.image ? (
                     <Image src={item.image} alt={item.name} fill sizes="56px" className="object-cover" />
@@ -94,7 +94,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
                       type="button"
                       onClick={() => updateQuantity(item.id, item.size, item.quantity - 1)}
                       aria-label={`Decrease ${item.name} quantity`}
-                      className="flex h-6 w-6 items-center justify-center rounded-full border border-[#E5E5E5] text-sm transition-colors hover:border-[var(--color-teal)] hover:text-[var(--color-teal)]"
+                      className="liquid-glass-control flex h-6 w-6 items-center justify-center rounded-full border text-sm transition-colors hover:text-[var(--color-teal)]"
                     >
                       -
                     </button>
@@ -104,7 +104,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
                       onClick={() => updateQuantity(item.id, item.size, item.quantity + 1)}
                       disabled={item.quantity >= MAX_SAMPLE_ITEM_QUANTITY}
                       aria-label={`Increase ${item.name} quantity`}
-                      className="flex h-6 w-6 items-center justify-center rounded-full border border-[#E5E5E5] text-sm transition-colors hover:border-[var(--color-teal)] hover:text-[var(--color-teal)] disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-[#E5E5E5] disabled:hover:text-inherit"
+                      className="liquid-glass-control flex h-6 w-6 items-center justify-center rounded-full border text-sm transition-colors hover:text-[var(--color-teal)] disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:text-inherit"
                     >
                       +
                     </button>
@@ -123,7 +123,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
         </div>
 
         {hasHydrated && items.length > 0 && (
-          <div className="flex flex-col gap-3 border-t border-[#ECE7DF] px-6 py-5">
+          <div className="flex flex-col gap-3 border-t border-white/60 bg-white/15 px-6 py-5">
             <div className="flex justify-between text-sm font-bold">
               <span>Total</span>
               <span>&#8377;{cartTotal.toLocaleString('en-IN')}</span>

@@ -20,11 +20,11 @@ export default function AppChrome({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <>
+    <div className="app-liquid-bg min-h-screen">
       <Navbar />
       <main>{children}</main>
       <Footer />
       <WhatsAppButton />
-    </>
+    </div>
   );
 }
