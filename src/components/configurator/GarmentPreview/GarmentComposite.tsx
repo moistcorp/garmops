@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useRef } from "react";
 
-const MAX_RENDER_DIMENSION = 1200;
+const MAX_RENDER_DIMENSION = 900;
+const MIN_RENDER_DIMENSION = 600;
+const MAX_CACHED_VIEWS = 2;
 
 interface GarmentCompositeProps {
   maskSrc: string;
@@ -10,19 +12,27 @@ interface GarmentCompositeProps {
   shadowSrc: string;
   highlightSrc: string;
   colourHex: string;
+  cacheScope: string;
+  exclusiveCacheScope?: boolean;
   className?: string;
 }
 
 interface LayerPixels {
   width: number;
   height: number;
-  mask: Uint8ClampedArray;
-  texture: Uint8ClampedArray;
-  shadow: Uint8ClampedArray;
-  highlight: Uint8ClampedArray;
+  /**
+   * One byte per source layer, packed into RGBA-shaped slots:
+   * mask alpha, texture luminance, shadow luminance, highlight luminance.
+   */
+  signals: Uint8Array;
 }
 
-const layerCache = new Map<string, Promise<LayerPixels>>();
+interface LayerCacheEntry {
+  scope: string;
+  promise: Promise<LayerPixels>;
+}
+
+const layerCache = new Map<string, LayerCacheEntry>();
 
 function clamp(value: number, min = 0, max = 1): number {
   return Math.min(max, Math.max(min, value));
@@ -139,31 +149,94 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-function imagePixels(
-  image: HTMLImageElement,
+function buildLayerSignals(
+  images: readonly [
+    mask: HTMLImageElement,
+    texture: HTMLImageElement,
+    shadow: HTMLImageElement,
+    highlight: HTMLImageElement,
+  ],
   width: number,
   height: number
-): Uint8ClampedArray {
+): Uint8Array {
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
   const context = canvas.getContext("2d", { willReadFrequently: true });
   if (!context) throw new Error("Canvas 2D rendering is unavailable.");
 
-  context.clearRect(0, 0, width, height);
-  context.drawImage(image, 0, 0, width, height);
-  return context.getImageData(0, 0, width, height).data;
+  const signals = new Uint8Array(width * height * 4);
+
+  images.forEach((image, channel) => {
+    context.clearRect(0, 0, width, height);
+    context.drawImage(image, 0, 0, width, height);
+    const source = context.getImageData(0, 0, width, height).data;
+
+    for (let offset = 0; offset < source.length; offset += 4) {
+      signals[offset + channel] =
+        channel === 0
+          ? source[offset + 3]
+          : Math.round(
+              source[offset] * 0.2126 +
+                source[offset + 1] * 0.7152 +
+                source[offset + 2] * 0.0722
+            );
+    }
+  });
+
+  return signals;
+}
+
+function touchCacheEntry(cacheKey: string, entry: LayerCacheEntry): void {
+  layerCache.delete(cacheKey);
+  layerCache.set(cacheKey, entry);
+}
+
+function trimLayerCache(): void {
+  while (layerCache.size > MAX_CACHED_VIEWS) {
+    const oldestKey = layerCache.keys().next().value;
+    if (oldestKey === undefined) return;
+    layerCache.delete(oldestKey);
+  }
+}
+
+function getRenderDimension(canvas: HTMLCanvasElement): number {
+  const cssDimension = Math.max(canvas.clientWidth, canvas.clientHeight);
+  const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+  return Math.min(
+    MAX_RENDER_DIMENSION,
+    Math.max(MIN_RENDER_DIMENSION, Math.ceil(cssDimension * pixelRatio))
+  );
 }
 
 function loadLayers(
+  cacheScope: string,
+  exclusiveCacheScope: boolean,
+  renderDimension: number,
   maskSrc: string,
   textureSrc: string,
   shadowSrc: string,
   highlightSrc: string
 ): Promise<LayerPixels> {
-  const cacheKey = [maskSrc, textureSrc, shadowSrc, highlightSrc].join("|");
+  if (exclusiveCacheScope) {
+    for (const [cacheKey, entry] of layerCache) {
+      if (entry.scope !== cacheScope) layerCache.delete(cacheKey);
+    }
+  }
+
+  const cacheKey = [
+    cacheScope,
+    renderDimension,
+    maskSrc,
+    textureSrc,
+    shadowSrc,
+    highlightSrc,
+  ].join("|");
   const cached = layerCache.get(cacheKey);
-  if (cached) return cached;
+  if (cached) {
+    touchCacheEntry(cacheKey, cached);
+    return cached.promise;
+  }
 
   const promise = Promise.all([
     loadImage(maskSrc),
@@ -173,27 +246,30 @@ function loadLayers(
   ]).then(([maskImage, textureImage, shadowImage, highlightImage]) => {
     const sourceWidth = maskImage.naturalWidth;
     const sourceHeight = maskImage.naturalHeight;
-    const scale = Math.min(1, MAX_RENDER_DIMENSION / Math.max(sourceWidth, sourceHeight));
+    const scale = Math.min(1, renderDimension / Math.max(sourceWidth, sourceHeight));
     const width = Math.max(1, Math.round(sourceWidth * scale));
     const height = Math.max(1, Math.round(sourceHeight * scale));
 
     return {
       width,
       height,
-      mask: imagePixels(maskImage, width, height),
-      texture: imagePixels(textureImage, width, height),
-      shadow: imagePixels(shadowImage, width, height),
-      highlight: imagePixels(highlightImage, width, height),
+      signals: buildLayerSignals(
+        [maskImage, textureImage, shadowImage, highlightImage],
+        width,
+        height
+      ),
     };
   });
 
-  layerCache.set(cacheKey, promise);
-  promise.catch(() => layerCache.delete(cacheKey));
+  const entry = { scope: cacheScope, promise };
+  touchCacheEntry(cacheKey, entry);
+  trimLayerCache();
+  promise.catch(() => {
+    if (layerCache.get(cacheKey)?.promise === promise) {
+      layerCache.delete(cacheKey);
+    }
+  });
   return promise;
-}
-
-function luminance(data: Uint8ClampedArray, offset: number): number {
-  return data[offset] * 0.2126 + data[offset + 1] * 0.7152 + data[offset + 2] * 0.0722;
 }
 
 function renderComposite(
@@ -201,7 +277,7 @@ function renderComposite(
   layers: LayerPixels,
   colourHex: string
 ): void {
-  const { width, height, mask, texture, shadow, highlight } = layers;
+  const { width, height, signals } = layers;
   const output = context.createImageData(width, height);
   const pixels = output.data;
   const [baseRed, baseGreen, baseBlue] = getDisplayPreviewColour(colourHex);
@@ -216,12 +292,12 @@ function renderComposite(
   const darkColourLift = 0.018 * darkProfile;
 
   for (let offset = 0; offset < pixels.length; offset += 4) {
-    const alpha = mask[offset + 3] / 255;
+    const alpha = signals[offset] / 255;
     if (alpha <= 0) continue;
 
-    const textureLuminance = luminance(texture, offset);
-    const shadowLuminance = luminance(shadow, offset);
-    const highlightLuminance = luminance(highlight, offset);
+    const textureLuminance = signals[offset + 1];
+    const shadowLuminance = signals[offset + 2];
+    const highlightLuminance = signals[offset + 3];
 
     const shadowSignal = Math.pow(
       clamp(Math.max((250 - shadowLuminance) / 105, (246 - textureLuminance) / 145)),
@@ -254,6 +330,8 @@ export default function GarmentComposite({
   shadowSrc,
   highlightSrc,
   colourHex,
+  cacheScope,
+  exclusiveCacheScope = false,
   className = "absolute inset-0 h-full w-full object-contain",
 }: GarmentCompositeProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -271,8 +349,17 @@ export default function GarmentComposite({
     if (!context) return;
 
     context.clearRect(0, 0, canvas.width, canvas.height);
+    const renderDimension = getRenderDimension(canvas);
 
-    loadLayers(maskSrc, textureSrc, shadowSrc, highlightSrc)
+    loadLayers(
+      cacheScope,
+      exclusiveCacheScope,
+      renderDimension,
+      maskSrc,
+      textureSrc,
+      shadowSrc,
+      highlightSrc
+    )
       .then((layers) => {
         if (cancelled || !canvasRef.current) return;
 
@@ -291,7 +378,16 @@ export default function GarmentComposite({
     return () => {
       cancelled = true;
     };
-  }, [assetKey, colourHex, maskSrc, textureSrc, shadowSrc, highlightSrc]);
+  }, [
+    assetKey,
+    cacheScope,
+    colourHex,
+    exclusiveCacheScope,
+    maskSrc,
+    textureSrc,
+    shadowSrc,
+    highlightSrc,
+  ]);
 
   return <canvas ref={canvasRef} className={className} aria-hidden="true" />;
 }

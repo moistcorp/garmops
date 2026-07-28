@@ -20,14 +20,14 @@ export function getDeliveryFeasibility(
   if (!targetDateIso) {
     return {
       status: "unknown",
-      label: "Target date not set",
-      detail: "Add a required-by date to check timing before checkout.",
+      label: "Delivery date not set",
+      detail: "Add a target delivery date to check timing before checkout.",
     };
   }
 
   const target = atStartOfDay(new Date(`${targetDateIso}T12:00:00`));
   if (Number.isNaN(target.getTime())) {
-    return { status: "unknown", label: "Check target date", detail: "Choose a valid date." };
+    return { status: "unknown", label: "Check delivery date", detail: "Choose a valid date." };
   }
 
   const options = getDeliveryOptions(baseDate, extraLeadTimeDays);
@@ -54,7 +54,7 @@ export function getDeliveryFeasibility(
     return {
       status: "tight",
       label: "Tight but workable",
-      detail: "Keep artwork and approvals ready to protect this target date.",
+      detail: "Keep artwork and approvals ready to protect this delivery date.",
     };
   }
   return {

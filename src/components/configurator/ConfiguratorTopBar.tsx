@@ -9,7 +9,7 @@ import type { ProductId } from "@/lib/configurator/pricing";
 
 export interface ConfiguratorTopBarProps {
   currentStep: ConfiguratorJourneyStep;
-  backHref: string;
+  backHref?: string;
   onDownloadPdf?: () => void;
   isDownloadingPdf?: boolean;
   isDownloadDisabled?: boolean;

@@ -35,11 +35,11 @@ const STEPS: Array<{
   { id: "product", label: "Product" },
   { id: "colour", label: "Colour" },
   { id: "artwork", label: "Artwork" },
-  { id: "neck-label", label: "Neck Label" },
-  { id: "quantity", label: "Summary" },
+  { id: "neck-label", label: "Custom label" },
+  { id: "quantity", label: "Sizes & quantity" },
   { id: "company", label: "Delivery" },
   { id: "review", label: "Review" },
-  { id: "reserve", label: "Reserve" },
+  { id: "reserve", label: "Reservation" },
 ];
 
 export function ConfiguratorJourney({

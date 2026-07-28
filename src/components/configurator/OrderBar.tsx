@@ -107,7 +107,7 @@ function VolumeDiscountProgress({ quantity }: { quantity: number }) {
       ? `${state.currentDiscountPercent}% volume discount applied · ${state.unitsToNextTier} more unit${state.unitsToNextTier === 1 ? "" : "s"} to unlock ${state.nextDiscountPercent}%`
       : hasNextTier
         ? `${state.unitsToNextTier <= 20 ? "Only " : "Add "}${state.unitsToNextTier} more unit${state.unitsToNextTier === 1 ? "" : "s"} to unlock ${state.nextDiscountPercent}% off`
-        : "Volume pricing updates automatically in the Quantity step";
+        : "Volume pricing updates automatically in the Sizes & quantity step";
 
   return (
     <div className="configurator-glass-subtle rounded-2xl px-3 py-2.5">
@@ -227,7 +227,7 @@ export function OrderBar({
             htmlFor="configurator-target-date"
             className="block text-[10px] font-semibold uppercase tracking-wide text-[#111111]/45"
           >
-            Target delivery
+            Target delivery date
           </label>
           <div className="mt-1 flex min-w-0 items-center gap-1">
             {preferredTargetDate && deliveryFeasibility?.status === "comfortable" ? (
@@ -261,7 +261,7 @@ export function OrderBar({
           <div className="mt-1 truncate text-sm font-semibold text-[#111111]">
             {formatInr(RESERVATION_FEE)}
           </div>
-          <p className="mt-0.5 text-[10px] text-[#111111]/45">Reserve Slot</p>
+          <p className="mt-0.5 text-[10px] text-[#111111]/45">Reservation fee</p>
         </div>
       </div>
 

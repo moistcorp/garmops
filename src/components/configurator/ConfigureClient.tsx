@@ -88,8 +88,8 @@ function safeQuantity(value: unknown, minimum = 50): number {
 
 function artworkSummary(artwork: Artwork): string | null {
   const summary = [
-    artwork.front?.technique && `Front - ${TECHNIQUE_LABELS[artwork.front.technique]}`,
-    artwork.back?.technique && `Back - ${TECHNIQUE_LABELS[artwork.back.technique]}`,
+    artwork.front?.technique && `Front · ${TECHNIQUE_LABELS[artwork.front.technique]}`,
+    artwork.back?.technique && `Back · ${TECHNIQUE_LABELS[artwork.back.technique]}`,
   ]
     .filter(Boolean)
     .join(", ");
@@ -98,7 +98,7 @@ function artworkSummary(artwork: Artwork): string | null {
 
 function labelSummary(neckLabel?: NeckLabel): string | null {
   if (!neckLabel?.fileUrl || !neckLabel.dimensions || !neckLabel.position) return null;
-  return `${neckLabel.dimensions.replace("x", "x")}mm - ${POSITION_LABELS[neckLabel.position]}`;
+  return `${neckLabel.dimensions.replace("x", " × ")} mm · ${POSITION_LABELS[neckLabel.position]}`;
 }
 
 function stepsForConfiguration(
@@ -113,7 +113,7 @@ function stepsForConfiguration(
       return {
         ...step,
         confirmed: colour.confirmed,
-        summary: `${colour.type === "signature" ? "Signature" : "Custom Dye"} - ${colour.name}`,
+        summary: `${colour.type === "signature" ? "Signature" : "Custom dye"} · ${colour.name}`,
       };
     }
     if (step.id === "artwork") {
@@ -130,7 +130,7 @@ function stepsForConfiguration(
       ...step,
       confirmed: restored?.confirmed ?? Boolean(summary),
       skipped: !summary && restored?.skipped === true,
-      summary: summary ?? (restored?.skipped ? "Skipped - standard label only" : null),
+      summary: summary ?? (restored?.skipped ? "Skipped · standard label only" : null),
     };
   });
 }
@@ -413,7 +413,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       updateStep("garment-colour", {
         confirmed: false,
         skipped: false,
-        summary: `Signature - ${DEFAULT_COLOUR.name}`,
+        summary: `Signature · ${DEFAULT_COLOUR.name}`,
       });
     }
     if (stepId === "artwork") {
@@ -494,7 +494,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       updateStep("garment-colour", {
         confirmed: true,
         skipped: false,
-        summary: `${confirmedColour.type === "signature" ? "Signature" : "Custom Dye"} - ${confirmedColour.name}`,
+        summary: `${confirmedColour.type === "signature" ? "Signature" : "Custom dye"} · ${confirmedColour.name}`,
       });
       setActiveView("front");
       applyExpandedStepChange("artwork");
@@ -545,7 +545,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         updateStep("neck-label", {
           confirmed: true,
           skipped: true,
-          summary: "Skipped - standard label only",
+          summary: "Skipped · standard label only",
         });
         addConfigurationToCart({ neckLabel: {} as NeckLabel });
         return;
@@ -666,6 +666,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
               artwork={artwork}
               neckLabel={neckLabel}
               interactive={false}
+              exclusiveLayerCache
               className="h-full w-full bg-[#F7F7F7]"
             />
           </ArtworkPositionProvider>
@@ -707,6 +708,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 neckLabel={previewNeckLabel}
                 hideBackView={activeCustomisationStepId === "neck-label"}
                 showProductionGuides={activeCustomisationStepId === "artwork"}
+                exclusiveLayerCache
               />
             </div>
 
@@ -715,7 +717,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 isDrawerOpen ? "bottom-[calc(42%+1rem)]" : "bottom-16"
               } lg:bottom-4`}
             >
-              <WhatsAppAssistantBar configId={configId} />
+              <WhatsAppAssistantBar configId={configId} productName={productName} />
             </div>
           </main>
 
@@ -767,7 +769,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                       updateStep("garment-colour", {
                         confirmed: false,
                         skipped: false,
-                        summary: `${next.type === "signature" ? "Signature" : "Custom Dye"} - ${next.name}`,
+                        summary: `${next.type === "signature" ? "Signature" : "Custom dye"} · ${next.name}`,
                       });
                       if (next.type === "custom_dye") {
                         setQuantity((current) => Math.max(CUSTOM_DYE_MOQ_UNITS, current));

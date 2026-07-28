@@ -72,5 +72,5 @@ export function formatDeliveryLabel(
         ? "Standard"
         : "Flexible";
 
-  return `${typeLabel} - ${formatDate(date)}`;
+  return `${typeLabel} · ${formatDate(date)}`;
 }

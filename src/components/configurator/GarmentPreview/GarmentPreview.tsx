@@ -16,6 +16,7 @@ interface GarmentPreviewProps {
   neckLabel?: NeckLabel;
   hideBackView?: boolean;
   showProductionGuides?: boolean;
+  exclusiveLayerCache?: boolean;
 }
 
 export const NECK_PREVIEW_CANVAS_CLASS =
@@ -52,6 +53,7 @@ export default function GarmentPreview({
   neckLabel,
   hideBackView = false,
   showProductionGuides = false,
+  exclusiveLayerCache = false,
 }: GarmentPreviewProps) {
   const activeArtwork = activeView === "front" ? artwork.front : activeView === "back" ? artwork.back : undefined;
   const quality = getArtworkQuality(activeArtwork);
@@ -72,6 +74,7 @@ export default function GarmentPreview({
             artwork={artwork}
             neckLabel={neckLabel}
             showProductionGuides={showProductionGuides}
+            exclusiveLayerCache={exclusiveLayerCache}
             className={
               activeView === "neck"
                 ? NECK_PREVIEW_CANVAS_CLASS

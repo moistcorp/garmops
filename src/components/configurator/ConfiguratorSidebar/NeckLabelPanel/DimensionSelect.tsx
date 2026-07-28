@@ -15,10 +15,10 @@ interface DimensionPreset {
 // Position/Stitch options are identical across all 4 presets per Appendix §6,
 // so no per-preset metadata beyond id/label is needed here.
 const PRESETS: DimensionPreset[] = [
-  { id: "50x18", label: "50 × 18mm" },
-  { id: "60x20", label: "60 × 20mm" },
-  { id: "65x15", label: "65 × 15mm" },
-  { id: "45x45", label: "45 × 45mm" },
+  { id: "50x18", label: "50 × 18 mm" },
+  { id: "60x20", label: "60 × 20 mm" },
+  { id: "65x15", label: "65 × 15 mm" },
+  { id: "45x45", label: "45 × 45 mm" },
 ];
 
 export default function DimensionSelect({ value, onChange }: DimensionSelectProps) {

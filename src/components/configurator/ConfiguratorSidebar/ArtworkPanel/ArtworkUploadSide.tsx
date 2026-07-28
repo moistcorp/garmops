@@ -19,7 +19,7 @@ import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 
 const ACCEPTED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".svg", ".ai"];
 const MAX_FILE_BYTES = 4.5 * 1024 * 1024;
-export const SAMPLE_ARTWORK_HREF = "/garments/neck-label-sample.svg";
+export const SAMPLE_ARTWORK_HREF = "/garments/artwork-sample.svg";
 export const SAMPLE_ARTWORK_DIMENSIONS = { width: 20, height: 3 } as const;
 const PRINT_TEMPLATES_HREF = "/downloads/Garmops-print_templates-1.0.zip";
 const VECTORIZER_HREF = "https://vectorizer.ai/";
@@ -239,7 +239,7 @@ function VectorConversionDialog({
             </h2>
             <div className="flex flex-col gap-2 text-sm leading-relaxed text-[#111111]/80">
               <p id="vector-conversion-description">
-                Why vector files? Vector graphics are made from paths, not pixels - which means
+                Why vector files? Vector graphics are made from paths, not pixels, which means
                 they scale without losing quality.
               </p>
               <p>
@@ -275,7 +275,7 @@ function VectorConversionDialog({
                 <h3 className="text-base font-bold">Download your converted file</h3>
                 <p className="max-w-[520px] text-sm leading-relaxed text-[#111111]/75">
                   Once the conversion is completed, download the resulting .svg vector file. Make
-                  sure everything looks correct - sharp, clean, and free of artifacts.
+                  sure everything looks correct: sharp, clean and free of artifacts.
                 </p>
               </div>
             </div>
@@ -409,7 +409,7 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
       return;
     }
     if (file.size > MAX_FILE_BYTES) {
-      setError("File is too large. Maximum size is 4.5MB.");
+      setError("File is too large. Maximum size is 4.5 MB.");
       return;
     }
     setError(null);
@@ -538,15 +538,15 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
             <span className="text-sm font-medium text-[#111111]">
               Drag and drop artwork, or click to browse
             </span>
-            <span className="text-xs text-[#111111]/50">Accepts .jpg, .jpeg, .png, .svg, .ai up to 4.5MB</span>
+            <span className="text-xs text-[#111111]/50">Accepts .jpg, .jpeg, .png, .svg and .ai up to 4.5 MB</span>
           </button>
           <div className="relative z-10 mt-3 flex flex-wrap items-center justify-center gap-2">
             <a
               href={PRINT_TEMPLATES_HREF}
               download
-              className="configurator-glass-control inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-medium uppercase tracking-wide text-[#111111]/80 transition-colors hover:!border-[var(--color-teal)]/45 hover:text-[var(--color-teal-dark)]"
+              className="configurator-glass-control inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-medium text-[#111111]/80 transition-colors hover:!border-[var(--color-teal)]/45 hover:text-[var(--color-teal-dark)]"
             >
-              Download Templates
+              Download templates
               <Download size={13} strokeWidth={2.2} />
             </a>
             <button
@@ -589,7 +589,7 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
           {requiresVector && (
             <div className="flex flex-col gap-2 border border-amber-300 bg-amber-50 p-2 text-xs text-amber-900">
               <p>
-                This technique usually needs vector artwork for production. You can continue with this file - our team will review and prepare it before final approval.
+                This technique usually needs vector artwork for production. You can continue with this file; our team will review and prepare it before final approval.
               </p>
               <button
                 type="button"

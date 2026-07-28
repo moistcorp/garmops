@@ -112,7 +112,7 @@ export default function ProductGrid() {
             />
           </div>
           <div>
-            <label htmlFor="project-target-date" className="mb-1 block text-xs font-medium text-[#111111]/65">Required-by date</label>
+            <label htmlFor="project-target-date" className="mb-1 block text-xs font-medium text-[#111111]/65">Target delivery date</label>
             <input
               id="project-target-date"
               type="date"
@@ -123,7 +123,7 @@ export default function ProductGrid() {
             />
           </div>
         </div>
-        <p className="mt-3 text-xs text-[#111111]/55">Current volume tier: {discount}% off blank garment pricing. Customisation is calculated in Studio.</p>
+        <p className="mt-3 text-xs text-[#111111]/55">Current volume tier: {discount}% off blank product pricing. Customisation is calculated in Studio.</p>
       </section>
 
       <div className="grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

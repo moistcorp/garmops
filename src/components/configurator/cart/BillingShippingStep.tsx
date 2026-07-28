@@ -190,6 +190,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
   const updateDraft = useCallback(
     (patch: Partial<CartDraft>) => {
       markFormStarted();
+      setValidationFeedback(null);
       setDraft((previous) => {
         const next = withInferredCheckoutDetails({ ...previous, ...patch });
         persistCartDraft(next);
@@ -238,12 +239,17 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
     billing: draft.billingInformation,
   });
   const missingLabels = useMemo(() => {
-    const labels = procurementMissing.map((field) => field.label);
+    const labels = procurementMissing
+      .filter((field) => field.key !== "shipping.recipientName")
+      .map((field) => field.label);
     if (!deliveryOk) labels.push("delivery date");
     return Array.from(new Set(labels));
   }, [deliveryOk, procurementMissing]);
   const isValid =
-    isDraftReady && draft.items.length > 0 && missingLabels.length === 0;
+    isDraftReady &&
+    draft.items.length > 0 &&
+    procurementMissing.length === 0 &&
+    deliveryOk;
 
   const missingMessage = useMemo(() => {
     if (!isDraftReady) return "Loading your delivery details…";
@@ -348,7 +354,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
               className="inline-flex shrink-0 items-center gap-2 self-start whitespace-nowrap rounded-full border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-teal)] hover:text-[#111111] sm:self-auto"
             >
               <ArrowLeft size={16} strokeWidth={2.2} />
-              Back to Order Summary
+              Back to order summary
             </button>
           </div>
 
@@ -521,7 +527,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
             delivery={deliveryLabel}
             total={totals.total}
             onNext={handleNext}
-            nextLabel="Next: Review & Payment"
+            nextLabel="Continue to review & payment"
             nextDisabled={!isValid}
             disabledMessage={missingMessage}
             onDisabledNext={handleNext}

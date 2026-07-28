@@ -274,41 +274,40 @@ export async function POST(req: NextRequest) {
         </div>
         <p style="font-size: 15px; margin-bottom: 6px;">Hi ${firstName},</p>
         <p style="font-size: 15px; color: #555; line-height: 1.7; margin-bottom: 24px;">
-          Your slot reservation is confirmed. Our team will review your configuration and send a proforma invoice within <strong style="color: #111;">24 hours</strong>.
+          Your production review is reserved. Our team will review your configuration and send a proforma invoice within <strong style="color: #111;">24 hours</strong>.
         </p>
         ${Object.keys(orderDetails).length > 0 || txnid ? `
         <div style="border: 1px solid #E5E5E5; margin-bottom: 24px;">
           <div style="background: #111111; padding: 12px 20px;">
-            <p style="font-size: 11px; font-weight: 600; color: white; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">Order Configuration</p>
+            <p style="font-size: 11px; font-weight: 600; color: white; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">Configuration summary</p>
           </div>
           <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
             ${detailRow('Transaction ID', txnid, 100)}
             ${detailRow('Product', orderDetails.product, 200)}
-            ${detailRow('Fabric color', orderDetails.color, 120)}
+            ${detailRow('Product colour', orderDetails.color, 120)}
             ${detailRow('Print technique', orderDetails.technique, 120)}
             ${detailRow('Placement', orderDetails.placements, 300)}
-            ${detailRow('Neck label', orderDetails.neckLabel, 200)}
+            ${detailRow('Custom label', orderDetails.neckLabel, 200)}
             ${detailRow('Total quantity', totalQuantity ? `${totalQuantity} pieces` : '', 50)}
             ${detailRow('Size breakdown', orderDetails.sizeBreakdown, 500)}
             ${detailRow('Estimated total', orderDetails.estimatedTotal, 100)}
-            ${detailRow('Shipping address', orderDetails.shippingAddress, 1000)}
+            ${detailRow('Delivery address', orderDetails.shippingAddress, 1000)}
           </table>
         </div>
         ` : ''}
         <div style="background: #F7F7F7; border: 1px solid #E5E5E5; padding: 16px 20px; margin-bottom: 24px;">
           <p style="font-size: 12px; font-weight: 600; color: #111; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px;">What happens next</p>
           <ol style="margin: 0; padding-left: 18px; font-size: 13px; color: #555; line-height: 2;">
-            <li>We review your configuration</li>
+            <li>We review your artwork and production feasibility</li>
+            <li>We confirm pricing, shipping and the production schedule</li>
             <li>We send a detailed proforma invoice</li>
-            <li>Balance payment via net banking</li>
-            <li>Production begins immediately</li>
-            <li>Delivery within 35 days</li>
+            <li>Production begins after your approval and agreed payment terms</li>
           </ol>
         </div>
         <div style="border: 1px solid #E5E5E5; padding: 16px 20px; margin-bottom: 24px;">
           <p style="font-size: 12px; font-weight: 600; color: #111; margin: 0 0 4px 0; text-transform: uppercase; letter-spacing: 0.5px;">Reservation fee paid</p>
           <p style="font-size: 20px; font-weight: 700; color: #111; margin: 0;">Rs. 499</p>
-          <p style="font-size: 11px; color: #aaa; margin: 4px 0 0 0;">Adjusted against your final invoice.</p>
+          <p style="font-size: 11px; color: #aaa; margin: 4px 0 0 0;">Credited against your final invoice.</p>
         </div>
         <div style="border-top: 1px solid #E5E5E5; margin-top: 32px; padding-top: 20px; font-size: 11px; color: #aaa;">
           <p style="margin: 0;">Garmops &mdash; Powered by Moist Corp</p>
@@ -339,16 +338,16 @@ export async function POST(req: NextRequest) {
           ${detailRow('Purchase order attachment', orderDetails.purchaseOrder, 160)}
           ${detailRow('Multiple delivery locations', orderDetails.multipleLocations, 20)}
           ${detailRow('Distribution notes', orderDetails.multipleLocationsNotes, 1000)}
-          ${detailRow('Target delivery', orderDetails.targetDelivery, 120)}
+          ${detailRow('Target delivery date', orderDetails.targetDelivery, 120)}
           ${detailRow('Product', orderDetails.product, 300)}
-          ${detailRow('Fabric color', orderDetails.color, 200)}
+          ${detailRow('Product colour', orderDetails.color, 200)}
           ${detailRow('Print technique', orderDetails.technique, 200)}
           ${detailRow('Placement', orderDetails.placements, 300)}
-          ${detailRow('Neck label', orderDetails.neckLabel, 200)}
+          ${detailRow('Custom label', orderDetails.neckLabel, 200)}
           ${detailRow('Total quantity', totalQuantity ? `${totalQuantity} pieces` : '', 50)}
           ${detailRow('Size breakdown', orderDetails.sizeBreakdown, 1000)}
           ${detailRow('Estimated total', orderDetails.estimatedTotal, 100)}
-          ${detailRow('Shipping address', orderDetails.shippingAddress, 1000)}
+          ${detailRow('Delivery address', orderDetails.shippingAddress, 1000)}
           ${detailRow('Order notes', orderDetails.orderNotes, 2000)}
         </table>
         <p style="font-size: 12px; color: #888; margin-top: 18px;">Reply to this email to contact the project coordinator.</p>
@@ -460,7 +459,7 @@ export async function POST(req: NextRequest) {
         from: fromEmail,
         to: email,
         replyTo: contactToEmail,
-        subject: 'Reservation confirmed - your configuration summary',
+        subject: 'Reservation confirmed — your configuration summary',
         html: configureEmailHtml,
       })
       if (customerResult.error) {

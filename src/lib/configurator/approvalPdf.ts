@@ -173,8 +173,8 @@ function artworkLine(side: "Front" | "Back", artwork?: ArtworkSide): string {
 }
 
 function neckLabelLine(label?: NeckLabel): string {
-  if (!label?.fileUrl) return "Neck label: Skipped / standard label retained";
-  return `Neck label: ${label.dimensions} mm, ${label.position.replaceAll("_", " ")}${label.stitch ? `, ${label.stitch.replaceAll("_", " ")} stitch` : ""}`;
+  if (!label?.fileUrl) return "Custom label: Skipped / standard label retained";
+  return `Custom label: ${label.dimensions?.replace("x", " x ")} mm, ${label.position.replaceAll("_", " ")}${label.stitch ? `, ${label.stitch.replaceAll("_", " ")} stitch` : ""}`;
 }
 
 function readBlobAsDataUrl(blob: Blob): Promise<string> {
@@ -251,7 +251,7 @@ function buildOverviewPage(
   page.commands.push(pdfText("Prepared for", 56, 704, 8, true, [0.35, 0.35, 0.35]));
   page.commands.push(pdfText(options.companyName || "Internal company approval", 56, 686, 13, true));
   page.commands.push(pdfText(`Generated ${generatedLabel}`, 340, 706, 8, true, [0.35, 0.35, 0.35]));
-  page.commands.push(pdfText(options.deliveryLabel ? `Target: ${options.deliveryLabel}` : "Target delivery: To be selected", 340, 689, 9, false));
+  page.commands.push(pdfText(options.deliveryLabel ? `Target delivery date: ${options.deliveryLabel}` : "Target delivery date: To be selected", 340, 689, 9, false));
   page.commands.push(pdfText(`Estimate valid until ${validUntilLabel}`, 340, 674, 7.5, false, [0.35, 0.35, 0.35]));
 
   page.commands.push(pdfText("Configured products", MARGIN, 640, 13, true));
@@ -351,14 +351,14 @@ function buildItemPage(
   } else {
     page.commands.push(pdfText("Preview unavailable", 106, 580, 10, false, [0.45, 0.45, 0.45]));
   }
-  page.commands.push(pdfText("Digital preview - final placement is confirmed during review", MARGIN, 428, 7.5, false, [0.4, 0.4, 0.4]));
+  page.commands.push(pdfText("Digital preview: final placement is confirmed during review", MARGIN, 428, 7.5, false, [0.4, 0.4, 0.4]));
 
   const detailX = 304;
   page.commands.push(pdfText("Product specification", detailX, 700, 12, true));
   const details = [
     ["Product", item.productName],
     ["Garment colour", `${item.colour.name} (${item.colour.hex.toUpperCase()})`],
-    ["Colour route", item.colour.type === "custom_dye" ? "Custom dye - feasibility review required" : "Ready-stock / signature colour"],
+    ["Colour route", item.colour.type === "custom_dye" ? "Custom dye: feasibility review required" : "Ready-stock / signature colour"],
     ["Total quantity", `${totalUnits(item)} units`],
     ["Estimated unit price", formatInr(item.unitPrice)],
   ];
@@ -397,7 +397,7 @@ function buildItemPage(
     (side) => side?.fileUrl && !side.vectorized
   );
   page.commands.push(pdfText(
-    needsFileReview ? "Artwork file preparation review required - buyer may continue" : "Ready for Garmops production review",
+    needsFileReview ? "Artwork file preparation review required; buyer may continue" : "Ready for Garmops production review",
     56,
     110,
     11,
@@ -427,7 +427,7 @@ function buildApprovalPage(
   page.commands.push(pdfText(`Total units: ${options.items.reduce((sum, item) => sum + totalUnits(item), 0)}`, 58, 522, 9));
   page.commands.push(pdfText(`Estimated order total: ${formatInr(options.totals.total)}`, 58, 502, 9, true));
   page.commands.push(pdfText(`Reservation due today: ${formatInr(options.totals.reservationFee)}`, 310, 542, 9, true, [0.06, 0.38, 0.39]));
-  page.commands.push(pdfText(`Target delivery: ${options.deliveryLabel || "To be confirmed"}`, 310, 522, 9));
+  page.commands.push(pdfText(`Target delivery date: ${options.deliveryLabel || "To be confirmed"}`, 310, 522, 9));
   page.commands.push(pdfText(`Project contact: ${options.contactName || "Not provided"}`, 310, 502, 9));
 
   page.commands.push(pdfText("Manager / approver name", MARGIN, 414, 9, true));

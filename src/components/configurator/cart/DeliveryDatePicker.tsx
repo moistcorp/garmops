@@ -79,7 +79,7 @@ export function DeliveryDatePicker({
   return (
     <div className="space-y-3">
       <p className="text-sm font-medium text-[#111111]">
-        Select your preferred delivery date
+        Select your target delivery date
       </p>
 
       <div className="flex flex-col sm:flex-row gap-3">

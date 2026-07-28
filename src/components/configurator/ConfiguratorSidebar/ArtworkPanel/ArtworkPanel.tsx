@@ -299,7 +299,7 @@ export function ArtworkPanel({
               </span>
               {isReady && current?.technique && (
                 <span className="mt-0.5 block truncate text-[11px] text-[#111111]/50">
-                  {TECHNIQUE_LABELS[current.technique]} selected - saved automatically
+                  {TECHNIQUE_LABELS[current.technique]} selected · saved automatically
                 </span>
               )}
             </span>

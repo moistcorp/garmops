@@ -111,7 +111,7 @@ export const products: Product[] = [
     careInstructions: ['Machine Wash', 'Tumble Dry', 'Do not bleach', 'Iron on low heat'],
     sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
     price: PRODUCT_PRICES['Polo (280 GSM)'],
-    image: '/flatlays/polo.webp',
+    image: '/products/polo-tee.webp',
   },
   {
     id: 7,

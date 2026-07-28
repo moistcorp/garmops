@@ -8,12 +8,12 @@ export interface PositionSelectProps {
 }
 
 const GARMENT_POSITION_OPTIONS: { value: NeckLabelPosition; label: string }[] = [
-  { value: 'below_neck_tape', label: 'Below neck tape (5mm)' },
+  { value: 'below_neck_tape', label: 'Below neck tape (5 mm)' },
   { value: 'on_neck_tape', label: 'On neck tape' },
 ];
 
 const TOTE_POSITION_OPTIONS: { value: NeckLabelPosition; label: string }[] = [
-  { value: 'below_neck_tape', label: 'Inside top seam (5mm)' },
+  { value: 'below_neck_tape', label: 'Inside top seam (5 mm)' },
   { value: 'on_neck_tape', label: 'On inner seam' },
 ];
 

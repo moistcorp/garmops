@@ -313,7 +313,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             <p className="text-xs font-medium uppercase tracking-wide text-[#111111]/50">
               Cart {cartId}
             </p>
-            <h1 className="text-2xl font-semibold text-[#111111]">Order Summary</h1>
+            <h1 className="text-2xl font-semibold text-[#111111]">Order summary</h1>
           </div>
           <div className="flex flex-wrap gap-2">
             <button
@@ -521,7 +521,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                           </span>
                         )}
                         <span>
-                          {formatInr(itemUnitPrice)} x {itemUnits} = {formatInr(garmentTotal)}
+                          {formatInr(itemUnitPrice)} × {itemUnits} = {formatInr(garmentTotal)}
                         </span>
                       </span>
                     </div>
@@ -543,7 +543,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             delivery="Calculated at shipping"
             total={totals.total}
             onNext={handleNext}
-            nextLabel="Next: Invoice & Shipping"
+            nextLabel="Continue to delivery"
             nextDisabled={!cartIsValid || cartUnitCount < 50}
             disabledMessage={
               !cartIsValid || cartUnitCount < 50

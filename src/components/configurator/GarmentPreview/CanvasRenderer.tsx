@@ -83,6 +83,7 @@ interface CanvasRendererProps {
   className?: string;
   style?: CSSProperties;
   showProductionGuides?: boolean;
+  exclusiveLayerCache?: boolean;
 }
 
 const CANVAS_SIZE = CANVAS_PX;
@@ -321,6 +322,7 @@ export default function CanvasRenderer({
   className = "aspect-square h-[min(78dvh,820px)] max-h-[820px] max-w-full rounded-lg bg-[#F5F5F5]",
   style,
   showProductionGuides = true,
+  exclusiveLayerCache = false,
 }: CanvasRendererProps) {
   const { positions, updatePosition } = useArtworkPosition();
   const dragOrigin = useRef<DragOrigin | null>(null);
@@ -581,6 +583,8 @@ export default function CanvasRenderer({
           shadowSrc={assetPath(productId, view, "shadow")}
           highlightSrc={assetPath(productId, view, "highlight")}
           colourHex={colourHex}
+          cacheScope={garmentFolder ?? productId}
+          exclusiveCacheScope={exclusiveLayerCache}
         />
       </div>
 

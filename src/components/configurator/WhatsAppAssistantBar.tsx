@@ -1,5 +1,7 @@
 "use client";
 
+import { CircleHelp } from "lucide-react";
+
 interface WhatsAppAssistantBarProps {
   configId: string;
   productName?: string;
@@ -23,9 +25,11 @@ export function WhatsAppAssistantBar({ configId, productName }: WhatsAppAssistan
         href={whatsappHref}
         target="_blank"
         rel="noopener noreferrer"
-        className="configurator-glass-control inline-flex h-8 items-center rounded-full border px-3 text-[10px] font-semibold text-[#111111]/70 hover:!border-[var(--color-teal)]/45 hover:!bg-white/60 hover:text-[var(--color-teal)]"
+        aria-label="Get help on WhatsApp"
+        className="configurator-glass-control inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold text-[#111111]/70 hover:!border-[var(--color-teal)]/45 hover:!bg-white/60 hover:text-[var(--color-teal)]"
       >
-        Ask me anything...
+        <CircleHelp size={15} strokeWidth={2.2} aria-hidden="true" />
+        <span>Help</span>
       </a>
     </div>
   );

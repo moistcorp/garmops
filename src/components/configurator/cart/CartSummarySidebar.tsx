@@ -38,7 +38,7 @@ export function CartSummarySidebar({
     <aside className={`liquid-glass-surface w-full shrink-0 self-start rounded-[28px] border p-5 lg:w-80 ${sticky ? "lg:sticky lg:top-6" : ""}`}>
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-[#111111]/50">
-          Invoice summary
+          Price summary
         </p>
         <h2 className="mt-1 text-lg font-semibold text-[#111111]">Estimated total</h2>
       </div>

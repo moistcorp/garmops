@@ -4,15 +4,12 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
-  Building2,
   CheckCircle2,
   CreditCard,
   FileText,
   LoaderCircle,
   MapPin,
-  ReceiptText,
   ShieldCheck,
-  UserRound,
 } from "lucide-react";
 import {
   isAddressValid,
@@ -121,7 +118,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
     return () => window.clearTimeout(loadDraft);
   }, [cartId, router]);
 
-  const { subtotal, volumeDiscount, shippingFee, gst, delivery, orderTotal, balanceDue } =
+  const { subtotal, volumeDiscount, shippingFee, gst, delivery, orderTotal } =
     useMemo(() => {
       const totals = calculateTotals(draft.items, draft.deliveryType);
       return {
@@ -134,7 +131,6 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
           draft.selectedDeliveryDateIso ? new Date(draft.selectedDeliveryDateIso) : undefined
         ),
         orderTotal: totals.total,
-        balanceDue: totals.balanceDue,
       };
     }, [draft]);
 
@@ -149,6 +145,9 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
     draft.billingInformation.entity || draft.companyInformation.name;
   const billingEmail =
     draft.billingInformation.accountsPayableEmail || projectContact.email;
+  const billingUsesDeliveryAddress =
+    joinAddress(billingAddress) ===
+    joinAddress(draft.shippingInformation.address);
 
   const handlePayment = async () => {
     setPaymentError("");
@@ -375,7 +374,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-[#111111]/50">Cart {cartId}</p>
-            <h1 className="text-2xl font-semibold text-[#111111]">Review & Payment</h1>
+            <h1 className="text-2xl font-semibold text-[#111111]">Review & payment</h1>
             {draft.projectName && <p className="mt-1 text-sm font-medium text-[#111111]/60">{draft.projectName}</p>}
           </div>
           <button
@@ -384,69 +383,90 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
             className="inline-flex shrink-0 items-center gap-2 self-start whitespace-nowrap rounded-full border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-teal)] hover:text-[#111111] sm:self-auto"
           >
             <ArrowLeft size={16} strokeWidth={2.2} />
-            Back to Delivery Details
+            Back to delivery details
           </button>
         </div>
 
         <ReviewSection
-          icon={<Building2 size={18} />}
-          title="Company information"
-          onEdit={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping#contact-details`)}
-        >
-          <div className="grid gap-1 text-sm text-[#111111]/75 sm:grid-cols-2">
-            <p><span className="font-medium text-[#111111]">Company:</span> {draft.companyInformation.name}</p>
-            {draft.companyInformation.industry && <p><span className="font-medium text-[#111111]">Industry:</span> {draft.companyInformation.industry}</p>}
-            {draft.companyInformation.gstin && <p><span className="font-medium text-[#111111]">GSTIN:</span> {draft.companyInformation.gstin}</p>}
-            {draft.companyInformation.website && <p><span className="font-medium text-[#111111]">Website:</span> {draft.companyInformation.website}</p>}
-            {draft.companyInformation.poNumber && <p><span className="font-medium text-[#111111]">PO number:</span> {draft.companyInformation.poNumber}</p>}
-            {draft.companyInformation.costCentre && <p><span className="font-medium text-[#111111]">Cost centre:</span> {draft.companyInformation.costCentre}</p>}
-          </div>
-        </ReviewSection>
-
-        <ReviewSection
-          icon={<UserRound size={18} />}
-          title="Primary project contact"
-          onEdit={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping#contact-details`)}
-        >
-          <div className="space-y-1 text-sm text-[#111111]/75">
-            <p className="font-medium text-[#111111]">{projectContact.firstName} {projectContact.lastName}</p>
-            {projectContact.department && <p>{projectContact.department}</p>}
-            <p>{projectContact.email} · {projectContact.phone}</p>
-          </div>
-        </ReviewSection>
-
-        <ReviewSection
           icon={<MapPin size={18} />}
-          title="Shipping information"
-          onEdit={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping#shipping-information`)}
-        >
-          <p className="mb-1 text-sm font-medium text-[#111111]">{draft.shippingInformation.recipientName}</p>
-          <AddressSummary address={draft.shippingInformation.address} />
-          {draft.shippingInformation.multipleLocations && (
-            <div className="mt-3 rounded-md bg-[#F7F7F7] p-3 text-xs leading-relaxed text-[#111111]/65">
-              <p className="font-medium text-[#111111]">Multiple delivery locations requested</p>
-              <p className="mt-1">{draft.shippingInformation.multipleLocationsNotes || "Detailed split will be confirmed after reservation."}</p>
-            </div>
-          )}
-          <p className="mt-3 text-xs text-[#111111]/55">Target delivery: {delivery}</p>
-        </ReviewSection>
-
-        <ReviewSection
-          icon={<ReceiptText size={18} />}
-          title="Billing information"
+          title="Delivery and billing details"
           onEdit={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping`)}
         >
-          <div className="space-y-1 text-sm text-[#111111]/75">
-            <p className="font-medium text-[#111111]">{billingEntity}</p>
-            <p>Billing contact: {billingEmail}</p>
-            {draft.billingInformation.gstin && <p>GSTIN: {draft.billingInformation.gstin}</p>}
-            <p className="pt-1 text-xs text-[#111111]/55">
-              {draft.billingInformation.sameAsCompanyAddress
-                ? "Registered company / billing address:"
-                : "Alternate billing address:"}
-            </p>
-            <AddressSummary address={billingAddress} />
+          <div className="grid gap-5 text-sm text-[#111111]/75 md:grid-cols-2">
+            <div className="space-y-1">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#111111]/45">
+                Company and contact
+              </p>
+              <p className="font-medium text-[#111111]">
+                {draft.companyInformation.name}
+              </p>
+              <p>
+                {projectContact.firstName} {projectContact.lastName}
+                {projectContact.department
+                  ? ` · ${projectContact.department}`
+                  : ""}
+              </p>
+              <p>{projectContact.email} · {projectContact.phone}</p>
+              {draft.companyInformation.gstin && (
+                <p className="text-xs text-[#111111]/55">
+                  GSTIN: {draft.companyInformation.gstin}
+                </p>
+              )}
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#111111]/45">
+                Delivery address
+              </p>
+              <p className="font-medium text-[#111111]">
+                {draft.shippingInformation.recipientName}
+              </p>
+              <AddressSummary address={draft.shippingInformation.address} />
+              <p className="pt-1 text-xs text-[#111111]/55">
+                Target delivery date: {delivery}
+              </p>
+            </div>
+            <div className="space-y-1 border-t border-[#E5E5E5] pt-4 md:col-span-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#111111]/45">
+                Billing
+              </p>
+              <p>
+                <span className="font-medium text-[#111111]">
+                  {billingEntity}
+                </span>{" "}
+                · {billingEmail}
+              </p>
+              {draft.billingInformation.gstin &&
+                draft.billingInformation.gstin !==
+                  draft.companyInformation.gstin && (
+                  <p className="text-xs text-[#111111]/55">
+                    Billing GSTIN: {draft.billingInformation.gstin}
+                  </p>
+                )}
+              {billingUsesDeliveryAddress ? (
+                <p className="text-xs text-[#111111]/55">
+                  Billing address is the same as the delivery address.
+                </p>
+              ) : (
+                <div className="pt-1">
+                  <p className="mb-1 text-xs text-[#111111]/55">
+                    Alternate billing address
+                  </p>
+                  <AddressSummary address={billingAddress} />
+                </div>
+              )}
+            </div>
           </div>
+          {draft.shippingInformation.multipleLocations && (
+            <div className="mt-4 rounded-md bg-[#F7F7F7] p-3 text-xs leading-relaxed text-[#111111]/65">
+              <p className="font-medium text-[#111111]">
+                Multiple delivery locations requested
+              </p>
+              <p className="mt-1">
+                {draft.shippingInformation.multipleLocationsNotes ||
+                  "The detailed split will be confirmed after reservation."}
+              </p>
+            </div>
+          )}
           {draft.billingInformation.purchaseOrder && (
             <div className="mt-3 flex items-center gap-2 rounded-md bg-[#F7F7F7] p-3 text-xs text-[#111111]/65">
               <FileText size={16} className="shrink-0 text-[var(--color-teal-dark)]" />
@@ -483,7 +503,6 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
                 {[
                   "A merch specialist checks artwork and production feasibility.",
                   "Final pricing and shipping are confirmed before the balance is due.",
-                  `${formatInr(RESERVATION_FEE)} is credited in full against the final invoice.`,
                   "Production starts only after your final approval and agreed payment terms.",
                 ].map((item) => (
                   <p key={item} className="flex items-start gap-2"><CheckCircle2 size={14} className="mt-0.5 shrink-0 text-[var(--color-teal-dark)]" />{item}</p>
@@ -505,14 +524,14 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
               onChange={(event) => setTermsAccepted(event.target.checked)}
               className="mt-0.5 h-4 w-4 accent-[var(--color-teal)]"
             />
-            I understand and agree to the reservation terms below
+            I agree to the reservation terms: {formatInr(RESERVATION_FEE)} is
+            charged today and credited against the final invoice.
           </label>
-          <ul className="mt-3 list-disc space-y-1 pl-5 text-xs leading-relaxed text-[#111111]/60">
-            <li>{formatInr(RESERVATION_FEE)} reserves the production review and is charged today.</li>
-            <li>The reservation fee is credited in full against the final invoice.</li>
-            <li>The final invoice, including confirmed shipping, is shared after feasibility review.</li>
-            <li>Production starts only after final approval and the agreed balance-payment terms.</li>
-          </ul>
+          <p className="mt-3 text-xs leading-relaxed text-[#111111]/60">
+            The final invoice, including confirmed shipping, is shared after
+            feasibility review. Production starts only after final approval and
+            the agreed payment terms.
+          </p>
         </section>
         </div>
 
@@ -526,20 +545,6 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
             total={orderTotal}
             sticky={false}
           />
-          <div className="liquid-glass-surface rounded-[24px] border !border-[var(--color-teal)]/25 p-5 text-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#111111]/50">Reservation payment</p>
-            <div className="mt-3 flex items-end justify-between gap-3">
-              <span className="font-medium text-[#111111]">Due today</span>
-              <span className="text-2xl font-bold text-[var(--color-teal-dark)]">{formatInr(RESERVATION_FEE)}</span>
-            </div>
-            <div className="mt-3 flex justify-between border-t border-[#E5E5E5] pt-3 text-xs text-[#111111]/65">
-              <span>Estimated balance later</span>
-              <span className="font-semibold text-[#111111]">{formatInr(balanceDue)}</span>
-            </div>
-            <p className="mt-3 text-xs leading-relaxed text-[#111111]/60">
-              Shipping and final production feasibility are confirmed by the Garmops team before the balance becomes payable.
-            </p>
-          </div>
           <button
             type="button"
             disabled={!termsAccepted || isProcessing}

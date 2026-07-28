@@ -160,7 +160,7 @@ export default function NeckLabelPanel({
       return;
     }
     if (file.size > MAX_FILE_BYTES) {
-      setUploadError('File is too large. Maximum size is 4.5MB.');
+      setUploadError('File is too large. Maximum size is 4.5 MB.');
       if (uploadInputRef.current) uploadInputRef.current.value = '';
       return;
     }
@@ -253,7 +253,7 @@ export default function NeckLabelPanel({
                 }`}
               >
                 <DimensionPreview option={option} selected={selected} />
-                {option.replace('x', '×')}mm
+                {option.replace('x', ' × ')} mm
               </button>
             );
           })}
@@ -285,7 +285,7 @@ export default function NeckLabelPanel({
             <div className="min-w-0 flex-1">
               <p className="truncate font-sans text-[13px] font-semibold leading-tight tracking-normal text-[#111111]/85">
                 {source === 'sample'
-                  ? `Garmops sample · ${dimensions.replace('x', '×')}mm`
+                  ? `Garmops sample · ${dimensions.replace('x', ' × ')} mm`
                   : fileName ?? `${isToteProduct ? 'Bag label' : 'Neck label'}.${fileType ?? 'ai'}`}
               </p>
               <span className="mt-1.5 inline-flex items-center gap-1 font-sans text-[11px] font-medium leading-none text-[#2E7D32]">
@@ -328,16 +328,16 @@ export default function NeckLabelPanel({
                 Drag and drop {isToteProduct ? 'bag label' : 'neck label'} artwork, or click to browse
               </span>
               <span className="text-xs text-[#111111]/50">
-                Supports .svg and .ai files up to 4.5MB
+                Supports .svg and .ai files up to 4.5 MB
               </span>
             </label>
             <div className="relative z-10 mt-3 flex flex-wrap items-center justify-center gap-2">
               <a
                 href={TEMPLATE_HREF}
                 download
-                className="configurator-glass-control inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-medium uppercase tracking-wide text-[#111111]/80 transition-colors hover:!border-[var(--color-teal)]/45 hover:text-[var(--color-teal-dark)]"
+                className="configurator-glass-control inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-medium text-[#111111]/80 transition-colors hover:!border-[var(--color-teal)]/45 hover:text-[var(--color-teal-dark)]"
               >
-                Download Templates
+                Download templates
                 <Download size={13} strokeWidth={2.2} />
               </a>
               <button

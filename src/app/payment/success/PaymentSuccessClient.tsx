@@ -6,6 +6,7 @@ import { useCartStore } from "@/lib/store";
 import type { PaymentKind } from "@/lib/payu";
 import { readUploadedFile } from "@/lib/configurator/objectUrls";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
+import { ConfiguratorTopBar } from "@/components/configurator/ConfiguratorTopBar";
 
 interface PaymentSuccessClientProps {
   verified: boolean;
@@ -278,8 +279,10 @@ export default function PaymentSuccessClient({
   const firstName = orderSummary.name.split(" ")[0];
 
   return (
-    <div className="app-liquid-bg flex min-h-[80vh] items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
-      <div className="liquid-glass-surface w-full max-w-md rounded-[26px] border p-5 text-center sm:rounded-[30px] sm:p-9">
+    <>
+      {!isSampleOrder && <ConfiguratorTopBar currentStep="reserve" />}
+      <div className="app-liquid-bg flex min-h-[80vh] items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
+        <div className="liquid-glass-surface w-full max-w-md rounded-[26px] border p-5 text-center sm:rounded-[30px] sm:p-9">
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-teal)]/10">
           <svg
             width="28"
@@ -294,11 +297,7 @@ export default function PaymentSuccessClient({
         </div>
 
         <h1 className="mb-3 text-3xl font-bold tracking-tight text-[#111111]">
-          {isMockPayment
-            ? "Reservation flow complete"
-            : isSampleOrder
-              ? "Order placed"
-              : "Payment successful"}
+          {isSampleOrder ? "Order placed" : "Reservation confirmed"}
         </h1>
         {isMockPayment && (
           <p className="mb-4 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-medium text-amber-800">
@@ -309,7 +308,7 @@ export default function PaymentSuccessClient({
           {firstName ? `Thanks ${firstName}!` : "Thank you!"}{" "}
           {isSampleOrder
             ? "Your sample order has been received."
-            : "Your production review request has been received."}
+            : "Your production review is reserved."}
         </p>
 
         {orderDetailsStatus === "missing" && (
@@ -352,7 +351,7 @@ export default function PaymentSuccessClient({
           ) : (
             <ul className="flex flex-col gap-1.5">
               <li>· Our team will review your order and send a proforma invoice within 24 hours</li>
-              <li>· The ₹499 reservation fee will be deducted from your final invoice</li>
+              <li>· The ₹499 reservation fee will be credited against your final invoice</li>
               <li>· Production begins only after technical review, your approval and agreed payment terms</li>
             </ul>
           )}
@@ -364,7 +363,8 @@ export default function PaymentSuccessClient({
         >
           Back to home
         </Link>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
