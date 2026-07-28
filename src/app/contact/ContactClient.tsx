@@ -45,20 +45,20 @@ export default function ContactClient() {
 
   return (
     <div className="app-liquid-bg">
-      <section className="max-w-7xl mx-auto px-6 pt-20 pb-16">
+      <section className="max-w-7xl mx-auto px-4 pb-10 pt-10 sm:px-6 sm:pb-16 sm:pt-20">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Get in touch</p>
         <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] max-w-xl leading-tight mb-6 tracking-tight">
           Tell us about your project
         </h1>
-        <p className="text-[#111111]/50 max-w-lg text-lg">
+        <p className="max-w-lg text-base leading-relaxed text-[#111111]/50 sm:text-lg">
           Fill in the form and we&apos;ll get back to you with a quote within 24 hours.
         </p>
       </section>
 
-      <section className="max-w-7xl mx-auto px-6 pb-24 grid md:grid-cols-2 gap-16">
+      <section className="max-w-7xl mx-auto grid gap-10 px-4 pb-16 sm:px-6 sm:pb-24 md:grid-cols-2 md:gap-16">
         <div>
           {submitted ? (
-            <div role="status" className="liquid-glass-dark rounded-3xl border p-10 text-white">
+            <div role="status" className="liquid-glass-dark rounded-3xl border p-6 text-white sm:p-10">
               <h2 className="text-2xl font-bold mb-2">We&apos;ve got your request.</h2>
               <p className="text-white/50 text-sm">Our team will reach out within 24 hours with a detailed quote.</p>
             </div>
@@ -109,7 +109,7 @@ export default function ContactClient() {
           )}
         </div>
 
-        <div className="flex flex-col gap-10 pt-2">
+        <div className="flex flex-col gap-4 pt-2 sm:gap-6 md:gap-10">
           {[
             { label: 'Location', content: 'Moist Corp\nGreater Noida, Uttar Pradesh\nIndia' },
             { label: 'Email', content: 'hello@garmops.com', isEmail: true },

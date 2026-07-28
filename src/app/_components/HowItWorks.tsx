@@ -280,15 +280,15 @@ export default function HowItWorks() {
   return (
     <section
       ref={sectionRef}
-      className="app-liquid-section py-20"
+      className="app-liquid-section py-14 sm:py-20"
     >
-      <div className="mx-auto mb-10 max-w-7xl px-6">
+      <div className="mx-auto mb-8 max-w-7xl px-4 sm:mb-10 sm:px-6">
         <p className="mb-4 text-xs font-medium uppercase tracking-widest text-[#595959]">
           How it works
         </p>
 
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <h2 className="text-4xl font-bold leading-tight tracking-tight text-[#111111]">
+          <h2 className="text-3xl font-bold leading-tight tracking-tight text-[#111111] sm:text-4xl">
             Launch your merch
             <br />
             project today.
@@ -319,10 +319,10 @@ export default function HowItWorks() {
             scrollSnapType: 'x mandatory',
             WebkitOverflowScrolling: 'touch',
             scrollbarWidth: 'none',
-            paddingLeft: '24px',
+            paddingLeft: '16px',
             paddingBottom: '16px',
             width: '100vw',
-            scrollPaddingLeft: '24px',
+            scrollPaddingLeft: '16px',
           }}
         >
           {steps.map((step, index) => (
@@ -422,7 +422,7 @@ export default function HowItWorks() {
             aria-hidden="true"
             style={{
               flexShrink: 0,
-              width: '24px',
+              width: '16px',
             }}
           />
         </div>

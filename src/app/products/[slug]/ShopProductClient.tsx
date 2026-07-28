@@ -66,14 +66,14 @@ export default function ShopProductClient({
 
   return (
     <div className="app-liquid-bg">
-      <div className="max-w-7xl mx-auto px-6 py-16">
+      <div className="max-w-7xl mx-auto px-4 py-10 sm:px-6 sm:py-16">
         <Breadcrumbs crumbs={[
           { label: 'Home', href: '/' },
           { label: 'Products', href: '/products' },
           { label: product.name },
         ]} />
 
-        <div className="grid md:grid-cols-2 gap-16">
+        <div className="grid gap-8 sm:gap-12 md:grid-cols-2 md:gap-16">
 
           {/* Image */}
           <div className="relative">
@@ -95,12 +95,12 @@ export default function ShopProductClient({
           </div>
 
           {/* Info */}
-          <div className="liquid-glass-surface flex flex-col gap-6 rounded-[30px] border p-5 sm:p-7">
+          <div className="liquid-glass-surface flex flex-col gap-6 rounded-[26px] border p-4 sm:rounded-[30px] sm:p-7">
             <div>
               <p className="text-xs text-[#111111]/40 uppercase tracking-widest mb-2">
                 {product.category}
               </p>
-              <h1 className="text-3xl font-bold text-[#111111] leading-tight tracking-tight mb-2">
+              <h1 className="mb-2 text-2xl font-bold leading-tight tracking-tight text-[#111111] sm:text-3xl">
                 {product.name}
               </h1>
               <p className="text-xs text-[#111111]/40 mb-3">
@@ -292,7 +292,7 @@ export default function ShopProductClient({
 
       {/* Related */}
       {related.length > 0 && (
-        <section className="mx-auto max-w-7xl px-6 pb-24 pt-16">
+        <section className="mx-auto max-w-7xl px-4 pb-16 pt-12 sm:px-6 sm:pb-24 sm:pt-16">
           <h2 className="text-xs font-medium uppercase tracking-widest text-[#111111]/40 mb-8">
             More in {product.category}
           </h2>

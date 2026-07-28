@@ -12,15 +12,15 @@ export const metadata: Metadata = generateMeta({
 export default function Journal() {
   return (
     <div className="app-liquid-bg">
-      <section className="max-w-7xl mx-auto px-6 pt-20 pb-16">
+      <section className="max-w-7xl mx-auto px-4 pb-10 pt-10 sm:px-6 sm:pb-16 sm:pt-20">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Journal</p>
         <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] max-w-xl leading-tight mb-6 tracking-tight">Notes on making things</h1>
-        <p className="text-[#111111]/50 max-w-lg text-lg">Guides, production insights, and industry notes from the Garmops team.</p>
+        <p className="max-w-lg text-base leading-relaxed text-[#111111]/50 sm:text-lg">Guides, production insights, and industry notes from the Garmops team.</p>
       </section>
 
       {/* Featured */}
-      <section className="max-w-7xl mx-auto px-6 pb-16">
-        <div className="liquid-glass-dark flex flex-col items-start gap-8 rounded-3xl border p-10 md:flex-row md:p-14">
+      <section className="max-w-7xl mx-auto px-4 pb-12 sm:px-6 sm:pb-16">
+        <div className="liquid-glass-dark flex flex-col items-stretch gap-7 rounded-[26px] border p-6 sm:rounded-3xl sm:p-10 md:flex-row md:items-start md:p-14">
           <div className="flex-1">
             <span className="inline-block text-xs px-2.5 py-1 border border-white/20 text-white/60 mb-4">{posts[0].category}</span>
             <h2 className="text-3xl font-bold text-white mb-4 leading-tight tracking-tight">{posts[0].title}</h2>
@@ -30,14 +30,14 @@ export default function Journal() {
               <span>{posts[0].readTime}</span>
             </div>
           </div>
-          <Link href={`/journal/${posts[0].slug}`} className="shrink-0 bg-white text-[var(--color-navy)] px-6 py-3 rounded-full text-sm font-medium hover:bg-white/90 transition self-end md:self-center">
+          <Link href={`/journal/${posts[0].slug}`} className="shrink-0 self-stretch rounded-full bg-white px-6 py-3 text-center text-sm font-medium text-[var(--color-navy)] transition hover:bg-white/90 sm:self-end md:self-center">
             Read article
           </Link>
         </div>
       </section>
 
       {/* Grid */}
-      <section className="max-w-7xl mx-auto px-6 pb-24">
+      <section className="max-w-7xl mx-auto px-4 pb-16 sm:px-6 sm:pb-24">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {posts.slice(1).map(post => (
             <Link key={post.slug} href={`/journal/${post.slug}`}
@@ -54,15 +54,15 @@ export default function Journal() {
         </div>
       </section>
 
-      <section className="app-liquid-section py-16">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+      <section className="app-liquid-section py-12 sm:py-16">
+        <div className="max-w-7xl mx-auto flex flex-col items-stretch justify-between gap-6 px-4 sm:px-6 md:flex-row md:items-center">
           <div>
             <h2 className="text-2xl font-bold mb-1 tracking-tight">Ready to place an order?</h2>
             <p className="text-[#111111]/50 text-sm">50 pieces minimum. Quote within 24 hours.</p>
           </div>
-          <div className="flex gap-3">
-            <Link href="/configurator" className="bg-[var(--color-teal)] text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-[var(--color-teal-dark)] transition">Start designing</Link>
-            <Link href="/contact" className="border border-[var(--color-teal)] text-[var(--color-teal)] px-6 py-3 rounded-full text-sm font-medium hover:bg-[var(--color-teal)] hover:text-white transition">Contact us</Link>
+          <div className="flex flex-col gap-3 min-[360px]:flex-row">
+            <Link href="/configurator" className="rounded-full bg-[var(--color-teal)] px-6 py-3 text-center text-sm font-medium text-white transition hover:bg-[var(--color-teal-dark)]">Start designing</Link>
+            <Link href="/contact" className="rounded-full border border-[var(--color-teal)] px-6 py-3 text-center text-sm font-medium text-[var(--color-teal)] transition hover:bg-[var(--color-teal)] hover:text-white">Contact us</Link>
           </div>
         </div>
       </section>

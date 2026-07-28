@@ -242,8 +242,8 @@ export default function PaymentSuccessClient({
 
   if (!verified) {
     return (
-      <div className="app-liquid-bg flex min-h-[80vh] items-center justify-center px-6 py-12">
-        <div className="liquid-glass-surface w-full max-w-md rounded-[30px] border p-7 text-center sm:p-9">
+      <div className="app-liquid-bg flex min-h-[80vh] items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
+        <div className="liquid-glass-surface w-full max-w-md rounded-[26px] border p-5 text-center sm:rounded-[30px] sm:p-9">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 text-2xl text-amber-700">
             !
           </div>
@@ -278,8 +278,8 @@ export default function PaymentSuccessClient({
   const firstName = orderSummary.name.split(" ")[0];
 
   return (
-    <div className="app-liquid-bg flex min-h-[80vh] items-center justify-center px-6 py-12">
-      <div className="liquid-glass-surface w-full max-w-md rounded-[30px] border p-7 text-center sm:p-9">
+    <div className="app-liquid-bg flex min-h-[80vh] items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
+      <div className="liquid-glass-surface w-full max-w-md rounded-[26px] border p-5 text-center sm:rounded-[30px] sm:p-9">
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-teal)]/10">
           <svg
             width="28"
@@ -337,7 +337,7 @@ export default function PaymentSuccessClient({
 
         {txnid && (
           <p className="mb-6 mt-2 text-xs text-[#111111]/40">
-            Transaction ID: <span className="font-mono">{txnid}</span>
+            Transaction ID: <span className="break-all font-mono">{txnid}</span>
           </p>
         )}
 

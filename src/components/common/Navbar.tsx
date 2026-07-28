@@ -73,7 +73,7 @@ export default function Navbar() {
   const closeMenu = () => setOpenPathname(null)
 
   return (
-    <header className="sticky top-0 z-50 w-full px-3 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-4 sm:pt-4">
+    <header className="sticky top-0 z-50 w-full px-2.5 pb-2.5 pt-[max(0.625rem,env(safe-area-inset-top))] sm:px-4 sm:pb-3 sm:pt-4">
       <div
         className={`liquid-glass-nav relative z-50 mx-auto max-w-7xl rounded-full border transition-all duration-200 ${
           scrolled
@@ -81,14 +81,14 @@ export default function Navbar() {
             : ''
         }`}
       >
-        <div className="flex min-h-12 items-center justify-between gap-4 px-5 py-2.5 sm:px-6 sm:py-3">
+        <div className="flex min-h-12 items-center justify-between gap-3 px-4 py-2 sm:gap-4 sm:px-6 sm:py-3">
           <Link href="/" className="flex min-w-0 shrink items-center" aria-label="Garmops home">
             <Image
               src="/logo3.png"
               alt="Garmops"
               width={908}
               height={114}
-              className="h-[18px] w-auto max-w-[180px] object-contain sm:h-5"
+              className="h-4 w-auto max-w-[132px] object-contain min-[360px]:h-[18px] min-[360px]:max-w-[160px] sm:h-5 sm:max-w-[180px]"
               priority
             />
           </Link>
@@ -133,8 +133,8 @@ export default function Navbar() {
             </Link>
           </div>
 
-          <div className="flex shrink-0 items-center gap-4 md:hidden">
-            <Link href="/cart" className="relative text-sm text-[#111111]/60">
+          <div className="flex shrink-0 items-center gap-2.5 min-[360px]:gap-4 md:hidden">
+            <Link href="/cart" className="relative flex min-h-11 items-center text-sm text-[#111111]/60">
               Cart
               {itemCount > 0 && (
                 <span className="absolute -right-3 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--color-teal)] px-1 text-[10px] leading-none text-white">
@@ -145,7 +145,7 @@ export default function Navbar() {
             <button
               ref={menuButtonRef}
               type="button"
-              className="relative flex h-9 w-9 items-center justify-center rounded-full text-[#111111] transition-colors hover:bg-black/5"
+              className="relative flex h-11 w-11 items-center justify-center rounded-full text-[#111111] transition-colors hover:bg-black/5"
               onClick={() => setOpenPathname(open ? null : pathname)}
               aria-label={open ? 'Close menu' : 'Open menu'}
               aria-expanded={open}
@@ -191,7 +191,7 @@ export default function Navbar() {
           ref={mobileNavRef}
           id="mobile-navigation"
           aria-label="Mobile navigation"
-          className={`liquid-glass-nav absolute inset-x-3 top-[calc(max(0.75rem,env(safe-area-inset-top))+3.75rem)] max-h-[calc(100dvh-5.5rem-env(safe-area-inset-bottom))] overflow-y-auto rounded-[28px] border px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 transition-all duration-200 sm:inset-x-4 ${
+          className={`liquid-glass-nav absolute inset-x-2.5 top-[calc(max(0.625rem,env(safe-area-inset-top))+3.75rem)] max-h-[calc(100dvh-5.25rem-env(safe-area-inset-bottom))] overflow-y-auto rounded-[26px] border px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 transition-all duration-200 sm:inset-x-4 sm:rounded-[28px] sm:px-5 sm:pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pt-4 ${
             open ? 'translate-y-0 opacity-100' : '-translate-y-3 opacity-0'
           }`}
         >
@@ -206,7 +206,7 @@ export default function Navbar() {
                   tabIndex={open ? 0 : -1}
                   aria-current={isActive ? 'page' : undefined}
                   onClick={closeMenu}
-                  className={`border-b border-white/60 px-1 py-4 text-[17px] leading-none transition-colors ${
+                  className={`border-b border-white/60 px-1 py-3.5 text-base leading-none transition-colors sm:py-4 sm:text-[17px] ${
                     isActive ? 'font-semibold text-[var(--color-teal)]' : 'text-[#111111]/65'
                   }`}
                 >
@@ -224,6 +224,16 @@ export default function Navbar() {
           >
             Start designing
           </Link>
+          <a
+            href="https://wa.me/918800711169?text=Hi%2C%20I%20found%20Garmops%20and%20would%20like%20to%20know%20more%20about%20custom%20apparel."
+            target="_blank"
+            rel="noopener noreferrer"
+            tabIndex={open ? 0 : -1}
+            onClick={closeMenu}
+            className="mt-2 block rounded-full border border-[var(--color-teal)]/35 px-5 py-3 text-center text-sm font-medium text-[var(--color-teal-dark)]"
+          >
+            Chat on WhatsApp
+          </a>
         </nav>
       </div>
     </header>

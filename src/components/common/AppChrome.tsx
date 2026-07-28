@@ -20,9 +20,9 @@ export default function AppChrome({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="app-liquid-bg min-h-screen">
+    <div className="app-liquid-bg min-h-screen min-w-0 overflow-x-clip">
       <Navbar />
-      <main>{children}</main>
+      <main className="min-w-0">{children}</main>
       <Footer />
       <WhatsAppButton />
     </div>

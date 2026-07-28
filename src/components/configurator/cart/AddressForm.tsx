@@ -17,6 +17,7 @@ export interface AddressFormProps {
   onChange: (address: Address) => void;
   idPrefix?: string;
   showCountry?: boolean;
+  compact?: boolean;
 }
 
 export interface AddressMissingField {
@@ -193,10 +194,12 @@ export function AddressForm({
   onChange,
   idPrefix,
   showCountry = true,
+  compact = false,
 }: AddressFormProps) {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [lookupStatus, setLookupStatus] = useState<LookupStatus>("idle");
   const [lookupNonce, setLookupNonce] = useState(0);
+  const [editingLocation, setEditingLocation] = useState(false);
   const generatedId = useId();
   const formId = idPrefix ?? generatedId;
   const id = (field: string) => `${formId}-${field}`;
@@ -244,6 +247,7 @@ export function AddressForm({
             state: data.state,
           });
           setLookupStatus("success");
+          setEditingLocation(false);
         })
         .catch((error: unknown) => {
           if (error instanceof DOMException && error.name === "AbortError") return;
@@ -290,7 +294,9 @@ export function AddressForm({
       )}
 
       <div>
-        <label htmlFor={id("addressLine1")} className={labelClass}>Address line 1</label>
+        <label htmlFor={id("addressLine1")} className={labelClass}>
+          {compact ? "Delivery address" : "Address line 1"}
+        </label>
         <input
           id={id("addressLine1")}
           autoComplete="address-line1"
@@ -298,22 +304,24 @@ export function AddressForm({
           value={value.addressLine1}
           onChange={(event) => set("addressLine1", event.target.value)}
           onBlur={() => markTouched("addressLine1")}
-          placeholder="Building, street and area"
+          placeholder={compact ? "Building, street, area and landmark" : "Building, street and area"}
         />
         {showError("addressLine1", !value.addressLine1.trim()) && <p className="mt-1 text-xs text-red-600">Required</p>}
       </div>
 
-      <div>
-        <label htmlFor={id("addressLine2")} className={labelClass}>Address line 2 (optional)</label>
-        <input
-          id={id("addressLine2")}
-          autoComplete="address-line2"
-          className={inputClass}
-          value={value.addressLine2 ?? ""}
-          onChange={(event) => set("addressLine2", event.target.value)}
-          placeholder="Landmark, floor or unit"
-        />
-      </div>
+      {!compact && (
+        <div>
+          <label htmlFor={id("addressLine2")} className={labelClass}>Address line 2 (optional)</label>
+          <input
+            id={id("addressLine2")}
+            autoComplete="address-line2"
+            className={inputClass}
+            value={value.addressLine2 ?? ""}
+            onChange={(event) => set("addressLine2", event.target.value)}
+            placeholder="Landmark, floor or unit"
+          />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
@@ -328,7 +336,17 @@ export function AddressForm({
               pattern="[1-9][0-9]{5}"
               placeholder="110001"
               value={value.zip}
-              onChange={(event) => set("zip", digitsOnly(event.target.value).slice(0, 6))}
+              onChange={(event) => {
+                const zip = digitsOnly(event.target.value).slice(0, 6);
+                setEditingLocation(false);
+                setLookupStatus("idle");
+                onChange({
+                  ...value,
+                  zip,
+                  city: "",
+                  state: "",
+                });
+              }}
               onBlur={() => markTouched("zip")}
             />
             <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#111111]/35">
@@ -353,7 +371,7 @@ export function AddressForm({
             </div>
           )}
         </div>
-        <div>
+        {(!compact || editingLocation || visibleLookupStatus === "not-found" || visibleLookupStatus === "error") && <div>
           <label htmlFor={id("city")} className={labelClass}>City / district</label>
           <input
             id={id("city")}
@@ -364,10 +382,26 @@ export function AddressForm({
             onBlur={() => markTouched("city")}
           />
           {showError("city", !value.city.trim()) && <p className="mt-1 text-xs text-red-600">Required</p>}
-        </div>
+        </div>}
       </div>
 
-      <div>
+      {compact && visibleLookupStatus === "success" && !editingLocation && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--color-teal)]/20 bg-[var(--color-teal)]/5 px-3 py-2.5">
+          <p className="text-sm text-[#111111]/75">
+            <span className="font-medium text-[#111111]">{value.city}</span>
+            {value.state ? `, ${value.state}` : ""}
+          </p>
+          <button
+            type="button"
+            className="text-xs font-semibold text-[var(--color-teal-dark)] underline underline-offset-2"
+            onClick={() => setEditingLocation(true)}
+          >
+            Edit
+          </button>
+        </div>
+      )}
+
+      {(!compact || editingLocation || visibleLookupStatus === "not-found" || visibleLookupStatus === "error") && <div>
         <label htmlFor={id("state")} className={labelClass}>State or union territory</label>
         <select
           id={id("state")}
@@ -381,7 +415,7 @@ export function AddressForm({
           {INDIA_STATES.map((state) => <option key={state} value={state}>{state}</option>)}
         </select>
         {showError("state", !value.state?.trim()) && <p className="mt-1 text-xs text-red-600">Required</p>}
-      </div>
+      </div>}
     </div>
   );
 }

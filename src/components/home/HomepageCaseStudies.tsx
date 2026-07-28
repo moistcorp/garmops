@@ -14,18 +14,18 @@ function initials(name: string) {
 
 export default function HomepageCaseStudies() {
   return (
-    <section className="app-liquid-section py-24">
-      <div className="max-w-7xl mx-auto px-6">
+    <section className="app-liquid-section py-14 sm:py-24">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
 
         {/* Header */}
-        <div className="grid lg:grid-cols-[300px_1fr] gap-12 items-start">
+        <div className="grid items-start gap-8 lg:grid-cols-[300px_1fr] lg:gap-12">
 
           <div className="lg:sticky lg:top-24">
             <p className="text-xs text-[#666666] font-medium mb-4 tracking-widest uppercase">
               Case Studies
             </p>
 
-            <h2 className="text-4xl font-bold text-[#111111] tracking-tight leading-[1.05] mb-6">
+            <h2 className="mb-5 text-3xl font-bold leading-[1.05] tracking-tight text-[#111111] sm:mb-6 sm:text-4xl">
               How the best brands use Garmops
             </h2>
 
@@ -51,14 +51,14 @@ export default function HomepageCaseStudies() {
               <Link
                 key={cs.slug}
                 href={`/work/${cs.slug}`}
-                className="group w-[82vw] max-w-[430px] shrink-0 snap-start sm:w-[420px] lg:w-[380px] xl:w-[420px]"
+                className="group w-[84vw] max-w-[430px] shrink-0 snap-start sm:w-[420px] lg:w-[380px] xl:w-[420px]"
               >
 
                 <div className="liquid-glass-panel overflow-hidden rounded-[24px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-teal)]/45">
 
                   {/* Image */}
 
-                  <div className="relative h-[430px] overflow-hidden bg-[#F7F7F7] sm:h-[520px]">
+                  <div className="relative h-[340px] overflow-hidden bg-[#F7F7F7] sm:h-[520px]">
 
                     {/* Chips */}
 
@@ -106,7 +106,7 @@ export default function HomepageCaseStudies() {
 
                   {/* Content */}
 
-                  <div className="p-6">
+                  <div className="p-5 sm:p-6">
 
                     <p className="text-2xl font-semibold tracking-tight text-[#111111] mb-1 group-hover:underline">
                       {cs.client}
@@ -116,7 +116,7 @@ export default function HomepageCaseStudies() {
                       {cs.industry}
                     </p>
 
-                    <div className="flex justify-between items-center pt-5 border-t border-[#E5E5E5]">
+                    <div className="flex flex-col items-start gap-3 border-t border-[#E5E5E5] pt-5 min-[360px]:flex-row min-[360px]:items-center min-[360px]:justify-between">
 
                       <div className="flex gap-4 text-xs text-[#555555]">
                         <span>{cs.quantity} pcs</span>
@@ -147,7 +147,7 @@ export default function HomepageCaseStudies() {
 
         {/* Pull-quote testimonial */}
         {featuredTestimonial && (
-          <div className="mt-20 pt-16 border-t border-[#ECE7DF]">
+          <div className="mt-12 border-t border-[#ECE7DF] pt-10 sm:mt-20 sm:pt-16">
             <div className="max-w-3xl">
               <p className="text-2xl md:text-3xl font-semibold text-[#111111] tracking-tight leading-snug mb-8">
                 &ldquo;{featuredTestimonial.quote}&rdquo;

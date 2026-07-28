@@ -44,6 +44,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-satoshi);
+  min-width: 0;
 }
 
 button,
@@ -71,6 +72,17 @@ label:has(input:not(:disabled)) {
 button:disabled,
 [aria-disabled="true"] {
   cursor: not-allowed;
+}
+
+html {
+  scroll-padding-top: 6rem;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
@@ -326,6 +338,10 @@ button:disabled,
 }
 
 @media (max-width: 640px) {
+  html {
+    scroll-padding-top: 5rem;
+  }
+
   .liquid-glass-surface {
     -webkit-backdrop-filter: blur(20px) saturate(150%);
     backdrop-filter: blur(20px) saturate(150%);

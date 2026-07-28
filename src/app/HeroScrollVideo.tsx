@@ -59,42 +59,42 @@ export default function HeroScrollVideo() {
 
   return (
     <>
-      <section className="app-liquid-bg grid min-h-[90vh] lg:grid-cols-2">
-        <div className="flex flex-col justify-center px-8 py-20 md:px-16 lg:py-0">
-          <p className="text-xs text-[#595959] font-medium mb-6 tracking-widest uppercase">
+      <section className="app-liquid-bg grid lg:min-h-[90vh] lg:grid-cols-2">
+        <div className="flex flex-col justify-center px-4 py-12 min-[360px]:px-5 sm:px-8 sm:py-16 md:px-16 lg:py-0">
+          <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.16em] text-[#595959] sm:mb-6 sm:text-xs sm:tracking-widest">
             Custom apparel for businesses
           </p>
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-[#111111] leading-[1.05] tracking-tight mb-6">
+          <h1 className="mb-5 text-[2.5rem] font-bold leading-[1.02] tracking-tight text-[#111111] min-[360px]:text-5xl md:text-6xl lg:text-7xl">
             Custom merch<br />for your<br /><span className="text-[var(--color-teal)]">business</span>
           </h1>
-          <p className="text-base text-[#4a4a4a] max-w-sm mb-10 leading-relaxed">
+          <p className="mb-8 max-w-sm text-[15px] leading-relaxed text-[#4a4a4a] sm:mb-10 sm:text-base">
             From design to delivery: premium custom merch, made in India. Create, customise and place your order in just a few simple steps.
           </p>
-          <div className="grid grid-cols-3 gap-2 sm:flex sm:gap-6 mb-10">
+          <div className="mb-8 grid grid-cols-3 gap-0 sm:mb-10 sm:flex sm:gap-6">
             <div className="min-w-0">
               <p className="text-xl sm:text-2xl font-bold text-[#111111]">50</p>
-              <p className="text-[10px] sm:text-xs text-[#595959] uppercase tracking-normal sm:tracking-wide leading-tight">Min. pieces</p>
+              <p className="text-[9px] uppercase leading-tight tracking-normal text-[#595959] min-[360px]:text-[10px] sm:text-xs sm:tracking-wide">Min. pieces</p>
             </div>
-            <div className="border-l border-[#E5E5E5] pl-3 sm:border-0 sm:pl-0 sm:contents">
+            <div className="min-w-0 border-l border-[#E5E5E5] pl-3 sm:contents sm:border-0 sm:pl-0">
               <div className="hidden sm:block w-px bg-[#E5E5E5]" />
               <div>
                 <p className="text-xl sm:text-2xl font-bold text-[#111111]">{RUSH_DELIVERY_DAYS}</p>
-                <p className="text-[10px] sm:text-xs text-[#595959] uppercase tracking-normal sm:tracking-wide leading-tight">Day delivery</p>
+                <p className="text-[9px] uppercase leading-tight tracking-normal text-[#595959] min-[360px]:text-[10px] sm:text-xs sm:tracking-wide">Day delivery</p>
               </div>
             </div>
-            <div className="border-l border-[#E5E5E5] pl-3 sm:border-0 sm:pl-0 sm:contents">
+            <div className="min-w-0 border-l border-[#E5E5E5] pl-3 sm:contents sm:border-0 sm:pl-0">
               <div className="hidden sm:block w-px bg-[#E5E5E5]" />
               <div>
                 <p className="text-xl sm:text-2xl font-bold text-[#111111]">100%</p>
-                <p className="text-[10px] sm:text-xs text-[#595959] uppercase tracking-normal sm:tracking-wide leading-tight">Made in India</p>
+                <p className="text-[9px] uppercase leading-tight tracking-normal text-[#595959] min-[360px]:text-[10px] sm:text-xs sm:tracking-wide">Made in India</p>
               </div>
             </div>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Link href="/configurator" className="bg-[var(--color-teal)] text-white px-8 py-4 rounded-full text-sm font-medium hover:bg-[var(--color-teal-dark)] transition-colors">
+          <div className="grid w-full grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:flex sm:flex-wrap">
+            <Link href="/configurator" className="rounded-full bg-[var(--color-teal)] px-5 py-3.5 text-center text-sm font-medium text-white transition-colors hover:bg-[var(--color-teal-dark)] sm:px-8 sm:py-4">
               Start designing
             </Link>
-            <Link href="/products" className="border border-[#111111]/20 text-[#111111] px-8 py-4 rounded-full text-sm font-medium hover:border-[#111111] transition-colors">
+            <Link href="/products" className="rounded-full border border-[#111111]/20 px-5 py-3.5 text-center text-sm font-medium text-[#111111] transition-colors hover:border-[#111111] sm:px-8 sm:py-4">
               View catalogue
             </Link>
           </div>
@@ -109,7 +109,7 @@ export default function HeroScrollVideo() {
             sizes="(max-width: 1023px) 100vw, 50vw"
             priority
           />
-          <div className="liquid-glass-surface absolute bottom-8 left-8 z-10 rounded-2xl border px-5 py-4">
+          <div className="liquid-glass-surface absolute bottom-4 left-4 z-10 rounded-2xl border px-4 py-3 sm:bottom-8 sm:left-8 sm:px-5 sm:py-4">
             <p className="text-xs text-[#595959] uppercase tracking-widest mb-1">Starting from</p>
             <p className="text-2xl font-bold text-[#111111]">&#8377;350</p>
             <p className="text-xs text-[#4a4a4a]">per piece &middot; MOQ 50</p>
@@ -118,7 +118,7 @@ export default function HeroScrollVideo() {
       </section>
 
       {useSimpleMedia ? (
-        <section className="relative mx-4 my-4 aspect-[4/5] overflow-hidden rounded-3xl bg-black sm:aspect-video" aria-label="Garmops production showcase">
+        <section className="relative mx-3 my-3 aspect-[4/3] overflow-hidden rounded-[24px] bg-black sm:mx-4 sm:my-4 sm:aspect-video sm:rounded-3xl" aria-label="Garmops production showcase">
           <Image
             src="/hero.jpg"
             alt="Garmops custom apparel production"

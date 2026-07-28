@@ -13,9 +13,9 @@ export default function Cart() {
 
   if (!hasHydrated) return (
     <div className="app-liquid-bg min-h-[70vh] animate-pulse">
-      <div className="mx-auto max-w-7xl px-6 py-16">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16">
         <div className="h-9 w-56 bg-[#ECE7DF] rounded-lg mb-12" />
-        <div className="grid lg:grid-cols-3 gap-12">
+        <div className="grid gap-8 lg:grid-cols-3 lg:gap-12">
           <div className="lg:col-span-2 flex flex-col gap-4">
             {[0, 1].map(i => (
               <div key={i} className="liquid-glass-panel flex h-28 items-start gap-5 rounded-2xl border p-5">
@@ -34,8 +34,8 @@ export default function Cart() {
   )
 
   if (items.length === 0) return (
-    <div className="app-liquid-bg flex min-h-[70vh] items-center justify-center px-6 py-24 text-center">
-      <div className="liquid-glass-surface w-full max-w-lg rounded-[30px] border p-10">
+    <div className="app-liquid-bg flex min-h-[70vh] items-center justify-center px-4 py-16 text-center sm:px-6 sm:py-24">
+      <div className="liquid-glass-surface w-full max-w-lg rounded-[26px] border p-6 sm:rounded-[30px] sm:p-10">
         <h1 className="text-3xl font-bold mb-4 tracking-tight">Your cart is empty</h1>
         <p className="text-[#111111]/50 text-sm mb-8">Add some items from the shop to continue.</p>
         <Link href="/products" className="inline-block bg-[var(--color-teal)] text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-[var(--color-teal-dark)] transition">
@@ -47,10 +47,10 @@ export default function Cart() {
 
   return (
     <div className="app-liquid-bg min-h-[70vh]">
-      <div className="mx-auto max-w-7xl px-6 py-16">
-        <h1 className="text-4xl font-bold mb-12 tracking-tight">Your cart</h1>
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16">
+        <h1 className="mb-8 text-3xl font-bold tracking-tight sm:mb-12 sm:text-4xl">Your cart</h1>
 
-        <div className="grid lg:grid-cols-3 gap-12">
+        <div className="grid gap-8 lg:grid-cols-3 lg:gap-12">
         {/* Items */}
         <div className="lg:col-span-2 flex flex-col gap-4">
           {items.map(item => (
@@ -73,20 +73,20 @@ export default function Cart() {
                 <div className="flex items-center gap-2">
                   <button type="button"
                     onClick={() => updateQuantity(item.id, item.size, item.quantity - 1)}
-                    className="liquid-glass-control flex h-7 w-7 items-center justify-center rounded-full border text-sm transition-colors hover:text-[var(--color-teal)]">
+                    className="liquid-glass-control flex h-10 w-10 items-center justify-center rounded-full border text-base transition-colors hover:text-[var(--color-teal)] sm:h-8 sm:w-8 sm:text-sm">
                     -
                   </button>
                   <span className="w-6 text-center text-sm">{item.quantity}</span>
                   <button type="button"
                     onClick={() => updateQuantity(item.id, item.size, item.quantity + 1)}
                     disabled={item.quantity >= MAX_SAMPLE_ITEM_QUANTITY}
-                    className="liquid-glass-control flex h-7 w-7 items-center justify-center rounded-full border text-sm transition-colors hover:text-[var(--color-teal)] disabled:cursor-not-allowed disabled:opacity-40">
+                    className="liquid-glass-control flex h-10 w-10 items-center justify-center rounded-full border text-base transition-colors hover:text-[var(--color-teal)] disabled:cursor-not-allowed disabled:opacity-40 sm:h-8 sm:w-8 sm:text-sm">
                     +
                   </button>
                 </div>
                 <button type="button"
                   onClick={() => removeItem(item.id, item.size)}
-                  className="text-xs text-[#111111]/30 hover:text-[#111111] transition-colors">
+                  className="min-h-10 px-1 text-xs text-[#111111]/40 transition-colors hover:text-[#111111]">
                   Remove
                 </button>
               </div>

@@ -13,15 +13,15 @@ export const metadata: Metadata = generateMeta({
 export default function Products() {
   return (
     <div className="app-liquid-bg">
-      <section className="max-w-7xl mx-auto px-6 pt-20 pb-12">
+      <section className="max-w-7xl mx-auto px-4 pb-10 pt-10 sm:px-6 sm:pb-12 sm:pt-20">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Garmops</p>
         <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] leading-tight mb-4 tracking-tight">Products</h1>
-        <p className="text-[#111111]/50 max-w-lg text-lg">
+        <p className="max-w-lg text-base leading-relaxed text-[#111111]/50 sm:text-lg">
           Order samples of our products before placing a bulk order. All pieces are manufactured in-house.
         </p>
       </section>
 
-      <section className="max-w-7xl mx-auto px-6 pb-12">
+      <section className="max-w-7xl mx-auto px-4 pb-10 sm:px-6 sm:pb-12">
         <div className="liquid-glass-surface flex flex-col items-start justify-between gap-4 rounded-[26px] border px-5 py-5 sm:px-8 md:flex-row md:items-center">
           <p className="text-sm text-[#111111]/60">
             Ships within 24 hours.
@@ -33,7 +33,7 @@ export default function Products() {
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-6 pb-24">
+      <section className="max-w-7xl mx-auto px-4 pb-16 sm:px-6 sm:pb-24">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map(p => (
             <Link key={p.id} href={`/products/${p.slug}`}
@@ -58,14 +58,14 @@ export default function Products() {
         </div>
       </section>
 
-      <section className="app-liquid-section py-16">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div>
+      <section className="app-liquid-section py-12 sm:py-16">
+        <div className="max-w-7xl mx-auto flex flex-col items-stretch justify-between gap-6 px-4 sm:px-6 md:flex-row md:items-center">
+          <div className="text-left">
             <h2 className="text-2xl font-bold mb-1 tracking-tight">Want merch like this for your brand?</h2>
             <p className="text-[#111111]/50 text-sm">Custom apparel for brands, cafes, and companies. MOQ 50 pieces.</p>
           </div>
-          <div className="flex gap-3 shrink-0">
-            <Link href="/configurator" className="bg-[var(--color-teal)] text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-[var(--color-teal-dark)] transition">Start designing</Link>
+          <div className="flex shrink-0 gap-3">
+            <Link href="/configurator" className="w-full rounded-full bg-[var(--color-teal)] px-6 py-3 text-center text-sm font-medium text-white transition hover:bg-[var(--color-teal-dark)] md:w-auto">Start designing</Link>
           </div>
         </div>
       </section>

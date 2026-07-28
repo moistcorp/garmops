@@ -13,30 +13,30 @@ export default function WorkDetailClient({
 }) {
   return (
     <div className="app-liquid-bg">
-      <div className="max-w-7xl mx-auto px-6 py-16">
+      <div className="max-w-7xl mx-auto px-4 py-10 sm:px-6 sm:py-16">
         <Breadcrumbs crumbs={[
           { label: 'Home', href: '/' },
           { label: 'Work', href: '/work' },
           { label: cs.client },
         ]} />
 
-        <div className="grid lg:grid-cols-3 gap-16">
+        <div className="grid gap-10 lg:grid-cols-3 lg:gap-16">
 
           {/* Main content */}
           <div className="lg:col-span-2">
 
             {/* Header */}
             <div className="mb-10">
-              <div className="flex items-center gap-3 mb-4">
+              <div className="mb-4 flex flex-wrap items-center gap-3">
                 <span className="text-xs border border-[#ECE7DF] rounded-full px-2.5 py-1 text-[#111111]/50">
                   {cs.industry}
                 </span>
                 <span className="text-xs text-[#111111]/30">{cs.date}</span>
               </div>
-              <h1 className="text-4xl font-bold text-[#111111] leading-tight tracking-tight mb-4">
+              <h1 className="mb-4 text-3xl font-bold leading-tight tracking-tight text-[#111111] sm:text-4xl">
                 {cs.title}
               </h1>
-              <p className="text-lg text-[#111111]/60 leading-relaxed">{cs.excerpt}</p>
+              <p className="text-base leading-relaxed text-[#111111]/60 sm:text-lg">{cs.excerpt}</p>
             </div>
 
             {/* Cover image */}
@@ -65,7 +65,7 @@ export default function WorkDetailClient({
             </div>
 
             {/* Result */}
-            <div className="liquid-glass-panel mb-12 rounded-[24px] border p-8">
+            <div className="liquid-glass-panel mb-10 rounded-[24px] border p-5 sm:mb-12 sm:p-8">
               <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-3">
                 The result
               </p>
@@ -89,8 +89,8 @@ export default function WorkDetailClient({
 
             {/* Testimonial */}
             {cs.testimonial && (
-              <div className="liquid-glass-surface mb-12 rounded-3xl border p-8">
-                <p className="text-2xl text-[#111111] leading-snug mb-6 font-semibold tracking-tight">
+              <div className="liquid-glass-surface mb-12 rounded-3xl border p-5 sm:p-8">
+                <p className="mb-6 text-xl font-semibold leading-snug tracking-tight text-[#111111] sm:text-2xl">
                   &ldquo;{cs.testimonial.quote}&rdquo;
                 </p>
                 <div className="flex items-center gap-3">
@@ -170,8 +170,8 @@ export default function WorkDetailClient({
 
       {/* Related case studies */}
       {related.length > 0 && (
-        <section className="py-16">
-          <div className="max-w-7xl mx-auto px-6">
+        <section className="py-12 sm:py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-8">
               More work
             </p>

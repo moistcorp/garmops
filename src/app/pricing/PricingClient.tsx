@@ -59,18 +59,18 @@ export default function PricingClient() {
 
   return (
     <div className="app-liquid-bg">
-      <section className="max-w-7xl mx-auto px-6 pt-20 pb-12">
+      <section className="max-w-7xl mx-auto px-4 pb-10 pt-10 sm:px-6 sm:pb-12 sm:pt-20">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Pricing</p>
         <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] max-w-xl leading-tight mb-4 tracking-tight">
           Simple, transparent pricing
         </h1>
-        <p className="text-[#111111]/50 max-w-lg text-lg">
+        <p className="max-w-lg text-base leading-relaxed text-[#111111]/50 sm:text-lg">
           Base prices include fabric, stitching, single-color screen print, neck label, and our margin. The estimate shows GST separately and includes it in the final total. Shipping is excluded.
         </p>
       </section>
 
-      <section className="max-w-7xl mx-auto px-6 pb-24">
-        <div className="grid md:grid-cols-2 gap-12">
+      <section className="max-w-7xl mx-auto px-4 pb-16 sm:px-6 sm:pb-24">
+        <div className="grid gap-10 md:grid-cols-2 md:gap-12">
 
           {/* Controls */}
           <div className="flex flex-col gap-8">
@@ -154,7 +154,7 @@ export default function PricingClient() {
             {/* Rush order toggle */}
             <div className="liquid-glass-panel rounded-[24px] border p-4">
               <div className="flex items-center justify-between mb-1">
-                <div>
+                <div className="min-w-0 pr-3">
                   <p className="text-sm font-semibold text-[#111111]">Rush order</p>
                   <p className="text-xs text-[#111111]/50 mt-0.5">
                     Delivery in {RUSH_DELIVERY_DAYS} days instead of {DELIVERY_DAYS}
@@ -166,7 +166,7 @@ export default function PricingClient() {
                   role="switch"
                   aria-checked={rush}
                   aria-label="Rush order"
-                  className={`relative w-11 h-6 rounded-full transition-colors ${rush ? 'bg-[var(--color-teal)]' : 'bg-[#E5E5E5]'}`}
+                  className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${rush ? 'bg-[var(--color-teal)]' : 'bg-[#E5E5E5]'}`}
                 >
                   <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${rush ? 'left-6' : 'left-1'}`} />
                 </button>
@@ -225,7 +225,7 @@ export default function PricingClient() {
 
           {/* Output */}
           <div className="flex flex-col gap-4">
-            <div className="liquid-glass-dark rounded-[30px] border p-8 text-white">
+            <div className="liquid-glass-dark rounded-[26px] border p-5 text-white sm:rounded-[30px] sm:p-8">
               <p className="text-xs text-white/50 mb-1 uppercase tracking-widest">Estimate for</p>
               <p className="text-base font-semibold mb-1">{selected}</p>
               <p className="text-xs text-white/40 mb-6">{qty} pieces &middot; {deliveryDays}-day delivery</p>
@@ -261,7 +261,7 @@ export default function PricingClient() {
                   <span className="text-white/60">GST (5%)</span>
                   <span>&#8377;{gst.toLocaleString('en-IN')}</span>
                 </div>
-                <div className="flex justify-between text-xl font-bold border-t border-white/10 pt-4 mt-1">
+                <div className="mt-1 flex flex-col gap-1 border-t border-white/10 pt-4 text-xl font-bold min-[360px]:flex-row min-[360px]:justify-between">
                   <span>Total (incl. GST)</span>
                   <span>&#8377;{total.toLocaleString('en-IN')}</span>
                 </div>
@@ -300,8 +300,8 @@ export default function PricingClient() {
       </section>
 
       {/* What's included */}
-      <section className="app-liquid-section py-16">
-        <div className="max-w-7xl mx-auto px-6">
+      <section className="app-liquid-section py-12 sm:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <h2 className="text-2xl font-bold mb-2 tracking-tight">What&apos;s included in every order</h2>
           <p className="text-[#111111]/50 text-sm mb-8">Base prices include the following. GST is shown separately and included in the final estimated total.</p>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">

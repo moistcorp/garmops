@@ -14,18 +14,18 @@ export default function Work() {
   return (
     <div className="app-liquid-bg">
       {/* Header */}
-      <section className="max-w-7xl mx-auto px-6 pt-20 pb-16">
+      <section className="max-w-7xl mx-auto px-4 pb-10 pt-10 sm:px-6 sm:pb-16 sm:pt-20">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Case studies</p>
         <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] leading-tight mb-6 tracking-tight">
           Our work
         </h1>
-        <p className="text-[#111111]/50 max-w-lg text-lg">
+        <p className="max-w-lg text-base leading-relaxed text-[#111111]/50 sm:text-lg">
           A selection of projects across restaurants, events, gyms, and creative studios. Real briefs, real timelines, real results.
         </p>
       </section>
 
       {/* Featured — first case study */}
-      <section className="max-w-7xl mx-auto px-6 pb-16">
+      <section className="max-w-7xl mx-auto px-4 pb-12 sm:px-6 sm:pb-16">
         <Link href={`/work/${caseStudies[0].slug}`} className="group block">
           <div className="liquid-glass-surface grid gap-0 overflow-hidden rounded-[28px] border transition-all duration-300 hover:!border-[var(--color-teal)]/45 md:grid-cols-2">
             {/* Image */}
@@ -45,21 +45,21 @@ export default function Work() {
               )}
             </div>
             {/* Content */}
-            <div className="p-10 flex flex-col justify-between">
+            <div className="flex flex-col justify-between p-5 sm:p-8 md:p-10">
               <div>
-                <div className="flex items-center gap-3 mb-6">
+                <div className="mb-5 flex flex-wrap items-center gap-3 sm:mb-6">
                   <span className="text-xs border border-[#ECE7DF] rounded-full px-2.5 py-1 text-[#111111]/50">
                     {caseStudies[0].industry}
                   </span>
                   <span className="text-xs text-[#111111]/30">{caseStudies[0].date}</span>
                 </div>
-                <h2 className="text-3xl font-bold text-[#111111] leading-tight tracking-tight mb-4 group-hover:underline">
+                <h2 className="mb-4 text-2xl font-bold leading-tight tracking-tight text-[#111111] group-hover:underline sm:text-3xl">
                   {caseStudies[0].title}
                 </h2>
                 <p className="text-[#111111]/60 text-sm leading-relaxed mb-8">
                   {caseStudies[0].excerpt}
                 </p>
-                <div className="flex gap-6 text-xs text-[#111111]/40">
+                <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-[#111111]/40">
                   <span>{caseStudies[0].quantity} pieces</span>
                   <span>{caseStudies[0].turnaround}</span>
                   <span>{caseStudies[0].deliverables.length} deliverables</span>
@@ -76,7 +76,7 @@ export default function Work() {
       </section>
 
       {/* Grid — remaining case studies */}
-      <section className="max-w-7xl mx-auto px-6 pb-24">
+      <section className="max-w-7xl mx-auto px-4 pb-16 sm:px-6 sm:pb-24">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {caseStudies.slice(1).map(cs => (
             <Link
@@ -122,25 +122,25 @@ export default function Work() {
       </section>
 
       {/* CTA */}
-      <section className="app-liquid-section py-16">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="liquid-glass-dark flex w-full flex-col items-start justify-between gap-6 rounded-[30px] border p-8 md:flex-row md:items-center md:p-10">
+      <section className="app-liquid-section py-12 sm:py-16">
+        <div className="max-w-7xl mx-auto flex flex-col items-center justify-between gap-6 px-4 sm:px-6 md:flex-row">
+          <div className="liquid-glass-dark flex w-full flex-col items-stretch justify-between gap-6 rounded-[26px] border p-6 sm:rounded-[30px] sm:p-8 md:flex-row md:items-center md:p-10">
           <div>
             <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">
               Want results like these?
             </h2>
             <p className="text-white/40 text-sm">MOQ 50 pieces. Quote within 24 hours.</p>
           </div>
-          <div className="flex gap-3 shrink-0">
+          <div className="flex shrink-0 flex-col gap-3 min-[360px]:flex-row">
             <Link
               href="/configurator"
-              className="bg-white text-[var(--color-navy)] px-7 py-3.5 rounded-full text-sm font-medium hover:bg-white/90 transition whitespace-nowrap"
+              className="rounded-full bg-white px-6 py-3.5 text-center text-sm font-medium text-[var(--color-navy)] transition hover:bg-white/90 sm:px-7"
             >
               Start designing
             </Link>
             <Link
               href="/contact"
-              className="border border-white/30 text-white px-7 py-3.5 rounded-full text-sm font-medium hover:bg-white/10 transition whitespace-nowrap"
+              className="rounded-full border border-white/30 px-6 py-3.5 text-center text-sm font-medium text-white transition hover:bg-white/10 sm:px-7"
             >
               Contact us
             </Link>

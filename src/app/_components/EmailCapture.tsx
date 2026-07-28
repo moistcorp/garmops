@@ -32,10 +32,10 @@ export default function EmailCapture() {
 
   return (
     <section className="app-liquid-section">
-      <div className="max-w-7xl mx-auto px-6 py-20">
+      <div className="max-w-7xl mx-auto px-4 py-14 sm:px-6 sm:py-20">
         <div className="max-w-xl mx-auto flex flex-col items-center text-center gap-5">
           <p className="text-xs text-[#595959] font-medium tracking-widest uppercase">Stay in the loop</p>
-          <h2 className="text-3xl font-bold text-[#111111] tracking-tight">Get updates in your inbox</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-[#111111] sm:text-3xl">Get updates in your inbox</h2>
           <p className="text-[#4a4a4a] text-sm leading-relaxed max-w-sm">
             Occasional notes on new products, pricing changes, and case studies. No spam.
           </p>
@@ -52,7 +52,7 @@ export default function EmailCapture() {
               <form
                 onSubmit={handleSubmit}
                 aria-busy={status === 'loading'}
-                className="liquid-glass-surface mx-auto flex max-w-sm items-center gap-2 rounded-full border py-2 pl-6 pr-2"
+                className="liquid-glass-surface mx-auto flex max-w-sm items-center gap-2 rounded-full border py-2 pl-4 pr-2 sm:pl-6"
               >
                 <input
                   type="email"
@@ -72,7 +72,7 @@ export default function EmailCapture() {
                 <button
                   type="submit"
                   disabled={status === 'loading'}
-                  className="text-sm font-medium text-white bg-[var(--color-teal)] hover:bg-[var(--color-teal-dark)] transition-colors whitespace-nowrap disabled:opacity-50 rounded-full px-5 py-2.5"
+                  className="whitespace-nowrap rounded-full bg-[var(--color-teal)] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-teal-dark)] disabled:opacity-50 sm:px-5"
                 >
                   {status === 'loading' ? 'Submitting…' : 'Subscribe'}
                 </button>

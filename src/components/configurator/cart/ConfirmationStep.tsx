@@ -14,7 +14,11 @@ import {
   ShieldCheck,
   UserRound,
 } from "lucide-react";
-import { normalizeIndianPhone, type Address } from "./AddressForm";
+import {
+  isAddressValid,
+  normalizeIndianPhone,
+  type Address,
+} from "./AddressForm";
 import { CartSummarySidebar } from "./CartSummarySidebar";
 import {
   ConfiguratorTopBar,
@@ -134,10 +138,17 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
       };
     }, [draft]);
 
-  const billingAddress = draft.billingInformation.sameAsCompanyAddress
+  const savedBillingAddress = draft.billingInformation.sameAsCompanyAddress
     ? draft.companyInformation.address
     : draft.billingInformation.address;
+  const billingAddress = isAddressValid(savedBillingAddress)
+    ? savedBillingAddress
+    : draft.shippingInformation.address;
   const projectContact = draft.projectContact;
+  const billingEntity =
+    draft.billingInformation.entity || draft.companyInformation.name;
+  const billingEmail =
+    draft.billingInformation.accountsPayableEmail || projectContact.email;
 
   const handlePayment = async () => {
     setPaymentError("");
@@ -180,7 +191,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
         delivery_incomplete: !deliveryComplete,
       });
       setPaymentError(
-        "Your order or company details are incomplete. Return to the previous step and review them."
+        "Your order or delivery details are incomplete. Return to the previous step and review them."
       );
       return;
     }
@@ -235,8 +246,8 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
           industry: draft.companyInformation.industry,
           department: projectContact.department,
           phone: projectContact.phone,
-          billingEntity: draft.billingInformation.entity,
-          accountsPayableEmail: draft.billingInformation.accountsPayableEmail,
+          billingEntity,
+          accountsPayableEmail: billingEmail,
           billingGstin: draft.billingInformation.gstin,
           billingAddress: joinAddress(billingAddress),
           poNumber: draft.companyInformation.poNumber,
@@ -280,7 +291,9 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
           estimatedTotal: formatInr(orderTotal),
           retryHref: `/configurator/cart/${encodeURIComponent(cartId)}/confirmation`,
           shipping: {
-            recipientName: draft.shippingInformation.recipientName,
+            recipientName:
+              draft.shippingInformation.recipientName ||
+              `${projectContact.firstName} ${projectContact.lastName}`.trim(),
             addressLine1: shippingAddress.addressLine1,
             addressLine2: shippingAddress.addressLine2,
             city: shippingAddress.city,
@@ -347,7 +360,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
         {topBar}
         <div className="flex min-h-[320px] items-center justify-center" role="status" aria-live="polite">
           <LoaderCircle className="animate-spin text-[var(--color-teal)]" size={28} aria-hidden="true" />
-          <span className="sr-only">Validating company, billing and shipping details</span>
+          <span className="sr-only">Validating contact and delivery details</span>
         </div>
       </>
     );
@@ -368,21 +381,21 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
           <button
             type="button"
             onClick={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping`)}
-            className="inline-flex items-center gap-2 self-start rounded-full border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-teal)] hover:text-[#111111] sm:self-auto"
+            className="inline-flex shrink-0 items-center gap-2 self-start whitespace-nowrap rounded-full border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-teal)] hover:text-[#111111] sm:self-auto"
           >
             <ArrowLeft size={16} strokeWidth={2.2} />
-            Back to Company, Billing & Shipping
+            Back to Delivery Details
           </button>
         </div>
 
         <ReviewSection
           icon={<Building2 size={18} />}
           title="Company information"
-          onEdit={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping#company-information`)}
+          onEdit={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping#contact-details`)}
         >
           <div className="grid gap-1 text-sm text-[#111111]/75 sm:grid-cols-2">
             <p><span className="font-medium text-[#111111]">Company:</span> {draft.companyInformation.name}</p>
-            <p><span className="font-medium text-[#111111]">Industry:</span> {draft.companyInformation.industry}</p>
+            {draft.companyInformation.industry && <p><span className="font-medium text-[#111111]">Industry:</span> {draft.companyInformation.industry}</p>}
             {draft.companyInformation.gstin && <p><span className="font-medium text-[#111111]">GSTIN:</span> {draft.companyInformation.gstin}</p>}
             {draft.companyInformation.website && <p><span className="font-medium text-[#111111]">Website:</span> {draft.companyInformation.website}</p>}
             {draft.companyInformation.poNumber && <p><span className="font-medium text-[#111111]">PO number:</span> {draft.companyInformation.poNumber}</p>}
@@ -393,11 +406,11 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
         <ReviewSection
           icon={<UserRound size={18} />}
           title="Primary project contact"
-          onEdit={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping#project-contact`)}
+          onEdit={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping#contact-details`)}
         >
           <div className="space-y-1 text-sm text-[#111111]/75">
             <p className="font-medium text-[#111111]">{projectContact.firstName} {projectContact.lastName}</p>
-            <p>{projectContact.department}</p>
+            {projectContact.department && <p>{projectContact.department}</p>}
             <p>{projectContact.email} · {projectContact.phone}</p>
           </div>
         </ReviewSection>
@@ -421,11 +434,11 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
         <ReviewSection
           icon={<ReceiptText size={18} />}
           title="Billing information"
-          onEdit={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping#billing-information`)}
+          onEdit={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping`)}
         >
           <div className="space-y-1 text-sm text-[#111111]/75">
-            <p className="font-medium text-[#111111]">{draft.billingInformation.entity}</p>
-            <p>Accounts payable: {draft.billingInformation.accountsPayableEmail}</p>
+            <p className="font-medium text-[#111111]">{billingEntity}</p>
+            <p>Billing contact: {billingEmail}</p>
             {draft.billingInformation.gstin && <p>GSTIN: {draft.billingInformation.gstin}</p>}
             <p className="pt-1 text-xs text-[#111111]/55">
               {draft.billingInformation.sameAsCompanyAddress

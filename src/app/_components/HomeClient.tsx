@@ -40,11 +40,11 @@ export default function HomeClient() {
      <HeroScrollVideo />
 
       {/* INDUSTRIES */}
-      <section className="app-liquid-section"> <div className="max-w-7xl mx-auto px-6 py-24">
+      <section className="app-liquid-section"> <div className="max-w-7xl mx-auto px-4 py-14 sm:px-6 sm:py-24">
         <Reveal>
           <p className="text-xs text-[#595959] font-medium mb-4 tracking-widest uppercase">Who we work with</p>
-          <h2 className="text-4xl font-bold mb-3 tracking-tight">Premium merch for every <span className="text-[var(--color-teal)]">industry</span></h2>
-          <p className="text-[#4a4a4a] text-sm mb-12 max-w-lg leading-relaxed">
+          <h2 className="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">Premium merch for every <span className="text-[var(--color-teal)]">industry</span></h2>
+          <p className="mb-8 max-w-lg text-sm leading-relaxed text-[#4a4a4a] sm:mb-12">
             From hospitality to creative agencies, Garmops delivers premium branded merchandise tailored to different industries.
           </p>
         </Reveal>
@@ -52,7 +52,7 @@ export default function HomeClient() {
           {industries.map((i, idx) => (
             <Reveal key={i.name} delay={idx * 80}>
               <div className="liquid-glass-panel group flex flex-col overflow-hidden rounded-[24px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-teal)]/45">
-                <div className="relative w-full h-[380px] bg-[var(--color-cream-soft)] flex items-center justify-center overflow-hidden">
+                <div className="relative flex h-[280px] w-full items-center justify-center overflow-hidden bg-[var(--color-cream-soft)] sm:h-[380px]">
                   {i.image ? (
                     <Image src={i.image} alt={i.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
@@ -89,10 +89,10 @@ export default function HomeClient() {
 <HomepageCaseStudies />
 
       {/* PRICING TEASER — lightweight, links out to full estimator on /pricing */}
-      <section className="py-24">
-        <div className="max-w-7xl mx-auto px-6">
+      <section className="py-14 sm:py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <Reveal>
-            <div className="liquid-glass-dark relative flex flex-col items-center justify-between gap-10 overflow-hidden rounded-3xl border p-10 md:flex-row md:p-14">
+            <div className="liquid-glass-dark relative flex flex-col items-stretch justify-between gap-8 overflow-hidden rounded-[26px] border p-6 sm:rounded-3xl sm:p-10 md:flex-row md:items-center md:p-14">
               {/* Ambient liquid-glass orbs */}
               <div className="pointer-events-none absolute -top-24 -right-16 w-72 h-72 bg-[var(--color-teal)]/20 rounded-full blur-3xl" />
               <div className="pointer-events-none absolute -bottom-28 left-1/3 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
@@ -115,11 +115,11 @@ export default function HomeClient() {
                 </div>
               </div>
 
-              <div className="relative flex flex-col gap-3 w-full md:w-auto shrink-0">
-                <Link href="/pricing" className="bg-white text-[var(--color-navy)] text-sm font-medium px-8 py-3.5 rounded-full text-center hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] transition-all whitespace-nowrap">
+              <div className="relative flex w-full shrink-0 flex-col gap-3 md:w-auto">
+                <Link href="/pricing" className="rounded-full bg-white px-5 py-3.5 text-center text-sm font-medium text-[var(--color-navy)] transition-all hover:scale-[1.02] hover:bg-white/90 active:scale-[0.98] sm:px-8">
                   Get a detailed estimate
                 </Link>
-                <Link href="/configurator" className="backdrop-blur-md bg-white/5 border border-white/30 text-white text-sm font-medium px-8 py-3.5 rounded-full text-center hover:bg-white/10 hover:scale-[1.02] active:scale-[0.98] transition-all whitespace-nowrap">
+                <Link href="/configurator" className="rounded-full border border-white/30 bg-white/5 px-5 py-3.5 text-center text-sm font-medium text-white backdrop-blur-md transition-all hover:scale-[1.02] hover:bg-white/10 active:scale-[0.98] sm:px-8">
                   Start designing
                 </Link>
               </div>
@@ -130,11 +130,11 @@ export default function HomeClient() {
 
       {/* FAQ */}
       <section className="app-liquid-section">
-        <div className="max-w-7xl mx-auto px-6 py-24">
-          <div className="grid lg:grid-cols-[300px_1fr] gap-12">
+        <div className="max-w-7xl mx-auto px-4 py-14 sm:px-6 sm:py-24">
+          <div className="grid gap-8 lg:grid-cols-[300px_1fr] lg:gap-12">
             <Reveal>
               <p className="text-xs text-[#595959] font-medium mb-4 tracking-widest uppercase">FAQ</p>
-              <h2 className="text-4xl font-bold mb-3 tracking-tight">Common <span className="text-[var(--color-teal)]">questions</span></h2>
+              <h2 className="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">Common <span className="text-[var(--color-teal)]">questions</span></h2>
               <p className="text-[#4a4a4a] text-sm leading-relaxed">
                 Can&apos;t find what you&apos;re looking for? <Link href="/contact" className="underline hover:text-[var(--color-teal)]">Get in touch</Link>.
               </p>
@@ -154,7 +154,7 @@ export default function HomeClient() {
                       id={`homepage-faq-button-${i}`}
                       aria-expanded={openFaq === i}
                       aria-controls={`homepage-faq-panel-${i}`}
-                      className="w-full flex items-center justify-between gap-6 py-6 text-left"
+                      className="flex w-full items-center justify-between gap-4 py-5 text-left sm:gap-6 sm:py-6"
                     >
                       <span className="text-base font-semibold text-[#111111]">{item.q}</span>
                       <svg
@@ -176,7 +176,7 @@ export default function HomeClient() {
                       }`}
                     >
                       <div className="overflow-hidden">
-                        <p className="text-sm text-[#4a4a4a] leading-relaxed pb-6 pr-10">{item.a}</p>
+                        <p className="pb-5 pr-2 text-sm leading-relaxed text-[#4a4a4a] sm:pb-6 sm:pr-10">{item.a}</p>
                       </div>
                     </div>
                   </div>

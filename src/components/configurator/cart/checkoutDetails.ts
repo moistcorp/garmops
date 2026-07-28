@@ -4,7 +4,6 @@ import {
   isEmailValid,
   isGstinValid,
   isIndianPhoneValid,
-  isWebsiteValid,
   type Address,
 } from "./AddressForm";
 
@@ -98,21 +97,6 @@ function addressFields(
 export function getCompanyMissingFields(company: CompanyInformation): MissingCheckoutField[] {
   const missing: MissingCheckoutField[] = [];
   if (!company.name.trim()) missing.push({ key: "company.name", label: "company name", section: "company" });
-  if (!company.industry) missing.push({ key: "company.industry", label: "industry", section: "company" });
-  if (company.website.trim() && !isWebsiteValid(company.website)) {
-    missing.push({ key: "company.website", label: "valid company website", section: "company" });
-  }
-  if (!isGstinValid(company.gstin)) {
-    missing.push({ key: "company.gstin", label: "valid company GSTIN", section: "company" });
-  }
-  if (
-    company.gstin.trim() &&
-    isGstinValid(company.gstin) &&
-    company.address.state &&
-    !doesGstinMatchState(company.gstin, company.address.state)
-  ) {
-    missing.push({ key: "company.gstin-state", label: "GSTIN matching company state", section: "company" });
-  }
   return missing;
 }
 
@@ -120,9 +104,8 @@ export function getContactMissingFields(contact: ProjectContact): MissingCheckou
   const missing: MissingCheckoutField[] = [];
   if (!contact.firstName.trim()) missing.push({ key: "contact.firstName", label: "contact first name", section: "contact" });
   if (!contact.lastName.trim()) missing.push({ key: "contact.lastName", label: "contact last name", section: "contact" });
-  if (!isEmailValid(contact.email)) missing.push({ key: "contact.email", label: "work email", section: "contact" });
+  if (!isEmailValid(contact.email)) missing.push({ key: "contact.email", label: "email", section: "contact" });
   if (!isIndianPhoneValid(contact.phone)) missing.push({ key: "contact.phone", label: "phone number", section: "contact" });
-  if (!contact.department) missing.push({ key: "contact.department", label: "department", section: "contact" });
   return missing;
 }
 
@@ -174,6 +157,5 @@ export function getProcurementMissingFields(details: {
     ...getCompanyMissingFields(details.company),
     ...getContactMissingFields(details.contact),
     ...getShippingMissingFields(details.shipping),
-    ...getBillingMissingFields(details.billing, details.company),
   ];
 }

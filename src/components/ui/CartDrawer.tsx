@@ -49,7 +49,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
         tabIndex={-1}
         className="liquid-glass-surface fixed right-0 top-0 z-50 flex h-full w-full max-w-md flex-col overflow-hidden border-l outline-none sm:my-3 sm:mr-3 sm:h-[calc(100%-1.5rem)] sm:rounded-[30px] sm:border"
       >
-        <div className="flex items-center justify-between border-b border-white/60 bg-white/15 px-6 py-5">
+        <div className="flex items-center justify-between border-b border-white/60 bg-white/15 px-4 py-4 sm:px-6 sm:py-5">
           <p id="cart-drawer-title" className="text-sm font-semibold text-[#111111]">
             Cart ({hasHydrated ? items.length : 0})
           </p>
@@ -57,7 +57,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
             type="button"
             onClick={onClose}
             aria-label="Close cart"
-            className="text-[#111111]/40 transition-colors hover:text-[#111111]"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-[#111111]/40 transition-colors hover:bg-white/30 hover:text-[#111111]"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -66,7 +66,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
           </button>
         </div>
 
-        <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-6 py-4">
+        <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-4 sm:px-6">
           {!hasHydrated ? (
             <p className="mt-12 text-center text-sm text-[#111111]/40" role="status">
               Loading cart…
@@ -75,7 +75,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
             <p className="mt-12 text-center text-sm text-[#111111]/40">Your cart is empty</p>
           ) : (
             items.map(item => (
-              <div key={`${item.id}-${item.size}`} className="liquid-glass-panel flex items-start gap-4 rounded-2xl border p-3">
+              <div key={`${item.id}-${item.size}`} className="liquid-glass-panel flex flex-wrap items-start gap-3 rounded-2xl border p-3 min-[360px]:flex-nowrap min-[360px]:gap-4">
                 <div className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[var(--color-cream-soft)]">
                   {item.image ? (
                     <Image src={item.image} alt={item.name} fill sizes="56px" className="object-cover" />
@@ -88,13 +88,13 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
                   <p className="mt-0.5 text-xs text-[#111111]/50">Size: {item.size}</p>
                   <p className="mt-1 text-xs font-bold">&#8377;{(item.price * item.quantity).toLocaleString('en-IN')}</p>
                 </div>
-                <div className="flex flex-col items-end gap-2">
+                <div className="ml-auto flex flex-col items-end gap-2">
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => updateQuantity(item.id, item.size, item.quantity - 1)}
                       aria-label={`Decrease ${item.name} quantity`}
-                      className="liquid-glass-control flex h-6 w-6 items-center justify-center rounded-full border text-sm transition-colors hover:text-[var(--color-teal)]"
+                      className="liquid-glass-control flex h-9 w-9 items-center justify-center rounded-full border text-sm transition-colors hover:text-[var(--color-teal)]"
                     >
                       -
                     </button>
@@ -104,7 +104,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
                       onClick={() => updateQuantity(item.id, item.size, item.quantity + 1)}
                       disabled={item.quantity >= MAX_SAMPLE_ITEM_QUANTITY}
                       aria-label={`Increase ${item.name} quantity`}
-                      className="liquid-glass-control flex h-6 w-6 items-center justify-center rounded-full border text-sm transition-colors hover:text-[var(--color-teal)] disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:text-inherit"
+                      className="liquid-glass-control flex h-9 w-9 items-center justify-center rounded-full border text-sm transition-colors hover:text-[var(--color-teal)] disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:text-inherit"
                     >
                       +
                     </button>
@@ -123,7 +123,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
         </div>
 
         {hasHydrated && items.length > 0 && (
-          <div className="flex flex-col gap-3 border-t border-white/60 bg-white/15 px-6 py-5">
+          <div className="flex flex-col gap-3 border-t border-white/60 bg-white/15 px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 sm:px-6 sm:py-5">
             <div className="flex justify-between text-sm font-bold">
               <span>Total</span>
               <span>&#8377;{cartTotal.toLocaleString('en-IN')}</span>

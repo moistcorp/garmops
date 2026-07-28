@@ -3,41 +3,16 @@ import { useState } from 'react'
 import { useCartStore } from '@/lib/store'
 import Link from 'next/link'
 import { submitPayuCheckout } from '@/lib/payuClient'
+import {
+  AddressForm,
+  getAddressMissingFields,
+  type Address,
+} from '@/components/configurator/cart/AddressForm'
 
 const countryCodes = [
   { code: '+91', country: 'IN', flag: '🇮🇳' },
 ]
 
-const countries = ['India']
-
-const indianStates = [
-  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
-  'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka',
-  'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram',
-  'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana',
-  'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
-  'Delhi', 'Jammu & Kashmir', 'Ladakh', 'Chandigarh', 'Puducherry',
-]
-
-const indianCities: Record<string, string[]> = {
-  'Delhi': ['New Delhi', 'Noida', 'Greater Noida', 'Gurgaon', 'Faridabad', 'Ghaziabad'],
-  'Maharashtra': ['Mumbai', 'Pune', 'Nagpur', 'Nashik', 'Aurangabad', 'Thane'],
-  'Karnataka': ['Bangalore', 'Mysore', 'Hubli', 'Mangalore', 'Belgaum'],
-  'Tamil Nadu': ['Chennai', 'Coimbatore', 'Madurai', 'Salem', 'Trichy'],
-  'Gujarat': ['Ahmedabad', 'Surat', 'Vadodara', 'Rajkot', 'Gandhinagar'],
-  'Telangana': ['Hyderabad', 'Warangal', 'Nizamabad', 'Karimnagar'],
-  'West Bengal': ['Kolkata', 'Howrah', 'Durgapur', 'Asansol', 'Siliguri'],
-  'Rajasthan': ['Jaipur', 'Jodhpur', 'Udaipur', 'Kota', 'Ajmer'],
-  'Uttar Pradesh': ['Lucknow', 'Kanpur', 'Agra', 'Varanasi', 'Prayagraj', 'Noida', 'Ghaziabad', 'Meerut'],
-  'Punjab': ['Chandigarh', 'Ludhiana', 'Amritsar', 'Jalandhar', 'Patiala'],
-  'Haryana': ['Gurgaon', 'Faridabad', 'Panipat', 'Ambala', 'Rohtak'],
-  'Madhya Pradesh': ['Bhopal', 'Indore', 'Jabalpur', 'Gwalior', 'Ujjain'],
-  'Bihar': ['Patna', 'Gaya', 'Muzaffarpur', 'Bhagalpur'],
-  'Odisha': ['Bhubaneswar', 'Cuttack', 'Rourkela', 'Berhampur'],
-  'Kerala': ['Thiruvananthapuram', 'Kochi', 'Kozhikode', 'Thrissur'],
-}
-
-const selectClass = "liquid-glass-control border px-4 py-3 rounded-xl text-sm focus:outline-none focus:!border-[var(--color-teal)] transition-colors appearance-none w-full cursor-pointer"
 const inputClass = "liquid-glass-control border px-4 py-3 rounded-xl text-sm focus:outline-none focus:!border-[var(--color-teal)] transition-colors w-full"
 const labelClass = "text-xs font-medium text-[#111111]/50 uppercase tracking-wide mb-1.5 block"
 
@@ -61,35 +36,31 @@ export default function Checkout() {
   const grandTotal = cartTotal + shipping
 
   const countryCode = '+91'
-  const selectedCountry = 'India'
-  const [selectedState, setSelectedState] = useState('')
-  const [selectedCity, setSelectedCity] = useState('')
-  const [customCity, setCustomCity] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const [form, setForm] = useState({
     firstname: '', lastname: '', email: '', phone: '',
-    address: '', pincode: ''
+  })
+  const [deliveryAddress, setDeliveryAddress] = useState<Address>({
+    country: 'India',
+    addressLine1: '',
+    addressLine2: '',
+    zip: '',
+    city: '',
+    state: '',
   })
 
   const handle = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
-  const availableCities = selectedState && indianCities[selectedState] ? indianCities[selectedState] : []
-  const cityValue = availableCities.length > 0
-    ? selectedCity === 'other'
-      ? customCity.trim()
-      : selectedCity.trim()
-    : customCity.trim()
-
   if (!hasHydrated) {
     return (
-      <div className="app-liquid-bg min-h-[70vh] px-6 py-16 animate-pulse">
+      <div className="app-liquid-bg min-h-[70vh] animate-pulse px-4 py-10 sm:px-6 sm:py-16">
         <div className="mx-auto max-w-7xl">
         <div className="h-9 w-64 bg-[#ECE7DF] rounded-lg mb-12" />
-        <div className="grid lg:grid-cols-3 gap-12">
+        <div className="grid gap-8 lg:grid-cols-3 lg:gap-12">
           <div className="lg:col-span-2 flex flex-col gap-4">
             <div className="liquid-glass-panel h-64 rounded-2xl border" />
             <div className="liquid-glass-panel h-40 rounded-2xl border" />
@@ -103,8 +74,8 @@ export default function Checkout() {
 
   if (items.length === 0) {
     return (
-      <div className="app-liquid-bg flex min-h-[70vh] items-center justify-center px-6 py-24 text-center">
-        <div className="liquid-glass-surface w-full max-w-lg rounded-[30px] border p-10">
+      <div className="app-liquid-bg flex min-h-[70vh] items-center justify-center px-4 py-16 text-center sm:px-6 sm:py-24">
+        <div className="liquid-glass-surface w-full max-w-lg rounded-[26px] border p-6 sm:rounded-[30px] sm:p-10">
           <h1 className="text-3xl font-bold mb-4 tracking-tight">Nothing to checkout</h1>
           <Link href="/products" className="inline-block bg-[var(--color-teal)] text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-[var(--color-teal-dark)] transition">
             Back to shop
@@ -115,16 +86,13 @@ export default function Checkout() {
   }
 
   async function handlePayment() {
-    if (!form.firstname.trim() || !form.email.trim() || !form.phone.trim() || !form.address.trim() || !selectedCountry) {
+    if (!form.firstname.trim() || !form.email.trim() || !form.phone.trim()) {
       setError('Please fill in all required fields')
       return
     }
-    if (!selectedState.trim() || !cityValue.trim()) {
-      setError('Please select your state and city')
-      return
-    }
-    if (!/^[1-9][0-9]{5}$/.test(form.pincode.trim())) {
-      setError('Please enter a valid 6-digit pincode')
+    const missingAddressFields = getAddressMissingFields(deliveryAddress)
+    if (missingAddressFields.length > 0) {
+      setError(`Please enter a valid ${missingAddressFields[0].label}`)
       return
     }
     const normalizedPhone = form.phone.replace(/\D/g, '').replace(/^91(?=[6-9][0-9]{9}$)/, '')
@@ -186,11 +154,12 @@ export default function Checkout() {
           lineTotal: item.price * item.quantity,
         })),
         shippingAddress: [
-          form.address.trim(),
-          cityValue.trim(),
-          selectedState.trim(),
-          form.pincode.trim(),
-          selectedCountry,
+          deliveryAddress.addressLine1.trim(),
+          deliveryAddress.addressLine2?.trim(),
+          deliveryAddress.city.trim(),
+          deliveryAddress.state?.trim(),
+          deliveryAddress.zip.trim(),
+          deliveryAddress.country,
         ].filter(Boolean).join(', '),
         retryHref: '/checkout',
       }))
@@ -210,11 +179,12 @@ export default function Checkout() {
         lastname: form.lastname,
         email,
         phone: `${countryCode}${normalizedPhone}`,
-        address1: form.address,
-        city: cityValue,
-        state: selectedState,
-        zipcode: form.pincode,
-        country: selectedCountry,
+        address1: deliveryAddress.addressLine1,
+        address2: deliveryAddress.addressLine2 ?? '',
+        city: deliveryAddress.city,
+        state: deliveryAddress.state ?? '',
+        zipcode: deliveryAddress.zip,
+        country: deliveryAddress.country,
         hash,
         udf1: payment.udf1,
         surl: `${window.location.origin}/api/payu/callback`,
@@ -229,11 +199,11 @@ export default function Checkout() {
   }
 
   return (
-    <div className="app-liquid-bg min-h-[70vh] px-6 py-16">
+    <div className="app-liquid-bg min-h-[70vh] px-4 py-10 sm:px-6 sm:py-16">
       <div className="mx-auto max-w-7xl">
-      <h1 className="text-4xl font-bold mb-12 tracking-tight">Checkout</h1>
+      <h1 className="mb-8 text-3xl font-bold tracking-tight sm:mb-12 sm:text-4xl">Checkout</h1>
 
-      <div className="grid lg:grid-cols-3 gap-12">
+      <div className="grid gap-8 lg:grid-cols-3 lg:gap-12">
 
         {/* Form */}
           <form id="checkout-details" className="lg:col-span-2 flex flex-col gap-8" onSubmit={(event) => { event.preventDefault(); void handlePayment() }}>
@@ -263,7 +233,7 @@ export default function Checkout() {
               {/* Phone with country code */}
               <div>
                 <label htmlFor="checkout-phone" className={labelClass}>Phone *</label>
-                <div className="flex gap-0">
+                <div className="flex min-w-0 gap-0">
                   <SelectWrapper>
                     <select
                       aria-label="Phone country code"
@@ -287,7 +257,7 @@ export default function Checkout() {
                     required
                     value={form.phone}
                     onChange={handle}
-                    className="liquid-glass-control flex-1 rounded-r-xl border px-4 py-3 text-sm transition-colors focus:outline-none focus:!border-[var(--color-teal)]"
+                    className="liquid-glass-control min-w-0 flex-1 rounded-r-xl border px-3 py-3 text-sm transition-colors focus:outline-none focus:!border-[var(--color-teal)] sm:px-4"
                     placeholder="98765 43210"
                   />
                 </div>
@@ -297,116 +267,18 @@ export default function Checkout() {
 
           {/* Delivery address */}
           <div className="liquid-glass-panel rounded-[26px] border p-5 sm:p-7">
-            <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-5">Delivery address</p>
-            <div className="flex flex-col gap-4">
-
-              {/* Country */}
-              <div>
-                <label htmlFor="checkout-country" className={labelClass}>Country *</label>
-                <SelectWrapper>
-                  <select
-                    id="checkout-country"
-                    autoComplete="country-name"
-                    value={selectedCountry}
-                    disabled
-                    className={selectClass}
-                  >
-                    {countries.map(c => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
-                </SelectWrapper>
-              </div>
-
-              <div>
-                <label htmlFor="checkout-address" className={labelClass}>Street address *</label>
-                <input id="checkout-address" name="address" autoComplete="street-address" required value={form.address} onChange={handle}
-                  className={inputClass} placeholder="Building, street, area" />
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                {/* State */}
-                <div>
-                  <label htmlFor="checkout-state" className={labelClass}>State *</label>
-                  <SelectWrapper>
-                    <select
-                      id="checkout-state"
-                      autoComplete="address-level1"
-                      value={selectedState}
-                      onChange={e => {
-                        setSelectedState(e.target.value)
-                        setSelectedCity('')
-                        setCustomCity('')
-                      }}
-                      className={selectClass}
-                    >
-                      <option value="">Select state</option>
-                      {indianStates.map(s => (
-                        <option key={s} value={s}>{s}</option>
-                      ))}
-                    </select>
-                  </SelectWrapper>
-                </div>
-
-                {/* City */}
-                <div>
-                  <label htmlFor="checkout-city" className={labelClass}>City *</label>
-                  {availableCities.length > 0 ? (
-                    <div className="flex flex-col gap-2">
-                      <SelectWrapper>
-                        <select
-                          id="checkout-city"
-                          autoComplete="address-level2"
-                          value={selectedCity}
-                          onChange={e => {
-                            setSelectedCity(e.target.value)
-                            setCustomCity('')
-                          }}
-                          className={selectClass}
-                        >
-                          <option value="">Select city</option>
-                          {availableCities.map(c => (
-                            <option key={c} value={c}>{c}</option>
-                          ))}
-                          <option value="other">Other</option>
-                        </select>
-                      </SelectWrapper>
-                      {selectedCity === 'other' && (
-                        <input
-                          id="checkout-city-other"
-                          aria-label="Enter your city"
-                          autoComplete="address-level2"
-                          value={customCity}
-                          onChange={e => setCustomCity(e.target.value)}
-                          className={inputClass}
-                          placeholder="Enter your city"
-                        />
-                      )}
-                    </div>
-                  ) : (
-                    <input
-                      id="checkout-city"
-                      autoComplete="address-level2"
-                      value={customCity}
-                      onChange={e => setCustomCity(e.target.value)}
-                      className={inputClass}
-                      placeholder={!selectedState ? 'Select state first' : 'City'}
-                    />
-                  )}
-                </div>
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="checkout-pincode" className={labelClass}>
-                    Pincode *
-                  </label>
-                  <input id="checkout-pincode" name="pincode" inputMode="numeric" autoComplete="postal-code" value={form.pincode} onChange={handle}
-                    className={inputClass}
-                    placeholder="110001" />
-                </div>
-              </div>
+            <div className="mb-5">
+              <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest">Delivery address</p>
+              <p className="mt-1 text-xs text-[#111111]/50">
+                Enter your PIN code and we’ll fill the city and state automatically.
+              </p>
             </div>
+            <AddressForm
+              idPrefix="checkout-address"
+              showCountry={false}
+              value={deliveryAddress}
+              onChange={setDeliveryAddress}
+            />
           </div>
 
           {error && (
