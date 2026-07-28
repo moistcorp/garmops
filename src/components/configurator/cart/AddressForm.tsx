@@ -121,7 +121,7 @@ export function digitsOnly(value: string): string {
   return value.replace(/\D/g, "");
 }
 
-function normalizedIndianPhone(value: string): string {
+export function normalizeIndianPhone(value: string): string {
   const digits = digitsOnly(value);
   if (digits.length === 12 && digits.startsWith("91")) return digits.slice(2);
   if (digits.length === 11 && digits.startsWith("0")) return digits.slice(1);
@@ -133,7 +133,7 @@ export function isPinCodeValid(zip: string): boolean {
 }
 
 export function isIndianPhoneValid(phone: string): boolean {
-  return INDIA_MOBILE_RE.test(normalizedIndianPhone(phone));
+  return INDIA_MOBILE_RE.test(normalizeIndianPhone(phone));
 }
 
 export function isEmailValid(email: string): boolean {

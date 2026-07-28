@@ -1,5 +1,10 @@
 import { Resend } from 'resend'
 import { NextRequest, NextResponse } from 'next/server'
+import {
+  PAYMENT_RESULT_COOKIE,
+  decodePaymentResultCookie,
+  type PaymentKind,
+} from '@/lib/payu'
 
 type EmailType = 'contact' | 'configure' | 'sample'
 type JsonObject = Record<string, unknown>
@@ -177,8 +182,34 @@ export async function POST(req: NextRequest) {
     if (txnid && !isValidTransactionId) {
       return NextResponse.json({ error: 'Invalid transaction ID' }, { status: 400 })
     }
-    if (type === 'sample' && !txnid) {
+    if (type !== 'contact' && !txnid) {
       return NextResponse.json({ error: 'Missing transaction ID' }, { status: 400 })
+    }
+
+    if (type !== 'contact') {
+      const payment = decodePaymentResultCookie(
+        req.cookies.get(PAYMENT_RESULT_COOKIE)?.value
+      )
+      const expectedKind: PaymentKind =
+        type === 'sample' ? 'sample-cart' : 'configurator'
+      const authorized =
+        payment?.status === 'success' &&
+        payment.mock === false &&
+        payment.txnid === txnid &&
+        payment.kind === expectedKind
+
+      if (!authorized) {
+        return NextResponse.json(
+          { error: 'Verified payment required' },
+          { status: 403 }
+        )
+      }
+
+      // Never trust a browser-restored total for a paid sample order. The
+      // signed payment result is the authoritative amount received by PayU.
+      if (type === 'sample') {
+        orderDetails.amount = payment.amount
+      }
     }
 
     const resend = new Resend(apiKey)

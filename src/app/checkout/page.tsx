@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useCartStore } from '@/lib/store'
 import Link from 'next/link'
+import { submitPayuCheckout } from '@/lib/payuClient'
 
 const countryCodes = [
   { code: '+91', country: 'IN', flag: '🇮🇳' },
@@ -203,13 +204,6 @@ export default function Checkout() {
 
       const { hash, key } = payment
 
-      const payuForm = document.createElement('form')
-      payuForm.method = 'POST'
-      payuForm.action = process.env.NEXT_PUBLIC_PAYU_BASE_URL ??
-        (process.env.NODE_ENV === 'production'
-          ? 'https://secure.payu.in/_payment'
-          : 'https://test.payu.in/_payment')
-
       const fields: Record<string, string> = {
         key, txnid, amount, productinfo: payment.productinfo,
         firstname,
@@ -227,16 +221,7 @@ export default function Checkout() {
         furl: `${window.location.origin}/api/payu/callback`,
       }
 
-      Object.entries(fields).forEach(([k, v]) => {
-        const input = document.createElement('input')
-        input.type = 'hidden'
-        input.name = k
-        input.value = v
-        payuForm.appendChild(input)
-      })
-
-      document.body.appendChild(payuForm)
-      payuForm.submit()
+      submitPayuCheckout(fields)
     } catch {
       setError('Something went wrong. Please try again.')
       setLoading(false)

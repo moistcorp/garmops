@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { products } from '@/lib/products'
 import { createPaymentToken, type PaymentKind } from '@/lib/payu'
+import { RESERVATION_PRODUCT_INFO } from '@/lib/configurator/reservation'
 
 const RESERVATION_AMOUNT = '499.00'
 const MAX_ITEM_QUANTITY = 100
@@ -82,7 +83,7 @@ export async function POST(req: NextRequest) {
     const verifiedAmount = checkout?.amount ?? (
       !Array.isArray(items) && amount === RESERVATION_AMOUNT ? RESERVATION_AMOUNT : null
     )
-    const verifiedProductInfo = checkout?.productinfo ?? productinfo.trim()
+    const verifiedProductInfo = checkout?.productinfo ?? RESERVATION_PRODUCT_INFO
 
     if (!verifiedAmount || amount !== verifiedAmount) {
       return NextResponse.json({ error: 'Invalid amount' }, { status: 400 })

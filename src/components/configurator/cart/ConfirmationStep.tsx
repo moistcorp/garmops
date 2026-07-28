@@ -14,7 +14,7 @@ import {
   ShieldCheck,
   UserRound,
 } from "lucide-react";
-import type { Address } from "./AddressForm";
+import { normalizeIndianPhone, type Address } from "./AddressForm";
 import { CartSummarySidebar } from "./CartSummarySidebar";
 import {
   ConfiguratorTopBar,
@@ -37,11 +37,15 @@ import {
   CUSTOM_DYE_MOQ_UNITS,
 } from "@/lib/configurator/colours";
 import { getProduct } from "@/lib/configurator/products";
-import { RESERVATION_FEE } from "@/lib/configurator/reservation";
+import {
+  RESERVATION_FEE,
+  RESERVATION_PRODUCT_INFO,
+} from "@/lib/configurator/reservation";
 import CanvasRenderer from "../GarmentPreview/CanvasRenderer";
 import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionContext";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 import { ActionFeedback } from "../ActionFeedback";
+import { submitPayuCheckout } from "@/lib/payuClient";
 
 export interface ConfirmationStepProps {
   cartId: string;
@@ -190,9 +194,8 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
     const randomSuffix = crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
     const txnid = `MF${Date.now().toString(36)}${randomSuffix}`;
     const amount = RESERVATION_FEE.toFixed(2);
-    const productinfo = `Reservation fee - ${draft.items
-      .map((item) => `${item.productName} x${totalUnits(item.sizeQuantities)}`)
-      .join(", ")}`;
+    const productinfo = RESERVATION_PRODUCT_INFO;
+    const payuPhone = normalizeIndianPhone(projectContact.phone);
 
     try {
       const response = await fetch("/api/payu/hash", {
@@ -293,14 +296,6 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
         return;
       }
 
-      const payuForm = document.createElement("form");
-      payuForm.method = "POST";
-      payuForm.action =
-        process.env.NEXT_PUBLIC_PAYU_BASE_URL ??
-        (process.env.NODE_ENV === "production"
-          ? "https://secure.payu.in/_payment"
-          : "https://test.payu.in/_payment");
-
       const fields: Record<string, string> = {
         key: payment.key,
         txnid,
@@ -309,7 +304,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
         firstname,
         lastname: projectContact.lastName,
         email,
-        phone: projectContact.phone,
+        phone: payuPhone,
         address1: billingAddress.addressLine1,
         address2: billingAddress.addressLine2 ?? "",
         city: billingAddress.city,
@@ -322,16 +317,7 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
         furl: `${window.location.origin}/api/payu/callback`,
       };
 
-      Object.entries(fields).forEach(([name, value]) => {
-        const input = document.createElement("input");
-        input.type = "hidden";
-        input.name = name;
-        input.value = value;
-        payuForm.appendChild(input);
-      });
-
-      document.body.appendChild(payuForm);
-      payuForm.submit();
+      submitPayuCheckout(fields);
     } catch (error) {
       setPaymentError(
         error instanceof Error

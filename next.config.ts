@@ -20,6 +20,7 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: blob: https:",
               "connect-src 'self' https://api.resend.com https://formspree.io https://secure.payu.in https://test.payu.in",
               "frame-src https://secure.payu.in https://test.payu.in",
+              "form-action 'self' https://secure.payu.in https://test.payu.in",
             ].join('; '),
           },
         ],
