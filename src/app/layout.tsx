@@ -2,7 +2,9 @@ import type { Metadata } from 'next'
 import './globals.css'
 import AppChrome from '@/components/common/AppChrome'
 import SatoshiFontResources from '@/components/common/SatoshiFontResources'
-import { siteConfig } from '@/lib/seo'
+import { googleSiteVerification, siteConfig } from '@/lib/seo'
+
+const googleVerification = googleSiteVerification()
 
 export const metadata: Metadata = {
   title: {
@@ -26,8 +28,8 @@ export const metadata: Metadata = {
     type: 'website',
     url: siteConfig.url,
   },
-  verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
-    ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
+  verification: googleVerification
+    ? { google: googleVerification }
     : undefined,
   robots: {
     index: true,

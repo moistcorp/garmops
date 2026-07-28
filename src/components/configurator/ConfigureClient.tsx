@@ -435,7 +435,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
     const cartInput: ConfiguredCartItemInput = {
       productId,
       productName,
-      previewImage: product?.defaultImage ?? "/flatlays/regulartee.webp",
+      previewImage: product?.defaultImage ?? "/flatlays/regulartee.png",
       colour: { ...colour, confirmed: true },
       artwork: cartArtwork,
       neckLabel: cartNeckLabel?.fileUrl ? cartNeckLabel : undefined,
@@ -604,7 +604,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
           {
             id: configId,
             productName,
-            previewImage: product?.defaultImage ?? "/flatlays/regulartee.webp",
+            previewImage: product?.defaultImage ?? "/flatlays/regulartee.png",
             colour,
             artwork,
             neckLabel: neckLabel?.fileUrl ? neckLabel : undefined,

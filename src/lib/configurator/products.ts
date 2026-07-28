@@ -28,15 +28,15 @@ export interface Product {
 }
 
 function getFlatlayImage(slug: string): string {
-  if (slug.includes("longsleeve")) return "/flatlays/longsleeve.webp";
+  if (slug.includes("longsleeve")) return "/flatlays/longsleeve.png";
   if (slug.includes("tee")) {
-    return slug.includes("boxy") ? "/flatlays/boxytee.webp" : "/flatlays/regulartee.webp";
+    return slug.includes("boxy") ? "/flatlays/boxytee.webp" : "/flatlays/regulartee.png";
   }
   if (slug.includes("hoodie")) {
     return slug.includes("boxy") ? "/flatlays/boxyhoodie.webp" : "/flatlays/regularhoodie.webp";
   }
   if (slug.includes("polo")) return "/flatlays/polo.webp";
-  if (slug.includes("sweatshirt")) return "/flatlays/sweatshirt.webp";
+  if (slug.includes("sweatshirt")) return "/flatlays/sweatshirt.png";
   if (slug.includes("tote")) return "/flatlays/totebag.webp";
   return "/flatlays/boxytee.webp";
 }

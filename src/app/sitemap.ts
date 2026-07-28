@@ -8,7 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const releaseDate = '2026-07-28'
 
   const staticPages = [
-    { url: siteConfig.url, priority: 1.0, changeFrequency: 'weekly' as const, images: [absoluteUrl('/products/boxy-fit-tee-260gsm.jpg')] },
+    { url: siteConfig.url, priority: 1.0, changeFrequency: 'weekly' as const, images: [absoluteUrl('/products/boxy-fit-tee-260gsm.webp')] },
     { url: absoluteUrl('/configurator'), priority: 0.9, changeFrequency: 'monthly' as const },
     { url: absoluteUrl('/products'), priority: 0.9, changeFrequency: 'weekly' as const },
     { url: absoluteUrl('/pricing'), priority: 0.9, changeFrequency: 'monthly' as const },

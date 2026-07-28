@@ -34,49 +34,49 @@ public
 │           ├── shadow.png
 │           └── texture.png
 ├── globe.svg
-├── hero.jpg
+├── hero.webp
 ├── icons
-│   ├── hoodie.png
-│   ├── longsleeve.png
-│   ├── sweatshirt.png
-│   ├── tee.png
-│   └── totebag.png
+│   ├── hoodie.webp
+│   ├── longsleeve.webp
+│   ├── sweatshirt.webp
+│   ├── tee.webp
+│   └── totebag.webp
 ├── images
 │   ├── how-it-works-1.jpg
 │   ├── how-it-works-2.jpg
 │   ├── how-it-works-3.jpg
 │   └── print-techniques.jpg
 ├── industries
-│   ├── arts-culture.jpg
-│   ├── companies-startups.jpg
-│   ├── creative-studios.jpg
-│   ├── hotels-restaurants.jpg
-│   ├── music-events.jpg
-│   └── sports-fitness.jpg
+│   ├── arts-culture.webp
+│   ├── companies-startups.webp
+│   ├── creative-studios.webp
+│   ├── hotels-restaurants.webp
+│   ├── music-events.webp
+│   └── sports-fitness.webp
 ├── logo3.png
 ├── products
-│   ├── boxy-fit-hoodie-320gsm.jpg
-│   ├── boxy-fit-tee-200gsm.jpg
-│   ├── boxy-fit-tee-260gsm.jpg
-│   ├── canvas-tote-bag.jpg
-│   ├── longsleeve-tee-260gsm.jpg
-│   ├── regular-fit-hoodie-320gsm.jpg
-│   ├── regular-fit-sweatshirt-320gsm.jpg
-│   ├── regular-fit-tee-200gsm.jpg
-│   └── regular-fit-tee-260gsm.jpg
+│   ├── boxy-fit-hoodie-320gsm.webp
+│   ├── boxy-fit-tee-200gsm.webp
+│   ├── boxy-fit-tee-260gsm.webp
+│   ├── canvas-tote-bag.webp
+│   ├── longsleeve-tee-260gsm.webp
+│   ├── regular-fit-hoodie-320gsm.webp
+│   ├── regular-fit-sweatshirt-320gsm.webp
+│   ├── regular-fit-tee-200gsm.webp
+│   └── regular-fit-tee-260gsm.webp
 ├── vercel.svg
 ├── videos
 │   └── homepage-reel.mp4
 ├── window.svg
 └── work
     ├── bistro57
-    │   └── cover.jpg
+    │   └── cover.webp
     ├── houseofcraft
-    │   └── cover.jpg
+    │   └── cover.webp
     ├── northstar
-    │   └── cover.jpg
+    │   └── cover.webp
     └── soundwave
-        └── cover.jpg
+        └── cover.webp
 src
 ├── app
 │   ├── HeroScrollVideo.tsx

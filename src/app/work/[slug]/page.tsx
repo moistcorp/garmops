@@ -6,6 +6,8 @@ import type { Metadata } from 'next'
 import JsonLd from '@/components/seo/JsonLd'
 import { breadcrumbSchema } from '@/lib/structuredData'
 
+export const dynamicParams = false
+
 export function generateStaticParams() {
   return caseStudies.map(caseStudy => ({ slug: caseStudy.slug }))
 }
@@ -17,7 +19,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params
   const cs = caseStudies.find(c => c.slug === slug)
-  if (!cs) return generateMeta({ title: 'Case Study Not Found' })
+  if (!cs) {
+    return {
+      title: 'Case Study Not Found',
+      robots: { index: false, follow: false, nocache: true },
+    }
+  }
   return generateMeta({
     title: `${cs.client} — ${cs.title}`,
     description: cs.excerpt,

@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seo:check": "node scripts/check-seo.mjs",
+    "agent:check": "node scripts/check-agent-readiness.mjs"
   },
   "dependencies": {
     "@vercel/blob": "^2.6.1",

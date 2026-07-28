@@ -57,7 +57,7 @@ error.
 | `RESEND_FROM_EMAIL` | Sender on a domain verified by Resend |
 | `CONTACT_TO_EMAIL` | Recipient for contact enquiries and paid sample-order notifications |
 | `NEXT_PUBLIC_FORMSPREE_ENDPOINT` | Optional Formspree endpoint for email capture |
-| `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | Optional Google Search Console HTML-tag verification token |
+| `GOOGLE_SITE_VERIFICATION` | Optional Google Search Console HTML-tag verification token; DNS verification is preferred |
 
 Never expose `PAYU_SALT`, `PAYMENT_SIGNING_SECRET`, or `RESEND_API_KEY` with
 a `NEXT_PUBLIC_` prefix.
@@ -70,16 +70,23 @@ Run the checks used before shipping:
 npm run lint
 npx tsc --noEmit
 npm run build
+npm run seo:check
+npm run agent:check
 ```
 
-There is currently no automated test suite.
+The SEO check validates the production sitemap, robots rules, canonical metadata,
+index/noindex directives, and image file formats after a successful build. The
+agent-readiness check validates Markdown discovery and negotiation, AI content
+signals, `llms.txt`, and the integrity digest for every published Agent Skill.
+There is currently no general automated test suite.
 
 ## Project structure
 
 - `src/app/` — routes, metadata routes, and API route handlers
 - `src/components/` — shared storefront and configurator UI
-- `src/lib/` — catalog, pricing, SEO, persistence, and configurator data
-- `public/` — product media, garment preview layers, templates, and downloads
+- `src/lib/` — catalog, pricing, SEO, agent-readable content, persistence, and configurator data
+- `src/proxy.ts` — public-page Markdown negotiation and agent discovery headers
+- `public/` — product media, crawler directives, machine-readable guides, Agent Skills, templates, and downloads
 
 This repository uses Next.js 16. Before changing framework APIs or conventions,
 read the relevant local guide in `node_modules/next/dist/docs/` as directed by

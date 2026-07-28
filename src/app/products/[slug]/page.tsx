@@ -6,6 +6,8 @@ import { generateMeta } from '@/lib/seo'
 import JsonLd from '@/components/seo/JsonLd'
 import { breadcrumbSchema, productSchema } from '@/lib/structuredData'
 
+export const dynamicParams = false
+
 export function generateStaticParams() {
   return products.map(product => ({ slug: product.slug }))
 }
@@ -13,7 +15,12 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const product = products.find(item => item.slug === slug)
-  if (!product) return generateMeta({ title: 'Product Not Found' })
+  if (!product) {
+    return {
+      title: 'Product Not Found',
+      robots: { index: false, follow: false, nocache: true },
+    }
+  }
   return generateMeta({
     title: `${product.name} Sample`,
     description: `${product.description} Order a sample or customise it for a bulk branded apparel run from 50 pieces.`,

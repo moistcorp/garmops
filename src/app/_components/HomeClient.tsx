@@ -12,12 +12,12 @@ import { PRODUCT_PRICES, DELIVERY_DAYS, RUSH_DELIVERY_DAYS } from '@/lib/pricing
 import { homeFaqs as faqs } from '@/lib/homeContent'
 
 const industries = [
-  { name: 'Hotels & Restaurants', desc: 'Merchandise designed for hospitality brands, from staff apparel to retail collections and guest experiences.', image: '/industries/hotels-restaurants.jpg' },
-  { name: 'Music & Events', desc: 'Merch created for releases, tours, and live events, from artist collections to large-scale drops.', image: '/industries/music-events.jpg' },
-  { name: 'Sports & Fitness', desc: 'Merchandise for teams, clubs, and active brands, built for both function and identity.', image: '/industries/sports-fitness.jpg' },
-  { name: 'Arts & Culture', desc: 'Merchandise developed for exhibitions, institutions, and artists, from limited releases to curated retail collections.', image: '/industries/arts-culture.jpg' },
-  { name: 'Creative Studios', desc: 'Design-led merchandise for studios and agencies, built to extend brand systems into physical products.', image: '/industries/creative-studios.jpg' },
-  { name: 'Companies & Startups', desc: 'Custom merchandise for teams and organisations, from onboarding kits to team apparel and client gifting.', image: '/industries/companies-startups.jpg' },
+  { name: 'Hotels & Restaurants', desc: 'Merchandise designed for hospitality brands, from staff apparel to retail collections and guest experiences.', image: '/industries/hotels-restaurants.webp' },
+  { name: 'Music & Events', desc: 'Merch created for releases, tours, and live events, from artist collections to large-scale drops.', image: '/industries/music-events.webp' },
+  { name: 'Sports & Fitness', desc: 'Merchandise for teams, clubs, and active brands, built for both function and identity.', image: '/industries/sports-fitness.webp' },
+  { name: 'Arts & Culture', desc: 'Merchandise developed for exhibitions, institutions, and artists, from limited releases to curated retail collections.', image: '/industries/arts-culture.webp' },
+  { name: 'Creative Studios', desc: 'Design-led merchandise for studios and agencies, built to extend brand systems into physical products.', image: '/industries/creative-studios.webp' },
+  { name: 'Companies & Startups', desc: 'Custom merchandise for teams and organisations, from onboarding kits to team apparel and client gifting.', image: '/industries/companies-startups.webp' },
 ]
 
 // Lowest starting price across the catalog, used for the homepage pricing teaser

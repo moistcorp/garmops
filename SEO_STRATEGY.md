@@ -52,6 +52,10 @@ Each URL has one main job. The former `/journal/screen-print-vs-dtg` article now
 - Cart, checkout, payment and private configurator steps are excluded from search with page metadata and `X-Robots-Tag` headers.
 - Search and AI user agents are allowed to crawl public content; API routes remain excluded.
 - `/llms.txt` and `/llms-full.txt` provide a concise, factual company and content map for systems that choose to use those files.
+- Public pages negotiate curated Markdown when a client sends `Accept: text/markdown`, and equivalent `/index.md` fallback URLs are linked from HTTP headers and `llms.txt`.
+- `robots.txt` declares `ai-train=no, search=yes, ai-input=yes`: public content may be used for search and agent grounding, but the site asks that it not be used for model training.
+- `/.well-known/agent-skills/index.json` publishes an integrity-verified, safety-bounded skill for preparing a custom-apparel order brief.
+- Private checkout, payment, callback and internal order APIs are deliberately not advertised through API Catalog, MCP or agent-commerce discovery.
 - The About page consolidates company identity, location, audience, products, MOQ and delivery facts.
 
 Structured data improves machine understanding and rich-result eligibility, but it does not guarantee rankings or an AI recommendation. Search engines and AI answer systems still need the public site to be crawlable and to earn independent authority and mentions.
@@ -68,7 +72,7 @@ These articles answer commercial research questions without disguising sales cop
 ## Required launch actions when the domain is connected
 
 1. Add both `garmops.com` and `www.garmops.com` to the Vercel project. Set `www.garmops.com` as the primary production domain and confirm the apex permanently redirects to `www`.
-2. Create a Google Search Console Domain property using DNS verification. Optionally add the HTML-tag token as `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`.
+2. Create a Google Search Console Domain property using DNS verification. Optionally add the HTML-tag token as `GOOGLE_SITE_VERIFICATION`.
 3. Submit `https://www.garmops.com/sitemap.xml` in Search Console and inspect the homepage, products, pricing and four cornerstone articles.
 4. Create a Bing Webmaster Tools property and submit the same sitemap.
 5. Validate the homepage, one product and one article in Google Rich Results Test and Schema.org Validator after the production deployment.

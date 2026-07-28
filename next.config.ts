@@ -4,6 +4,12 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'garmops.com' }],
+        destination: 'https://www.garmops.com/:path*',
+        permanent: true,
+      },
+      {
         source: '/journal/screen-print-vs-dtg',
         destination: '/journal/screen-printing-vs-dtg-vs-dtf-embroidery',
         permanent: true,
@@ -11,6 +17,21 @@ const nextConfig: NextConfig = {
     ]
   },
   async headers() {
+    const agentReadableHeaders = [
+      '/',
+      '/about',
+      '/configurator',
+      '/contact',
+      '/how-it-works',
+      '/journal/:path*',
+      '/pricing',
+      '/products/:path*',
+      '/work/:path*',
+    ].map((source) => ({
+      source,
+      headers: [{ key: 'Vary', value: 'Accept' }],
+    }))
+
     return [
       {
         source: '/(.*)',
@@ -70,6 +91,23 @@ const nextConfig: NextConfig = {
           { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' },
         ],
       },
+      {
+        source: '/.well-known/agent-skills/index.json',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Cache-Control', value: 'public, max-age=3600, stale-while-revalidate=86400' },
+          { key: 'Content-Type', value: 'application/json; charset=utf-8' },
+        ],
+      },
+      {
+        source: '/.well-known/agent-skills/:skill/SKILL.md',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Cache-Control', value: 'public, max-age=3600, stale-while-revalidate=86400' },
+          { key: 'Content-Type', value: 'text/markdown; charset=utf-8' },
+        ],
+      },
+      ...agentReadableHeaders,
     ]
   },
 }

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
+  "skills": [
+    {
+      "name": "prepare-custom-apparel-brief",
+      "type": "skill-md",
+      "description": "Prepare a production-ready brief for a Garmops bulk custom-apparel order. Use when a buyer wants to plan or request a quote for custom T-shirts, hoodies, polos, sweatshirts, long-sleeve tees, or canvas totes.",
+      "url": "/.well-known/agent-skills/prepare-custom-apparel-brief/SKILL.md",
+      "digest": "sha256:753c445b00874b6d0f06818039b4fd791374f1fdad1c1ddbd434fc53d49f52bd"
+    }
+  ]
+}

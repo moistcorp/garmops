@@ -4,7 +4,7 @@ export const siteConfig = {
   name: 'Garmops',
   description: 'Premium custom apparel and bulk branded merchandise for businesses, made in India. Start at 50 pieces with transparent pricing and an online configurator.',
   url: 'https://www.garmops.com',
-  ogImage: '/products/boxy-fit-tee-260gsm.jpg',
+  ogImage: '/products/boxy-fit-tee-260gsm.webp',
   locale: 'en_IN',
   language: 'en-IN',
   email: 'hello@garmops.com',
@@ -19,6 +19,17 @@ export const siteConfig = {
     linkedin: 'https://www.linkedin.com/company/garmops',
   },
 } as const
+
+export function googleSiteVerification() {
+  const configuredValue = process.env.GOOGLE_SITE_VERIFICATION
+    ?? process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+  const value = configuredValue?.trim()
+
+  if (!value || value === 'your_google_verification_token') return undefined
+
+  // Accept either the raw token or the complete tag copied from Search Console.
+  return value.match(/content=["']([^"']+)["']/i)?.[1] ?? value
+}
 
 export function absoluteUrl(path = '') {
   if (/^https?:\/\//.test(path)) return path

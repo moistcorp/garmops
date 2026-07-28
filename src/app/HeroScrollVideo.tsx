@@ -102,7 +102,7 @@ export default function HeroScrollVideo() {
 
         <div className="relative bg-[var(--color-cream-soft)] flex items-center justify-center min-h-64 lg:min-h-full overflow-hidden">
           <Image
-            src="/products/boxy-fit-tee-260gsm.jpg"
+            src="/products/boxy-fit-tee-260gsm.webp"
             alt="Heavyweight custom T-shirt manufactured and printed in India by Garmops"
             fill
             className="object-cover"
@@ -120,7 +120,7 @@ export default function HeroScrollVideo() {
       {useSimpleMedia ? (
         <section className="relative mx-3 my-3 aspect-[4/3] overflow-hidden rounded-[24px] bg-black sm:mx-4 sm:my-4 sm:aspect-video sm:rounded-3xl" aria-label="Garmops production showcase">
           <Image
-            src="/hero.jpg"
+            src="/hero.webp"
             alt="Garmops custom apparel production"
             fill
             sizes="100vw"
@@ -136,7 +136,7 @@ export default function HeroScrollVideo() {
               style={{ inset: '20px', borderRadius: '20px', overflow: 'hidden' }}
             >
               <Image
-                src="/hero.jpg"
+                src="/hero.webp"
                 alt=""
                 aria-hidden="true"
                 fill
@@ -147,7 +147,7 @@ export default function HeroScrollVideo() {
                 ref={videoRef}
                 className={`relative z-10 h-full w-full object-cover transition-opacity duration-300 ${videoReady ? 'opacity-100' : 'opacity-0'}`}
                 src="/videos/homepage-reel.mp4"
-                poster="/hero.jpg"
+                poster="/hero.webp"
                 muted
                 loop
                 playsInline

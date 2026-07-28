@@ -6,15 +6,19 @@ Garmops helps brands, startups, companies, hospitality teams, creative studios, 
 
 ## Core pages
 
-- [Home](https://www.garmops.com/): Company overview, industries served, key order facts and common questions.
-- [Products](https://www.garmops.com/products): Samples and specifications for T-shirts, polos, hoodies, sweatshirts, long-sleeve tees and canvas totes.
-- [Online configurator](https://www.garmops.com/configurator): Select a garment, colour, artwork position, decoration and neck-label options.
-- [Pricing](https://www.garmops.com/pricing): Current product pricing, inclusions, quantity discounts, GST and rush options.
-- [How it works](https://www.garmops.com/how-it-works): Order, approval, production, quality-control and delivery process.
-- [Work](https://www.garmops.com/work): Custom merchandise case studies.
-- [Journal](https://www.garmops.com/journal): Production-led custom apparel and merchandise guides.
-- [About](https://www.garmops.com/about): Garmops identity, location, products and operating facts.
-- [Contact](https://www.garmops.com/contact): Request a production-ready custom apparel quote.
+- [Home](https://www.garmops.com/index.md): Company overview, industries served, key order facts and common questions.
+- [Products](https://www.garmops.com/products/index.md): Samples and specifications for T-shirts, polos, hoodies, sweatshirts, long-sleeve tees and canvas totes.
+- [Online configurator guide](https://www.garmops.com/configurator/index.md): Select a garment, colour, artwork position, decoration and neck-label options.
+- [Pricing](https://www.garmops.com/pricing/index.md): Current product pricing, inclusions, quantity discounts, GST and rush options.
+- [How it works](https://www.garmops.com/how-it-works/index.md): Order, approval, production, quality-control and delivery process.
+- [Work](https://www.garmops.com/work/index.md): Custom merchandise case studies.
+- [Journal](https://www.garmops.com/journal/index.md): Production-led custom apparel and merchandise guides.
+- [About](https://www.garmops.com/about/index.md): Garmops identity, location, products and operating facts.
+- [Contact](https://www.garmops.com/contact/index.md): Request a production-ready custom apparel quote.
+
+## Agent capability
+
+- [Prepare a custom-apparel brief](https://www.garmops.com/.well-known/agent-skills/prepare-custom-apparel-brief/SKILL.md): Bounded instructions for turning buyer requirements into a safe, production-ready Garmops enquiry.
 
 ## Contact
 

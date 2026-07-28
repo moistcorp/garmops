@@ -7,6 +7,8 @@ import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import JsonLd from '@/components/seo/JsonLd'
 import { articleSchema, breadcrumbSchema, faqSchema } from '@/lib/structuredData'
 
+export const dynamicParams = false
+
 export function generateStaticParams() {
   return journalPosts.map(post => ({ slug: post.slug }))
 }
@@ -14,7 +16,12 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const post = journalPosts.find(item => item.slug === slug)
-  if (!post) return generateMeta({ title: 'Article Not Found' })
+  if (!post) {
+    return {
+      title: 'Article Not Found',
+      robots: { index: false, follow: false, nocache: true },
+    }
+  }
   return generateMeta({
     title: post.seoTitle ?? post.title,
     description: post.metaDescription ?? post.excerpt,

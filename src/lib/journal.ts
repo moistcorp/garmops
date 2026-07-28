@@ -40,7 +40,7 @@ export const journalPosts: JournalPost[] = [
     category: 'Buyer’s guide',
     readTime: '10 min read',
     author: 'Garmops Production Team',
-    image: '/products/boxy-fit-tee-260gsm.jpg',
+    image: '/products/boxy-fit-tee-260gsm.webp',
     keywords: [
       'bulk custom T-shirt printing India',
       'custom T-shirts bulk order',
@@ -468,7 +468,7 @@ export const journalPosts: JournalPost[] = [
     category: 'Corporate guide',
     readTime: '9 min read',
     author: 'Garmops Production Team',
-    image: '/industries/companies-startups.jpg',
+    image: '/industries/companies-startups.webp',
     keywords: [
       'corporate merchandise India',
       'custom company T-shirts India',

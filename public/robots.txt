@@ -1,0 +1,33 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /agent-content/
+Disallow: /cart/
+Disallow: /checkout/
+Disallow: /payment/
+Disallow: /configurator/build/
+Disallow: /configurator/cart/
+Content-Signal: ai-train=no, search=yes, ai-input=yes
+
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /api/
+Disallow: /agent-content/
+Disallow: /cart/
+Disallow: /checkout/
+Disallow: /payment/
+Disallow: /configurator/build/
+Disallow: /configurator/cart/
+Content-Signal: ai-train=no, search=yes, ai-input=yes
+
+Sitemap: https://www.garmops.com/sitemap.xml
+Host: https://www.garmops.com

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Prepare Custom Apparel Brief"
+  short_description: "Build a safe Garmops apparel order brief"
+  default_prompt: "Prepare a complete Garmops custom-apparel brief from my requirements and identify what is still missing."
