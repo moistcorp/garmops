@@ -45,6 +45,8 @@ export default function Navbar() {
   const firstMenuLinkRef = useRef<HTMLAnchorElement>(null)
   const mobileNavRef = useRef<HTMLElement>(null)
   const itemCount = useCartStore(state => state.items.reduce((total, item) => total + item.quantity, 0))
+  const accountsEnabled =
+    process.env.NEXT_PUBLIC_ACCOUNTS_ENABLED === 'true'
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 12)
@@ -135,6 +137,14 @@ export default function Navbar() {
           </nav>
 
           <div className="hidden shrink-0 items-center gap-4 lg:flex">
+            {accountsEnabled && (
+              <Link
+                href="/login"
+                className="text-xs text-[#444444] transition-colors hover:text-[var(--color-teal)]"
+              >
+                Account
+              </Link>
+            )}
             <Link
               href="/cart"
               className="relative text-xs text-[#444444] transition-colors hover:text-[var(--color-teal)]"
@@ -268,6 +278,16 @@ export default function Navbar() {
           >
             Start designing
           </Link>
+          {accountsEnabled && (
+            <Link
+              href="/login"
+              tabIndex={open ? 0 : -1}
+              onClick={closeMenu}
+              className="mt-2 block rounded-full border border-black/10 px-5 py-3 text-center text-sm font-medium text-[#111111]/70"
+            >
+              Customer account
+            </Link>
+          )}
           <a
             href="https://wa.me/918800711169?text=Hi%2C%20I%20found%20Garmops%20and%20would%20like%20to%20know%20more%20about%20custom%20apparel."
             target="_blank"

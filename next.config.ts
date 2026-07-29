@@ -1,5 +1,16 @@
 import type { NextConfig } from 'next'
 
+function configuredOrigin(value: string | undefined) {
+  if (!value) return undefined
+  try {
+    return new URL(value).origin
+  } catch {
+    return undefined
+  }
+}
+
+const supabaseOrigin = configuredOrigin(process.env.NEXT_PUBLIC_SUPABASE_URL)
+
 const nextConfig: NextConfig = {
   async redirects() {
     return [
@@ -50,12 +61,12 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com",
               "style-src 'self' 'unsafe-inline' https://api.fontshare.com",
               "font-src 'self' https://cdn.fontshare.com",
               "img-src 'self' data: blob: https:",
-              "connect-src 'self' https://api.resend.com https://formspree.io https://secure.payu.in https://test.payu.in",
-              "frame-src https://secure.payu.in https://test.payu.in",
+              `connect-src 'self' https://api.resend.com https://formspree.io https://secure.payu.in https://test.payu.in https://challenges.cloudflare.com${supabaseOrigin ? ` ${supabaseOrigin}` : ''}`,
+              "frame-src https://secure.payu.in https://test.payu.in https://challenges.cloudflare.com",
               "form-action 'self' https://secure.payu.in https://test.payu.in",
             ].join('; '),
           },
@@ -65,6 +76,27 @@ const nextConfig: NextConfig = {
         source: '/api/:path*',
         headers: [
           { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' },
+        ],
+      },
+      {
+        source: '/account/:path*',
+        headers: [
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' },
+          { key: 'Cache-Control', value: 'private, no-store, max-age=0' },
+        ],
+      },
+      {
+        source: '/staff/:path*',
+        headers: [
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' },
+          { key: 'Cache-Control', value: 'private, no-store, max-age=0' },
+        ],
+      },
+      {
+        source: '/auth/:path*',
+        headers: [
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' },
+          { key: 'Cache-Control', value: 'private, no-store, max-age=0' },
         ],
       },
       {

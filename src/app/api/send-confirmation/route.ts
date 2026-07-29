@@ -9,6 +9,9 @@ import {
   buildPaymentFailureEmail,
   buildPaymentSuccessEmail,
 } from '@/lib/email/paymentTemplates'
+import { consumeAuthRateLimit, requestIpAddress } from '@/lib/auth/rateLimit'
+import { verifyTurnstile } from '@/lib/auth/turnstile'
+import { isFeatureEnabled } from '@/lib/config/featureFlags'
 
 type EmailType = 'contact' | 'configure' | 'sample'
 type PaymentStatus = 'success' | 'failure'
@@ -28,19 +31,19 @@ type ParsedRequest =
   | { ok: true; body: JsonObject; attachment?: EmailAttachment }
   | { ok: false; error: string; status: number }
 
-// Simple in-memory rate limiter — resets on server restart
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
+// Rollout fallback for the public contact form while accounts remain disabled.
+// The Phase 4 path uses the durable PostgreSQL limiter below.
+const fallbackRateLimits = new Map<string, { count: number; resetAt: number }>()
 
-function isRateLimited(ip: string): boolean {
+function exceedsFallbackLimit(ip: string) {
   const now = Date.now()
-  const entry = rateLimitMap.get(ip)
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + 60_000 })
+  const existing = fallbackRateLimits.get(ip)
+  if (!existing || existing.resetAt <= now) {
+    fallbackRateLimits.set(ip, { count: 1, resetAt: now + 60_000 })
     return false
   }
-  if (entry.count >= 3) return true
-  entry.count++
-  return false
+  existing.count += 1
+  return existing.count > 3
 }
 
 function isObject(value: unknown): value is JsonObject {
@@ -160,11 +163,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Email service is not configured' }, { status: 503 })
     }
 
-    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
-    if (isRateLimited(ip)) {
-      return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
-    }
-
     const parsedRequest = await parseRequest(req)
     if (!parsedRequest.ok) {
       return NextResponse.json(
@@ -192,6 +190,33 @@ export async function POST(req: NextRequest) {
       requestedPaymentStatus !== 'failure'
     ) {
       return NextResponse.json({ error: 'Invalid payment status' }, { status: 400 })
+    }
+
+    if (type === 'contact' && isFeatureEnabled('NEXT_PUBLIC_ACCOUNTS_ENABLED')) {
+      const ip = await requestIpAddress()
+      const verified = await verifyTurnstile(
+        typeof rawBody.turnstileToken === 'string'
+          ? rawBody.turnstileToken
+          : null,
+        'contact',
+        ip,
+      )
+      if (!verified) {
+        return NextResponse.json(
+          { error: 'Security verification failed' },
+          { status: 400 },
+        )
+      }
+      const rate = await consumeAuthRateLimit('contact', email)
+      if (!rate.allowed) {
+        return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+      }
+    } else if (type === 'contact') {
+      const ip =
+        req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+      if (exceedsFallbackLimit(ip)) {
+        return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+      }
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/

@@ -9,13 +9,24 @@ import { useCartStore } from "@/lib/store";
 
 export default function AppChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isConfigurator = pathname.startsWith("/configurator");
+  const hasDedicatedChrome =
+    pathname.startsWith("/configurator") ||
+    pathname.startsWith("/account") ||
+    pathname.startsWith("/staff") ||
+    pathname.startsWith("/auth") ||
+    [
+      "/login",
+      "/register",
+      "/verify-email",
+      "/forgot-password",
+      "/reset-password",
+    ].includes(pathname);
 
   useEffect(() => {
     void useCartStore.persist.rehydrate();
   }, []);
 
-  if (isConfigurator) {
+  if (hasDedicatedChrome) {
     return <>{children}</>;
   }
 

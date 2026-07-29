@@ -2,11 +2,16 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { DELIVERY_DAYS, RUSH_DELIVERY_DAYS } from '@/lib/pricing'
+import TurnstileWidget from '@/components/auth/TurnstileWidget'
 
 export default function ContactClient() {
   const [submitted, setSubmitted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState('')
+  const [turnstileReset, setTurnstileReset] = useState(0)
+  const protectedContactEnabled =
+    process.env.NEXT_PUBLIC_ACCOUNTS_ENABLED === 'true'
   const [form, setForm] = useState({ name: '', company: '', email: '', phone: '', type: '', message: '' })
 
   const handle = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -30,6 +35,7 @@ export default function ContactClient() {
           type: 'contact',
           enquiryType: form.type,
           message: form.message,
+          turnstileToken: protectedContactEnabled ? turnstileToken : undefined,
         })
       })
       if (!response.ok) throw new Error('Request failed')
@@ -49,6 +55,7 @@ export default function ContactClient() {
       setSubmitted(true)
     } catch {
       setSubmitError('We could not send your request. Please try again or email hello@garmops.com.')
+      setTurnstileReset(Date.now())
     } finally {
       setSubmitting(false)
     }
@@ -114,8 +121,15 @@ export default function ContactClient() {
                 <textarea id="contact-message" name="message" rows={5} maxLength={2000} onChange={handle} className={`${inputClass} resize-none`}
                   placeholder="Quantity, timeline, any specific requirements..." />
               </div>
+              {protectedContactEnabled && (
+                <TurnstileWidget
+                  action="contact"
+                  resetToken={turnstileReset}
+                  onToken={setTurnstileToken}
+                />
+              )}
               {submitError && <p role="alert" className="text-sm text-red-700">{submitError}</p>}
-              <button type="submit" disabled={submitting} className="bg-[var(--color-teal)] text-white px-6 py-3.5 rounded-full text-sm font-medium hover:bg-[var(--color-teal-dark)] transition-colors disabled:cursor-not-allowed disabled:opacity-60">
+              <button type="submit" disabled={submitting || (protectedContactEnabled && !turnstileToken)} className="bg-[var(--color-teal)] text-white px-6 py-3.5 rounded-full text-sm font-medium hover:bg-[var(--color-teal-dark)] transition-colors disabled:cursor-not-allowed disabled:opacity-60">
                 {submitting ? 'Sending…' : 'Submit request'}
               </button>
             </form>

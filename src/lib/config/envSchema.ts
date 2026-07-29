@@ -41,7 +41,9 @@ const serverEnvironmentSchema = z
 
     NEXT_PUBLIC_SUPABASE_URL: optionalUrl,
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: optionalText(512),
+    SUPABASE_SECRET_KEY: optionalText(2048),
     SUPABASE_SERVICE_ROLE_KEY: optionalText(2048),
+    AUTH_RATE_LIMIT_SALT: optionalText(2048),
 
     R2_ACCOUNT_ID: optionalText(128),
     R2_ACCESS_KEY_ID: optionalText(512),
@@ -141,10 +143,35 @@ const serverEnvironmentSchema = z
       "when a Supabase-backed feature is enabled"
     );
 
+    if (
+      (environment.NEXT_PUBLIC_ACCOUNTS_ENABLED ||
+        environment.STAFF_PORTAL_ENABLED) &&
+      !environment.SUPABASE_SECRET_KEY &&
+      !environment.SUPABASE_SERVICE_ROLE_KEY
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["SUPABASE_SECRET_KEY"],
+        message:
+          "A Supabase secret or service-role key is required when authentication is enabled",
+      });
+    }
+
+    requireValues(
+      environment.NEXT_PUBLIC_ACCOUNTS_ENABLED ||
+        environment.STAFF_PORTAL_ENABLED,
+      [
+        "AUTH_RATE_LIMIT_SALT",
+        "NEXT_PUBLIC_TURNSTILE_SITE_KEY",
+        "TURNSTILE_SECRET_KEY",
+      ],
+      "when authentication is enabled"
+    );
+
     requireValues(
       environment.STAFF_PORTAL_ENABLED,
-      ["SUPABASE_SERVICE_ROLE_KEY"],
-      "when the staff portal is enabled"
+      ["RESEND_API_KEY", "RESEND_FROM_EMAIL"],
+      "when staff invitations are enabled"
     );
 
     requireValues(

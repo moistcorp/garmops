@@ -243,6 +243,33 @@ export type Database = {
           },
         ]
       }
+      auth_rate_limits: {
+        Row: {
+          attempts: number
+          blocked_until: string | null
+          scope: string
+          subject_hash: string
+          updated_at: string
+          window_started_at: string
+        }
+        Insert: {
+          attempts?: number
+          blocked_until?: string | null
+          scope: string
+          subject_hash: string
+          updated_at?: string
+          window_started_at?: string
+        }
+        Update: {
+          attempts?: number
+          blocked_until?: string | null
+          scope?: string
+          subject_hash?: string
+          updated_at?: string
+          window_started_at?: string
+        }
+        Relationships: []
+      }
       design_project_versions: {
         Row: {
           configuration_snapshot: Json
@@ -1386,6 +1413,10 @@ export type Database = {
           locale: string
           onboarding_completed_at: string | null
           phone: string | null
+          privacy_accepted_at: string | null
+          privacy_version: string | null
+          terms_accepted_at: string | null
+          terms_version: string | null
           timezone: string
           updated_at: string
         }
@@ -1400,6 +1431,10 @@ export type Database = {
           locale?: string
           onboarding_completed_at?: string | null
           phone?: string | null
+          privacy_accepted_at?: string | null
+          privacy_version?: string | null
+          terms_accepted_at?: string | null
+          terms_version?: string | null
           timezone?: string
           updated_at?: string
         }
@@ -1414,6 +1449,10 @@ export type Database = {
           locale?: string
           onboarding_completed_at?: string | null
           phone?: string | null
+          privacy_accepted_at?: string | null
+          privacy_version?: string | null
+          terms_accepted_at?: string | null
+          terms_version?: string | null
           timezone?: string
           updated_at?: string
         }
@@ -1553,6 +1592,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      activate_invited_staff: { Args: never; Returns: undefined }
       allocate_order_number: {
         Args: { p_order_type: Database["public"]["Enums"]["order_type"] }
         Returns: string
@@ -1589,6 +1629,22 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      complete_customer_onboarding: {
+        Args: {
+          p_company_name: string
+          p_department: string
+          p_first_name: string
+          p_gstin: string
+          p_industry: string
+          p_job_title: string
+          p_last_name: string
+          p_phone: string
+          p_privacy_version: string
+          p_terms_version: string
+          p_website: string
+        }
+        Returns: string
+      }
       complete_integration_job: {
         Args: { p_job_id: string; p_worker_id: string }
         Returns: {
@@ -1617,9 +1673,26 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      consume_auth_rate_limit: {
+        Args: {
+          p_max_attempts: number
+          p_scope: string
+          p_subject_hash: string
+          p_window_seconds: number
+        }
+        Returns: {
+          allowed: boolean
+          remaining: number
+          retry_after_seconds: number
+        }[]
+      }
       current_staff_role: {
         Args: never
         Returns: Database["public"]["Enums"]["staff_role"]
+      }
+      deactivate_staff_member: {
+        Args: { p_user_id: string }
+        Returns: undefined
       }
       fail_integration_job: {
         Args: {
@@ -1692,6 +1765,17 @@ export type Database = {
         Args: { p_organization_id: string }
         Returns: boolean
       }
+      provision_staff_invitation: {
+        Args: {
+          p_first_name: string
+          p_last_name: string
+          p_role: Database["public"]["Enums"]["staff_role"]
+          p_team: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      record_staff_login: { Args: never; Returns: undefined }
       staff_has_permission: {
         Args: { p_permission_name: string }
         Returns: boolean
