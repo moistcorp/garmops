@@ -1,9 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronUp } from "lucide-react";
+import { ChevronUp, Cloud, CloudAlert, LoaderCircle } from "lucide-react";
 import type { GarmentView } from "@/lib/configurator/types/garment";
 import type { GarmentColour, Artwork, NeckLabel } from "@/lib/configurator/types/configurator";
 import GarmentPreview from "./GarmentPreview/GarmentPreview";
@@ -41,6 +47,7 @@ import {
   writeBuildDraft,
   clearBuildDraft,
   hasMeaningfulDraft,
+  type BuildDraft,
 } from "@/lib/configurator/buildDraft";
 import {
   restoreConfigurationUploads,
@@ -56,6 +63,15 @@ import {
   readPreferredTargetDate,
   writePreferredTargetDate,
 } from "@/lib/configurator/clientPreferences";
+import {
+  cloudSnapshotToBuildDraft,
+  loadCloudDesign,
+  readCloudDesignLink,
+  saveBuildDraftToCloud,
+  writeCloudDesignLink,
+  type CloudDesignLink,
+  type CloudSaveConflict,
+} from "@/lib/designs/client";
 
 
 interface FeedbackState {
@@ -68,6 +84,13 @@ interface FeedbackState {
 interface ConfigureClientProps {
   configId: string;
 }
+
+type CloudSaveStatus =
+  | "local"
+  | "saving"
+  | "saved"
+  | "error"
+  | "conflict";
 
 const POSITION_LABELS: Record<NeckLabel["position"], string> = {
   below_neck_tape: "Below neck tape",
@@ -97,7 +120,11 @@ function artworkSummary(artwork: Artwork): string | null {
 }
 
 function labelSummary(neckLabel?: NeckLabel): string | null {
-  if (!neckLabel?.fileUrl || !neckLabel.dimensions || !neckLabel.position) return null;
+  if (
+    (!neckLabel?.fileUrl && !neckLabel?.fileId) ||
+    !neckLabel.dimensions ||
+    !neckLabel.position
+  ) return null;
   return `${neckLabel.dimensions.replace("x", " × ")} mm · ${POSITION_LABELS[neckLabel.position]}`;
 }
 
@@ -151,6 +178,8 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   const editCartId = searchParams.get("cartId");
   const editItemId = searchParams.get("itemId");
   const requestedStepParam = searchParams.get("step");
+  const requestedDesignId = searchParams.get("designId");
+  const requestedCloudSave = searchParams.get("cloudSave") === "1";
   const requestedStep: AccordionStepId =
     requestedStepParam === "artwork" || requestedStepParam === "neck-label"
       ? requestedStepParam
@@ -185,11 +214,23 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
   const [preferredTargetDate, setPreferredTargetDate] = useState("");
+  const [cloudLink, setCloudLink] = useState<CloudDesignLink | null>(null);
+  const [cloudSaveStatus, setCloudSaveStatus] =
+    useState<CloudSaveStatus>("local");
+  const [cloudMessage, setCloudMessage] = useState(
+    "Save to your account for cross-device access."
+  );
+  const [cloudConflict, setCloudConflict] =
+    useState<CloudSaveConflict | null>(null);
   const hasHydrated = useRef(false);
   const saveTimer = useRef<number | null>(null);
   const saveStatusTimer = useRef<number | null>(null);
   const autosaveErrorNotifiedRef = useRef(false);
   const retainedObjectUrlsRef = useRef<Set<string>>(new Set());
+  const cloudLinkRef = useRef<CloudDesignLink | null>(null);
+  const cloudSaveTimer = useRef<number | null>(null);
+  const cloudSaveInFlight = useRef(false);
+  const cloudSaveIntentHandled = useRef(false);
 
   const pricingBreakdown = buildPricingBreakdown(productId, colour, artwork, neckLabel, quantity);
   const minimumQuantity = colour.type === "custom_dye" ? CUSTOM_DYE_MOQ_UNITS : 50;
@@ -215,14 +256,14 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
     activeDrawerStep.id === "garment-colour"
       ? `${colour.name} · ${colour.type === "signature" ? "Signature colour" : "Custom dye"}`
       : activeDrawerStep.id === "artwork"
-        ? artwork.front?.fileUrl && artwork.back?.fileUrl
+        ? artwork.front && artwork.back
           ? "Front + back artwork added"
-          : artwork.front?.fileUrl
+          : artwork.front
             ? "Front artwork added · Back not added"
-            : artwork.back?.fileUrl
+            : artwork.back
               ? "Back artwork added · Front not added"
               : "No artwork added"
-        : neckLabel?.fileUrl
+        : neckLabel?.fileUrl || neckLabel?.fileId
           ? `${isToteProduct ? "Bag" : "Neck"} label added`
           : activeDrawerStep.skipped
             ? `${isToteProduct ? "Bag" : "Neck"} label skipped`
@@ -252,6 +293,206 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   }
   if (completedCustomisationSteps.has("neck-label")) {
     journeyStepSelection["neck-label"] = () => applyExpandedStepChange("neck-label");
+  }
+
+  function currentBuildDraft(): BuildDraft {
+    return {
+      version: 1,
+      savedAt: new Date().toISOString(),
+      colour,
+      artwork,
+      neckLabel,
+      steps,
+      quantity,
+    };
+  }
+
+  const setActiveCloudLink = useCallback(
+    (next: CloudDesignLink | null) => {
+      cloudLinkRef.current = next;
+      setCloudLink(next);
+      if (next) writeCloudDesignLink(configId, next);
+    },
+    [configId, setCloudLink]
+  );
+
+  const applyRestoredConfiguration = useCallback(
+    async (
+      restoredColour: GarmentColour,
+      restoredArtwork: Artwork,
+      restoredNeckLabel: NeckLabel | undefined,
+      restoredQuantity: unknown,
+      restoredSteps?: AccordionStepState[]
+    ) => {
+      const uploads = await restoreConfigurationUploads(
+        restoredArtwork,
+        restoredNeckLabel
+      );
+      setColour(restoredColour);
+      setArtwork(uploads.artwork);
+      setNeckLabel((uploads.neckLabel ?? {}) as NeckLabel);
+      setSteps(
+        stepsForConfiguration(
+          restoredColour,
+          uploads.artwork,
+          uploads.neckLabel,
+          restoredSteps
+        )
+      );
+      setQuantity(
+        safeQuantity(
+          restoredQuantity,
+          restoredColour.type === "custom_dye"
+            ? CUSTOM_DYE_MOQ_UNITS
+            : 50
+        )
+      );
+      setDraftRestored(true);
+    },
+    [
+      setArtwork,
+      setColour,
+      setDraftRestored,
+      setNeckLabel,
+      setQuantity,
+      setSteps,
+    ]
+  );
+
+  const syncDraftToCloud = useCallback(
+    async (
+      draft: BuildDraft,
+      options?: {
+        interactive?: boolean;
+        forceRevision?: number;
+        createCopy?: boolean;
+      }
+    ) => {
+      if (cloudSaveInFlight.current) return;
+      cloudSaveInFlight.current = true;
+      setCloudSaveStatus("saving");
+      setCloudMessage(
+        options?.createCopy
+          ? "Creating an independent cloud copy…"
+          : "Saving design and artwork securely…"
+      );
+
+      let result;
+      try {
+        result = await saveBuildDraftToCloud({
+          configId,
+          productName,
+          draft,
+          existingLink: cloudLinkRef.current,
+          forceRevision: options?.forceRevision,
+          createCopy: options?.createCopy,
+        });
+      } catch {
+        cloudSaveInFlight.current = false;
+        setCloudSaveStatus("error");
+        setCloudMessage(
+          "This browser draft is safe, but cloud save could not connect."
+        );
+        return;
+      }
+      cloudSaveInFlight.current = false;
+
+      if (result.ok) {
+        setActiveCloudLink(result.link);
+        setCloudConflict(null);
+        setCloudSaveStatus("saved");
+        setCloudMessage(
+          `Cloud saved · version ${result.link.currentVersion}`
+        );
+        if (options?.interactive) {
+          setFeedback({
+            tone: "success",
+            title: options.createCopy
+              ? "Cloud copy created"
+              : "Design saved to your account",
+            detail:
+              "Your browser draft remains available as a fallback, and this design can now be resumed from another device.",
+          });
+        }
+        return;
+      }
+
+      if (result.kind === "conflict") {
+        setCloudConflict(result.conflict);
+        setCloudSaveStatus("conflict");
+        setCloudMessage("A newer cloud draft needs your choice.");
+        return;
+      }
+
+      setCloudSaveStatus("error");
+      setCloudMessage(result.message);
+      if (result.kind === "unauthorized" && options?.interactive) {
+        const next = `/configurator/build/${encodeURIComponent(configId)}?cloudSave=1`;
+        router.push(`/login?next=${encodeURIComponent(next)}`);
+      }
+    },
+    [
+      configId,
+      productName,
+      router,
+      setActiveCloudLink,
+      setCloudConflict,
+      setCloudMessage,
+      setCloudSaveStatus,
+      setFeedback,
+    ]
+  );
+
+  async function handleSaveToAccount() {
+    const draft = currentBuildDraft();
+    writeBuildDraft(configId, {
+      colour: draft.colour,
+      artwork: draft.artwork,
+      neckLabel: draft.neckLabel,
+      steps: draft.steps,
+      quantity: draft.quantity,
+    });
+    await syncDraftToCloud(draft, { interactive: true });
+  }
+
+  async function handleUseThisDevice() {
+    if (!cloudConflict) return;
+    await syncDraftToCloud(currentBuildDraft(), {
+      interactive: true,
+      forceRevision: cloudConflict.draftRevision,
+    });
+  }
+
+  async function handleUseCloudVersion() {
+    if (!cloudConflict || !cloudLinkRef.current) return;
+    setCloudSaveStatus("saving");
+    setCloudMessage("Restoring the cloud version…");
+    const restored = await cloudSnapshotToBuildDraft(cloudConflict.snapshot);
+    await applyRestoredConfiguration(
+      restored.colour,
+      restored.artwork,
+      restored.neckLabel,
+      restored.quantity,
+      restored.steps
+    );
+    const nextLink: CloudDesignLink = {
+      ...cloudLinkRef.current,
+      draftRevision: cloudConflict.draftRevision,
+      currentVersion: cloudConflict.currentVersion,
+      lastSavedAt: cloudConflict.lastSavedAt,
+    };
+    setActiveCloudLink(nextLink);
+    setCloudConflict(null);
+    setCloudSaveStatus("saved");
+    setCloudMessage(`Cloud version ${nextLink.currentVersion} restored`);
+  }
+
+  async function handleCreateCloudCopy() {
+    if (!cloudConflict) return;
+    await syncDraftToCloud(currentBuildDraft(), {
+      interactive: true,
+      createCopy: true,
+    });
   }
 
   useEffect(() => {
@@ -285,28 +526,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const applyRestoredConfiguration = async (
-        restoredColour: GarmentColour,
-        restoredArtwork: Artwork,
-        restoredNeckLabel: NeckLabel | undefined,
-        restoredQuantity: unknown,
-        restoredSteps?: AccordionStepState[]
-      ) => {
-        const uploads = await restoreConfigurationUploads(restoredArtwork, restoredNeckLabel);
-        if (cancelled) return;
-        setColour(restoredColour);
-        setArtwork(uploads.artwork);
-        setNeckLabel((uploads.neckLabel ?? {}) as NeckLabel);
-        setSteps(stepsForConfiguration(restoredColour, uploads.artwork, uploads.neckLabel, restoredSteps));
-        setQuantity(
-          safeQuantity(
-            restoredQuantity,
-            restoredColour.type === "custom_dye" ? CUSTOM_DYE_MOQ_UNITS : 50
-          )
-        );
-        setDraftRestored(true);
-      };
-
       if (editCartId && editItemId) {
         const item = readDraft(editCartId).items.find((candidate) => candidate.id === editItemId);
         if (item && item.productId === productId) {
@@ -322,14 +541,131 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         }
       }
 
-      const draft = readBuildDraft(configId);
-      if (hasMeaningfulDraft(draft) && draft) {
+      const localDraft = readBuildDraft(configId);
+      const storedLink = readCloudDesignLink(configId);
+      const targetDesignId = requestedDesignId ?? storedLink?.designId;
+
+      if (targetDesignId) {
+        const cloud = await loadCloudDesign(targetDesignId);
+        if (cancelled) return;
+
+        if (cloud.ok) {
+          if (cloud.design.draft_snapshot.configId !== configId) {
+            throw new Error("Cloud design does not match this product");
+          }
+
+          const nextLink: CloudDesignLink = {
+            designId: cloud.design.id,
+            draftRevision: cloud.design.draft_revision,
+            currentVersion: cloud.design.current_version,
+            lastSavedAt: cloud.design.last_saved_at,
+            uploadFileIds:
+              storedLink?.designId === cloud.design.id
+                ? storedLink.uploadFileIds
+                : {},
+          };
+          setActiveCloudLink(nextLink);
+
+          const localIsMeaningful = hasMeaningfulDraft(localDraft);
+          const localSavedAt = localDraft
+            ? new Date(localDraft.savedAt).getTime()
+            : 0;
+          const cloudSavedAt = new Date(
+            cloud.design.last_saved_at
+          ).getTime();
+          const sameLinkedDesign =
+            storedLink?.designId === cloud.design.id;
+          const revisionChanged =
+            sameLinkedDesign &&
+            storedLink.draftRevision !== cloud.design.draft_revision;
+          const localIsNewer =
+            localIsMeaningful &&
+            Number.isFinite(localSavedAt) &&
+            Number.isFinite(cloudSavedAt) &&
+            localSavedAt > cloudSavedAt + 1000;
+          const unrelatedLocalDraft =
+            Boolean(requestedDesignId) &&
+            localIsMeaningful &&
+            !sameLinkedDesign;
+
+          if (
+            localDraft &&
+            localIsMeaningful &&
+            (revisionChanged || localIsNewer || unrelatedLocalDraft)
+          ) {
+            await applyRestoredConfiguration(
+              localDraft.colour,
+              localDraft.artwork,
+              localDraft.neckLabel,
+              localDraft.quantity,
+              localDraft.steps
+            );
+            setCloudConflict({
+              draftRevision: cloud.design.draft_revision,
+              lastSavedAt: cloud.design.last_saved_at,
+              snapshot: cloud.design.draft_snapshot,
+              title: cloud.design.title,
+              status: "draft",
+              currentVersion: cloud.design.current_version,
+            });
+            setCloudSaveStatus("conflict");
+            setCloudMessage(
+              "This device and the cloud both have changes. Choose which to keep."
+            );
+          } else if (requestedDesignId || !localIsMeaningful) {
+            const cloudDraft = await cloudSnapshotToBuildDraft(
+              cloud.design.draft_snapshot
+            );
+            if (cancelled) return;
+            await applyRestoredConfiguration(
+              cloudDraft.colour,
+              cloudDraft.artwork,
+              cloudDraft.neckLabel,
+              cloudDraft.quantity,
+              cloudDraft.steps
+            );
+            setCloudSaveStatus("saved");
+            setCloudMessage(
+              `Cloud version ${cloud.design.current_version} restored`
+            );
+          } else if (localDraft) {
+            await applyRestoredConfiguration(
+              localDraft.colour,
+              localDraft.artwork,
+              localDraft.neckLabel,
+              localDraft.quantity,
+              localDraft.steps
+            );
+            setCloudSaveStatus("saved");
+            setCloudMessage(
+              `Cloud linked · version ${cloud.design.current_version}`
+            );
+          }
+        } else if (requestedDesignId && cloud.status === 401) {
+          const next = `/configurator/build/${encodeURIComponent(configId)}?designId=${encodeURIComponent(requestedDesignId)}`;
+          router.push(`/login?next=${encodeURIComponent(next)}`);
+        } else {
+          if (hasMeaningfulDraft(localDraft) && localDraft) {
+            await applyRestoredConfiguration(
+              localDraft.colour,
+              localDraft.artwork,
+              localDraft.neckLabel,
+              localDraft.quantity,
+              localDraft.steps
+            );
+          }
+          setCloudSaveStatus("error");
+          setCloudMessage(
+            "Cloud restore is unavailable. Your browser draft is still safe."
+          );
+        }
+      } else if (hasMeaningfulDraft(localDraft) && localDraft) {
         await applyRestoredConfiguration(
-          draft.colour,
-          draft.artwork,
-          draft.neckLabel,
-          draft.quantity,
-          draft.steps
+          localDraft.colour,
+          localDraft.artwork,
+          localDraft.neckLabel,
+          localDraft.quantity,
+          localDraft.steps
         );
       }
       hasHydrated.current = true;
@@ -344,7 +680,16 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
     return () => {
       cancelled = true;
     };
-  }, [configId, editCartId, editItemId, productId]);
+  }, [
+    configId,
+    editCartId,
+    editItemId,
+    productId,
+    requestedDesignId,
+    applyRestoredConfiguration,
+    router,
+    setActiveCloudLink,
+  ]);
 
   useEffect(() => {
     if (!hasHydrated.current) return;
@@ -365,13 +710,71 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       if (saved) {
         autosaveErrorNotifiedRef.current = false;
         saveStatusTimer.current = window.setTimeout(() => setSaveStatus("idle"), 1800);
+        const savedDraft = readBuildDraft(configId);
+        if (savedDraft && cloudLinkRef.current && !cloudConflict) {
+          if (cloudSaveTimer.current) {
+            window.clearTimeout(cloudSaveTimer.current);
+          }
+          cloudSaveTimer.current = window.setTimeout(() => {
+            cloudSaveTimer.current = null;
+            void syncDraftToCloud(savedDraft);
+          }, 1400);
+        }
       }
     }, 450);
     return () => {
       if (saveTimer.current) window.clearTimeout(saveTimer.current);
       if (saveStatusTimer.current) window.clearTimeout(saveStatusTimer.current);
+      if (cloudSaveTimer.current) window.clearTimeout(cloudSaveTimer.current);
     };
-  }, [configId, colour, artwork, neckLabel, steps, quantity]);
+  }, [
+    configId,
+    colour,
+    artwork,
+    neckLabel,
+    steps,
+    quantity,
+    cloudConflict,
+    syncDraftToCloud,
+  ]);
+
+  useEffect(() => {
+    if (
+      !hydrationComplete ||
+      !requestedCloudSave ||
+      cloudSaveIntentHandled.current
+    ) {
+      return;
+    }
+    cloudSaveIntentHandled.current = true;
+    const draft: BuildDraft = {
+      version: 1,
+      savedAt: new Date().toISOString(),
+      colour,
+      artwork,
+      neckLabel,
+      steps,
+      quantity,
+    };
+    writeBuildDraft(configId, {
+      colour,
+      artwork,
+      neckLabel,
+      steps,
+      quantity,
+    });
+    void syncDraftToCloud(draft, { interactive: true });
+  }, [
+    artwork,
+    colour,
+    configId,
+    hydrationComplete,
+    neckLabel,
+    quantity,
+    requestedCloudSave,
+    steps,
+    syncDraftToCloud,
+  ]);
 
   const deliveryFeasibility = useMemo(
     () => getDeliveryFeasibility(preferredTargetDate, colour.type === "custom_dye" ? 7 : 0),
@@ -537,7 +940,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
     }
 
     if (expandedStepId === "neck-label") {
-      if (!neckLabel?.fileUrl) {
+      if (!neckLabel?.fileUrl && !neckLabel?.fileId) {
         trackConfiguratorEvent("neck_label_skipped", {
           product_id: productId,
           step: "neck_label",
@@ -646,6 +1049,83 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
           onStepSelect={journeyStepSelection}
           className="px-4"
         />
+
+        <div className="px-4 pb-2 lg:px-5">
+          <div
+            role="status"
+            aria-live="polite"
+            className={`mx-auto flex max-w-[1480px] flex-wrap items-center gap-2 rounded-2xl border px-3 py-2 text-xs shadow-sm backdrop-blur-xl ${
+              cloudSaveStatus === "conflict"
+                ? "border-amber-300/70 bg-amber-50/90 text-amber-950"
+                : cloudSaveStatus === "error"
+                  ? "border-rose-200/80 bg-rose-50/90 text-rose-900"
+                  : "border-white/75 bg-white/55 text-[#315F66]"
+            }`}
+          >
+            {cloudSaveStatus === "saving" ? (
+              <LoaderCircle
+                size={15}
+                className="shrink-0 animate-spin"
+                aria-hidden="true"
+              />
+            ) : cloudSaveStatus === "conflict" ||
+              cloudSaveStatus === "error" ? (
+              <CloudAlert size={15} className="shrink-0" aria-hidden="true" />
+            ) : (
+              <Cloud size={15} className="shrink-0" aria-hidden="true" />
+            )}
+            <span className="min-w-0 flex-1 font-medium">{cloudMessage}</span>
+
+            {cloudSaveStatus === "conflict" ? (
+              <div className="flex flex-wrap items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={handleUseThisDevice}
+                  className="rounded-full bg-[#315F66] px-3 py-1.5 font-semibold text-white hover:bg-[#254b51]"
+                >
+                  Use this device
+                </button>
+                <button
+                  type="button"
+                  onClick={handleUseCloudVersion}
+                  className="rounded-full border border-amber-900/20 bg-white/70 px-3 py-1.5 font-semibold hover:bg-white"
+                >
+                  Use cloud version
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCreateCloudCopy}
+                  className="rounded-full border border-amber-900/20 bg-white/70 px-3 py-1.5 font-semibold hover:bg-white"
+                >
+                  Create a copy
+                </button>
+              </div>
+            ) : cloudSaveStatus !== "saving" ? (
+              <div className="flex items-center gap-1.5">
+                {cloudLink ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      router.push(
+                        `/account/designs/${encodeURIComponent(cloudLink.designId)}`
+                      )
+                    }
+                    className="rounded-full border border-[#315F66]/20 bg-white/70 px-3 py-1.5 font-semibold hover:bg-white"
+                  >
+                    View in account
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={handleSaveToAccount}
+                  className="rounded-full bg-[#315F66] px-3 py-1.5 font-semibold text-white hover:bg-[#254b51]"
+                >
+                  {cloudLink ? "Save now" : "Save to account"}
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </div>
 
         {feedback && (
           <div className="fixed right-4 top-24 z-[70] w-[min(380px,calc(100vw-2rem))]">

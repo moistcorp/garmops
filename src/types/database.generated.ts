@@ -317,12 +317,17 @@ export type Database = {
       }
       design_projects: {
         Row: {
+          archived_at: string | null
+          client_import_id: string | null
           created_at: string
           created_by: string
           current_version: number
+          draft_revision: number
+          draft_snapshot: Json
           id: string
           last_saved_at: string
           organization_id: string
+          pricing_input_snapshot: Json | null
           schema_version: number
           source: string
           status: string
@@ -331,12 +336,17 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
+          client_import_id?: string | null
           created_at?: string
           created_by: string
           current_version?: number
+          draft_revision?: number
+          draft_snapshot?: Json
           id?: string
           last_saved_at?: string
           organization_id: string
+          pricing_input_snapshot?: Json | null
           schema_version: number
           source?: string
           status?: string
@@ -345,12 +355,17 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
+          client_import_id?: string | null
           created_at?: string
           created_by?: string
           current_version?: number
+          draft_revision?: number
+          draft_snapshot?: Json
           id?: string
           last_saved_at?: string
           organization_id?: string
+          pricing_input_snapshot?: Json | null
           schema_version?: number
           source?: string
           status?: string
@@ -1625,6 +1640,15 @@ export type Database = {
         Args: { p_order_type: Database["public"]["Enums"]["order_type"] }
         Returns: string
       }
+      archive_cloud_design: {
+        Args: { p_design_project_id: string; p_expected_revision: number }
+        Returns: {
+          archived: boolean
+          archived_at: string
+          conflict: boolean
+          draft_revision: number
+        }[]
+      }
       claim_integration_jobs: {
         Args: {
           p_batch_size?: number
@@ -1714,6 +1738,36 @@ export type Database = {
           retry_after_seconds: number
         }[]
       }
+      create_cloud_design: {
+        Args: {
+          p_client_import_id?: string
+          p_configuration_snapshot: Json
+          p_organization_id: string
+          p_pricing_input_snapshot?: Json
+          p_schema_version: number
+          p_source?: string
+          p_title: string
+        }
+        Returns: {
+          created_new: boolean
+          design_project_id: string
+          design_version_id: string
+          draft_revision: number
+          last_saved_at: string
+          version_number: number
+        }[]
+      }
+      create_cloud_design_version: {
+        Args: { p_design_project_id: string; p_expected_revision: number }
+        Returns: {
+          conflict: boolean
+          created: boolean
+          design_version_id: string
+          draft_revision: number
+          last_saved_at: string
+          version_number: number
+        }[]
+      }
       create_private_upload_slot: {
         Args: {
           p_byte_size: number
@@ -1740,6 +1794,21 @@ export type Database = {
       deactivate_staff_member: {
         Args: { p_user_id: string }
         Returns: undefined
+      }
+      duplicate_cloud_design: {
+        Args: {
+          p_client_operation_id: string
+          p_design_project_id: string
+          p_title: string
+        }
+        Returns: {
+          created_new: boolean
+          design_project_id: string
+          design_version_id: string
+          draft_revision: number
+          last_saved_at: string
+          version_number: number
+        }[]
       }
       expire_private_upload_slots: { Args: never; Returns: number }
       fail_integration_job: {
@@ -1841,6 +1910,27 @@ export type Database = {
           p_scan_status: Database["public"]["Enums"]["file_scan_status"]
         }
         Returns: boolean
+      }
+      save_cloud_design_draft: {
+        Args: {
+          p_configuration_snapshot: Json
+          p_design_project_id: string
+          p_expected_revision: number
+          p_pricing_input_snapshot?: Json
+          p_schema_version: number
+          p_title?: string
+        }
+        Returns: {
+          configuration_snapshot: Json
+          conflict: boolean
+          current_version: number
+          draft_revision: number
+          last_saved_at: string
+          pricing_input_snapshot: Json
+          saved: boolean
+          status: string
+          title: string
+        }[]
       }
       soft_delete_file: { Args: { p_file_id: string }; Returns: boolean }
       staff_has_permission: {

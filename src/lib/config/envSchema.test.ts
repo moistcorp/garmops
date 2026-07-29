@@ -76,6 +76,37 @@ describe("server environment validation", () => {
     expect(environment.R2_PRIVATE_UPLOADS_ENABLED).toBe(true);
   });
 
+  it("requires accounts and private uploads before cloud designs", () => {
+    expect(() =>
+      parseServerEnvironment({
+        CLOUD_DESIGNS_ENABLED: "true",
+      })
+    ).toThrow(
+      "Invalid server environment configuration: CLOUD_DESIGNS_ENABLED"
+    );
+  });
+
+  it("accepts cloud designs when account and R2 dependencies are complete", () => {
+    const environment = parseServerEnvironment({
+      NEXT_PUBLIC_ACCOUNTS_ENABLED: "true",
+      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_local_test",
+      SUPABASE_SECRET_KEY: "sb_secret_local_test",
+      AUTH_RATE_LIMIT_SALT: "local-test-rate-limit-salt",
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: "1x00000000000000000000AA",
+      TURNSTILE_SECRET_KEY: "1x0000000000000000000000000000000AA",
+      R2_PRIVATE_UPLOADS_ENABLED: "true",
+      R2_ACCOUNT_ID: "account123",
+      R2_ACCESS_KEY_ID: "r2_access",
+      R2_SECRET_ACCESS_KEY: "r2_secret",
+      R2_S3_ENDPOINT: "https://account123.r2.cloudflarestorage.com",
+      R2_PRIVATE_BUCKET: "garmops-private-orders",
+      CLOUD_DESIGNS_ENABLED: "true",
+    });
+
+    expect(environment.CLOUD_DESIGNS_ENABLED).toBe(true);
+  });
+
   it("rejects an R2 endpoint for another account", () => {
     expect(() =>
       parseServerEnvironment({

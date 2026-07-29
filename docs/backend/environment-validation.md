@@ -1,6 +1,6 @@
 # Environment validation design
 
-Status: implemented in Phase 1
+Status: implemented through Phase 6
 Last reviewed: 2026-07-29
 
 ## Goals
@@ -30,6 +30,8 @@ URLs use URL validation, email addresses use email validation, integer settings 
 - Accounts require Supabase URL and publishable key.
 - Staff portal additionally requires the service-role boundary and configured staff/MFA data.
 - Private R2 uploads require all private-bucket credentials and exact application origins.
+- Cloud designs require accounts and private R2 uploads before their server
+  routes can be enabled.
 - Durable checkout requires Supabase plus complete PayU signing and verification configuration.
 - Zoho automation requires durable custom checkout, Zoho credentials/IDs, reservation settings, R2 private storage, and the PostgreSQL job backend.
 - Turnstile-protected routes require both site and secret keys.

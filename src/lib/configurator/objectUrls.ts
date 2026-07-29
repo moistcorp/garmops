@@ -216,17 +216,18 @@ export async function restoreConfigurationUploads(
   return {
     artwork: {
       front:
-        artwork.front && frontUrl
-          ? { ...artwork.front, fileUrl: frontUrl }
+        artwork.front && (frontUrl || artwork.front.fileId)
+          ? { ...artwork.front, fileUrl: frontUrl ?? "" }
           : undefined,
       back:
-        artwork.back && backUrl
-          ? { ...artwork.back, fileUrl: backUrl }
+        artwork.back && (backUrl || artwork.back.fileId)
+          ? { ...artwork.back, fileUrl: backUrl ?? "" }
           : undefined,
     },
     neckLabel:
-      neckLabel?.fileUrl && neckLabelUrl
-        ? ({ ...neckLabel, fileUrl: neckLabelUrl } as NeckLabel)
+      (neckLabel?.fileUrl || neckLabel?.fileId) &&
+      (neckLabelUrl || neckLabel?.fileId)
+        ? ({ ...neckLabel, fileUrl: neckLabelUrl ?? "" } as NeckLabel)
         : undefined,
   };
 }

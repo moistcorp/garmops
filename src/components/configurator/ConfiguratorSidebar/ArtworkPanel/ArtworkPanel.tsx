@@ -79,7 +79,9 @@ export function ArtworkPanel({
 
       const identity = current.fileKey
         ? `key:${current.fileKey}`
-        : `url:${current.fileUrl}`;
+        : current.fileId
+          ? `file:${current.fileId}`
+          : `url:${current.fileUrl}`;
       const isSampleArtwork = current.fileUrl === SAMPLE_ARTWORK_HREF;
       const seed: PositionSeed = {
         widthCm: isSampleArtwork
@@ -276,7 +278,9 @@ export function ArtworkPanel({
 
   function renderSide(side: Side) {
     const current = artwork[side];
-    const isReady = Boolean(current?.fileUrl && current.technique);
+    const isReady = Boolean(
+      (current?.fileUrl || current?.fileId) && current.technique
+    );
     const isExpanded = expandedSide === side;
     const contentId = `artwork-${side}-accordion-content`;
 

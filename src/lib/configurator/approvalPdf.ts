@@ -164,7 +164,9 @@ function totalUnits(item: ApprovalPdfItem): number {
 }
 
 function artworkLine(side: "Front" | "Back", artwork?: ArtworkSide): string {
-  if (!artwork?.fileUrl) return `${side}: No artwork selected`;
+  if (!artwork?.fileUrl && !artwork?.fileId) {
+    return `${side}: No artwork selected`;
+  }
   const technique = artwork.technique
     ? TECHNIQUE_LABELS[artwork.technique] ?? artwork.technique.replaceAll("_", " ")
     : "Technique to be recommended";
@@ -173,7 +175,9 @@ function artworkLine(side: "Front" | "Back", artwork?: ArtworkSide): string {
 }
 
 function neckLabelLine(label?: NeckLabel): string {
-  if (!label?.fileUrl) return "Custom label: Skipped / standard label retained";
+  if (!label?.fileUrl && !label?.fileId) {
+    return "Custom label: Skipped / standard label retained";
+  }
   return `Custom label: ${label.dimensions?.replace("x", " x ")} mm, ${label.position.replaceAll("_", " ")}${label.stitch ? `, ${label.stitch.replaceAll("_", " ")} stitch` : ""}`;
 }
 

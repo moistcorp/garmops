@@ -107,6 +107,7 @@ const serverEnvironmentSchema = z
     NEXT_PUBLIC_ACCOUNTS_ENABLED: booleanValue,
     STAFF_PORTAL_ENABLED: booleanValue,
     R2_PRIVATE_UPLOADS_ENABLED: booleanValue,
+    CLOUD_DESIGNS_ENABLED: booleanValue,
     DURABLE_CUSTOM_CHECKOUT_ENABLED: booleanValue,
     DURABLE_SAMPLE_CHECKOUT_ENABLED: booleanValue,
     ZOHO_INVOICE_AUTOMATION_ENABLED: booleanValue,
@@ -138,6 +139,7 @@ const serverEnvironmentSchema = z
       environment.NEXT_PUBLIC_ACCOUNTS_ENABLED ||
       environment.STAFF_PORTAL_ENABLED ||
       environment.R2_PRIVATE_UPLOADS_ENABLED ||
+      environment.CLOUD_DESIGNS_ENABLED ||
       environment.DURABLE_CUSTOM_CHECKOUT_ENABLED ||
       environment.DURABLE_SAMPLE_CHECKOUT_ENABLED;
 
@@ -150,7 +152,8 @@ const serverEnvironmentSchema = z
     if (
       (environment.NEXT_PUBLIC_ACCOUNTS_ENABLED ||
         environment.STAFF_PORTAL_ENABLED ||
-        environment.R2_PRIVATE_UPLOADS_ENABLED) &&
+        environment.R2_PRIVATE_UPLOADS_ENABLED ||
+        environment.CLOUD_DESIGNS_ENABLED) &&
       !environment.SUPABASE_SECRET_KEY &&
       !environment.SUPABASE_SERVICE_ROLE_KEY
     ) {
@@ -199,6 +202,19 @@ const serverEnvironmentSchema = z
         code: "custom",
         path: ["NEXT_PUBLIC_ACCOUNTS_ENABLED"],
         message: "Accounts must be enabled before private R2 uploads",
+      });
+    }
+
+    if (
+      environment.CLOUD_DESIGNS_ENABLED &&
+      (!environment.NEXT_PUBLIC_ACCOUNTS_ENABLED ||
+        !environment.R2_PRIVATE_UPLOADS_ENABLED)
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["CLOUD_DESIGNS_ENABLED"],
+        message:
+          "Cloud designs require accounts and private R2 uploads to be enabled",
       });
     }
 

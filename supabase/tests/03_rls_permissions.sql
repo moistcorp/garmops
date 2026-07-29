@@ -622,27 +622,19 @@ select throws_ok(
 );
 select throws_ok(
   $$
-    insert into public.design_projects (
-      organization_id,
-      created_by,
-      title,
-      status,
-      schema_version,
-      current_version,
-      source
-    )
-    values (
+    select *
+    from public.create_cloud_design(
       'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-      '11111111-1111-4111-8111-111111111111',
       'Cross-tenant design',
-      'draft',
       1,
-      1,
-      'configurator'
+      '{"schemaVersion":1}'::jsonb,
+      null,
+      'configurator',
+      null
     )
   $$,
-  '42501',
-  'new row violates row-level security policy for table "design_projects"',
+  'P0001',
+  'design write access denied',
   'customer cannot create a design in another tenant'
 );
 select throws_ok(
@@ -727,36 +719,36 @@ select ok(
 );
 select lives_ok(
   $$
-    insert into public.design_projects (
-      organization_id,
-      created_by,
-      title,
-      status,
-      schema_version,
-      current_version,
-      source
-    )
-    values (
+    select *
+    from public.create_cloud_design(
       'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-      '22222222-2222-4222-8222-222222222222',
       'Buyer draft',
-      'draft',
       1,
-      1,
-      'configurator'
+      '{"schemaVersion":1}'::jsonb,
+      null,
+      'configurator',
+      null
     )
   $$,
   'buyer can create a design draft for their tenant'
 );
 select is(
-  public.pgtap_affected_rows(
-    $$
-      update public.design_projects
-      set title = 'Buyer updated draft'
-      where title = 'Buyer draft'
-    $$
+  (
+    select saved
+    from public.save_cloud_design_draft(
+      (
+        select id
+        from public.design_projects
+        where title = 'Buyer draft'
+      ),
+      1,
+      1,
+      '{"schemaVersion":1,"updated":true}'::jsonb,
+      null,
+      'Buyer updated draft'
+    )
   ),
-  1::bigint,
+  true,
   'buyer can update their tenant design draft'
 );
 select is(
@@ -817,27 +809,19 @@ select lives_ok(
 );
 select throws_ok(
   $$
-    insert into public.design_projects (
-      organization_id,
-      created_by,
-      title,
-      status,
-      schema_version,
-      current_version,
-      source
-    )
-    values (
+    select *
+    from public.create_cloud_design(
       'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-      '22222222-2222-4222-8222-222222222222',
       'Finance design',
-      'draft',
       1,
-      1,
-      'configurator'
+      '{"schemaVersion":1}'::jsonb,
+      null,
+      'configurator',
+      null
     )
   $$,
-  '42501',
-  'new row violates row-level security policy for table "design_projects"',
+  'P0001',
+  'design write access denied',
   'finance customer cannot create design drafts'
 );
 select is(
@@ -878,14 +862,24 @@ select is(
   0::bigint,
   'viewer cannot update tenant addresses'
 );
-select is(
-  public.pgtap_affected_rows(
-    $$
-      update public.design_projects
-      set title = 'Viewer edit'
-    $$
-  ),
-  0::bigint,
+select throws_ok(
+  $$
+    select *
+    from public.save_cloud_design_draft(
+      (
+        select id
+        from public.design_projects
+        where title = 'Buyer updated draft'
+      ),
+      2,
+      1,
+      '{"schemaVersion":1,"updated":true}'::jsonb,
+      null,
+      'Viewer edit'
+    )
+  $$,
+  'P0001',
+  'design not found',
   'viewer cannot update tenant designs'
 );
 select throws_ok(

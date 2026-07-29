@@ -14,6 +14,7 @@ import { scheduleUploadCleanup } from "./objectUrls";
 
 const STORAGE_PREFIX = "mf_configurator_build:";
 const DRAFT_VERSION = 1;
+export const CURRENT_CONFIGURATOR_DRAFT_VERSION = DRAFT_VERSION;
 const STEP_IDS = new Set(["garment-colour", "artwork", "neck-label"]);
 const ARTWORK_FILE_TYPES = new Set(["jpg", "png", "svg", "ai"]);
 const ARTWORK_TECHNIQUES = new Set([
@@ -67,6 +68,75 @@ function storageKey(configId: string): string {
   return `${STORAGE_PREFIX}${configId}`;
 }
 
+function normalizeBuildDraft(input: unknown): BuildDraft | null {
+  const parsed = input as Partial<BuildDraft>;
+  if (
+    !isRecord(parsed) ||
+    parsed.version !== DRAFT_VERSION ||
+    !isRecord(parsed.colour) ||
+    (parsed.colour.type !== "signature" &&
+      parsed.colour.type !== "custom_dye") ||
+    typeof parsed.colour.name !== "string" ||
+    typeof parsed.colour.hex !== "string" ||
+    typeof parsed.colour.confirmed !== "boolean" ||
+    !isRecord(parsed.artwork) ||
+    (parsed.artwork.front !== undefined &&
+      !isArtworkSide(parsed.artwork.front)) ||
+    (parsed.artwork.back !== undefined &&
+      !isArtworkSide(parsed.artwork.back)) ||
+    !Array.isArray(parsed.steps) ||
+    !parsed.steps.every(
+      (step) =>
+        isRecord(step) &&
+        STEP_IDS.has(String(step.id)) &&
+        typeof step.title === "string" &&
+        (step.summary === null || typeof step.summary === "string") &&
+        typeof step.confirmed === "boolean" &&
+        (step.skipped === undefined || typeof step.skipped === "boolean")
+    )
+  ) {
+    return null;
+  }
+
+  const quantity =
+    finiteNumber(parsed.quantity) && parsed.quantity > 0
+      ? Math.floor(parsed.quantity)
+      : 50;
+
+  return {
+    version: DRAFT_VERSION,
+    savedAt: parsed.savedAt ?? new Date().toISOString(),
+    colour: parsed.colour as GarmentColour,
+    artwork: parsed.artwork as Artwork,
+    neckLabel: (parsed.neckLabel ?? {}) as NeckLabel,
+    steps: parsed.steps as AccordionStepState[],
+    quantity,
+  };
+}
+
+/**
+ * Central schema migration boundary for local and cloud configurator drafts.
+ * Future versions add explicit transforms here; unknown future data is never
+ * overwritten so it remains recoverable in the browser.
+ */
+export function migrateConfiguratorDraft(
+  input: unknown,
+  fromVersion: number,
+  toVersion = DRAFT_VERSION
+): BuildDraft | null {
+  if (
+    !Number.isInteger(fromVersion) ||
+    !Number.isInteger(toVersion) ||
+    fromVersion <= 0 ||
+    fromVersion > DRAFT_VERSION ||
+    toVersion !== DRAFT_VERSION
+  ) {
+    return null;
+  }
+  if (fromVersion === DRAFT_VERSION) return normalizeBuildDraft(input);
+  return null;
+}
+
 /**
  * Reads a saved draft for this configId, if one exists and looks well-formed.
  * Returns null on first visit, in SSR, or if parsing/shape checks fail —
@@ -79,49 +149,8 @@ export function readBuildDraft(configId: string): BuildDraft | null {
     const raw = window.localStorage.getItem(storageKey(configId));
     if (!raw) return null;
 
-    const parsed = JSON.parse(raw) as Partial<BuildDraft>;
-    if (
-      !isRecord(parsed) ||
-      parsed.version !== DRAFT_VERSION ||
-      !isRecord(parsed.colour) ||
-      (parsed.colour.type !== "signature" &&
-        parsed.colour.type !== "custom_dye") ||
-      typeof parsed.colour.name !== "string" ||
-      typeof parsed.colour.hex !== "string" ||
-      typeof parsed.colour.confirmed !== "boolean" ||
-      !isRecord(parsed.artwork) ||
-      (parsed.artwork.front !== undefined &&
-        !isArtworkSide(parsed.artwork.front)) ||
-      (parsed.artwork.back !== undefined &&
-        !isArtworkSide(parsed.artwork.back)) ||
-      !Array.isArray(parsed.steps) ||
-      !parsed.steps.every(
-        (step) =>
-          isRecord(step) &&
-          STEP_IDS.has(String(step.id)) &&
-          typeof step.title === "string" &&
-          (step.summary === null || typeof step.summary === "string") &&
-          typeof step.confirmed === "boolean" &&
-          (step.skipped === undefined || typeof step.skipped === "boolean")
-      )
-    ) {
-      return null;
-    }
-
-    const quantity =
-      finiteNumber(parsed.quantity) && parsed.quantity > 0
-        ? Math.floor(parsed.quantity)
-        : 50;
-
-    return {
-      version: DRAFT_VERSION,
-      savedAt: parsed.savedAt ?? new Date().toISOString(),
-      colour: parsed.colour as GarmentColour,
-      artwork: parsed.artwork as Artwork,
-      neckLabel: (parsed.neckLabel ?? {}) as NeckLabel,
-      steps: parsed.steps as AccordionStepState[],
-      quantity,
-    };
+    const parsed = JSON.parse(raw) as { version?: unknown };
+    return migrateConfiguratorDraft(parsed, Number(parsed.version));
   } catch {
     // Corrupted/unparseable draft — treat as if none exists rather than
     // throwing and blocking the configurator from loading.
@@ -172,7 +201,9 @@ export function hasMeaningfulDraft(draft: BuildDraft | null): boolean {
   if (!draft) return false;
   const hasColourChoice = draft.colour.confirmed || draft.colour.type === "custom_dye";
   const hasArtwork = Boolean(draft.artwork.front || draft.artwork.back);
-  const hasNeckLabel = Boolean(draft.neckLabel?.fileUrl);
+  const hasNeckLabel = Boolean(
+    draft.neckLabel?.fileUrl || draft.neckLabel?.fileId
+  );
   const hasCompletedStep = draft.steps.some((step) => step.confirmed || step.skipped);
   return hasColourChoice || hasArtwork || hasNeckLabel || hasCompletedStep;
 }

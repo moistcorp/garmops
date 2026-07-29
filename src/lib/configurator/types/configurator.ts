@@ -28,6 +28,8 @@ export interface ArtworkGuidelines {
 
 export interface ArtworkSide {
   fileUrl: string;
+  /** Private R2 metadata ID used by cloud designs. */
+  fileId?: string;
   /** IndexedDB key for user uploads. `fileUrl` is a document-scoped object URL
    * and is recreated from this key when a saved draft is restored. */
   fileKey?: string;
@@ -62,6 +64,8 @@ export type NeckLabelFileType = 'svg' | 'ai';
 
 export interface NeckLabel {
   fileUrl: string; // .svg or .ai only
+  /** Private R2 metadata ID used by cloud designs. */
+  fileId?: string;
   /** IndexedDB key used to recreate an uploaded file after a reload. */
   fileKey?: string;
   fileName?: string;
