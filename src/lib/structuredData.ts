@@ -177,3 +177,58 @@ export function faqSchema(items: Array<{ q: string; a: string }>) {
     })),
   }
 }
+
+export function serviceSchema({
+  id,
+  name,
+  description,
+  path,
+  serviceType,
+  audience,
+  image,
+}: {
+  id: string
+  name: string
+  description: string
+  path: string
+  serviceType: string
+  audience: string[]
+  image?: string
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    '@id': `${absoluteUrl(path)}#${id}`,
+    name,
+    description,
+    url: absoluteUrl(path),
+    image: image ? absoluteUrl(image) : undefined,
+    serviceType,
+    provider: { '@id': `${siteConfig.url}/#organization` },
+    areaServed: { '@type': 'Country', name: 'India' },
+    audience: audience.map(audienceType => ({
+      '@type': 'BusinessAudience',
+      audienceType,
+    })),
+  }
+}
+
+export function productItemListSchema(
+  name: string,
+  path: string,
+  selectedProducts: Product[],
+) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    '@id': `${absoluteUrl(path)}#products`,
+    name,
+    numberOfItems: selectedProducts.length,
+    itemListElement: selectedProducts.map((product, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      url: absoluteUrl(`/products/${product.slug}`),
+      name: product.name,
+    })),
+  }
+}

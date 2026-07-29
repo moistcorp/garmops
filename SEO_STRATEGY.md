@@ -126,6 +126,35 @@ Review monthly, but make decisions over a 90-day window:
 
 Do not measure success by article count. The useful outcome is qualified discovery that turns into specifications, samples and production enquiries.
 
+## Phase 1 commercial search architecture — 29 July 2026
+
+Seven server-rendered commercial landing pages now separate product-category, company-use-case and industry intent:
+
+- `/custom-t-shirt-printing` — bulk custom T-shirt printing, with 200 GSM and 260 GSM regular- and boxy-fit options;
+- `/custom-polo-t-shirts` — company, staff and hospitality polo T-shirts;
+- `/custom-hoodies` — regular- and boxy-fit bulk custom hoodies;
+- `/custom-tote-bags` — printed canvas tote bags for business and event use;
+- `/corporate-merchandise` — employee apparel and company merchandise planning;
+- `/industries/hospitality` — restaurant staff apparel and customer merchandise;
+- `/industries/events` — attendee, crew, sponsor, festival and artist merchandise.
+
+The routes share one typed content registry and reusable server components. Product specifications and sample prices come from the current product catalogue. Each page has a distinct title, description, H1, visible breadcrumb, contextual product links, planning sections, visible FAQs, conversion links and matching BreadcrumbList, Service, ItemList and FAQPage structured data.
+
+The homepage, mobile navigation and four-column footer expose the completed routes. Product pages now use bulk-order-oriented metadata, descriptive image alt text and category, pricing and configurator links. The sitemap, Markdown negotiation route map, `llms.txt`, `llms-full.txt` and automated SEO regression check include the same public pages.
+
+## Search Console checklist after deployment
+
+1. Confirm every `https://garmops.com/...` request permanently redirects to the equivalent `https://www.garmops.com/...` URL.
+2. Confirm all seven Phase 1 routes return HTTP 200 in production.
+3. Inspect rendered source for each route’s unique title, canonical, meta description, single H1 and JSON-LD.
+4. Submit or resubmit `https://www.garmops.com/sitemap.xml`.
+5. Request indexing for the homepage, the four product-category pages, corporate merchandise, hospitality and events.
+6. Validate the homepage, one product page, one journal article and one Service landing page in Google’s testing tools.
+7. Monitor indexing status, Google-selected canonicals and structured-data reports.
+8. Measure query impressions and qualified actions by landing-page cluster for at least 8–12 weeks before making major keyword-ownership changes.
+
+The Udyam, GST and IEC footer claims, existing case-study identities and results, product compositions, pricing, delivery terms and operating policies remain subject to the owner verification gate above.
+
 ## Reference guidance
 
 - [Google: structured data introduction](https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data)

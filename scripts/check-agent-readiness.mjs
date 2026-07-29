@@ -5,6 +5,15 @@ import process from 'node:process'
 
 const root = process.cwd()
 const failures = []
+const commercialAgentPaths = [
+  '/custom-t-shirt-printing',
+  '/custom-polo-t-shirts',
+  '/custom-hoodies',
+  '/custom-tote-bags',
+  '/corporate-merchandise',
+  '/industries/hospitality',
+  '/industries/events',
+]
 
 function check(condition, message) {
   if (!condition) failures.push(message)
@@ -32,6 +41,14 @@ const llms = read('public/llms.txt').toString('utf8')
 check(llms.includes('https://www.garmops.com/index.md'), 'llms.txt does not link to Markdown content.')
 check(llms.includes('/.well-known/agent-skills/'), 'llms.txt does not advertise the public skill.')
 check(read('public/llms-full.txt').length > 0, 'llms-full.txt is empty.')
+
+const agentRoutes = read('src/lib/agentRoutes.ts').toString('utf8')
+const agentContent = read('src/lib/agentContent.ts').toString('utf8')
+for (const path of commercialAgentPaths) {
+  check(agentRoutes.includes(`'${path}'`), `Agent route map is missing ${path}.`)
+  check(llms.includes(`${path}/index.md`), `llms.txt is missing the Markdown URL for ${path}.`)
+}
+check(agentContent.includes('landingPageMarkdown'), 'Agent content does not render the commercial landing-page registry.')
 
 const proxy = read('src/proxy.ts').toString('utf8')
 check(proxy.includes("includes('text/markdown')"), 'Proxy does not negotiate text/markdown.')

@@ -1,4 +1,4 @@
-import { products } from '@/lib/products'
+import { productSeoDescription, productSeoTitle, products } from '@/lib/products'
 import { notFound } from 'next/navigation'
 import ShopProductClient from './ShopProductClient'
 import type { Metadata } from 'next'
@@ -22,16 +22,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     }
   }
   return generateMeta({
-    title: `${product.name} Sample`,
-    description: `${product.description} Order a sample or customise it for a bulk branded apparel run from 50 pieces.`,
+    title: productSeoTitle(product),
+    description: productSeoDescription(product),
     path: `/products/${product.slug}`,
     image: product.image ?? undefined,
-    keywords: [
-      `${product.name.toLowerCase()} India`,
-      `custom ${product.category.toLowerCase()}`,
-      `${product.gsm} GSM ${product.name.toLowerCase()}`,
-      'bulk custom apparel',
-    ],
   })
 }
 

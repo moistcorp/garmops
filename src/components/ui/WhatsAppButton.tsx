@@ -1,4 +1,9 @@
+'use client'
+
+import { usePathname } from 'next/navigation'
+
 export default function WhatsAppButton() {
+  const pathname = usePathname()
   const phone = '918800711169'
   const message = 'Hi, I found Garmops and would like to know more about custom apparel.'
   const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
@@ -8,6 +13,16 @@ export default function WhatsAppButton() {
       href={url}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={() => {
+        const payload = {
+          event: 'whatsapp_click',
+          source_page: pathname,
+          destination: 'whatsapp',
+        }
+        window.dataLayer = window.dataLayer ?? []
+        window.dataLayer.push(payload)
+        window.dispatchEvent(new CustomEvent('garmops:analytics', { detail: payload }))
+      }}
       className="fixed bottom-6 right-6 z-40 hidden h-14 w-14 items-center justify-center rounded-full border border-white/70 bg-[#25D366] text-white shadow-[0_10px_28px_rgba(22,33,43,0.18),inset_0_1px_0_rgba(255,255,255,0.45)] ring-4 ring-white/30 backdrop-blur-md transition-transform hover:scale-110 sm:flex"
       aria-label="Chat on WhatsApp"
     >

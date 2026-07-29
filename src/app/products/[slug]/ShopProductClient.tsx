@@ -2,7 +2,14 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { Product } from '@/lib/products'
+import {
+  Product,
+  productCategoryLandingPath,
+  productCategoryLinkLabel,
+  productDecorationMethods,
+  productImageAlt,
+  productSuitableUseCases,
+} from '@/lib/products'
 import { MAX_SAMPLE_ITEM_QUANTITY, useCartStore } from '@/lib/store'
 import Link from 'next/link'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
@@ -24,6 +31,9 @@ export default function ShopProductClient({
   const [error, setError] = useState('')
 
   const sizeChart = getSizeChart(product.slug)
+  const categoryPath = productCategoryLandingPath(product)
+  const suitableUseCases = productSuitableUseCases(product)
+  const decorationMethods = productDecorationMethods(product)
 
   const related = allProducts
     .filter(p => p.category === product.category && p.id !== product.id)
@@ -81,7 +91,7 @@ export default function ShopProductClient({
               <div className="relative aspect-[3/4] overflow-hidden rounded-2xl border border-[#ECE7DF] shadow-[0_8px_30px_rgba(22,33,43,0.06)]">
                 <Image
                   src={product.image}
-                  alt={product.name}
+                  alt={productImageAlt(product)}
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover"
@@ -109,7 +119,7 @@ export default function ShopProductClient({
               <p className="text-2xl font-bold text-[#111111]">
                 &#8377;{product.price.toLocaleString('en-IN')}
               </p>
-              <p className="text-xs text-[#111111]/40 mt-1">Per piece</p>
+              <p className="text-xs text-[#111111]/40 mt-1">Catalogue sample price per piece</p>
             </div>
 
             <p className="text-sm text-[#111111]/60 leading-relaxed">{product.description}</p>
@@ -186,6 +196,12 @@ export default function ShopProductClient({
                 className="w-full py-2 text-center text-sm font-medium text-[#111111]/55 underline-offset-4 transition-colors hover:text-[var(--color-teal)] hover:underline"
               >
                 Customise this product in the configurator
+              </Link>
+              <Link
+                href={categoryPath}
+                className="w-full py-1 text-center text-sm font-medium text-[#111111]/55 underline-offset-4 transition-colors hover:text-[var(--color-teal)] hover:underline"
+              >
+                {productCategoryLinkLabel(product)}
               </Link>
             </div>
 
@@ -290,6 +306,50 @@ export default function ShopProductClient({
         </div>
       </div>
 
+      <section className="mx-auto max-w-7xl px-4 pb-4 pt-2 sm:px-6 sm:pb-8 sm:pt-4">
+        <div className="max-w-3xl">
+          <p className="mb-3 text-xs font-medium uppercase tracking-widest text-[#111111]/40">Bulk orders</p>
+          <h2 className="text-3xl font-bold tracking-tight text-[#111111] sm:text-4xl">
+            Plan a branded run with this garment
+          </h2>
+          <p className="mt-4 text-sm leading-7 text-[#111111]/60 sm:text-base">
+            The displayed price is for a catalogue sample. Bulk orders begin from 50 pieces per style and are reviewed against the complete garment, artwork, quantity, size and delivery specification.
+          </p>
+        </div>
+        <div className="mt-8 grid gap-5 md:grid-cols-3">
+          <article className="liquid-glass-panel rounded-[22px] border p-5 sm:p-6">
+            <h3 className="text-base font-semibold text-[#111111]">Suitable use cases</h3>
+            <ul className="mt-4 space-y-2">
+              {suitableUseCases.map(useCase => (
+                <li key={useCase} className="text-sm leading-6 text-[#111111]/60">— {useCase}</li>
+              ))}
+            </ul>
+          </article>
+          <article className="liquid-glass-panel rounded-[22px] border p-5 sm:p-6">
+            <h3 className="text-base font-semibold text-[#111111]">Decoration methods to review</h3>
+            <ul className="mt-4 space-y-2">
+              {decorationMethods.map(method => (
+                <li key={method} className="text-sm leading-6 text-[#111111]/60">— {method}</li>
+              ))}
+            </ul>
+          </article>
+          <article className="liquid-glass-panel rounded-[22px] border p-5 sm:p-6">
+            <h3 className="text-base font-semibold text-[#111111]">Continue the order</h3>
+            <div className="mt-4 flex flex-col items-start gap-3">
+              <Link href={categoryPath} className="text-sm font-medium text-[var(--color-teal-dark)] underline underline-offset-4">
+                {productCategoryLinkLabel(product)}
+              </Link>
+              <Link href="/pricing" className="text-sm font-medium text-[var(--color-teal-dark)] underline underline-offset-4">
+                Estimate bulk apparel pricing
+              </Link>
+              <Link href="/configurator" className="text-sm font-medium text-[var(--color-teal-dark)] underline underline-offset-4">
+                Configure this garment for a bulk order
+              </Link>
+            </div>
+          </article>
+        </div>
+      </section>
+
       {/* Related */}
       {related.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 pb-16 pt-12 sm:px-6 sm:pb-24 sm:pt-16">
@@ -307,7 +367,7 @@ export default function ShopProductClient({
                   {p.image ? (
                     <Image
                       src={p.image}
-                      alt={p.name}
+                      alt={productImageAlt(p)}
                       fill
                       sizes="(max-width: 768px) 100vw, 33vw"
                       className="object-cover group-hover:scale-105 transition-transform duration-500"

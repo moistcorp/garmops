@@ -179,3 +179,96 @@ export const products: Product[] = [
 ]
 
 export const categories = ['T-Shirts', 'Longsleeve', 'Polos', 'Sweatshirts', 'Hoodies', 'Accessories']
+
+export function productSeoTitle(product: Product) {
+  const fit = product.fits?.[0]
+
+  if (product.category === 'T-Shirts') {
+    const weight = product.gsm >= 260 ? ' Heavyweight' : ''
+    const fitLabel = fit === 'Boxy' ? 'Boxy ' : fit === 'Regular' ? 'Regular Fit ' : ''
+    return `Custom ${product.gsm} GSM ${fitLabel}${weight.trimStart()} T-Shirt | Bulk Orders India`
+      .replace(/\s+/g, ' ')
+  }
+
+  if (product.category === 'Polos') {
+    return `Custom ${product.gsm} GSM Polo T-Shirt | Company & Staff Orders`
+  }
+
+  if (product.category === 'Hoodies') {
+    return `Custom ${product.gsm} GSM ${fit ?? ''} Fit Hoodie | Bulk Orders India`
+      .replace(/\s+/g, ' ')
+  }
+
+  if (product.category === 'Accessories') {
+    return 'Custom Canvas Tote Bag | Bulk Orders India'
+  }
+
+  if (product.category === 'Sweatshirts') {
+    return `Custom ${product.gsm} GSM ${fit ?? ''} Fit Sweatshirt | Bulk Orders India`
+      .replace(/\s+/g, ' ')
+  }
+
+  return `Custom ${product.name} | Bulk Orders India`
+}
+
+export function productSeoDescription(product: Product) {
+  if (product.category === 'Polos') {
+    return `Compare the ${product.gsm} GSM cotton-pique polo, order a catalogue sample or configure custom company and staff polos from 50 pieces in India.`
+  }
+
+  if (product.category === 'Accessories') {
+    return 'Compare the 12 oz canvas tote specification, order a catalogue sample or configure custom printed tote bags from 50 pieces in India.'
+  }
+
+  return `Compare the ${product.gsm} GSM ${product.name} specification, order a catalogue sample or configure a bulk branded run from 50 pieces in India.`
+}
+
+export function productCategoryLandingPath(product: Product) {
+  if (product.category === 'T-Shirts') return '/custom-t-shirt-printing'
+  if (product.category === 'Polos') return '/custom-polo-t-shirts'
+  if (product.category === 'Hoodies') return '/custom-hoodies'
+  if (product.category === 'Accessories') return '/custom-tote-bags'
+  return '/products'
+}
+
+export function productCategoryLinkLabel(product: Product) {
+  if (product.category === 'T-Shirts') return 'Compare all bulk custom T-shirt options'
+  if (product.category === 'Polos') return 'Explore custom polo T-shirts for company and staff orders'
+  if (product.category === 'Hoodies') return 'Compare regular and boxy custom hoodies'
+  if (product.category === 'Accessories') return 'Explore custom canvas tote bags in bulk'
+  return 'Browse all custom apparel products'
+}
+
+export function productImageAlt(product: Product) {
+  const fit = product.fits?.[0] ? `${product.fits[0].toLowerCase()}-fit ` : ''
+  const productName = product.name.toLowerCase()
+  return `${product.gsm} GSM ${fit}${productName} for custom bulk apparel orders`
+}
+
+export function productSuitableUseCases(product: Product) {
+  if (product.category === 'Polos') {
+    return ['Company and field teams', 'Restaurant and hospitality staff', 'Exhibitions and events', 'Clubs and studios']
+  }
+  if (product.category === 'Hoodies' || product.category === 'Sweatshirts') {
+    return ['Employee merchandise', 'Team and club apparel', 'Event crews', 'Premium studio and retail merchandise']
+  }
+  if (product.category === 'Accessories') {
+    return ['Company programmes', 'Conferences and events', 'Cafe and studio merchandise', 'Branded retail collections']
+  }
+  if (product.category === 'T-Shirts') {
+    return product.gsm >= 260
+      ? ['Premium company merchandise', 'Artist and studio collections', 'Events and branded retail drops', 'Clubs and community apparel']
+      : ['Employee and staff apparel', 'Events and conferences', 'Restaurant and cafe apparel', 'Clubs and everyday merchandise']
+  }
+  return ['Company apparel', 'Events and team programmes', 'Branded merchandise collections']
+}
+
+export function productDecorationMethods(product: Product) {
+  if (product.category === 'Polos') {
+    return ['Embroidery for suitable compact logos', 'Screen printing for suitable artwork', 'DTF for reviewed detailed artwork']
+  }
+  if (product.category === 'Accessories') {
+    return ['Screen printing for bold artwork', 'DTF for reviewed detailed artwork']
+  }
+  return ['Screen printing', 'DTF', 'DTG on compatible garments', 'Embroidery for suitable artwork and positions']
+}

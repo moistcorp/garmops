@@ -35,6 +35,24 @@ Prices below are the current base prices displayed by Garmops before GST and shi
 Product specifications and sample ordering: https://www.garmops.com/products
 Interactive price estimator: https://www.garmops.com/pricing
 
+## Commercial product and industry pages
+
+- Bulk custom T-shirt printing: https://www.garmops.com/custom-t-shirt-printing
+  - 200 GSM and 260 GSM cotton T-shirts in regular and boxy fits.
+  - Screen printing, DTG, DTF, embroidery and supported custom neck-label choices.
+- Custom polo T-shirts: https://www.garmops.com/custom-polo-t-shirts
+  - 280 GSM cotton-pique polo for company, staff, hospitality, club and event orders.
+- Custom hoodies: https://www.garmops.com/custom-hoodies
+  - 320 GSM 80/20 cotton-poly fleece in regular and boxy fits.
+- Custom canvas tote bags: https://www.garmops.com/custom-tote-bags
+  - 12 oz natural canvas, reinforced handles, gusset base and one-size format.
+- Corporate merchandise: https://www.garmops.com/corporate-merchandise
+  - Employee apparel for onboarding, teams, company events, off-sites and recognition programmes.
+- Hospitality apparel: https://www.garmops.com/industries/hospitality
+  - Staff T-shirts and polos plus customer-facing cafe and restaurant merchandise.
+- Event merchandise: https://www.garmops.com/industries/events
+  - Attendee, crew, sponsor, conference, festival and artist merchandise planned against a must-arrive date.
+
 ## Customisation capabilities presented on the website
 
 - Ready-stock garment colours and custom dye references.

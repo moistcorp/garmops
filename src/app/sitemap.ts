@@ -2,6 +2,7 @@ import { MetadataRoute } from 'next'
 import { products } from '@/lib/products'
 import { caseStudies } from '@/lib/casestudies'
 import { journalPosts } from '@/lib/journal'
+import { allLandingPages } from '@/lib/landingPages'
 import { absoluteUrl, siteConfig } from '@/lib/seo'
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -20,6 +21,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ].map(page => ({
     ...page,
     lastModified: releaseDate,
+  }))
+
+  const commercialPages = allLandingPages.map(page => ({
+    url: absoluteUrl(`/${page.slug}`),
+    lastModified: '2026-07-29',
+    priority: page.slug === 'custom-tote-bags' || page.kind === 'industry' ? 0.8 : 0.9,
+    changeFrequency: 'monthly' as const,
+    images: page.seo.image ? [absoluteUrl(page.seo.image)] : undefined,
   }))
 
   const productPages = products.map(p => ({
@@ -46,5 +55,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     images: post.image ? [absoluteUrl(post.image)] : undefined,
   }))
 
-  return [...staticPages, ...productPages, ...workPages, ...journalPages]
+  return [...staticPages, ...commercialPages, ...productPages, ...workPages, ...journalPages]
 }

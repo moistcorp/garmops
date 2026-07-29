@@ -174,8 +174,8 @@ export const journalPosts: JournalPost[] = [
       },
     ],
     relatedLinks: [
+      { label: 'Explore bulk custom T-shirt production', href: '/custom-t-shirt-printing' },
       { label: 'Custom apparel pricing calculator', href: '/pricing' },
-      { label: 'Custom T-shirts and apparel catalogue', href: '/products' },
       { label: 'Request a custom apparel quote', href: '/contact' },
     ],
   },
@@ -307,8 +307,9 @@ export const journalPosts: JournalPost[] = [
     ],
     relatedLinks: [
       { label: 'Build a custom apparel order', href: '/configurator' },
-      { label: 'Browse printable garments', href: '/products' },
-      { label: 'Ask the production team', href: '/contact' },
+      { label: 'Explore bulk custom T-shirts', href: '/custom-t-shirt-printing' },
+      { label: 'Compare custom company polos', href: '/custom-polo-t-shirts' },
+      { label: 'Compare custom hoodies', href: '/custom-hoodies' },
     ],
   },
   {
@@ -587,119 +588,326 @@ export const journalPosts: JournalPost[] = [
       },
     ],
     relatedLinks: [
-      { label: 'Custom merchandise for businesses', href: '/' },
+      { label: 'Plan custom corporate merchandise', href: '/corporate-merchandise' },
       { label: 'Transparent bulk pricing', href: '/pricing' },
       { label: 'Request a corporate merchandise quote', href: '/contact' },
     ],
   },
   {
     slug: 'why-low-moq-matters',
-    title: 'Why low MOQ is a game changer for small brands',
-    excerpt: 'Most manufacturers require 500+ pieces minimum. Here is why we built Garmops around 50 — and what it means for brands just getting started.',
+    title: '50 vs 100 vs 500 piece apparel orders: cost and inventory trade-offs',
+    seoTitle: '50 vs 100 vs 500 Piece Apparel Orders',
+    excerpt: 'Compare how a 50, 100 or 500-piece custom-apparel order changes unit pricing, inventory exposure, size planning and the amount of demand evidence a buyer should have.',
+    metaDescription: 'Compare 50, 100 and 500-piece apparel orders by unit price, inventory risk, size planning and demand evidence before choosing a production quantity.',
     date: 'June 12, 2025',
     publishedAt: '2025-06-12',
-    category: 'Industry',
-    readTime: '4 min read',
+    updatedAt: '2026-07-29',
+    category: 'Quantity planning',
+    readTime: '7 min read',
+    author: 'Garmops Production Team',
+    image: '/products/regular-fit-tee-200gsm.webp',
+    keywords: ['custom apparel order quantity', '50 piece clothing order', '100 custom T-shirts', '500 piece apparel order'],
+    takeaways: [
+      'A 50-piece run reduces inventory exposure but normally carries a higher unit price than a larger repeatable order.',
+      'A 100-piece order can improve unit economics while remaining manageable when the product and size demand are reasonably understood.',
+      'A 500-piece run needs stronger demand, size and distribution evidence because an incorrect assumption is repeated across more units.',
+      'Compare the cash committed, likely sell-through or usage, storage and reorder plan—not only the per-piece price.',
+    ],
     sections: [
       {
-        heading: 'Start with demand, not inventory',
+        heading: 'The quantity changes more than unit price',
         paragraphs: [
-          'A smaller first run lets a brand test fit, colour, pricing, and demand without tying up months of cash in stock. The first order becomes a learning cycle rather than a long-term bet.',
-          'At 50 pieces, it is practical to launch one focused design, gather customer feedback, and use real sell-through data to plan the next production run.',
+          'A larger production run can spread setup and purchasing costs across more units, but it also commits more cash and multiplies every forecast error. An order quantity should be evaluated as an inventory and distribution decision, not only as a route to a lower unit price.',
+          'At Garmops, the minimum custom order is 50 pieces per style. The current volume discount is 7% from 100 pieces, 12% from 250 pieces and 17% from 500 pieces. Those tiers apply to the current estimator; a reviewed final quote still depends on the full product and artwork specification.',
+        ],
+        links: [{ label: 'Review current Garmops pricing tiers', href: '/pricing' }],
+      },
+      {
+        heading: 'When 50 pieces is the useful choice',
+        paragraphs: [
+          'A 50-piece run can be appropriate for a first merchandise test, a defined small team or an event with a controlled recipient list. It limits the number of garments affected if the first size split, colour or artwork decision needs improvement.',
+          'The trade-off is that fixed setup is spread across fewer pieces. Keep the first specification focused: one garment, a controlled colour range and artwork that suits the chosen decoration method.',
         ],
       },
       {
-        heading: 'More room to improve',
+        heading: 'When 100 pieces can improve the balance',
         paragraphs: [
-          'Smaller batches make iteration affordable. You can adjust the size split, artwork placement, or garment weight between runs instead of living with the same decision across hundreds of units.',
-          'The trade-off is a higher unit price than mass production. For an early-stage label, lower inventory risk and faster learning often matter more than the lowest possible per-piece cost.',
+          'A 100-piece order can make sense after the buyer has a clearer wearer list, prior sales signal or distribution plan. The additional units can support replacement stock, a second team location or a larger first retail range without moving immediately to mass inventory.',
+          'Before increasing quantity, check the size split and product variants. One hundred pieces divided across too many colours, fits and designs may create several weak assortments rather than one useful run.',
         ],
       },
+      {
+        heading: 'What must be known before ordering 500 pieces',
+        paragraphs: [
+          'At 500 pieces, the lower current unit-price tier is meaningful, but so is the cost of an incorrect garment, size curve, artwork placement or delivery plan. Use confirmed headcount, past sales, pre-orders, venue data or a documented distribution programme to justify the quantity.',
+          'Confirm storage, carton labelling, destination splits and the reorder strategy before production. A large order should not become the place where a brand first learns whether customers prefer regular or boxy fit.',
+        ],
+      },
+      {
+        heading: 'Compare total exposure, not only unit cost',
+        paragraphs: [
+          'Calculate the total cash committed, GST, shipping, sampling, storage and the likely value of unsold or unused pieces. Then compare that exposure with the savings from the next volume tier.',
+          'A smaller run that sells through or reaches the intended wearer can be more useful than a cheaper unit price attached to excess stock. A larger run is strongest when demand, sizes, artwork and distribution are already controlled.',
+        ],
+        links: [
+          { label: 'Read the low-MOQ manufacturer selection guide', href: '/journal/low-moq-custom-apparel-manufacturer-india' },
+          { label: 'Explore bulk custom T-shirt production', href: '/custom-t-shirt-printing' },
+        ],
+      },
+    ],
+    faq: [
+      { q: 'What is the minimum custom-apparel order at Garmops?', a: 'The minimum is 50 pieces per style, with sizes allocated within the available range for that product.' },
+      { q: 'Does a 100-piece order cost less per unit than 50 pieces?', a: 'Under the current Garmops estimator, the 100–249-piece tier receives a 7% volume discount from the base garment price. Artwork, techniques, GST, shipping and other requirements can still change the final unit cost.' },
+      { q: 'When is a 500-piece order appropriate?', a: 'A 500-piece run is most defensible when the buyer has reliable wearer, sales or distribution evidence and has already approved the garment, fit, artwork and size plan.' },
+    ],
+    relatedLinks: [
+      { label: 'Low-MOQ manufacturer selection guide', href: '/journal/low-moq-custom-apparel-manufacturer-india' },
+      { label: 'Current bulk apparel pricing', href: '/pricing' },
+      { label: 'Bulk custom T-shirt options', href: '/custom-t-shirt-printing' },
     ],
   },
   {
     slug: 'how-to-brief-a-manufacturer',
     title: 'How to brief a manufacturer — what to send and what to expect',
-    excerpt: 'A good brief saves weeks of back and forth. Here is exactly what information you need to provide to get an accurate quote and smooth production run.',
+    seoTitle: 'How to Brief a Custom Apparel Manufacturer',
+    excerpt: 'A production-focused checklist for garment, fit, GSM, quantity, artwork, decoration, colours, labels, packaging, approvals and delivery requirements.',
+    metaDescription: 'Prepare a complete custom-apparel manufacturing brief covering garment, GSM, sizes, artwork, decoration, colours, approvals and delivery.',
     date: 'May 14, 2025',
     publishedAt: '2025-05-14',
+    updatedAt: '2026-07-29',
     category: 'Guide',
-    readTime: '6 min read',
+    readTime: '8 min read',
+    author: 'Garmops Production Team',
+    image: '/images/how-it-works-1.webp',
+    keywords: ['custom apparel manufacturing brief', 'T-shirt production specification', 'apparel artwork requirements'],
+    takeaways: [
+      'Name the exact garment, fit, material and GSM so the quote has a defined base.',
+      'Provide total quantity, size split, artwork files, physical dimensions and every decoration position.',
+      'Record colour references, labels, packaging, destination, must-arrive date and sample requirements.',
+      'Identify the person who can approve artwork, commercials and samples, plus their decision deadline.',
+    ],
     sections: [
       {
-        heading: 'Define the product clearly',
+        heading: 'Define the garment and commercial scope',
         paragraphs: [
-          'Include the garment type, fit, fabric weight, colour, total quantity, size split, and delivery location. If a detail is undecided, label it as open rather than leaving it out.',
-          'For every artwork, specify the garment side, intended width or height, print technique if known, and Pantone references where colour matching matters.',
+          'Name the garment type, catalogue product or required construction, fit, material, GSM and garment colours. “Premium T-shirt” is not a production specification; “260 GSM boxy-fit cotton T-shirt” gives the manufacturer a defined starting point.',
+          'State total quantity per style and the size split. If sizes are not final, provide the collection deadline and the product-specific measurement chart that recipients will use. Mark undecided information as open rather than allowing assumptions into a quote.',
+        ],
+        bullets: ['Garment and fit', 'Material and GSM', 'Garment colourways', 'Quantity per style', 'Size split and collection deadline'],
+      },
+      {
+        heading: 'Describe every artwork position',
+        paragraphs: [
+          'Send original vector AI, EPS, PDF or SVG files for logos and flat graphics where possible. Raster artwork should be high resolution at the intended print dimensions. A digital mock-up communicates visual intent but does not replace the production file.',
+          'List front, back, sleeve and neck artwork separately. Give each position a physical width or height, garment colour, colour count and preferred technique if known. Ask the manufacturer to recommend a method when the artwork or fabric makes the choice unclear.',
+        ],
+        bullets: ['Source artwork file', 'Garment side and position', 'Physical width and height', 'Decoration technique', 'Ink, transfer or thread colour reference'],
+        links: [{ label: 'Compare decoration methods', href: '/journal/screen-printing-vs-dtg-vs-dtf-embroidery' }],
+      },
+      {
+        heading: 'Specify colour, labels and packaging',
+        paragraphs: [
+          'Provide Pantone or other agreed physical references for brand-critical colours and state whether a lab dip, print strike-off or embroidery sample needs approval. A colour displayed on screen is not a reliable physical standard.',
+          'Describe neck labels, size labels, hangtags, individual bags, size stickers or carton sorting separately. Include artwork, dimensions, material expectations and packing counts where they are known. These requirements affect cost and sequencing.',
         ],
       },
       {
-        heading: 'Send production-ready source files',
+        heading: 'Put delivery and approvals in the brief',
         paragraphs: [
-          'Vector artwork in AI, EPS, PDF, or SVG is ideal for most decoration methods. Raster artwork should be supplied at its final print size and high resolution.',
-          'Ask the manufacturer to confirm the final specification, price, sample plan, production lead time, shipping terms, and approval checkpoints in writing before production begins.',
+          'State the complete delivery postcode and the date on which goods must arrive. If there are several destinations, list quantities and dates for each. Work backwards to set the artwork freeze, size collection and sample approval deadlines.',
+          'Name the person who can approve the product, artwork, commercial quote and physical sample. Slow or conflicting approval is a production risk, so record who has final authority and when a response is due.',
+        ],
+        bullets: ['Delivery address and must-arrive date', 'Artwork approver', 'Commercial approver', 'Sample requirement', 'Approval deadline', 'GST and purchase-order requirements'],
+      },
+      {
+        heading: 'Ask for one controlled confirmation',
+        paragraphs: [
+          'Before production, request a written specification that brings the garment, sizes, artwork, techniques, labels, packing, pricing, GST, shipping and schedule together. Check that it matches the final visual and any physical approval.',
+          'Changes after approval should be documented with a new version. One controlled reference reduces the chance that production follows an old artwork file or an earlier size list.',
+        ],
+        links: [
+          { label: 'See the Garmops order process', href: '/how-it-works' },
+          { label: 'Configure an order specification', href: '/configurator' },
         ],
       },
+    ],
+    relatedLinks: [
+      { label: 'Build a product and artwork configuration', href: '/configurator' },
+      { label: 'Request a reviewed quote', href: '/contact' },
+      { label: 'Compare current product specifications', href: '/products' },
     ],
   },
   {
     slug: 'fabric-weight-guide',
-    title: 'Fabric weight explained — GSM and what it means for your merch',
-    excerpt: 'GSM stands for grams per square metre. It is the single most important spec when choosing a blank. Here is how to pick the right weight for your product.',
+    title: '200 GSM vs 260 GSM T-shirts: which is right for your order?',
+    seoTitle: '200 GSM vs 260 GSM T-Shirts',
+    excerpt: 'Compare 200 GSM and 260 GSM T-shirts by weight, drape, structure, fit, artwork, use case, pricing and sample approval.',
+    metaDescription: 'Compare 200 GSM and 260 GSM T-shirts by weight, structure, fit, printing, use case, pricing and sample approval for a bulk order.',
     date: 'April 30, 2025',
     publishedAt: '2025-04-30',
+    updatedAt: '2026-07-29',
     category: 'Guide',
-    readTime: '4 min read',
+    readTime: '7 min read',
+    author: 'Garmops Production Team',
+    image: '/products/boxy-fit-tee-260gsm.webp',
+    keywords: ['200 GSM vs 260 GSM T-shirt', 'heavyweight T-shirt GSM', 'custom T-shirt fabric weight'],
+    takeaways: [
+      'GSM measures fabric mass per square metre; it does not measure quality on its own.',
+      'A 200 GSM T-shirt is lighter and versatile, while a 260 GSM T-shirt has more weight and structure.',
+      'Regular and boxy fits change how the same weight appears and should be approved separately.',
+      'Use a physical sample when drape, climate, embroidery support or premium feel is important.',
+    ],
     sections: [
       {
         heading: 'What GSM tells you',
         paragraphs: [
           'GSM measures fabric mass per square metre. A higher number usually feels heavier and more substantial, while a lower number usually feels lighter and more breathable.',
-          'It does not measure quality by itself. Fibre, yarn, knit construction, finishing, and shrinkage control all affect how a garment wears.',
+          'It does not measure quality by itself. Fibre, yarn, knit construction, finishing and shrinkage control all affect the garment. Compare composition and construction alongside the number.',
         ],
       },
       {
-        heading: 'Match weight to use',
+        heading: 'When 200 GSM is a useful starting point',
         paragraphs: [
-          'A lighter tee can suit warm climates and event uniforms; a heavyweight tee offers more structure for a premium retail product. Hoodies and sweatshirts need enough weight to support their intended silhouette.',
-          'Evaluate weight together with fit and fabric composition, ideally using a physical sample before approving a bulk run.',
+          'A 200 GSM T-shirt provides a lighter, versatile base for company apparel, restaurants, conferences, clubs and everyday merchandise. The Garmops catalogue includes regular- and boxy-fit 200 GSM options.',
+          'Climate and wearer activity matter, but fabric weight alone cannot guarantee comfort. Use the actual sample, fit and operating environment to approve the choice.',
+        ],
+        links: [
+          { label: 'View the 200 GSM regular-fit T-shirt', href: '/products/regular-fit-tee-200gsm' },
+          { label: 'View the 200 GSM boxy-fit T-shirt', href: '/products/boxy-fit-tee-200gsm' },
         ],
       },
+      {
+        heading: 'When 260 GSM suits the brief',
+        paragraphs: [
+          'A 260 GSM T-shirt has a heavier, more structured feel that can suit premium employee apparel, studio merchandise and streetwear-inspired collections. Garmops offers regular- and boxy-fit heavyweight options.',
+          'The additional weight may influence drape, warmth, decoration choice and unit price. It should not be described as universally better than a lighter garment.',
+        ],
+        links: [
+          { label: 'View the 260 GSM regular-fit T-shirt', href: '/products/regular-fit-tee-260gsm' },
+          { label: 'View the 260 GSM boxy-fit T-shirt', href: '/products/boxy-fit-tee-260gsm' },
+        ],
+      },
+      {
+        heading: 'Fit changes the effect of fabric weight',
+        paragraphs: [
+          'A regular fit uses a more familiar body shape, while a boxy fit is wider and commonly uses a dropped shoulder. A 260 GSM boxy tee therefore combines both a heavier fabric and a more pronounced silhouette.',
+          'Use the product-specific measurement chart and a physical sample. Do not assume that a wearer’s usual regular-fit size should be copied into an oversized product.',
+        ],
+      },
+      {
+        heading: 'Printing, embroidery and price',
+        paragraphs: [
+          'Screen printing, DTG and DTF can work on appropriate 200 GSM and 260 GSM products, subject to fabric, garment colour, artwork and process review. Embroidery can suit compact marks, but density and placement should be sampled when puckering or comfort is a concern.',
+          'At current Garmops base pricing, the 200 GSM T-shirts start at ₹535 per piece and 260 GSM T-shirts start at ₹565 before GST and shipping. Quantity, artwork, techniques, labels, samples and deadline can change the final quote.',
+        ],
+        links: [
+          { label: 'Explore all bulk custom T-shirt options', href: '/custom-t-shirt-printing' },
+          { label: 'Estimate current order pricing', href: '/pricing' },
+        ],
+      },
+    ],
+    faq: [
+      { q: 'Is 260 GSM better than 200 GSM?', a: 'No single weight is universally better. Choose 200 GSM for a lighter, versatile garment and 260 GSM for more weight and structure, then review fit, use, artwork and budget.' },
+      { q: 'Does higher GSM mean higher quality?', a: 'Not by itself. Fibre, yarn, knit, construction, finishing and shrinkage control also affect quality and performance.' },
+      { q: 'Should we sample both weights?', a: 'A physical comparison is useful when garment feel, drape, fit, climate or decoration support is important to the order.' },
+    ],
+    relatedLinks: [
+      { label: 'Bulk custom T-shirt printing options', href: '/custom-t-shirt-printing' },
+      { label: 'Compare decoration methods', href: '/journal/screen-printing-vs-dtg-vs-dtf-embroidery' },
+      { label: 'Order catalogue samples', href: '/products' },
     ],
   },
   {
     slug: 'cafe-merch-guide',
-    title: 'The cafe merch playbook — what sells and what sits on the shelf',
-    excerpt: 'After working with cafe brands, we have a clear picture of what custom merch actually moves. Here is how to plan a focused first collection.',
+    title: 'Cafe and restaurant merchandise in India: staff apparel, T-shirts and totes',
+    seoTitle: 'Cafe & Restaurant Merchandise India',
+    excerpt: 'Plan restaurant staff apparel and customer merchandise with practical guidance on polos, T-shirts, colours, sizes, replacement stock and canvas totes.',
+    metaDescription: 'Plan cafe and restaurant merchandise in India, including staff polos, T-shirts, colours, sizes, replacement stock and customer-facing totes.',
     date: 'April 15, 2025',
     publishedAt: '2025-04-15',
+    updatedAt: '2026-07-29',
     category: 'Industry',
-    readTime: '5 min read',
+    readTime: '8 min read',
+    author: 'Garmops Production Team',
+    image: '/industries/hotels-restaurants.webp',
+    keywords: ['cafe merchandise India', 'restaurant staff T-shirts', 'restaurant polo uniforms', 'cafe tote bags'],
+    takeaways: [
+      'Separate operational staff apparel from merchandise intended for customers.',
+      'Polos create a more structured silhouette; T-shirts can support casual staff or retail merchandise.',
+      'Collect staff sizes against the selected product chart and plan controlled replacement stock.',
+      'Start a customer merchandise range with a focused product, artwork and colour assortment.',
+    ],
     sections: [
       {
-        heading: 'Make the product useful first',
+        heading: 'Separate staff apparel from customer merchandise',
         paragraphs: [
-          'Totes, tees, caps, and reusable drinkware fit naturally into a customer’s routine. The strongest cafe merchandise can stand on its own even when the buyer is not inside the cafe.',
-          'A small, recognisable design often travels further than a large logo. Treat the cafe identity as source material for a product, not simply an advertisement.',
+          'Operational apparel helps a team look consistent and should be planned by role, shift, size, replacement need and repeatability. Customer merchandise is a retail product and should be planned around design, fit, price point, display and expected demand.',
+          'The two ranges can share an identity without using the same garment. A structured polo may suit front-of-house staff, while a heavyweight boxy tee may better suit a design-led customer collection.',
         ],
       },
       {
-        heading: 'Keep the first range focused',
+        heading: 'Choose polo or T-shirt around the role',
         paragraphs: [
-          'Start with one or two product types and a controlled colour palette. This keeps the size split and inventory easier to manage while making the display feel intentional.',
-          'Track sales by product, size, and colour. Reorder proven combinations and use customer requests to decide what belongs in the next release.',
+          'A polo provides a collar and placket for a more structured customer-facing silhouette. Compact embroidery or print can identify the venue without requiring a large graphic.',
+          'A regular-fit T-shirt can suit casual service, events and back-of-house roles where the garment is appropriate to the working environment. Use a physical sample and the venue’s operational requirements rather than making a decision from product category alone.',
+        ],
+        links: [
+          { label: 'Explore custom hospitality polos', href: '/custom-polo-t-shirts' },
+          { label: 'Compare custom T-shirt options', href: '/custom-t-shirt-printing' },
         ],
       },
+      {
+        heading: 'Plan colour and logo visibility',
+        paragraphs: [
+          'Check brand contrast on the actual garment and define the logo’s physical dimensions and position. Garment colour also affects how visible everyday marks or stains may be, but no colour is universally right for every restaurant role.',
+          'When colour is brand-critical, approve ink, thread or garment colour against a physical reference under consistent lighting. Screen previews are not production standards.',
+        ],
+      },
+      {
+        heading: 'Collect sizes and replacement stock',
+        paragraphs: [
+          'Share the product-specific measurement chart and ask staff to compare it with a garment that fits. Track quantities by role and size and identify who owns additions or corrections before production.',
+          'Consider shift rotation, new joiners and replacements when setting the total, but avoid a universal buffer percentage. Retain the approved garment, artwork, dimensions and colour reference for repeat orders.',
+        ],
+      },
+      {
+        heading: 'Build a focused retail range',
+        paragraphs: [
+          'For customer merchandise, start with one or two products and a controlled colour palette. A T-shirt with venue-specific artwork and a one-size canvas tote can create a coherent range without fragmenting inventory across too many variants.',
+          'Track sales by product, size and colour. Use that evidence to reorder proven combinations rather than expanding the next range only from anecdotal requests.',
+        ],
+        links: [
+          { label: 'Explore custom canvas tote bags', href: '/custom-tote-bags' },
+          { label: 'Plan hospitality apparel and merchandise', href: '/industries/hospitality' },
+        ],
+      },
+    ],
+    relatedLinks: [
+      { label: 'Hospitality apparel and merchandise', href: '/industries/hospitality' },
+      { label: 'Custom company and restaurant polos', href: '/custom-polo-t-shirts' },
+      { label: 'Custom canvas tote bags', href: '/custom-tote-bags' },
     ],
   },
   {
     slug: 'pantone-to-fabric',
     title: 'From Pantone to fabric — how color matching actually works',
-    excerpt: 'Your brand color looks perfect on screen. Getting it right on fabric is a different challenge. Here is how we handle color accuracy at Garmops.',
+    seoTitle: 'Pantone to Fabric Colour Matching',
+    excerpt: 'Understand the gap between digital colour and physical fabric, including Pantone references, lab dips, dye lots, strike-offs, thread, ink, lighting and approval tolerances.',
+    metaDescription: 'Understand apparel colour matching across screens, Pantone references, fabric, lab dips, dye lots, ink, thread, lighting and physical approval.',
     date: 'April 2, 2025',
     publishedAt: '2025-04-02',
+    updatedAt: '2026-07-29',
     category: 'Production',
-    readTime: '3 min read',
+    readTime: '7 min read',
+    author: 'Garmops Production Team',
+    image: '/images/manufacturing-facility.webp',
+    keywords: ['Pantone fabric colour matching', 'apparel lab dip', 'print strike-off', 'embroidery thread matching'],
+    takeaways: [
+      'Screens emit light; fabric, ink and thread reflect light, so the same digital value cannot guarantee the same physical appearance.',
+      'A Pantone reference gives the parties a common target but still requires process-specific sampling and tolerance.',
+      'Lab dips, strike-offs and pre-production samples answer different colour questions.',
+      'Retain the approved physical reference and review production under consistent lighting.',
+    ],
     sections: [
       {
         heading: 'Screens are not fabric',
@@ -709,12 +917,42 @@ export const journalPosts: JournalPost[] = [
         ],
       },
       {
-        heading: 'Approve a physical standard',
+        heading: 'Use the right physical checkpoint',
         paragraphs: [
-          'For colour-critical work, review a lab dip, strike-off, or decorated pre-production sample under consistent lighting. Record the approved reference so production and quality control compare against the same target.',
-          'Allow realistic tolerances and communicate which colours are brand-critical before quoting; exact custom matching may affect minimums, lead time, and cost.',
+          'A lab dip tests a proposed fabric dye colour. A print strike-off tests ink or transfer colour and behaviour on the chosen fabric. An embroidery sew-out tests thread, density and the way the mark appears at the final size.',
+          'A full pre-production sample brings garment, decoration, placement and labels together. Choose the checkpoint around the part of the order that carries the greatest risk.',
         ],
       },
+      {
+        heading: 'Account for dye lots, ink and thread',
+        paragraphs: [
+          'Fabric produced in different dye lots can vary within an agreed tolerance. Reorders should reference the retained approved sample, while recognising that a new lot may need review.',
+          'Ink coverage changes with fabric colour, texture and underbase. Embroidery thread has its own physical colour range and sheen. Ask the supplier to match the appropriate production material rather than a screen swatch alone.',
+        ],
+      },
+      {
+        heading: 'Control lighting and approval language',
+        paragraphs: [
+          'Review colour under consistent, agreed lighting because warm interior light, daylight and phone-camera processing can make the same sample appear different. Place the approved reference beside the new sample during review.',
+          'Approval comments should identify the reference and acceptable change. “Closer to the approved Pantone chip” is more actionable than “make it brighter”. Record whether colour is brand-critical and what tolerance has been agreed.',
+        ],
+      },
+      {
+        heading: 'Retain the production reference',
+        paragraphs: [
+          'Keep the approved lab dip, strike-off, sew-out or finished sample with the dated order specification. Production and final quality checks should compare against that same physical reference.',
+          'For a repeat order, confirm whether the reference is still valid, whether the base material has changed and whether a new physical approval is required.',
+        ],
+        links: [
+          { label: 'Learn how to brief a manufacturer', href: '/journal/how-to-brief-a-manufacturer' },
+          { label: 'See the Garmops order process', href: '/how-it-works' },
+        ],
+      },
+    ],
+    relatedLinks: [
+      { label: 'Prepare a complete production brief', href: '/journal/how-to-brief-a-manufacturer' },
+      { label: 'Compare decoration methods', href: '/journal/screen-printing-vs-dtg-vs-dtf-embroidery' },
+      { label: 'Configure garment and artwork colours', href: '/configurator' },
     ],
   },
 ]

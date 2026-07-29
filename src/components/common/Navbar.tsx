@@ -8,11 +8,32 @@ import { useCartStore } from '@/lib/store'
 
 const links = [
   { label: 'Products', href: '/products' },
+  { label: 'Solutions', href: '/corporate-merchandise' },
   { label: 'How it works', href: '/how-it-works' },
   { label: 'Work', href: '/work' },
   { label: 'Pricing', href: '/pricing' },
   { label: 'Journal', href: '/journal' },
   { label: 'Contact', href: '/contact' },
+]
+
+const mobileGroups = [
+  {
+    label: 'Products',
+    links: [
+      { label: 'Bulk Custom T-Shirts', href: '/custom-t-shirt-printing' },
+      { label: 'Custom Polo T-Shirts', href: '/custom-polo-t-shirts' },
+      { label: 'Custom Hoodies', href: '/custom-hoodies' },
+      { label: 'Custom Tote Bags', href: '/custom-tote-bags' },
+    ],
+  },
+  {
+    label: 'Solutions',
+    links: [
+      { label: 'Corporate Merchandise', href: '/corporate-merchandise' },
+      { label: 'Hospitality Apparel', href: '/industries/hospitality' },
+      { label: 'Event Merchandise', href: '/industries/events' },
+    ],
+  },
 ]
 
 export default function Navbar() {
@@ -93,7 +114,7 @@ export default function Navbar() {
             />
           </Link>
 
-          <nav className="hidden flex-1 items-center justify-center gap-6 text-sm md:flex" aria-label="Primary navigation">
+          <nav className="hidden flex-1 items-center justify-center gap-4 text-sm lg:flex xl:gap-6" aria-label="Primary navigation">
             {links.map(link => {
               const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`)
               return (
@@ -113,7 +134,7 @@ export default function Navbar() {
             })}
           </nav>
 
-          <div className="hidden shrink-0 items-center gap-4 md:flex">
+          <div className="hidden shrink-0 items-center gap-4 lg:flex">
             <Link
               href="/cart"
               className="relative text-xs text-[#444444] transition-colors hover:text-[var(--color-teal)]"
@@ -133,7 +154,7 @@ export default function Navbar() {
             </Link>
           </div>
 
-          <div className="flex shrink-0 items-center gap-2.5 min-[360px]:gap-4 md:hidden">
+          <div className="flex shrink-0 items-center gap-2.5 min-[360px]:gap-4 lg:hidden">
             <Link href="/cart" className="relative flex min-h-11 items-center text-sm text-[#111111]/60">
               Cart
               {itemCount > 0 && (
@@ -174,7 +195,7 @@ export default function Navbar() {
       </div>
 
       <div
-        className={`fixed inset-0 z-40 md:hidden ${open ? 'pointer-events-auto' : 'pointer-events-none'}`}
+        className={`fixed inset-0 z-40 lg:hidden ${open ? 'pointer-events-auto' : 'pointer-events-none'}`}
         aria-hidden={!open}
       >
         <button
@@ -216,6 +237,29 @@ export default function Navbar() {
             })}
           </div>
 
+          <div className="mt-5 grid gap-5 border-t border-white/70 pt-5 sm:grid-cols-2">
+            {mobileGroups.map(group => (
+              <div key={group.label}>
+                <p className="px-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#111111]/40">
+                  {group.label}
+                </p>
+                <div className="mt-2 flex flex-col">
+                  {group.links.map(link => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      tabIndex={open ? 0 : -1}
+                      onClick={closeMenu}
+                      className="px-1 py-2.5 text-sm text-[#111111]/65 transition-colors hover:text-[var(--color-teal)]"
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
           <Link
             href="/configurator"
             tabIndex={open ? 0 : -1}
@@ -229,7 +273,17 @@ export default function Navbar() {
             target="_blank"
             rel="noopener noreferrer"
             tabIndex={open ? 0 : -1}
-            onClick={closeMenu}
+            onClick={() => {
+              const payload = {
+                event: 'whatsapp_click',
+                source_page: pathname,
+                destination: 'whatsapp',
+              }
+              window.dataLayer = window.dataLayer ?? []
+              window.dataLayer.push(payload)
+              window.dispatchEvent(new CustomEvent('garmops:analytics', { detail: payload }))
+              closeMenu()
+            }}
             className="mt-2 block rounded-full border border-[var(--color-teal)]/35 px-5 py-3 text-center text-sm font-medium text-[var(--color-teal-dark)]"
           >
             Chat on WhatsApp

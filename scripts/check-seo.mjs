@@ -6,7 +6,11 @@ const projectRoot = process.cwd()
 const appOutput = join(projectRoot, '.next', 'server', 'app')
 const publicRoot = join(projectRoot, 'public')
 const canonicalOrigin = 'https://www.garmops.com'
-const privatePages = ['cart', 'checkout', 'payment/failure']
+const privatePages = [
+  { route: 'cart', metadataSource: 'src/app/cart/layout.tsx' },
+  { route: 'checkout', metadataSource: 'src/app/checkout/layout.tsx' },
+  { route: 'payment/failure', metadataSource: 'src/app/payment/layout.tsx' },
+]
 const noIndexHeaderRoutes = [
   '/api/:path*',
   '/cart',
@@ -14,6 +18,15 @@ const noIndexHeaderRoutes = [
   '/payment/:path*',
   '/configurator/build/:path*',
   '/configurator/cart/:path*',
+]
+const requiredCommercialPages = [
+  '/custom-t-shirt-printing',
+  '/custom-polo-t-shirts',
+  '/custom-hoodies',
+  '/custom-tote-bags',
+  '/corporate-merchandise',
+  '/industries/hospitality',
+  '/industries/events',
 ]
 
 const failures = []
@@ -131,6 +144,81 @@ for (const url of urls) {
   )
 }
 
+for (const route of requiredCommercialPages) {
+  const url = `${canonicalOrigin}${route}`
+  const htmlPath = htmlPathFor(url)
+  check(existsSync(htmlPath), `Required commercial page was not built: ${route}`)
+  check(urls.includes(url), `Required commercial page is missing from the sitemap: ${route}`)
+
+  const html = readRequired(htmlPath)
+  check(
+    html.includes(`<link rel="canonical" href="${url}"/>`),
+    `Required commercial page has a missing or mismatched canonical: ${route}`,
+  )
+  check(
+    html.includes('<meta name="robots" content="index, follow"/>'),
+    `Required commercial page is not explicitly index, follow: ${route}`,
+  )
+  check(
+    (html.match(/<h1(?:\s|>)/gi) ?? []).length === 1,
+    `Required commercial page must contain exactly one H1: ${route}`,
+  )
+  check(
+    html.includes('type="application/ld+json"'),
+    `Required commercial page is missing JSON-LD: ${route}`,
+  )
+  check(
+    html.includes('BreadcrumbList'),
+    `Required commercial page is missing breadcrumb structured data: ${route}`,
+  )
+  check(
+    /href="\/(?:configurator|contact)"/.test(html),
+    `Required commercial page has no configurator or contact link: ${route}`,
+  )
+  check(
+    !/\b(?:TODO|Lorem ipsum|Coming soon)\b/i.test(html),
+    `Required commercial page contains placeholder copy: ${route}`,
+  )
+}
+
+const indexableMetadata = urls.map((url) => {
+  const html = readRequired(htmlPathFor(url))
+  return {
+    url,
+    title: html.match(/<title>([^<]+)<\/title>/i)?.[1]?.trim() ?? '',
+    description: html.match(/<meta name="description" content="([^"]*)"/i)?.[1]?.trim() ?? '',
+  }
+})
+
+const titleOwners = new Map()
+const descriptionOwners = new Map()
+for (const page of indexableMetadata) {
+  check(Boolean(page.title), `Indexable page is missing a title: ${page.url}`)
+  check(Boolean(page.description), `Indexable page is missing a meta description: ${page.url}`)
+
+  if (page.title) {
+    const existing = titleOwners.get(page.title)
+    check(!existing, `Duplicate indexable title on ${existing} and ${page.url}: ${page.title}`)
+    titleOwners.set(page.title, page.url)
+  }
+  if (page.description) {
+    const existing = descriptionOwners.get(page.description)
+    check(!existing, `Duplicate indexable meta description on ${existing} and ${page.url}`)
+    descriptionOwners.set(page.description, page.url)
+  }
+}
+
+const internalLinkSources = [
+  readRequired(join(appOutput, 'index.html')),
+  readRequired(join(appOutput, 'products.html')),
+]
+for (const route of requiredCommercialPages) {
+  check(
+    internalLinkSources.some(html => html.includes(`href="${route}"`)),
+    `Required commercial page is not linked from the homepage, navigation, footer, or products page: ${route}`,
+  )
+}
+
 for (const url of imageUrls) {
   const { origin, pathname } = new URL(url)
   check(origin === canonicalOrigin, `Non-canonical image URL: ${url}`)
@@ -146,11 +234,21 @@ for (const path of publicFiles()) {
   check(imageFormatMatches(pathname), `Public image extension does not match its bytes: ${pathname}`)
 }
 
-for (const route of privatePages) {
-  const html = readRequired(join(appOutput, `${route}.html`))
+for (const { route, metadataSource } of privatePages) {
+  const htmlPath = join(appOutput, `${route}.html`)
+  if (existsSync(htmlPath)) {
+    const html = readRequired(htmlPath)
+    check(
+      html.includes('<meta name="robots" content="noindex, nofollow, nocache"/>'),
+      `Private route is missing noindex metadata: /${route}`,
+    )
+    continue
+  }
+
+  const source = readRequired(join(projectRoot, metadataSource))
   check(
-    html.includes('<meta name="robots" content="noindex, nofollow, nocache"/>'),
-    `Private route is missing noindex metadata: /${route}`,
+    /robots:\s*\{\s*index:\s*false,\s*follow:\s*false,\s*nocache:\s*true\s*\}/s.test(source),
+    `Dynamic private route is missing noindex metadata in ${metadataSource}: /${route}`,
   )
 }
 
@@ -161,6 +259,6 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `SEO check passed: ${urls.length} canonical pages, ${imageUrls.length} sitemap images, `
-  + `${noIndexHeaderRoutes.length} protected route patterns, and valid robots.txt.`,
+  `SEO check passed: ${urls.length} canonical pages, ${requiredCommercialPages.length} required commercial pages, `
+  + `${imageUrls.length} sitemap images, ${noIndexHeaderRoutes.length} protected route patterns, unique indexable metadata, and valid robots.txt.`,
 )

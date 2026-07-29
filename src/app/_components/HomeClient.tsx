@@ -11,13 +11,79 @@ import { useState } from 'react'
 import { PRODUCT_PRICES, DELIVERY_DAYS, RUSH_DELIVERY_DAYS } from '@/lib/pricing'
 import { homeFaqs as faqs } from '@/lib/homeContent'
 
-const industries = [
-  { name: 'Hotels & Restaurants', desc: 'Merchandise designed for hospitality brands, from staff apparel to retail collections and guest experiences.', image: '/industries/hotels-restaurants.webp' },
-  { name: 'Music & Events', desc: 'Merch created for releases, tours, and live events, from artist collections to large-scale drops.', image: '/industries/music-events.webp' },
-  { name: 'Sports & Fitness', desc: 'Merchandise for teams, clubs, and active brands, built for both function and identity.', image: '/industries/sports-fitness.webp' },
-  { name: 'Arts & Culture', desc: 'Merchandise developed for exhibitions, institutions, and artists, from limited releases to curated retail collections.', image: '/industries/arts-culture.webp' },
-  { name: 'Creative Studios', desc: 'Design-led merchandise for studios and agencies, built to extend brand systems into physical products.', image: '/industries/creative-studios.webp' },
-  { name: 'Companies & Startups', desc: 'Custom merchandise for teams and organisations, from onboarding kits to team apparel and client gifting.', image: '/industries/companies-startups.webp' },
+const industries: Array<{
+  name: string
+  desc: string
+  image: string
+  alt: string
+  href?: string
+}> = [
+  {
+    name: 'Hotels & Restaurants',
+    desc: 'Merchandise designed for hospitality brands, from staff apparel to retail collections and guest experiences.',
+    image: '/industries/hotels-restaurants.webp',
+    href: '/industries/hospitality',
+    alt: 'Custom restaurant staff uniforms and hospitality merchandise in India',
+  },
+  {
+    name: 'Music & Events',
+    desc: 'Merch created for releases, tours, and live events, from artist collections to large-scale drops.',
+    image: '/industries/music-events.webp',
+    href: '/industries/events',
+    alt: 'Custom event merchandise and artist apparel produced in India',
+  },
+  {
+    name: 'Sports & Fitness',
+    desc: 'Merchandise for teams, clubs, and active brands, built for both function and identity.',
+    image: '/industries/sports-fitness.webp',
+    alt: 'Custom T-shirts and hoodies for gyms, fitness studios and clubs',
+  },
+  {
+    name: 'Arts & Culture',
+    desc: 'Merchandise developed for exhibitions, institutions, and artists, from limited releases to curated retail collections.',
+    image: '/industries/arts-culture.webp',
+    alt: 'Custom merchandise for artists, exhibitions and cultural organisations',
+  },
+  {
+    name: 'Creative Studios',
+    desc: 'Design-led merchandise for studios and agencies, built to extend brand systems into physical products.',
+    image: '/industries/creative-studios.webp',
+    alt: 'Custom apparel and merchandise for creative studios and agencies',
+  },
+  {
+    name: 'Companies & Startups',
+    desc: 'Custom merchandise for teams and organisations, from onboarding kits to team apparel and client gifting.',
+    image: '/industries/companies-startups.webp',
+    href: '/corporate-merchandise',
+    alt: 'Custom employee apparel and corporate merchandise for companies',
+  },
+]
+
+const productCategories = [
+  {
+    title: 'Bulk custom T-shirts',
+    description: 'Compare 200 GSM and 260 GSM T-shirts in regular and boxy fits.',
+    label: 'Explore bulk custom T-shirts',
+    href: '/custom-t-shirt-printing',
+  },
+  {
+    title: 'Company polo T-shirts',
+    description: 'Create structured 280 GSM cotton-pique polos for company and hospitality teams.',
+    label: 'Create company polo T-shirts',
+    href: '/custom-polo-t-shirts',
+  },
+  {
+    title: 'Custom hoodies',
+    description: 'Choose regular or boxy 320 GSM fleece hoodies for teams and merchandise.',
+    label: 'Compare custom hoodies',
+    href: '/custom-hoodies',
+  },
+  {
+    title: 'Canvas tote bags',
+    description: 'Plan printed 12 oz canvas totes for events, companies and merchandise ranges.',
+    label: 'Design branded canvas tote bags',
+    href: '/custom-tote-bags',
+  },
 ]
 
 // Lowest starting price across the catalog, used for the homepage pricing teaser
@@ -44,12 +110,12 @@ export default function HomeClient() {
           </p>
         </Reveal>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {industries.map((i, idx) => (
-            <Reveal key={i.name} delay={idx * 80}>
-              <div className="liquid-glass-panel group flex flex-col overflow-hidden rounded-[24px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-teal)]/45">
+          {industries.map((i, idx) => {
+            const card = (
+              <>
                 <div className="relative flex h-[280px] w-full items-center justify-center overflow-hidden bg-[var(--color-cream-soft)] sm:h-[380px]">
                   {i.image ? (
-                    <Image src={i.image} alt={i.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <Image src={i.image} alt={i.alt} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
                     <span className="text-xs text-[#111111]/20 uppercase tracking-widest">{i.name}</span>
                   )}
@@ -69,12 +135,62 @@ export default function HomeClient() {
                 <div className="p-5 flex flex-col gap-1.5">
                   <h3 className="text-sm font-semibold text-[#111111]">{i.name}</h3>
                   <p className="text-xs text-[#4a4a4a] leading-relaxed">{i.desc}</p>
+                  <span className="mt-2 text-xs font-medium text-[var(--color-teal-dark)]">
+                    {i.href ? `Explore ${i.name.toLowerCase()}` : 'Custom apparel for this sector'}
+                  </span>
                 </div>
-              </div>
-            </Reveal>
-          ))}
+              </>
+            )
+
+            return (
+              <Reveal key={i.name} delay={idx * 80}>
+                {i.href ? (
+                  <Link
+                    href={i.href}
+                    className="liquid-glass-panel group flex h-full flex-col overflow-hidden rounded-[24px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-teal)]/45"
+                  >
+                    {card}
+                  </Link>
+                ) : (
+                  <div className="liquid-glass-panel group flex h-full flex-col overflow-hidden rounded-[24px] border">
+                    {card}
+                  </div>
+                )}
+              </Reveal>
+            )
+          })}
         </div>
       </div>
+      </section>
+
+      <section className="app-liquid-section">
+        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-24">
+          <Reveal>
+            <p className="mb-4 text-xs font-medium uppercase tracking-widest text-[#595959]">Product categories</p>
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              Start with the <span className="text-[var(--color-teal)]">right garment</span>
+            </h2>
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#4a4a4a]">
+              Compare product specifications, intended uses and decoration choices before building a bulk order.
+            </p>
+          </Reveal>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {productCategories.map((category, index) => (
+              <Reveal key={category.href} delay={index * 60}>
+                <Link
+                  href={category.href}
+                  className="liquid-glass-panel group flex h-full flex-col rounded-[22px] border p-5 transition-transform hover:-translate-y-0.5 hover:!border-[var(--color-teal)]/45"
+                >
+                  <h3 className="text-base font-semibold text-[#111111]">{category.title}</h3>
+                  <p className="mt-2 flex-1 text-sm leading-6 text-[#4a4a4a]">{category.description}</p>
+                  <span className="mt-5 text-sm font-medium text-[var(--color-teal-dark)] group-hover:underline">
+                    {category.label}
+                  </span>
+                </Link>
+              </Reveal>
+            ))}
+          </div>
+        </div>
       </section>
 
      <WhyGarmops />

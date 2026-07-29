@@ -33,6 +33,19 @@ export default function ContactClient() {
         })
       })
       if (!response.ok) throw new Error('Request failed')
+      let sourcePage = 'direct'
+      try {
+        sourcePage = document.referrer ? new URL(document.referrer).pathname : 'direct'
+      } catch {
+        sourcePage = 'unknown'
+      }
+      const analyticsPayload = {
+        event: 'contact_submission',
+        source_page: sourcePage,
+      }
+      window.dataLayer = window.dataLayer ?? []
+      window.dataLayer.push(analyticsPayload)
+      window.dispatchEvent(new CustomEvent('garmops:analytics', { detail: analyticsPayload }))
       setSubmitted(true)
     } catch {
       setSubmitError('We could not send your request. Please try again or email hello@garmops.com.')

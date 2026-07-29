@@ -1,6 +1,7 @@
 import { caseStudies } from './casestudies'
 import { homeFaqs } from './homeContent'
 import { journalPosts } from './journal'
+import { landingPageByPath } from './landingPages'
 import {
   DELIVERY_DAYS,
   GST_RATE,
@@ -168,6 +169,98 @@ ${links([
   { label: 'Configure this custom order', href: `/configurator?product=${product.slug}` },
   { label: 'Estimate pricing', href: '/pricing' },
   { label: 'Request a reviewed quote', href: '/contact' },
+])}
+`,
+  })
+}
+
+function landingPageMarkdown(pathname: string) {
+  const content = landingPageByPath(pathname)
+  if (!content) return null
+
+  const selectedProducts = products.filter(product => content.productSlugs?.includes(product.slug))
+  const featureSections = [
+    {
+      title: content.featuresHeading,
+      introduction: content.featuresIntroduction,
+      features: content.features,
+    },
+    ...(content.sections ?? []),
+  ]
+
+  return document({
+    title: content.title,
+    description: content.seo.description,
+    path: pathname,
+    body: `
+## Service summary
+
+${content.lead}
+
+## Key order facts
+
+${list(content.trustPoints)}
+
+## ${content.productHeading}
+
+${content.productIntroduction ?? 'Review the current Garmops catalogue specifications before approving a bulk order.'}
+
+${selectedProducts.map(product => [
+  `### [${product.name}](${absolute(`/products/${product.slug}`)})`,
+  '',
+  product.description,
+  '',
+  `- Fabric weight: ${product.gsm} GSM`,
+  `- Fit: ${product.fits?.join(', ') ?? 'See the product specification'}`,
+  `- Available sizes: ${product.sizes.join(', ')}`,
+  `- Catalogue sample price: ₹${product.price.toLocaleString('en-IN')}`,
+  `- Construction: ${product.details.join('; ')}`,
+].join('\n')).join('\n\n')}
+
+${featureSections.map(section => [
+  `## ${section.title}`,
+  '',
+  section.introduction ?? '',
+  '',
+  ...section.features.map(feature => [
+    `### ${feature.title}`,
+    '',
+    feature.description,
+    feature.link ? `\n[${feature.link.label}](${absolute(feature.link.href)})` : '',
+  ].join('\n')),
+  ...(section.links?.length ? ['', 'Related:', '', links(section.links)] : []),
+].join('\n')).join('\n\n')}
+
+${content.useCases?.length && content.useCasesHeading ? [
+  `## ${content.useCasesHeading}`,
+  '',
+  content.useCasesIntroduction ?? '',
+  '',
+  ...content.useCases.map(useCase => `### ${useCase.title}\n\n${useCase.description}`),
+].join('\n') : ''}
+
+${content.steps?.length && content.stepsHeading ? [
+  `## ${content.stepsHeading}`,
+  '',
+  content.stepsIntroduction ?? '',
+  '',
+  ...content.steps.map((step, index) => `${index + 1}. **${step.title}:** ${step.description}`),
+].join('\n') : ''}
+
+## Frequently asked questions
+
+${content.faqs.map(faq => `### ${faq.question}\n\n${faq.answer}`).join('\n\n')}
+
+## Related buyer guides
+
+${links(content.relatedGuides)}
+
+## Related Garmops pages
+
+${links([
+  ...content.relatedPages,
+  { label: content.cta.primary.label, href: content.cta.primary.href },
+  ...(content.cta.secondary ? [content.cta.secondary] : []),
 ])}
 `,
   })
@@ -448,7 +541,9 @@ ${links([
 
 export function renderAgentMarkdown(pathname: string) {
   const normalized = normalizeAgentPath(pathname)
+  const landingPage = landingPageMarkdown(normalized)
 
+  if (landingPage) return landingPage
   if (normalized === '/') return homeMarkdown()
   if (normalized === '/products') return productsMarkdown()
   if (normalized === '/pricing') return pricingMarkdown()

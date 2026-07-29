@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { products } from '@/lib/products'
+import { productImageAlt, products } from '@/lib/products'
 import type { Metadata } from 'next'
 import { absoluteUrl, generateMeta, siteConfig } from '@/lib/seo'
 import JsonLd from '@/components/seo/JsonLd'
@@ -66,7 +66,7 @@ export default function Products() {
               className="liquid-glass-panel group flex flex-col overflow-hidden rounded-[24px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-teal)]/45">
               <div className="relative w-full aspect-[3/4] bg-[var(--color-cream-soft)] flex items-center justify-center overflow-hidden">
                 {p.image ? (
-                  <Image src={p.image} alt={p.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <Image src={p.image} alt={productImageAlt(p)} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                 ) : (
                   <span className="text-xs text-[#111111]/20 uppercase tracking-wide">Product photo</span>
                 )}
