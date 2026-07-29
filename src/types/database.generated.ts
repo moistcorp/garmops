@@ -1903,6 +1903,22 @@ export type Database = {
         Returns: undefined
       }
       record_staff_login: { Args: never; Returns: undefined }
+      retry_order_payment: {
+        Args: {
+          p_customer_user_id: string
+          p_idempotency_key: string
+          p_order_id: string
+          p_request_hash: string
+        }
+        Returns: {
+          attempt_number: number
+          created_new: boolean
+          order_id: string
+          order_number: string
+          payment_attempt_id: string
+          payment_status: Database["public"]["Enums"]["payment_status"]
+        }[]
+      }
       review_file_scan: {
         Args: {
           p_file_id: string
@@ -1936,6 +1952,39 @@ export type Database = {
       staff_has_permission: {
         Args: { p_permission_name: string }
         Returns: boolean
+      }
+      submit_custom_order: {
+        Args: {
+          p_billing_snapshot: Json
+          p_company_snapshot: Json
+          p_configuration_schema_version: number
+          p_customer_reference?: string
+          p_customer_snapshot: Json
+          p_customer_user_id: string
+          p_design_project_id: string
+          p_design_version_id: string
+          p_expires_at?: string
+          p_file_ids?: string[]
+          p_idempotency_key: string
+          p_items: Json
+          p_organization_id: string
+          p_po_number?: string
+          p_pricing_version: string
+          p_request_hash: string
+          p_requested_delivery_date?: string
+          p_reservation_amount_paise: number
+          p_shipping_paise: number
+          p_shipping_snapshot: Json
+          p_subtotal_paise: number
+          p_tax_estimate_paise: number
+          p_terms_snapshot: Json
+        }
+        Returns: {
+          order_id: string
+          order_number: string
+          payment_attempt_id: string
+          submitted_at: string
+        }[]
       }
       submit_order: {
         Args: {

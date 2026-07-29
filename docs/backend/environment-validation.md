@@ -1,6 +1,6 @@
 # Environment validation design
 
-Status: implemented through Phase 6
+Status: implemented through Phase 7
 Last reviewed: 2026-07-29
 
 ## Goals
@@ -32,7 +32,10 @@ URLs use URL validation, email addresses use email validation, integer settings 
 - Private R2 uploads require all private-bucket credentials and exact application origins.
 - Cloud designs require accounts and private R2 uploads before their server
   routes can be enabled.
-- Durable checkout requires Supabase plus complete PayU signing and verification configuration.
+- Durable custom ordering requires accounts, a privileged Supabase server
+  boundary, and cloud designs. It does not require PayU credentials merely to
+  create the pre-payment order and attempt; PayU signing and verification
+  become mandatory when Phase 8 provider processing is enabled.
 - Zoho automation requires durable custom checkout, Zoho credentials/IDs, reservation settings, R2 private storage, and the PostgreSQL job backend.
 - Turnstile-protected routes require both site and secret keys.
 - SMS, WhatsApp, Realtime, and any unsupported job backend are rejected for the initial release even if accidentally enabled.

@@ -29,6 +29,8 @@ export type ConfiguratorAnalyticsEvent =
   | "approval_pdf_failed"
   | "company_form_started"
   | "checkout_validation_error"
+  | "durable_order_submitted"
+  | "durable_order_failed"
   | "payment_started"
   | "payment_failed"
   | "reservation_completed";

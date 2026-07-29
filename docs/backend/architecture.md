@@ -52,7 +52,11 @@ Backend rollout is additive and gated. Every flag defaults to off in `.env.examp
 
 The existing `src/proxy.ts` remains the only proxy. Supabase session refresh will be composed with its Markdown negotiation in Phase 4; proxy redirects remain optimistic checks, not the final security boundary.
 
-Existing public pages, styles, responsive behaviour, SEO, agent-readable Markdown routing, sample cart, configurator canvas, and current checkout remain unchanged until their scheduled migration phase. Any frontend modification requires the owner's explicit permission before it is made.
+Existing public pages, styles, responsive behaviour, SEO, agent-readable
+Markdown routing, sample cart, and configurator canvas remain protected while
+their backend integrations are introduced. The owner granted standing
+permission for frontend work from Phase 7 onward on 2026-07-29; changes must
+still remain inside the requested phase and preserve unrelated behaviour.
 
 ## File and job boundaries
 

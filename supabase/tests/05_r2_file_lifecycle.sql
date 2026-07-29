@@ -550,7 +550,7 @@ select ok(
   'pre-Phase-5 inserts remain finalized by default'
 );
 
-select throws_ok(
+select lives_ok(
   $$
     insert into public.order_files (
       order_id,
@@ -577,9 +577,7 @@ select throws_ok(
       1
     )
   $$,
-  '23514',
-  null,
-  'file metadata cannot point at both an order and design'
+  'a finalized design file may also point at its submitted order'
 );
 
 select * from finish();

@@ -47,9 +47,12 @@ import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionConte
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 import { ActionFeedback } from "../ActionFeedback";
 import { submitPayuCheckout } from "@/lib/payuClient";
+import { prepareAndSubmitDurableOrder } from "@/lib/orders/client";
 
 export interface ConfirmationStepProps {
   cartId: string;
+  durableCheckoutEnabled: boolean;
+  organizationId?: string;
 }
 
 function joinAddress(address: Address): string {
@@ -65,7 +68,11 @@ function joinAddress(address: Address): string {
     .join(", ");
 }
 
-export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
+export function ConfirmationStep({
+  cartId,
+  durableCheckoutEnabled,
+  organizationId,
+}: ConfirmationStepProps) {
   const router = useRouter();
   const [draft, setDraft] = useState(() => createDraft(cartId));
   const [isDraftReady, setIsDraftReady] = useState(false);
@@ -201,6 +208,43 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
       item_count: draft.items.length,
     });
     setIsProcessing(true);
+
+    if (durableCheckoutEnabled) {
+      if (!organizationId) {
+        setPaymentError("Your organization could not be loaded.");
+        setIsProcessing(false);
+        return;
+      }
+
+      const result = await prepareAndSubmitDurableOrder({
+        cartId,
+        organizationId,
+        draft,
+      });
+      if (result.ok) {
+        trackConfiguratorEvent("durable_order_submitted", {
+          cart_id: cartId,
+          order_number: result.order.orderNumber,
+        });
+        window.location.assign(result.order.confirmationUrl);
+        return;
+      }
+      if (result.kind === "unauthorized") {
+        router.push(
+          `/login?next=${encodeURIComponent(`/configurator/cart/${cartId}/confirmation`)}`,
+        );
+        return;
+      }
+
+      setPaymentError(result.message);
+      setIsProcessing(false);
+      trackConfiguratorEvent("durable_order_failed", {
+        cart_id: cartId,
+        error: result.message,
+      });
+      return;
+    }
+
     const randomSuffix = crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
     const txnid = `MF${Date.now().toString(36)}${randomSuffix}`;
     const amount = RESERVATION_FEE.toFixed(2);
@@ -510,7 +554,9 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
               </div>
               <div className="mt-4 flex items-center gap-2 border-t border-[var(--color-teal)]/20 pt-3 text-xs font-medium text-[#111111]/65">
                 <CreditCard size={15} className="text-[var(--color-teal-dark)]" />
-                Secure payment through PayU using UPI, card or net banking.
+                {durableCheckoutEnabled
+                  ? "Your order number and immutable specification are saved before PayU opens."
+                  : "Secure payment through PayU using UPI, card or net banking."}
               </div>
             </div>
           </div>
@@ -557,8 +603,12 @@ export function ConfirmationStep({ cartId }: ConfirmationStepProps) {
           >
             {isProcessing && <LoaderCircle size={16} className="animate-spin" />}
             {isProcessing
-              ? "Opening secure payment…"
-              : `Reserve production review — ${formatInr(RESERVATION_FEE)}`}
+              ? durableCheckoutEnabled
+                ? "Creating your order…"
+                : "Opening secure payment…"
+              : durableCheckoutEnabled
+                ? `Create order & review payment — ${formatInr(RESERVATION_FEE)}`
+                : `Reserve production review — ${formatInr(RESERVATION_FEE)}`}
           </button>
           {!termsAccepted && (
             <p className="text-center text-xs text-[#111111]/55">Accept the reservation terms to continue.</p>

@@ -153,7 +153,9 @@ const serverEnvironmentSchema = z
       (environment.NEXT_PUBLIC_ACCOUNTS_ENABLED ||
         environment.STAFF_PORTAL_ENABLED ||
         environment.R2_PRIVATE_UPLOADS_ENABLED ||
-        environment.CLOUD_DESIGNS_ENABLED) &&
+        environment.CLOUD_DESIGNS_ENABLED ||
+        environment.DURABLE_CUSTOM_CHECKOUT_ENABLED ||
+        environment.DURABLE_SAMPLE_CHECKOUT_ENABLED) &&
       !environment.SUPABASE_SECRET_KEY &&
       !environment.SUPABASE_SERVICE_ROLE_KEY
     ) {
@@ -262,17 +264,6 @@ const serverEnvironmentSchema = z
       environment.DURABLE_CUSTOM_CHECKOUT_ENABLED ||
       environment.DURABLE_SAMPLE_CHECKOUT_ENABLED;
 
-    requireValues(
-      durableCheckoutEnabled,
-      [
-        "PAYU_MERCHANT_KEY",
-        "PAYU_SALT",
-        "PAYMENT_SIGNING_SECRET",
-        "PAYU_VERIFY_BASE_URL",
-      ],
-      "when durable checkout is enabled"
-    );
-
     if (
       durableCheckoutEnabled &&
       !environment.NEXT_PUBLIC_ACCOUNTS_ENABLED
@@ -281,6 +272,18 @@ const serverEnvironmentSchema = z
         code: "custom",
         path: ["NEXT_PUBLIC_ACCOUNTS_ENABLED"],
         message: "Accounts must be enabled before durable checkout",
+      });
+    }
+
+    if (
+      environment.DURABLE_CUSTOM_CHECKOUT_ENABLED &&
+      !environment.CLOUD_DESIGNS_ENABLED
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["DURABLE_CUSTOM_CHECKOUT_ENABLED"],
+        message:
+          "Cloud designs must be enabled before durable custom checkout",
       });
     }
 

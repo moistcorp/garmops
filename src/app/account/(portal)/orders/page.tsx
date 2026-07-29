@@ -1,0 +1,210 @@
+import Link from "next/link";
+import {
+  ArrowRight,
+  CalendarDays,
+  PackageCheck,
+  ShoppingBag,
+  WalletCards,
+} from "lucide-react";
+
+import PortalPlaceholder from "@/components/portal/PortalPlaceholder";
+import { requireOrganizationMember } from "@/lib/auth/guards";
+import { isFeatureEnabled } from "@/lib/config/featureFlags";
+import { listCustomerOrders } from "@/lib/orders/dal";
+import {
+  formatMoneyPaise,
+  formatOrderDate,
+  publicOrderStatusLabel,
+} from "@/lib/orders/format";
+import {
+  orderListFilterSchema,
+  type OrderListFilter,
+} from "@/lib/orders/schema";
+
+const filters: Array<{ value: OrderListFilter; label: string }> = [
+  { value: "all", label: "All" },
+  { value: "action_required", label: "Action required" },
+  { value: "awaiting_payment", label: "Awaiting payment" },
+  { value: "under_review", label: "Under review" },
+  { value: "in_production", label: "In production" },
+  { value: "dispatched", label: "Dispatched" },
+  { value: "completed", label: "Completed" },
+  { value: "cancelled", label: "Cancelled" },
+];
+
+export default async function AccountOrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ filter?: string }>;
+}) {
+  if (!isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED")) {
+    return (
+      <PortalPlaceholder
+        title="Orders"
+        description="Durable custom ordering is disabled for this environment."
+      />
+    );
+  }
+
+  const filterResult = orderListFilterSchema.safeParse(
+    (await searchParams).filter ?? "all",
+  );
+  const filter = filterResult.success ? filterResult.data : "all";
+  const { supabase, membership } = await requireOrganizationMember(
+    "/account/orders",
+  );
+  const { data, error } = await listCustomerOrders(
+    supabase,
+    membership.organization_id,
+    filter,
+  );
+
+  if (error) {
+    return (
+      <PortalPlaceholder
+        title="Orders unavailable"
+        description="Your durable order history could not be loaded. Try again shortly."
+      />
+    );
+  }
+  const orders = data ?? [];
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-xs uppercase tracking-[0.18em] text-[#4F8B92]">
+            Durable history
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight">
+            Your orders
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-black/50">
+            Every order number, date, specification, and payment attempt is
+            retained independently from later design edits.
+          </p>
+        </div>
+        <Link
+          href="/configurator"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#315F66] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#254b51]"
+        >
+          <ShoppingBag size={16} aria-hidden="true" />
+          Configure a new order
+        </Link>
+      </div>
+
+      <div className="flex gap-2 overflow-x-auto border-b border-black/8 pb-3">
+        {filters.map((entry) => (
+          <Link
+            key={entry.value}
+            href={
+              entry.value === "all"
+                ? "/account/orders"
+                : `/account/orders?filter=${entry.value}`
+            }
+            className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold ${
+              filter === entry.value
+                ? "bg-[#315F66] text-white"
+                : "bg-black/5 text-black/55 hover:bg-black/8"
+            }`}
+          >
+            {entry.label}
+          </Link>
+        ))}
+      </div>
+
+      {orders.length ? (
+        <div className="space-y-3">
+          {orders.map((order) => {
+            const item = order.order_items?.[0];
+            const paymentIncomplete =
+              order.public_status === "payment_incomplete";
+            return (
+              <Link
+                key={order.id}
+                href={`/account/orders/${encodeURIComponent(order.order_number)}`}
+                className="group liquid-glass-surface grid gap-5 rounded-3xl border p-5 transition hover:-translate-y-0.5 hover:border-[#4F8B92]/30 hover:shadow-lg hover:shadow-[#315F66]/8 lg:grid-cols-[1.2fr_1fr_1fr_auto] lg:items-center"
+              >
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-semibold">{order.order_number}</h3>
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${
+                        paymentIncomplete
+                          ? "bg-amber-100 text-amber-800"
+                          : "bg-[#4F8B92]/12 text-[#315F66]"
+                      }`}
+                    >
+                      {publicOrderStatusLabel(order.public_status)}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm text-black/50">
+                    {item?.product_name ?? "Custom merchandise"}
+                    {item ? ` · ${item.quantity.toLocaleString("en-IN")} units` : ""}
+                  </p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <CalendarDays
+                    size={16}
+                    className="mt-0.5 text-[#4F8B92]"
+                    aria-hidden="true"
+                  />
+                  <div>
+                    <p className="text-[10px] uppercase tracking-widest text-black/30">
+                      Order date
+                    </p>
+                    <p className="mt-1 text-sm text-black/65">
+                      {formatOrderDate(order.submitted_at)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  {paymentIncomplete ? (
+                    <WalletCards
+                      size={16}
+                      className="mt-0.5 text-amber-700"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <PackageCheck
+                      size={16}
+                      className="mt-0.5 text-[#4F8B92]"
+                      aria-hidden="true"
+                    />
+                  )}
+                  <div>
+                    <p className="text-[10px] uppercase tracking-widest text-black/30">
+                      Reservation
+                    </p>
+                    <p className="mt-1 text-sm text-black/65">
+                      {formatMoneyPaise(order.reservation_amount_paise)} ·{" "}
+                      {paymentIncomplete ? "unpaid" : "recorded"}
+                    </p>
+                  </div>
+                </div>
+                <ArrowRight
+                  size={18}
+                  className="text-black/25 transition group-hover:translate-x-0.5 group-hover:text-[#315F66]"
+                  aria-hidden="true"
+                />
+              </Link>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="liquid-glass-surface rounded-3xl border border-dashed p-10 text-center">
+          <ShoppingBag
+            size={28}
+            className="mx-auto text-[#4F8B92]"
+            aria-hidden="true"
+          />
+          <h3 className="mt-4 font-semibold">No matching orders</h3>
+          <p className="mx-auto mt-2 max-w-md text-sm text-black/45">
+            Submitted custom orders appear here immediately, before payment
+            begins.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}

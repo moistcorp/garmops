@@ -107,6 +107,16 @@ describe("server environment validation", () => {
     expect(environment.CLOUD_DESIGNS_ENABLED).toBe(true);
   });
 
+  it("requires cloud designs before durable custom checkout", () => {
+    expect(() =>
+      parseServerEnvironment({
+        DURABLE_CUSTOM_CHECKOUT_ENABLED: "true",
+      })
+    ).toThrow(
+      "Invalid server environment configuration: DURABLE_CUSTOM_CHECKOUT_ENABLED, NEXT_PUBLIC_ACCOUNTS_ENABLED, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SECRET_KEY"
+    );
+  });
+
   it("rejects an R2 endpoint for another account", () => {
     expect(() =>
       parseServerEnvironment({

@@ -1,0 +1,227 @@
+import { CUSTOM_DYE_MOQ_UNITS } from "../configurator/colours";
+import {
+  getConfiguredUnitPrice,
+  getVolumeDiscountPercent,
+} from "../configurator/pricing";
+import { getProduct } from "../configurator/products";
+import {
+  GST_PERCENT,
+  RUSH_DELIVERY_FEE_PER_UNIT,
+} from "../pricingRules";
+import type { Json } from "@/types/database.generated";
+
+import type { CloudDesignSnapshot } from "@/lib/designs/schema";
+import type {
+  Artwork,
+  ArtworkSide,
+  NeckLabel,
+} from "../configurator/types/configurator";
+
+export const CUSTOM_ORDER_PRICING_VERSION =
+  "custom-configurator-v1-2026-07-29";
+
+type PricedCustomOrder = {
+  productId: string;
+  productName: string;
+  quantity: number;
+  sizeQuantities: Record<string, number>;
+  unitPricePaise: number;
+  subtotalPaise: number;
+  shippingPaise: number;
+  taxEstimatePaise: number;
+  estimatedTotalPaise: number;
+  item: Json;
+  fileIds: string[];
+};
+
+function uniqueFileIds(snapshot: CloudDesignSnapshot): string[] {
+  const values = [
+    snapshot.configuration.artwork.front?.fileId,
+    snapshot.configuration.artwork.back?.fileId,
+    snapshot.configuration.neckLabel?.fileId,
+  ].filter((value): value is string => Boolean(value));
+
+  return [...new Set(values)];
+}
+
+function ensureCompleteConfiguration(snapshot: CloudDesignSnapshot): void {
+  const { configuration } = snapshot;
+  if (!configuration.colour.confirmed) {
+    throw new Error("Garment colour must be confirmed");
+  }
+  if (
+    configuration.steps.some(
+      (step) => !step.confirmed && step.skipped !== true,
+    )
+  ) {
+    throw new Error("Every configuration step must be completed");
+  }
+  for (const side of [
+    configuration.artwork.front,
+    configuration.artwork.back,
+  ]) {
+    if (side?.pendingUpload || (side && !side.confirmed)) {
+      throw new Error("Artwork must be uploaded and confirmed");
+    }
+  }
+  if (
+    configuration.neckLabel?.pendingUpload ||
+    (configuration.neckLabel && !configuration.neckLabel.confirmed)
+  ) {
+    throw new Error("Neck label must be uploaded and confirmed");
+  }
+}
+
+export function priceCustomOrder(input: {
+  snapshot: CloudDesignSnapshot;
+  sizeQuantities: Record<string, number>;
+  deliveryType: "rush" | "standard" | "flexible";
+}): PricedCustomOrder {
+  ensureCompleteConfiguration(input.snapshot);
+
+  const product = getProduct(input.snapshot.configId);
+  if (!product) throw new Error("Design product is no longer available");
+
+  const entries = Object.entries(input.sizeQuantities);
+  if (
+    entries.some(
+      ([size, quantity]) =>
+        !product.sizes.includes(size) ||
+        !Number.isInteger(quantity) ||
+        quantity < 0,
+    )
+  ) {
+    throw new Error("Size allocation contains an unavailable size");
+  }
+  if (
+    product.sizes.some(
+      (size) => !Object.hasOwn(input.sizeQuantities, size),
+    )
+  ) {
+    throw new Error("Size allocation must include every available size");
+  }
+
+  const quantity = entries.reduce((total, [, value]) => total + value, 0);
+  if (quantity !== input.snapshot.configuration.quantity) {
+    throw new Error("Size quantities do not match the saved design quantity");
+  }
+  const minimum =
+    input.snapshot.configuration.colour.type === "custom_dye"
+      ? CUSTOM_DYE_MOQ_UNITS
+      : 50;
+  if (quantity < minimum || quantity > 1_000_000) {
+    throw new Error(`Order quantity must be between ${minimum} and 1000000`);
+  }
+
+  const { configuration } = input.snapshot;
+  const priceableArtwork = Object.fromEntries(
+    (["front", "back"] as const)
+      .map((side) => {
+        const value = configuration.artwork[side];
+        if (!value) return null;
+        return [
+          side,
+          {
+            ...value,
+            fileUrl:
+              value.fileUrl ??
+              (value.fileId ? `private-file:${value.fileId}` : ""),
+          } satisfies ArtworkSide,
+        ] as const;
+      })
+      .filter(
+        (
+          entry,
+        ): entry is readonly ["front" | "back", ArtworkSide] =>
+          entry !== null,
+      ),
+  ) as Artwork;
+  const priceableNeckLabel = configuration.neckLabel
+    ? ({
+        ...configuration.neckLabel,
+        fileUrl:
+          configuration.neckLabel.fileUrl ??
+          (configuration.neckLabel.fileId
+            ? `private-file:${configuration.neckLabel.fileId}`
+            : ""),
+      } satisfies NeckLabel)
+    : undefined;
+  const configuredUnitRupees = getConfiguredUnitPrice(
+    product.id,
+    configuration.colour,
+    priceableArtwork,
+    priceableNeckLabel,
+    false,
+  );
+  const configuredUnitPaise = Math.round(configuredUnitRupees * 100);
+  const discountPercent = getVolumeDiscountPercent(quantity);
+  const unitPricePaise = Math.round(
+    (configuredUnitPaise * (100 - discountPercent)) / 100,
+  );
+  const subtotalPaise = unitPricePaise * quantity;
+  const shippingPaise =
+    input.deliveryType === "rush"
+      ? RUSH_DELIVERY_FEE_PER_UNIT * 100 * quantity
+      : 0;
+  const taxEstimatePaise = Math.round(
+    ((subtotalPaise + shippingPaise) * GST_PERCENT) / 100,
+  );
+  const estimatedTotalPaise =
+    subtotalPaise + shippingPaise + taxEstimatePaise;
+
+  const productSnapshot = {
+    id: product.id,
+    slug: product.id,
+    name: product.name,
+    category: product.category,
+    gsm: product.gsm,
+    fit: product.fit,
+    fabricFeel: product.fabricFeel,
+    sizes: product.sizes,
+    basePricePaise: Math.round(
+      getConfiguredUnitPrice(
+        product.id,
+        undefined,
+        {},
+        undefined,
+        false,
+      ) * 100,
+    ),
+    configuredUnitPaise,
+    discountPercent,
+    pricingVersion: CUSTOM_ORDER_PRICING_VERSION,
+  };
+
+  const item = {
+    line_number: 1,
+    product_id: product.id,
+    product_slug: product.id,
+    product_name: product.name,
+    product_snapshot: productSnapshot,
+    colour_snapshot: configuration.colour,
+    decoration_snapshot: {
+      frontTechnique: configuration.artwork.front?.technique ?? null,
+      backTechnique: configuration.artwork.back?.technique ?? null,
+    },
+    artwork_snapshot: configuration.artwork,
+    neck_label_snapshot: configuration.neckLabel ?? null,
+    size_breakdown: input.sizeQuantities,
+    quantity,
+    unit_price_paise: unitPricePaise,
+    line_total_paise: subtotalPaise,
+  } satisfies Json;
+
+  return {
+    productId: product.id,
+    productName: product.name,
+    quantity,
+    sizeQuantities: input.sizeQuantities,
+    unitPricePaise,
+    subtotalPaise,
+    shippingPaise,
+    taxEstimatePaise,
+    estimatedTotalPaise,
+    item,
+    fileIds: uniqueFileIds(input.snapshot),
+  };
+}
