@@ -53,6 +53,7 @@ type PendingOrder = {
   totalQty?: number;
   sizeBreakdown?: string;
   estimatedTotal?: string;
+  retryHref?: string;
   shippingAddress?: string;
   items?: Array<{
     name?: string;
@@ -169,6 +170,7 @@ export default function PaymentSuccessClient({
         email: order.email,
         txnid,
         type: isSampleOrder ? "sample" : "configure",
+        paymentStatus: "success",
         orderDetails: isSampleOrder
           ? {
               items: order.items ?? [],
@@ -203,6 +205,7 @@ export default function PaymentSuccessClient({
               sizeBreakdown: order.sizeBreakdown,
               estimatedTotal: order.estimatedTotal,
               shippingAddress,
+              retryHref: order.retryHref,
             },
       };
 

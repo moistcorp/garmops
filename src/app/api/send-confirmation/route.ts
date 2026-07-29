@@ -5,8 +5,13 @@ import {
   decodePaymentResultCookie,
   type PaymentKind,
 } from '@/lib/payu'
+import {
+  buildPaymentFailureEmail,
+  buildPaymentSuccessEmail,
+} from '@/lib/email/paymentTemplates'
 
 type EmailType = 'contact' | 'configure' | 'sample'
+type PaymentStatus = 'success' | 'failure'
 type JsonObject = Record<string, unknown>
 
 export const runtime = 'nodejs'
@@ -88,6 +93,22 @@ function formatOrderItems(value: unknown): string {
     .join('\n')
 }
 
+function sameOriginUrl(req: NextRequest, value: unknown, fallbackPath: string): string {
+  const candidate = cleanText(value, 500)
+  const path =
+    candidate.startsWith('/') &&
+    !candidate.startsWith('//') &&
+    !candidate.includes('\\')
+      ? candidate
+      : fallbackPath
+  const fallbackUrl = new URL(fallbackPath, req.nextUrl.origin)
+  const resolvedUrl = new URL(path, req.nextUrl.origin)
+
+  return resolvedUrl.origin === fallbackUrl.origin
+    ? resolvedUrl.toString()
+    : fallbackUrl.toString()
+}
+
 async function parseRequest(req: NextRequest): Promise<ParsedRequest> {
   const contentType = req.headers.get('content-type') ?? ''
 
@@ -157,11 +178,21 @@ export async function POST(req: NextRequest) {
     const name = cleanText(rawBody.name, 120)
     const email = cleanText(rawBody.email, 320)
     const requestedType = cleanText(rawBody.type, 20)
+    const requestedPaymentStatus = cleanText(rawBody.paymentStatus, 20)
     const allowedTypes: EmailType[] = ['contact', 'configure', 'sample']
     if (!name || !email || !allowedTypes.includes(requestedType as EmailType)) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
     const type = requestedType as EmailType
+    const paymentStatus: PaymentStatus =
+      requestedPaymentStatus === 'failure' ? 'failure' : 'success'
+    if (
+      requestedPaymentStatus &&
+      requestedPaymentStatus !== 'success' &&
+      requestedPaymentStatus !== 'failure'
+    ) {
+      return NextResponse.json({ error: 'Invalid payment status' }, { status: 400 })
+    }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
@@ -186,17 +217,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing transaction ID' }, { status: 400 })
     }
 
+    const paymentKind: PaymentKind | null =
+      type === 'contact'
+        ? null
+        : type === 'sample'
+          ? 'sample-cart'
+          : 'configurator'
+    let verifiedAmount = ''
+
     if (type !== 'contact') {
       const payment = decodePaymentResultCookie(
         req.cookies.get(PAYMENT_RESULT_COOKIE)?.value
       )
-      const expectedKind: PaymentKind =
-        type === 'sample' ? 'sample-cart' : 'configurator'
       const authorized =
-        payment?.status === 'success' &&
+        payment?.status === paymentStatus &&
         payment.mock === false &&
         payment.txnid === txnid &&
-        payment.kind === expectedKind
+        payment.kind === paymentKind
 
       if (!authorized) {
         return NextResponse.json(
@@ -205,11 +242,10 @@ export async function POST(req: NextRequest) {
         )
       }
 
-      // Never trust a browser-restored total for a paid sample order. The
-      // signed payment result is the authoritative amount received by PayU.
-      if (type === 'sample') {
-        orderDetails.amount = payment.amount
-      }
+      // The signed payment result is authoritative for both successful and
+      // unsuccessful attempts; never trust a browser-restored amount.
+      verifiedAmount = payment.amount
+      orderDetails.amount = payment.amount
     }
 
     const resend = new Resend(apiKey)
@@ -267,55 +303,6 @@ export async function POST(req: NextRequest) {
     `
 
     const totalQuantity = cleanText(orderDetails.totalQty, 30)
-    const configureEmailHtml = `
-      <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto; color: #111111;">
-        <div style="border-bottom: 1px solid #E5E5E5; padding-bottom: 20px; margin-bottom: 24px;">
-          <h1 style="font-size: 18px; font-weight: 700; margin: 0;">Garmops</h1>
-        </div>
-        <p style="font-size: 15px; margin-bottom: 6px;">Hi ${firstName},</p>
-        <p style="font-size: 15px; color: #555; line-height: 1.7; margin-bottom: 24px;">
-          Your production review is reserved. Our team will review your configuration and send a proforma invoice within <strong style="color: #111;">24 hours</strong>.
-        </p>
-        ${Object.keys(orderDetails).length > 0 || txnid ? `
-        <div style="border: 1px solid #E5E5E5; margin-bottom: 24px;">
-          <div style="background: #111111; padding: 12px 20px;">
-            <p style="font-size: 11px; font-weight: 600; color: white; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">Configuration summary</p>
-          </div>
-          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
-            ${detailRow('Transaction ID', txnid, 100)}
-            ${detailRow('Product', orderDetails.product, 200)}
-            ${detailRow('Product colour', orderDetails.color, 120)}
-            ${detailRow('Print technique', orderDetails.technique, 120)}
-            ${detailRow('Placement', orderDetails.placements, 300)}
-            ${detailRow('Custom label', orderDetails.neckLabel, 200)}
-            ${detailRow('Total quantity', totalQuantity ? `${totalQuantity} pieces` : '', 50)}
-            ${detailRow('Size breakdown', orderDetails.sizeBreakdown, 500)}
-            ${detailRow('Estimated total', orderDetails.estimatedTotal, 100)}
-            ${detailRow('Delivery address', orderDetails.shippingAddress, 1000)}
-          </table>
-        </div>
-        ` : ''}
-        <div style="background: #F7F7F7; border: 1px solid #E5E5E5; padding: 16px 20px; margin-bottom: 24px;">
-          <p style="font-size: 12px; font-weight: 600; color: #111; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px;">What happens next</p>
-          <ol style="margin: 0; padding-left: 18px; font-size: 13px; color: #555; line-height: 2;">
-            <li>We review your artwork and production feasibility</li>
-            <li>We confirm pricing, shipping and the production schedule</li>
-            <li>We send a detailed proforma invoice</li>
-            <li>Production begins after your approval and agreed payment terms</li>
-          </ol>
-        </div>
-        <div style="border: 1px solid #E5E5E5; padding: 16px 20px; margin-bottom: 24px;">
-          <p style="font-size: 12px; font-weight: 600; color: #111; margin: 0 0 4px 0; text-transform: uppercase; letter-spacing: 0.5px;">Reservation fee paid</p>
-          <p style="font-size: 20px; font-weight: 700; color: #111; margin: 0;">Rs. 499</p>
-          <p style="font-size: 11px; color: #aaa; margin: 4px 0 0 0;">Credited against your final invoice.</p>
-        </div>
-        <div style="border-top: 1px solid #E5E5E5; margin-top: 32px; padding-top: 20px; font-size: 11px; color: #aaa;">
-          <p style="margin: 0;">Garmops &mdash; Powered by Moist Corp</p>
-          <p style="margin: 4px 0 0 0;">Greater Noida, Uttar Pradesh, India</p>
-        </div>
-      </div>
-    `
-
     const configureNotificationHtml = `
       <div style="font-family: sans-serif; max-width: 680px; margin: 0 auto; color: #111111;">
         <h1 style="font-size: 20px; margin: 0 0 20px;">New configurator reservation</h1>
@@ -356,34 +343,6 @@ export async function POST(req: NextRequest) {
 
     const sampleItems = formatOrderItems(orderDetails.items ?? orderDetails.productinfo)
     const paidAmount = orderDetails.amount ?? orderDetails.total ?? orderDetails.estimatedTotal
-    const sampleEmailHtml = `
-      <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto; color: #111111;">
-        <div style="border-bottom: 1px solid #E5E5E5; padding-bottom: 20px; margin-bottom: 24px;">
-          <h1 style="font-size: 18px; font-weight: 700; margin: 0;">Garmops</h1>
-        </div>
-        <p style="font-size: 15px; margin-bottom: 6px;">Hi ${firstName},</p>
-        <p style="font-size: 15px; color: #555; line-height: 1.7; margin-bottom: 24px;">
-          We have received payment for your sample order. Our team will verify the order and send you a dispatch update as soon as it is ready.
-        </p>
-        <div style="border: 1px solid #E5E5E5; margin-bottom: 24px;">
-          <div style="background: #111111; padding: 12px 20px;">
-            <p style="font-size: 11px; font-weight: 600; color: white; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">Paid sample order</p>
-          </div>
-          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
-            ${detailRow('Transaction ID', txnid, 100)}
-            ${detailRow('Items', sampleItems, 2000)}
-            ${detailRow('Amount paid', paidAmount, 100)}
-            ${detailRow('Shipping address', orderDetails.shippingAddress, 1000)}
-          </table>
-        </div>
-        <p style="font-size: 13px; color: #888; line-height: 1.7;">If anything in this summary is incorrect, reply to this email and include your transaction ID.</p>
-        <div style="border-top: 1px solid #E5E5E5; margin-top: 32px; padding-top: 20px; font-size: 11px; color: #aaa;">
-          <p style="margin: 0;">Garmops &mdash; Powered by Moist Corp</p>
-          <p style="margin: 4px 0 0 0;">Greater Noida, Uttar Pradesh, India</p>
-        </div>
-      </div>
-    `
-
     const sampleNotificationHtml = `
       <div style="font-family: sans-serif; max-width: 640px; margin: 0 auto; color: #111111;">
         <h1 style="font-size: 20px; margin: 0 0 20px;">New paid sample order</h1>
@@ -398,7 +357,71 @@ export async function POST(req: NextRequest) {
       </div>
     `
 
-    if (type === 'contact') {
+    const successEmail =
+      paymentKind && paymentStatus === 'success'
+        ? buildPaymentSuccessEmail({
+            name,
+            transactionId: txnid,
+            amount: verifiedAmount,
+            kind: paymentKind,
+            supportEmail: contactToEmail,
+            siteUrl: req.nextUrl.origin,
+            details: {
+              projectName: cleanText(orderDetails.projectName, 160),
+              items: type === 'sample' ? sampleItems : '',
+              product: cleanText(orderDetails.product, 300),
+              colour: cleanText(orderDetails.color, 200),
+              totalQuantity: totalQuantity ? `${totalQuantity} pieces` : '',
+              estimatedTotal: cleanText(orderDetails.estimatedTotal, 100),
+              targetDelivery: cleanText(orderDetails.targetDelivery, 120),
+              shippingAddress: cleanText(orderDetails.shippingAddress, 1000),
+            },
+          })
+        : null
+
+    if (type !== 'contact' && paymentStatus === 'failure') {
+      if (!paymentKind) {
+        return NextResponse.json({ error: 'Invalid order type' }, { status: 400 })
+      }
+
+      const failureEmail = buildPaymentFailureEmail({
+        name,
+        transactionId: txnid,
+        amount: verifiedAmount,
+        kind: paymentKind,
+        supportEmail: contactToEmail,
+        siteUrl: req.nextUrl.origin,
+        retryUrl: sameOriginUrl(
+          req,
+          orderDetails.retryHref,
+          type === 'sample' ? '/checkout' : '/configurator'
+        ),
+        details: {
+          projectName: cleanText(orderDetails.projectName, 160),
+        },
+      })
+      const result = await resend.emails.send(
+        {
+          from: fromEmail,
+          to: email,
+          replyTo: contactToEmail,
+          subject: failureEmail.subject,
+          html: failureEmail.html,
+          text: failureEmail.text,
+        },
+        {
+          idempotencyKey: `payment-failure/customer/${txnid}`,
+        }
+      )
+      if (result.error) {
+        console.error(
+          'Resend payment failure email error:',
+          result.error.name,
+          result.error.message
+        )
+        return NextResponse.json({ error: 'Email provider rejected the request' }, { status: 502 })
+      }
+    } else if (type === 'contact') {
       if (!contactToEmail) {
         return NextResponse.json({ error: 'Contact recipient is not configured' }, { status: 503 })
       }
@@ -427,22 +450,31 @@ export async function POST(req: NextRequest) {
       if (!contactToEmail) {
         return NextResponse.json({ error: 'Order recipient is not configured' }, { status: 503 })
       }
-      const result = await resend.batch.send([
+      if (!successEmail) {
+        return NextResponse.json({ error: 'Invalid payment status' }, { status: 400 })
+      }
+      const result = await resend.batch.send(
+        [
+          {
+            from: fromEmail,
+            to: email,
+            replyTo: contactToEmail,
+            subject: successEmail.subject,
+            html: successEmail.html,
+            text: successEmail.text,
+          },
+          {
+            from: fromEmail,
+            to: contactToEmail,
+            replyTo: email,
+            subject: `Paid sample order - ${txnid}`,
+            html: sampleNotificationHtml,
+          },
+        ],
         {
-          from: fromEmail,
-          to: email,
-          replyTo: contactToEmail,
-          subject: `Payment received - sample order ${txnid}`,
-          html: sampleEmailHtml,
-        },
-        {
-          from: fromEmail,
-          to: contactToEmail,
-          replyTo: email,
-          subject: `Paid sample order - ${txnid}`,
-          html: sampleNotificationHtml,
-        },
-      ])
+          idempotencyKey: `payment-success/sample/${txnid}`,
+        }
+      )
       if (result.error) {
         console.error('Resend sample batch error:', result.error.name, result.error.message)
         return NextResponse.json({ error: 'Email provider rejected the request' }, { status: 502 })
@@ -454,14 +486,23 @@ export async function POST(req: NextRequest) {
           { status: 503 }
         )
       }
+      if (!successEmail) {
+        return NextResponse.json({ error: 'Invalid payment status' }, { status: 400 })
+      }
 
-      const customerResult = await resend.emails.send({
-        from: fromEmail,
-        to: email,
-        replyTo: contactToEmail,
-        subject: 'Reservation confirmed — your configuration summary',
-        html: configureEmailHtml,
-      })
+      const customerResult = await resend.emails.send(
+        {
+          from: fromEmail,
+          to: email,
+          replyTo: contactToEmail,
+          subject: successEmail.subject,
+          html: successEmail.html,
+          text: successEmail.text,
+        },
+        {
+          idempotencyKey: `payment-success/customer/${txnid}`,
+        }
+      )
       if (customerResult.error) {
         console.error(
           'Resend configure customer email error:',
@@ -474,14 +515,19 @@ export async function POST(req: NextRequest) {
       if (contactToEmail) {
         const companyForSubject = cleanText(orderDetails.companyName, 80)
           .replace(/[\r\n]+/g, ' ')
-        const internalResult = await resend.emails.send({
-          from: fromEmail,
-          to: contactToEmail,
-          replyTo: email,
-          subject: `Configurator reservation - ${companyForSubject || txnid || name}`,
-          html: configureNotificationHtml,
-          attachments: attachment ? [attachment] : undefined,
-        })
+        const internalResult = await resend.emails.send(
+          {
+            from: fromEmail,
+            to: contactToEmail,
+            replyTo: email,
+            subject: `Configurator reservation - ${companyForSubject || txnid || name}`,
+            html: configureNotificationHtml,
+            attachments: attachment ? [attachment] : undefined,
+          },
+          {
+            idempotencyKey: `payment-success/internal/${txnid}`,
+          }
+        )
         if (internalResult.error) {
           console.error(
             'Resend configure notification error:',
