@@ -19,6 +19,9 @@ const optionalEmail = z.preprocess(
   z.string().trim().email().max(320).optional()
 );
 
+const optionalLiteral = <T extends string>(value: T) =>
+  z.preprocess(emptyToUndefined, z.literal(value).optional());
+
 const booleanValue = z
   .enum(["true", "false"])
   .default("false")
@@ -49,8 +52,8 @@ const serverEnvironmentSchema = z
     R2_ACCESS_KEY_ID: optionalText(512),
     R2_SECRET_ACCESS_KEY: optionalText(2048),
     R2_S3_ENDPOINT: optionalUrl,
-    R2_PUBLIC_BUCKET: optionalText(255),
-    R2_PRIVATE_BUCKET: optionalText(255),
+    R2_PUBLIC_BUCKET: optionalLiteral("garmops-public-downloads"),
+    R2_PRIVATE_BUCKET: optionalLiteral("garmops-private-orders"),
     NEXT_PUBLIC_DOWNLOADS_BASE_URL: optionalUrl,
 
     PAYU_MERCHANT_KEY: optionalText(512),
@@ -134,6 +137,7 @@ const serverEnvironmentSchema = z
     const supabaseEnabled =
       environment.NEXT_PUBLIC_ACCOUNTS_ENABLED ||
       environment.STAFF_PORTAL_ENABLED ||
+      environment.R2_PRIVATE_UPLOADS_ENABLED ||
       environment.DURABLE_CUSTOM_CHECKOUT_ENABLED ||
       environment.DURABLE_SAMPLE_CHECKOUT_ENABLED;
 
@@ -145,7 +149,8 @@ const serverEnvironmentSchema = z
 
     if (
       (environment.NEXT_PUBLIC_ACCOUNTS_ENABLED ||
-        environment.STAFF_PORTAL_ENABLED) &&
+        environment.STAFF_PORTAL_ENABLED ||
+        environment.R2_PRIVATE_UPLOADS_ENABLED) &&
       !environment.SUPABASE_SECRET_KEY &&
       !environment.SUPABASE_SERVICE_ROLE_KEY
     ) {
@@ -185,6 +190,57 @@ const serverEnvironmentSchema = z
       ],
       "when private R2 uploads are enabled"
     );
+
+    if (
+      environment.R2_PRIVATE_UPLOADS_ENABLED &&
+      !environment.NEXT_PUBLIC_ACCOUNTS_ENABLED
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["NEXT_PUBLIC_ACCOUNTS_ENABLED"],
+        message: "Accounts must be enabled before private R2 uploads",
+      });
+    }
+
+    if (
+      environment.R2_ACCOUNT_ID &&
+      environment.R2_S3_ENDPOINT
+    ) {
+      const endpoint = new URL(environment.R2_S3_ENDPOINT);
+      if (
+        endpoint.origin !==
+          `https://${environment.R2_ACCOUNT_ID}.r2.cloudflarestorage.com` ||
+        endpoint.pathname !== "/" ||
+        endpoint.search ||
+        endpoint.hash ||
+        endpoint.username ||
+        endpoint.password
+      ) {
+        context.addIssue({
+          code: "custom",
+          path: ["R2_S3_ENDPOINT"],
+          message: "R2 endpoint must match the configured account",
+        });
+      }
+    }
+
+    if (environment.NEXT_PUBLIC_DOWNLOADS_BASE_URL) {
+      const downloads = new URL(environment.NEXT_PUBLIC_DOWNLOADS_BASE_URL);
+      if (
+        downloads.protocol !== "https:" ||
+        downloads.pathname !== "/" ||
+        downloads.search ||
+        downloads.hash ||
+        downloads.username ||
+        downloads.password
+      ) {
+        context.addIssue({
+          code: "custom",
+          path: ["NEXT_PUBLIC_DOWNLOADS_BASE_URL"],
+          message: "Public downloads URL must be an HTTPS origin",
+        });
+      }
+    }
 
     const durableCheckoutEnabled =
       environment.DURABLE_CUSTOM_CHECKOUT_ENABLED ||

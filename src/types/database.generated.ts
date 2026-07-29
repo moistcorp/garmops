@@ -743,15 +743,22 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           design_project_id: string | null
+          finalized_at: string | null
           id: string
           kind: Database["public"]["Enums"]["file_kind"]
+          object_etag: string | null
           object_key: string
           order_id: string | null
           original_filename: string
           provider_source: string
           safe_filename: string
+          scan_review_note: string | null
+          scan_reviewed_at: string | null
+          scan_reviewed_by: string | null
           scan_status: Database["public"]["Enums"]["file_scan_status"]
           sha256: string | null
+          upload_expires_at: string | null
+          upload_status: Database["public"]["Enums"]["file_upload_status"]
           uploaded_by: string | null
           version_number: number | null
           visibility: Database["public"]["Enums"]["file_visibility"]
@@ -763,15 +770,22 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           design_project_id?: string | null
+          finalized_at?: string | null
           id?: string
           kind: Database["public"]["Enums"]["file_kind"]
+          object_etag?: string | null
           object_key: string
           order_id?: string | null
           original_filename: string
           provider_source?: string
           safe_filename: string
+          scan_review_note?: string | null
+          scan_reviewed_at?: string | null
+          scan_reviewed_by?: string | null
           scan_status?: Database["public"]["Enums"]["file_scan_status"]
           sha256?: string | null
+          upload_expires_at?: string | null
+          upload_status?: Database["public"]["Enums"]["file_upload_status"]
           uploaded_by?: string | null
           version_number?: number | null
           visibility: Database["public"]["Enums"]["file_visibility"]
@@ -783,15 +797,22 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           design_project_id?: string | null
+          finalized_at?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["file_kind"]
+          object_etag?: string | null
           object_key?: string
           order_id?: string | null
           original_filename?: string
           provider_source?: string
           safe_filename?: string
+          scan_review_note?: string | null
+          scan_reviewed_at?: string | null
+          scan_reviewed_by?: string | null
           scan_status?: Database["public"]["Enums"]["file_scan_status"]
           sha256?: string | null
+          upload_expires_at?: string | null
+          upload_status?: Database["public"]["Enums"]["file_upload_status"]
           uploaded_by?: string | null
           version_number?: number | null
           visibility?: Database["public"]["Enums"]["file_visibility"]
@@ -809,6 +830,13 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_files_scan_reviewed_by_fkey"
+            columns: ["scan_reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1686,6 +1714,25 @@ export type Database = {
           retry_after_seconds: number
         }[]
       }
+      create_private_upload_slot: {
+        Args: {
+          p_byte_size: number
+          p_content_type: string
+          p_design_project_id: string
+          p_expires_at: string
+          p_extension: string
+          p_kind: Database["public"]["Enums"]["file_kind"]
+          p_order_id: string
+          p_original_filename: string
+          p_safe_filename: string
+          p_sha256: string
+          p_visibility: Database["public"]["Enums"]["file_visibility"]
+        }
+        Returns: {
+          file_id: string
+          object_key: string
+        }[]
+      }
       current_staff_role: {
         Args: never
         Returns: Database["public"]["Enums"]["staff_role"]
@@ -1694,6 +1741,7 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      expire_private_upload_slots: { Args: never; Returns: number }
       fail_integration_job: {
         Args: {
           p_error: string
@@ -1726,6 +1774,16 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      finalize_private_upload: {
+        Args: {
+          p_actual_byte_size: number
+          p_actual_content_type: string
+          p_actual_sha256: string
+          p_file_id: string
+          p_object_etag: string
+        }
+        Returns: boolean
       }
       finalize_verified_payment: {
         Args: {
@@ -1776,6 +1834,15 @@ export type Database = {
         Returns: undefined
       }
       record_staff_login: { Args: never; Returns: undefined }
+      review_file_scan: {
+        Args: {
+          p_file_id: string
+          p_review_note: string
+          p_scan_status: Database["public"]["Enums"]["file_scan_status"]
+        }
+        Returns: boolean
+      }
+      soft_delete_file: { Args: { p_file_id: string }; Returns: boolean }
       staff_has_permission: {
         Args: { p_permission_name: string }
         Returns: boolean
@@ -1841,6 +1908,7 @@ export type Database = {
         | "rejected"
         | "manual_review"
         | "not_required"
+      file_upload_status: "pending" | "finalized" | "failed" | "expired"
       file_visibility: "customer" | "staff_only" | "public"
       invoice_kind:
         | "reservation_retainer"
@@ -2064,6 +2132,7 @@ export const Constants = {
         "manual_review",
         "not_required",
       ],
+      file_upload_status: ["pending", "finalized", "failed", "expired"],
       file_visibility: ["customer", "staff_only", "public"],
       invoice_kind: [
         "reservation_retainer",

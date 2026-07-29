@@ -10,6 +10,8 @@ function configuredOrigin(value: string | undefined) {
 }
 
 const supabaseOrigin = configuredOrigin(process.env.NEXT_PUBLIC_SUPABASE_URL)
+const r2Origin = configuredOrigin(process.env.R2_S3_ENDPOINT)
+const downloadsOrigin = configuredOrigin(process.env.NEXT_PUBLIC_DOWNLOADS_BASE_URL)
 
 const nextConfig: NextConfig = {
   async redirects() {
@@ -25,6 +27,20 @@ const nextConfig: NextConfig = {
         destination: '/journal/screen-printing-vs-dtg-vs-dtf-embroidery',
         permanent: true,
       },
+      ...(downloadsOrigin
+        ? [
+            {
+              source: '/downloads/Garmops-print_templates-1.0.zip',
+              destination: `${downloadsOrigin}/templates/print/Garmops-print_templates-1.0.zip`,
+              permanent: false,
+            },
+            {
+              source: '/downloads/neck-label-templates.zip',
+              destination: `${downloadsOrigin}/templates/neck-label/neck-label-templates-1.0.zip`,
+              permanent: false,
+            },
+          ]
+        : []),
     ]
   },
   async headers() {
@@ -65,7 +81,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://api.fontshare.com",
               "font-src 'self' https://cdn.fontshare.com",
               "img-src 'self' data: blob: https:",
-              `connect-src 'self' https://api.resend.com https://formspree.io https://secure.payu.in https://test.payu.in https://challenges.cloudflare.com${supabaseOrigin ? ` ${supabaseOrigin}` : ''}`,
+              `connect-src 'self' https://api.resend.com https://formspree.io https://secure.payu.in https://test.payu.in https://challenges.cloudflare.com${supabaseOrigin ? ` ${supabaseOrigin}` : ''}${r2Origin ? ` ${r2Origin}` : ''}`,
               "frame-src https://secure.payu.in https://test.payu.in https://challenges.cloudflare.com",
               "form-action 'self' https://secure.payu.in https://test.payu.in",
             ].join('; '),

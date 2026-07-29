@@ -20,10 +20,14 @@
     "db:test": "supabase test db",
     "db:types": "supabase gen types typescript --local --schema public > src/types/database.generated.ts",
     "test": "vitest run",
+    "r2:migrate-public": "tsx scripts/migrate-public-downloads-to-r2.ts",
+    "r2:verify-private": "tsx scripts/verify-private-r2.ts",
     "seo:check": "node scripts/check-seo.mjs",
     "agent:check": "node scripts/check-agent-readiness.mjs"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1097.0",
+    "@aws-sdk/s3-request-presigner": "^3.1097.0",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.111.0",
     "lucide-react": "^1.24.0",
@@ -45,6 +49,7 @@
     "eslint-config-next": "16.2.11",
     "supabase": "^2.110.0",
     "tailwindcss": "^4",
+    "tsx": "^4.23.1",
     "typescript": "^5",
     "vitest": "^3.2.7"
   },
