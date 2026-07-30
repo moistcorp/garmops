@@ -30,6 +30,24 @@ const booleanValue = z
 const positiveInteger = (fallback: number, maximum: number) =>
   z.coerce.number().int().positive().max(maximum).default(fallback);
 
+const optionalNonnegativeInteger = (maximum: number) =>
+  z.preprocess(
+    emptyToUndefined,
+    z.coerce.number().int().nonnegative().max(maximum).optional()
+  );
+
+
+const ZOHO_DATA_CENTRE_HOSTS = Object.freeze({
+  "accounts.zoho.com": "www.zohoapis.com",
+  "accounts.zoho.eu": "www.zohoapis.eu",
+  "accounts.zoho.in": "www.zohoapis.in",
+  "accounts.zoho.com.au": "www.zohoapis.com.au",
+  "accounts.zoho.jp": "www.zohoapis.jp",
+  "accounts.zohocloud.ca": "www.zohoapis.ca",
+  "accounts.zoho.com.cn": "www.zohoapis.com.cn",
+  "accounts.zoho.sa": "www.zohoapis.sa",
+} as const);
+
 const serverEnvironmentSchema = z
   .object({
     APP_ENV: z
@@ -77,6 +95,7 @@ const serverEnvironmentSchema = z
     ZOHO_RESERVATION_TAX_MODE: z
       .enum(["inclusive", "exclusive"])
       .default("inclusive"),
+    ZOHO_RESERVATION_TAX_BASIS_POINTS: optionalNonnegativeInteger(100_000),
     ZOHO_SEND_DOCUMENT_EMAIL: z
       .enum(["true", "false"])
       .default("true")
@@ -260,6 +279,54 @@ const serverEnvironmentSchema = z
       }
     }
 
+    if (environment.NEXT_PUBLIC_PAYU_BASE_URL) {
+      const checkout = new URL(environment.NEXT_PUBLIC_PAYU_BASE_URL);
+      const expectedOrigin =
+        environment.PAYU_ENVIRONMENT === "live"
+          ? "https://secure.payu.in"
+          : "https://test.payu.in";
+      if (
+        checkout.origin !== expectedOrigin ||
+        checkout.pathname !== "/_payment" ||
+        checkout.search ||
+        checkout.hash ||
+        checkout.username ||
+        checkout.password
+      ) {
+        context.addIssue({
+          code: "custom",
+          path: ["NEXT_PUBLIC_PAYU_BASE_URL"],
+          message: "PayU checkout URL must match the selected PayU environment",
+        });
+      }
+    }
+
+    if (environment.PAYU_VERIFY_BASE_URL) {
+      const verify = new URL(environment.PAYU_VERIFY_BASE_URL);
+      const expectedOrigin =
+        environment.PAYU_ENVIRONMENT === "live"
+          ? "https://info.payu.in"
+          : "https://test.payu.in";
+      if (
+        verify.origin !== expectedOrigin ||
+        !["/merchant/postservice", "/merchant/postservice.php"].includes(
+          verify.pathname
+        ) ||
+        verify.searchParams.get("form") !== "2" ||
+        [...verify.searchParams.keys()].some((key) => key !== "form") ||
+        verify.hash ||
+        verify.username ||
+        verify.password
+      ) {
+        context.addIssue({
+          code: "custom",
+          path: ["PAYU_VERIFY_BASE_URL"],
+          message:
+            "PayU verification URL must be the official form=2 endpoint for the selected environment",
+        });
+      }
+    }
+
     const durableCheckoutEnabled =
       environment.DURABLE_CUSTOM_CHECKOUT_ENABLED ||
       environment.DURABLE_SAMPLE_CHECKOUT_ENABLED;
@@ -275,6 +342,17 @@ const serverEnvironmentSchema = z
       });
     }
 
+    requireValues(
+      durableCheckoutEnabled,
+      [
+        "PAYU_MERCHANT_KEY",
+        "PAYU_SALT",
+        "PAYMENT_SIGNING_SECRET",
+        "CRON_SECRET",
+      ],
+      "when durable PayU checkout is enabled"
+    );
+
     if (
       environment.DURABLE_CUSTOM_CHECKOUT_ENABLED &&
       !environment.CLOUD_DESIGNS_ENABLED
@@ -284,6 +362,63 @@ const serverEnvironmentSchema = z
         path: ["DURABLE_CUSTOM_CHECKOUT_ENABLED"],
         message:
           "Cloud designs must be enabled before durable custom checkout",
+      });
+    }
+
+    let zohoAccountsHost: keyof typeof ZOHO_DATA_CENTRE_HOSTS | null = null;
+    let zohoApiHost: string | null = null;
+    if (environment.ZOHO_ACCOUNTS_BASE_URL) {
+      const accounts = new URL(environment.ZOHO_ACCOUNTS_BASE_URL);
+      if (
+        accounts.protocol !== "https:" ||
+        !(accounts.hostname in ZOHO_DATA_CENTRE_HOSTS) ||
+        accounts.pathname !== "/" ||
+        accounts.search ||
+        accounts.hash ||
+        accounts.username ||
+        accounts.password
+      ) {
+        context.addIssue({
+          code: "custom",
+          path: ["ZOHO_ACCOUNTS_BASE_URL"],
+          message: "Zoho accounts URL must be an exact official HTTPS data-centre origin",
+        });
+      } else {
+        zohoAccountsHost = accounts.hostname as keyof typeof ZOHO_DATA_CENTRE_HOSTS;
+      }
+    }
+
+    if (environment.ZOHO_INVOICE_API_BASE_URL) {
+      const api = new URL(environment.ZOHO_INVOICE_API_BASE_URL);
+      const officialApiHosts = new Set(Object.values(ZOHO_DATA_CENTRE_HOSTS));
+      if (
+        api.protocol !== "https:" ||
+        !officialApiHosts.has(api.hostname) ||
+        api.pathname.replace(/\/$/, "") !== "/invoice/v3" ||
+        api.search ||
+        api.hash ||
+        api.username ||
+        api.password
+      ) {
+        context.addIssue({
+          code: "custom",
+          path: ["ZOHO_INVOICE_API_BASE_URL"],
+          message: "Zoho Invoice API URL must be an exact official /invoice/v3 data-centre endpoint",
+        });
+      } else {
+        zohoApiHost = api.hostname;
+      }
+    }
+
+    if (
+      zohoAccountsHost &&
+      zohoApiHost &&
+      ZOHO_DATA_CENTRE_HOSTS[zohoAccountsHost] !== zohoApiHost
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["ZOHO_INVOICE_API_BASE_URL"],
+        message: "Zoho OAuth and Invoice API endpoints must use the same data centre",
       });
     }
 
@@ -298,9 +433,24 @@ const serverEnvironmentSchema = z
         "ZOHO_INVOICE_API_BASE_URL",
         "ZOHO_RESERVATION_ITEM_ID",
         "ZOHO_RESERVATION_TAX_ID",
+        "RESEND_API_KEY",
+        "RESEND_FROM_EMAIL",
       ],
       "when Zoho invoice automation is enabled"
     );
+
+    if (
+      environment.ZOHO_INVOICE_AUTOMATION_ENABLED &&
+      environment.ZOHO_RESERVATION_TAX_MODE === "exclusive" &&
+      environment.ZOHO_RESERVATION_TAX_BASIS_POINTS === undefined
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["ZOHO_RESERVATION_TAX_BASIS_POINTS"],
+        message:
+          "Exclusive Zoho tax mode requires the finance-approved combined tax rate in basis points",
+      });
+    }
 
     if (
       environment.ZOHO_INVOICE_AUTOMATION_ENABLED &&

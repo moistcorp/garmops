@@ -512,6 +512,8 @@ export type Database = {
           payment_attempt_id: string | null
           pdf_file_id: string | null
           provider: string
+          provider_snapshot: Json | null
+          provider_status: string | null
           reference_number: string
           subtotal_paise: number | null
           sync_status: Database["public"]["Enums"]["invoice_sync_status"]
@@ -542,6 +544,8 @@ export type Database = {
           payment_attempt_id?: string | null
           pdf_file_id?: string | null
           provider?: string
+          provider_snapshot?: Json | null
+          provider_status?: string | null
           reference_number: string
           subtotal_paise?: number | null
           sync_status?: Database["public"]["Enums"]["invoice_sync_status"]
@@ -572,6 +576,8 @@ export type Database = {
           payment_attempt_id?: string | null
           pdf_file_id?: string | null
           provider?: string
+          provider_snapshot?: Json | null
+          provider_status?: string | null
           reference_number?: string
           subtotal_paise?: number | null
           sync_status?: Database["public"]["Enums"]["invoice_sync_status"]
@@ -1681,6 +1687,33 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      defer_integration_job: {
+        Args: {
+          p_available_at: string
+          p_job_id: string
+          p_reason: string
+          p_worker_id: string
+        }
+        Returns: {
+          aggregate_id: string
+          aggregate_type: string
+          attempt_count: number
+          available_at: string
+          completed_at: string | null
+          created_at: string
+          dedupe_key: string
+          id: string
+          job_type: string
+          last_error: string | null
+          locked_at: string | null
+          locked_by: string | null
+          max_attempts: number
+          payload: Json
+          priority: number
+          status: string
+          updated_at: string
+        }
+      }
       complete_customer_onboarding: {
         Args: {
           p_company_name: string
@@ -1902,7 +1935,22 @@ export type Database = {
         }
         Returns: undefined
       }
+      record_payu_payment_state: {
+        Args: {
+          p_failure_code?: string | null
+          p_failure_message?: string | null
+          p_payment_attempt_id: string
+          p_provider_payment_id?: string | null
+          p_state: string
+          p_verified_snapshot?: Json
+        }
+        Returns: undefined
+      }
       record_staff_login: { Args: never; Returns: undefined }
+      retry_invoice_integration_job: {
+        Args: { p_invoice_id: string }
+        Returns: string | null
+      }
       retry_order_payment: {
         Args: {
           p_customer_user_id: string

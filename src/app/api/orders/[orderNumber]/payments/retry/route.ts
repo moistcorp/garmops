@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { NextRequest } from "next/server";
 
 import {
@@ -21,6 +22,54 @@ type RetryRouteContext = {
   params: Promise<{ orderNumber: string }>;
 };
 
+function safeRetryError(error: unknown): {
+  message: string;
+  status: number;
+  code: string;
+} {
+  const internal = error instanceof Error ? error.message : "";
+  if (/access denied/i.test(internal)) {
+    return {
+      message: "Payment retry is unavailable",
+      status: 403,
+      code: "ORGANIZATION_ACCESS_DENIED",
+    };
+  }
+  if (/already complete|already paid/i.test(internal)) {
+    return {
+      message: "This order has already been paid",
+      status: 409,
+      code: "ORDER_ALREADY_PAID",
+    };
+  }
+  if (/expired/i.test(internal)) {
+    return {
+      message: "The order payment window has expired",
+      status: 409,
+      code: "ORDER_EXPIRED",
+    };
+  }
+  if (/not awaiting payment/i.test(internal)) {
+    return {
+      message: "This order is not awaiting payment",
+      status: 409,
+      code: "PAYMENT_RETRY_UNAVAILABLE",
+    };
+  }
+  if (/maximum payment attempts/i.test(internal)) {
+    return {
+      message: "Please contact Garmops support to continue payment",
+      status: 409,
+      code: "PAYMENT_RETRY_LIMIT_REACHED",
+    };
+  }
+  return {
+    message: "Payment retry could not be prepared",
+    status: 409,
+    code: "PAYMENT_RETRY_FAILED",
+  };
+}
+
 export async function POST(
   request: NextRequest,
   context: RetryRouteContext,
@@ -32,6 +81,7 @@ export async function POST(
     return orderJsonError("Invalid request origin", 403);
   }
 
+  const requestId = randomUUID();
   const { orderNumber } = await context.params;
   const number = orderNumberSchema.safeParse(orderNumber);
   if (!number.success) return orderJsonError("Order not found", 404);
@@ -61,7 +111,9 @@ export async function POST(
     .eq("status", "active")
     .in("role", ["owner", "buyer"])
     .maybeSingle();
-  if (!membership) return orderJsonError("Payment retry is unavailable", 403);
+  if (!membership) {
+    return orderJsonError("Payment retry is unavailable", 403);
+  }
 
   try {
     const result = await retryCustomOrderPayment({
@@ -81,10 +133,21 @@ export async function POST(
       result.created_new ? 201 : 200,
     );
   } catch (retryError) {
-    const message =
-      retryError instanceof Error
-        ? retryError.message
-        : "Payment retry could not be prepared";
-    return orderJsonError(message, /access denied/i.test(message) ? 403 : 409);
+    const safe = safeRetryError(retryError);
+    console.error("Payment retry preparation failed", {
+      requestId,
+      orderNumber: number.data,
+      userId: auth.user.id,
+      error:
+        retryError instanceof Error ? retryError.message : "unknown error",
+    });
+    return orderJson(
+      {
+        error: safe.message,
+        code: safe.code,
+        requestId,
+      },
+      safe.status,
+    );
   }
 }

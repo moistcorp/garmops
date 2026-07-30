@@ -18,10 +18,10 @@ function getPayuCheckoutUrl(): string {
  * Sends a browser POST directly to PayU Hosted Checkout. The merchant salt
  * never reaches this function; callers receive only the server-generated hash.
  */
-export function submitPayuCheckout(fields: PayuCheckoutFields): void {
+export function submitPayuCheckout(fields: PayuCheckoutFields, checkoutUrl?: string): void {
   const form = document.createElement("form");
   form.method = "POST";
-  form.action = getPayuCheckoutUrl();
+  form.action = checkoutUrl ?? getPayuCheckoutUrl();
   form.acceptCharset = "UTF-8";
   form.hidden = true;
 

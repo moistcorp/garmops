@@ -64,20 +64,38 @@ export async function readOrderJson(
   request: NextRequest,
   maximumBytes = 64 * 1024,
 ): Promise<{ ok: true; value: unknown } | { ok: false; response: NextResponse }> {
-  const contentLength = Number(request.headers.get("content-length") ?? "0");
-  if (
-    !Number.isFinite(contentLength) ||
-    contentLength < 0 ||
-    contentLength > maximumBytes
-  ) {
+  const contentType = request.headers.get("content-type")?.split(";", 1)[0];
+  if (contentType !== "application/json") {
     return {
       ok: false,
-      response: orderJsonError("Request is too large", 413),
+      response: orderJsonError("JSON request required", 415),
     };
   }
 
+  const declaredLength = request.headers.get("content-length");
+  if (declaredLength) {
+    const contentLength = Number(declaredLength);
+    if (
+      !Number.isFinite(contentLength) ||
+      contentLength < 0 ||
+      contentLength > maximumBytes
+    ) {
+      return {
+        ok: false,
+        response: orderJsonError("Request is too large", 413),
+      };
+    }
+  }
+
   try {
-    return { ok: true, value: await request.json() };
+    const bytes = Buffer.from(await request.arrayBuffer());
+    if (bytes.byteLength > maximumBytes) {
+      return {
+        ok: false,
+        response: orderJsonError("Request is too large", 413),
+      };
+    }
+    return { ok: true, value: JSON.parse(bytes.toString("utf8")) as unknown };
   } catch {
     return {
       ok: false,

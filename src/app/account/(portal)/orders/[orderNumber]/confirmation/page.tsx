@@ -120,12 +120,25 @@ export default async function OrderConfirmationPage({
           order number or overwrites an earlier attempt.
         </p>
         <div className="mt-6">
-          {latestPayment ? (
+          {latestPayment &&
+          ["created", "initiated", "failed"].includes(latestPayment.status) ? (
             <PaymentRetryButton
               orderNumber={order.order_number}
               initialAttemptNumber={latestPayment.attempt_number}
+              initialPaymentAttemptId={latestPayment.id}
+              initialPaymentStatus={latestPayment.status}
               confirmation
             />
+          ) : latestPayment?.status === "pending" ? (
+            <p className="text-sm leading-relaxed text-amber-800">
+              PayU verification is pending. Do not make another payment; this
+              attempt is being reconciled automatically.
+            </p>
+          ) : latestPayment?.status === "paid" ? (
+            <p className="text-sm leading-relaxed text-emerald-700">
+              The reservation payment has been verified. Open the order to see
+              its current status.
+            </p>
           ) : (
             <p className="text-sm text-red-700">
               The payment attempt could not be loaded. Your order remains

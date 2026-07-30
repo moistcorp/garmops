@@ -113,7 +113,7 @@ describe("server environment validation", () => {
         DURABLE_CUSTOM_CHECKOUT_ENABLED: "true",
       })
     ).toThrow(
-      "Invalid server environment configuration: DURABLE_CUSTOM_CHECKOUT_ENABLED, NEXT_PUBLIC_ACCOUNTS_ENABLED, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SECRET_KEY"
+      "Invalid server environment configuration: CRON_SECRET, DURABLE_CUSTOM_CHECKOUT_ENABLED, NEXT_PUBLIC_ACCOUNTS_ENABLED, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, NEXT_PUBLIC_SUPABASE_URL, PAYMENT_SIGNING_SECRET, PAYU_MERCHANT_KEY, PAYU_SALT, SUPABASE_SECRET_KEY"
     );
   });
 
@@ -152,4 +152,61 @@ describe("server environment validation", () => {
       expect.not.stringContaining(secret)
     );
   });
+
+  it("rejects non-official Zoho data-centre endpoints", () => {
+    expect(() =>
+      parseServerEnvironment({
+        ZOHO_ACCOUNTS_BASE_URL: "https://example.com",
+        ZOHO_INVOICE_API_BASE_URL: "https://example.com/invoice/v3",
+      })
+    ).toThrow(
+      "Invalid server environment configuration: ZOHO_ACCOUNTS_BASE_URL, ZOHO_INVOICE_API_BASE_URL"
+    );
+  });
+
+  it("accepts official India Zoho Invoice origins while automation is off", () => {
+    const environment = parseServerEnvironment({
+      ZOHO_ACCOUNTS_BASE_URL: "https://accounts.zoho.in",
+      ZOHO_INVOICE_API_BASE_URL: "https://www.zohoapis.in/invoice/v3",
+    });
+
+    expect(environment.ZOHO_ACCOUNTS_BASE_URL).toBe("https://accounts.zoho.in");
+    expect(environment.ZOHO_INVOICE_API_BASE_URL).toBe(
+      "https://www.zohoapis.in/invoice/v3"
+    );
+  });
+
+  it("parses finance-approved Zoho tax basis points as a bounded integer", () => {
+    const environment = parseServerEnvironment({
+      ZOHO_RESERVATION_TAX_BASIS_POINTS: "1800",
+    });
+
+    expect(environment.ZOHO_RESERVATION_TAX_BASIS_POINTS).toBe(1800);
+    expect(() =>
+      parseServerEnvironment({ ZOHO_RESERVATION_TAX_BASIS_POINTS: "-1" })
+    ).toThrow(
+      "Invalid server environment configuration: ZOHO_RESERVATION_TAX_BASIS_POINTS"
+    );
+  });
+
+  it("rejects Zoho lookalike hosts and mismatched data centres", () => {
+    expect(() =>
+      parseServerEnvironment({
+        ZOHO_ACCOUNTS_BASE_URL: "https://accounts.zoho.in.evil.example",
+        ZOHO_INVOICE_API_BASE_URL: "https://www.zohoapis.in.evil.example/invoice/v3",
+      })
+    ).toThrow(
+      "Invalid server environment configuration: ZOHO_ACCOUNTS_BASE_URL, ZOHO_INVOICE_API_BASE_URL"
+    );
+
+    expect(() =>
+      parseServerEnvironment({
+        ZOHO_ACCOUNTS_BASE_URL: "https://accounts.zoho.in",
+        ZOHO_INVOICE_API_BASE_URL: "https://www.zohoapis.eu/invoice/v3",
+      })
+    ).toThrow(
+      "Invalid server environment configuration: ZOHO_INVOICE_API_BASE_URL"
+    );
+  });
+
 });

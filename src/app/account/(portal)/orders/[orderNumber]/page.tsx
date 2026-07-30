@@ -11,6 +11,7 @@ import {
   Ruler,
 } from "lucide-react";
 
+import InvoiceDownloadButton from "@/components/account/InvoiceDownloadButton";
 import PaymentRetryButton from "@/components/account/PaymentRetryButton";
 import PortalPlaceholder from "@/components/portal/PortalPlaceholder";
 import { requireOrganizationMember } from "@/lib/auth/guards";
@@ -82,9 +83,18 @@ export default async function AccountOrderDetailPage({
   const latestPayment = payments[0];
   const retryable =
     ["awaiting_payment", "payment_failed"].includes(order.status) &&
+    Boolean(latestPayment) &&
+    ["created", "initiated", "failed"].includes(latestPayment.status) &&
     !payments.some((payment) => payment.status === "paid");
   const shipping = record(order.shipping_snapshot);
   const shippingAddress = record(shipping.address);
+  const { data: invoice } = await supabase
+    .from("invoices")
+    .select("id, sync_status, document_number, issue_date, total_paise, pdf_file_id, last_error_message")
+    .eq("order_id", order.id)
+    .order("created_at")
+    .limit(1)
+    .maybeSingle();
 
   return (
     <div className="space-y-6">
@@ -120,6 +130,8 @@ export default async function AccountOrderDetailPage({
             <PaymentRetryButton
               orderNumber={order.order_number}
               initialAttemptNumber={latestPayment.attempt_number}
+              initialPaymentAttemptId={latestPayment.id}
+              initialPaymentStatus={latestPayment.status}
             />
           ) : null}
         </div>
@@ -288,6 +300,30 @@ export default async function AccountOrderDetailPage({
               ))}
             </div>
           </section>
+
+          {invoice ? (
+            <section className="liquid-glass-surface rounded-3xl border p-6">
+              <div className="flex items-center gap-2">
+                <ReceiptIndianRupee size={18} className="text-[#4F8B92]" aria-hidden="true" />
+                <h3 className="font-semibold">Reservation invoice</h3>
+              </div>
+              <p className="mt-4 font-semibold">{invoice.document_number ?? "Being generated"}</p>
+              <p className="mt-2 text-sm capitalize text-black/50">
+                {invoice.sync_status.replaceAll("_", " ")}
+                {invoice.total_paise !== null ? ` · ${formatMoneyPaise(invoice.total_paise)}` : ""}
+              </p>
+              {invoice.last_error_message ? (
+                <p className="mt-3 text-xs leading-relaxed text-red-700">{invoice.last_error_message}</p>
+              ) : null}
+              {invoice.sync_status === "completed" && invoice.pdf_file_id ? (
+                <div className="mt-4"><InvoiceDownloadButton fileId={invoice.pdf_file_id} /></div>
+              ) : (
+                <p className="mt-3 text-xs leading-relaxed text-black/40">
+                  Your verified payment is safe. The official PDF will appear here after Zoho and private storage finish processing.
+                </p>
+              )}
+            </section>
+          ) : null}
 
           <section className="liquid-glass-surface rounded-3xl border p-6">
             <div className="flex items-center gap-2">

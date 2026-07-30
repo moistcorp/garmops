@@ -149,3 +149,25 @@ export async function completeStaffMfaAction() {
   const { error } = await supabase.rpc("record_staff_login");
   return { ok: !error };
 }
+
+
+export async function retryInvoiceAction(formData: FormData) {
+  const context = await requireStaffPermission("retry_invoice_job");
+  const invoiceId = z.string().uuid().safeParse(formData.get("invoiceId"));
+  if (!invoiceId.success) return;
+  const { error } = await (context.supabase.rpc as unknown as (
+    fn: string,
+    args: Record<string, unknown>,
+  ) => Promise<{ error: { message: string } | null }>)(
+    "retry_invoice_integration_job",
+    { p_invoice_id: invoiceId.data },
+  );
+  if (error) {
+    console.error("Invoice retry request failed", {
+      invoiceId: invoiceId.data,
+      error: error.message,
+    });
+    return;
+  }
+  revalidatePath("/staff/invoices");
+}

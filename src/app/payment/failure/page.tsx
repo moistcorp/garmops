@@ -1,34 +1,71 @@
 import { cookies } from "next/headers";
+
+import DurablePaymentResult from "@/components/payment/DurablePaymentResult";
+import { loadDurablePaymentResult } from "@/lib/domain/payments/loadResult";
 import {
-  PAYMENT_RESULT_COOKIE,
+  decodeDurablePaymentResult,
+  DURABLE_PAYMENT_RESULT_COOKIE,
+} from "@/lib/domain/payments/result";
+import {
   decodePaymentResultCookie,
+  PAYMENT_RESULT_COOKIE,
 } from "@/lib/payu";
 import PaymentFailureClient from "./PaymentFailureClient";
 
-interface PaymentFailurePageProps {
-  searchParams: Promise<{
-    txnid?: string | string[];
-    error?: string | string[];
-  }>;
-}
+type PaymentFailureSearch = {
+  txnid?: string | string[];
+  error?: string | string[];
+  order?: string | string[];
+  attempt?: string | string[];
+};
 
 export default async function PaymentFailurePage({
   searchParams,
-}: PaymentFailurePageProps) {
+}: {
+  searchParams: Promise<PaymentFailureSearch>;
+}) {
   const query = await searchParams;
-  const txnid = typeof query.txnid === "string" ? query.txnid : "";
+  const cookieStore = await cookies();
+  const orderNumber = typeof query.order === "string" ? query.order : "";
+  const attemptId = typeof query.attempt === "string" ? query.attempt : "";
+
+  if (orderNumber && attemptId) {
+    const token = decodeDurablePaymentResult(
+      cookieStore.get(DURABLE_PAYMENT_RESULT_COOKIE)?.value,
+    );
+    if (
+      token &&
+      token.orderNumber === orderNumber &&
+      token.attemptId === attemptId
+    ) {
+      const result = await loadDurablePaymentResult(attemptId, orderNumber);
+      if (result) {
+        const outcome =
+          result.paymentStatus === "paid"
+            ? "success"
+            : ["failed", "cancelled"].includes(result.paymentStatus)
+              ? "failure"
+              : token.outcome;
+        return <DurablePaymentResult result={{ ...result, outcome }} />;
+      }
+    }
+  }
+
+  // Retained for the sample-cart flow until its durable migration in Phase 12.
+  const transactionId =
+    typeof query.txnid === "string" ? query.txnid : "";
   const error = typeof query.error === "string" ? query.error : "";
-  const cookieValue = (await cookies()).get(PAYMENT_RESULT_COOKIE)?.value;
-  const payment = decodePaymentResultCookie(cookieValue);
+  const payment = decodePaymentResultCookie(
+    cookieStore.get(PAYMENT_RESULT_COOKIE)?.value,
+  );
   const verified =
     payment?.status === "failure" &&
     payment.mock === false &&
-    payment.txnid === txnid;
-
+    payment.txnid === transactionId;
   return (
     <PaymentFailureClient
       verified={verified}
-      txnid={txnid}
+      txnid={transactionId}
       error={error}
       paymentKind={verified ? payment.kind : null}
       supportEmail={process.env.CONTACT_TO_EMAIL ?? "hello@garmops.com"}
