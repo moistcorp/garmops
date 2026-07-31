@@ -19,19 +19,19 @@ export function PaymentMethodSelect({ value, onChange }: PaymentMethodSelectProp
         type="button"
         onClick={() => onChange(PAYU_METHOD_ID)}
         aria-pressed={selected}
-        className={`flex w-full items-center justify-between gap-4 rounded-full border px-5 py-3 text-left transition-colors ${
+        className={`flex w-full items-center justify-between gap-4 rounded-[4px] border px-5 py-3 text-left transition-colors ${
           selected
             ? "liquid-glass-selected"
-            : "liquid-glass-control hover:!border-[var(--color-teal)]"
+            : "liquid-glass-control hover:!border-[var(--color-accent)]"
         }`}
       >
         <div className="flex items-center gap-3">
           <span
-            className={`inline-flex h-4 w-4 items-center justify-center rounded-full border ${
+            className={`inline-flex h-4 w-4 items-center justify-center rounded-[4px] border ${
               selected ? "border-white/80" : "border-[#E5E5E5]"
             }`}
           >
-            {selected && <span className="h-2 w-2 rounded-full bg-white" />}
+            {selected && <span className="h-2 w-2 rounded-[4px] bg-white" />}
           </span>
           <div>
             <p className={`text-sm font-medium ${selected ? "text-white" : "text-[#111111]"}`}>PayU</p>

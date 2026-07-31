@@ -12,7 +12,7 @@ import { submitPayuCheckout } from "@/lib/payuClient";
 import { useCartStore } from "@/lib/store";
 
 const inputClass =
-  "liquid-glass-control w-full rounded-xl border px-4 py-3 text-sm transition-colors focus:!border-[var(--color-teal)] focus:outline-none";
+  "liquid-glass-control w-full rounded-[4px] border px-4 py-3 text-sm transition-colors focus:!border-[var(--color-accent)] focus:outline-none";
 const labelClass =
   "mb-1.5 block text-xs font-medium uppercase tracking-wide text-[#111111]/50";
 const SAMPLE_CHECKOUT_IDEMPOTENCY_KEY =
@@ -236,10 +236,10 @@ export default function DurableSampleCheckout({
     return (
       <div className="app-liquid-bg min-h-[70vh] animate-pulse px-4 py-10 sm:px-6 sm:py-16">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-12 h-9 w-64 rounded-lg bg-[#ECE7DF]" />
+          <div className="mb-12 h-9 w-64 rounded-[4px] bg-[#ECE7DF]" />
           <div className="grid gap-8 lg:grid-cols-3 lg:gap-12">
-            <div className="liquid-glass-panel h-64 rounded-2xl border lg:col-span-2" />
-            <div className="liquid-glass-panel h-56 rounded-2xl border" />
+            <div className="liquid-glass-panel h-64 rounded-[4px] border lg:col-span-2" />
+            <div className="liquid-glass-panel h-56 rounded-[4px] border" />
           </div>
         </div>
       </div>
@@ -249,7 +249,7 @@ export default function DurableSampleCheckout({
   if (!items.length && !savedOrder) {
     return (
       <div className="app-liquid-bg flex min-h-[70vh] items-center justify-center px-4 py-16 text-center sm:px-6 sm:py-24">
-        <div className="liquid-glass-surface w-full max-w-lg rounded-[30px] border p-8">
+        <div className="liquid-glass-surface w-full max-w-lg rounded-[4px] border p-8">
           <h1 className="text-3xl font-bold tracking-tight">Nothing to checkout</h1>
           <p className="mt-3 text-sm leading-relaxed text-black/50">
             Add catalogue samples first. Once submitted, the order will be saved
@@ -257,7 +257,7 @@ export default function DurableSampleCheckout({
           </p>
           <Link
             href="/products"
-            className="mt-7 inline-block rounded-full bg-[var(--color-teal)] px-6 py-3 text-sm font-medium text-white"
+            className="mt-7 inline-block rounded-[4px] bg-[var(--color-accent)] px-6 py-3 text-sm font-medium text-white"
           >
             Browse samples
           </Link>
@@ -270,7 +270,7 @@ export default function DurableSampleCheckout({
     <div className="app-liquid-bg min-h-[70vh] px-4 py-10 sm:px-6 sm:py-16">
       <div className="mx-auto max-w-7xl">
         <div className="mb-8 sm:mb-12">
-          <p className="text-xs uppercase tracking-[0.18em] text-[#4F8B92]">
+          <p className="text-xs uppercase tracking-[0.18em] text-[#1D49B4]">
             Durable sample checkout
           </p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
@@ -291,11 +291,11 @@ export default function DurableSampleCheckout({
               void submitOrder();
             }}
           >
-            <section className="liquid-glass-panel rounded-[26px] border p-5 sm:p-7">
+            <section className="liquid-glass-panel rounded-[4px] border p-5 sm:p-7">
               <p className="mb-5 text-xs font-medium uppercase tracking-widest text-[#111111]/40">
                 Account and contact
               </p>
-              <div className="mb-5 rounded-xl border border-black/7 bg-white/45 px-4 py-3 text-sm">
+              <div className="mb-5 rounded-[4px] border border-black/7 bg-white/45 px-4 py-3 text-sm">
                 <span className="text-black/45">Ordering for </span>
                 <strong>{defaults.organizationName}</strong>
               </div>
@@ -359,7 +359,7 @@ export default function DurableSampleCheckout({
                     Phone *
                   </label>
                   <div className="flex">
-                    <span className="liquid-glass-control rounded-l-xl border border-r-0 px-4 py-3 text-sm text-black/50">
+                    <span className="liquid-glass-control rounded-[4px]l border border-r-0 px-4 py-3 text-sm text-black/50">
                       +91
                     </span>
                     <input
@@ -372,7 +372,7 @@ export default function DurableSampleCheckout({
                           phone: event.target.value,
                         }))
                       }
-                      className="liquid-glass-control min-w-0 flex-1 rounded-r-xl border px-4 py-3 text-sm focus:!border-[var(--color-teal)] focus:outline-none"
+                      className="liquid-glass-control min-w-0 flex-1 rounded-[4px]l border px-4 py-3 text-sm focus:!border-[var(--color-accent)] focus:outline-none"
                       autoComplete="tel-national"
                       required
                     />
@@ -381,7 +381,7 @@ export default function DurableSampleCheckout({
               </div>
             </section>
 
-            <section className="liquid-glass-panel rounded-[26px] border p-5 sm:p-7">
+            <section className="liquid-glass-panel rounded-[4px] border p-5 sm:p-7">
               <div className="mb-5">
                 <p className="text-xs font-medium uppercase tracking-widest text-[#111111]/40">
                   Delivery address
@@ -399,7 +399,7 @@ export default function DurableSampleCheckout({
               />
             </section>
 
-            <section className="liquid-glass-panel rounded-[26px] border p-5 sm:p-7">
+            <section className="liquid-glass-panel rounded-[4px] border p-5 sm:p-7">
               <label htmlFor="sample-notes" className={labelClass}>
                 Order notes
               </label>
@@ -435,7 +435,7 @@ export default function DurableSampleCheckout({
             {error ? (
               <div
                 role="alert"
-                className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                className="rounded-[4px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
               >
                 {error}
                 {savedOrder ? (
@@ -453,7 +453,7 @@ export default function DurableSampleCheckout({
           </form>
 
           <aside className="flex flex-col gap-4">
-            <div className="liquid-glass-surface flex flex-col gap-4 rounded-[28px] border p-6 lg:sticky lg:top-28">
+            <div className="liquid-glass-surface flex flex-col gap-4 rounded-[4px] border p-6 lg:sticky lg:top-28">
               <p className="text-sm font-semibold">Order summary</p>
               <div className="flex flex-col gap-3 border-t border-[#ECE7DF] pt-4">
                 {items.map((item) => (
@@ -502,7 +502,7 @@ export default function DurableSampleCheckout({
                 type="submit"
                 form="sample-checkout-details"
                 disabled={loading || Boolean(savedOrder)}
-                className="w-full rounded-full bg-[var(--color-teal)] py-3.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-teal-dark)] disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-[4px] bg-[var(--color-accent)] py-3.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent-dark)] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loading
                   ? savedOrder

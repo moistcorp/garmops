@@ -48,7 +48,7 @@ export interface BillingShippingStepProps {
 }
 
 const INPUT_CLASS =
-  "liquid-glass-control w-full rounded-xl border px-3 py-2 text-sm text-[#111111] placeholder:text-[#111111]/40 focus:!border-[var(--color-teal)] focus:outline-none";
+  "liquid-glass-control w-full rounded-[4px] border px-3 py-2 text-sm text-[#111111] placeholder:text-[#111111]/40 focus:!border-[var(--color-accent)] focus:outline-none";
 const LABEL_CLASS = "mb-1 block text-xs font-medium text-[#111111]/70";
 
 function formatIndianPhone(value: string): string {
@@ -75,7 +75,7 @@ function sectionHeading(
 ) {
   return (
     <div className="mb-5 flex items-start gap-3">
-      <span className="rounded-full bg-[var(--color-teal)]/10 p-2 text-[var(--color-teal-dark)]">
+      <span className="rounded-[4px] bg-[var(--color-accent)]/10 p-2 text-[var(--color-accent-dark)]">
         {icon}
       </span>
       <div>
@@ -332,8 +332,8 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-[#111111]/50">
-                Cart {cartId}
+            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-[#111111]/50">
+              SPEC CART · {cartId}
               </p>
               <h1 className="text-2xl font-semibold text-[#111111]">
                 Delivery details
@@ -351,7 +351,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
                   `/configurator/cart/${encodeURIComponent(cartId)}/review`
                 )
               }
-              className="inline-flex shrink-0 items-center gap-2 self-start whitespace-nowrap rounded-full border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-teal)] hover:text-[#111111] sm:self-auto"
+              className="inline-flex shrink-0 items-center gap-2 self-start whitespace-nowrap rounded-[4px] border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-accent)] hover:text-[#111111] sm:self-auto"
             >
               <ArrowLeft size={16} strokeWidth={2.2} />
               Back to order summary
@@ -360,7 +360,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
 
           <section
             id="delivery-target"
-            className="liquid-glass-panel scroll-mt-16 rounded-[24px] border p-5"
+            className="liquid-glass-panel scroll-mt-16 rounded-[4px] border p-5"
           >
             <DeliveryDatePicker
               orderConfirmedDate={deliveryBaseDate}
@@ -384,7 +384,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
 
           <section
             id="contact-details"
-            className="liquid-glass-panel scroll-mt-16 rounded-[24px] border p-5"
+            className="liquid-glass-panel scroll-mt-16 rounded-[4px] border p-5"
           >
             {sectionHeading(
               <UserRound size={18} />,
@@ -498,7 +498,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
 
           <section
             id="shipping-information"
-            className="liquid-glass-panel scroll-mt-16 rounded-[24px] border p-5"
+            className="liquid-glass-panel scroll-mt-16 rounded-[4px] border p-5"
           >
             {sectionHeading(
               <MapPin size={18} />,

@@ -247,8 +247,8 @@ export default function PaymentSuccessClient({
   if (!verified) {
     return (
       <div className="app-liquid-bg flex min-h-[80vh] items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
-        <div className="liquid-glass-surface w-full max-w-md rounded-[26px] border p-5 text-center sm:rounded-[30px] sm:p-9">
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 text-2xl text-amber-700">
+        <div className="liquid-glass-surface w-full max-w-md rounded-[4px] border p-5 text-center sm:rounded-[4px] sm:p-9">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-[4px] bg-amber-50 text-2xl text-amber-700">
             !
           </div>
           <h1 className="mb-3 text-3xl font-bold tracking-tight text-[#111111]">
@@ -262,13 +262,13 @@ export default function PaymentSuccessClient({
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link
               href="/contact"
-              className="rounded-full bg-[var(--color-teal)] px-7 py-3 text-sm font-medium text-white hover:bg-[var(--color-teal-dark)]"
+              className="rounded-[4px] bg-[var(--color-accent)] px-7 py-3 text-sm font-medium text-white hover:bg-[var(--color-accent-dark)]"
             >
               Contact support
             </Link>
             <Link
               href="/"
-              className="rounded-full border border-[#ECE7DF] px-7 py-3 text-sm font-medium text-[#111111]"
+              className="rounded-[4px] border border-[#ECE7DF] px-7 py-3 text-sm font-medium text-[#111111]"
             >
               Back to home
             </Link>
@@ -285,14 +285,14 @@ export default function PaymentSuccessClient({
     <>
       {!isSampleOrder && <ConfiguratorTopBar currentStep="reserve" />}
       <div className="app-liquid-bg flex min-h-[80vh] items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
-        <div className="liquid-glass-surface w-full max-w-md rounded-[26px] border p-5 text-center sm:rounded-[30px] sm:p-9">
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-teal)]/10">
+        <div className="liquid-glass-surface w-full max-w-md rounded-[4px] border p-5 text-center sm:rounded-[4px] sm:p-9">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-[4px] bg-[var(--color-accent)]/10">
           <svg
             width="28"
             height="28"
             viewBox="0 0 24 24"
             fill="none"
-            className="stroke-[var(--color-teal)]"
+            className="stroke-[var(--color-accent)]"
             strokeWidth="2.5"
           >
             <polyline points="20 6 9 17 4 12" />
@@ -303,7 +303,7 @@ export default function PaymentSuccessClient({
           {isSampleOrder ? "Order placed" : "Reservation confirmed"}
         </h1>
         {isMockPayment && (
-          <p className="mb-4 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-medium text-amber-800">
+          <p className="mb-4 rounded-[4px] border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-medium text-amber-800">
             Development preview — no payment was charged.
           </p>
         )}
@@ -315,7 +315,7 @@ export default function PaymentSuccessClient({
         </p>
 
         {orderDetailsStatus === "missing" && (
-          <p role="alert" className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-800">
+          <p role="alert" className="mb-4 rounded-[4px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-800">
             Your payment was verified, but this browser could not restore the local order details.
             Save the transaction ID below and contact support so we can match the payment safely.
           </p>
@@ -343,7 +343,7 @@ export default function PaymentSuccessClient({
           </p>
         )}
 
-        <div className="liquid-glass-panel mb-8 rounded-2xl border p-5 text-left text-xs leading-relaxed text-[#111111]/60">
+        <div className="liquid-glass-panel mb-8 rounded-[4px] border p-5 text-left text-xs leading-relaxed text-[#111111]/60">
           <p className="mb-2 font-medium text-[#111111]">What happens next</p>
           {isSampleOrder ? (
             <ul className="flex flex-col gap-1.5">
@@ -362,7 +362,7 @@ export default function PaymentSuccessClient({
 
         <Link
           href="/"
-          className="inline-block rounded-full bg-[var(--color-teal)] px-8 py-3 text-sm font-medium text-white hover:bg-[var(--color-teal-dark)]"
+          className="inline-block rounded-[4px] bg-[var(--color-accent)] px-8 py-3 text-sm font-medium text-white hover:bg-[var(--color-accent-dark)]"
         >
           Back to home
         </Link>

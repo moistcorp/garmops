@@ -145,8 +145,8 @@ export default function PaymentFailureClient({
 
   return (
     <div className="app-liquid-bg flex min-h-[80vh] items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
-      <div className="liquid-glass-surface w-full max-w-md rounded-[26px] border p-5 text-center sm:rounded-[30px] sm:p-9">
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-50">
+      <div className="liquid-glass-surface w-full max-w-md rounded-[4px] border p-5 text-center sm:rounded-[4px] sm:p-9">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-[4px] bg-red-50">
           <svg
             width="28"
             height="28"
@@ -203,7 +203,7 @@ export default function PaymentFailureClient({
           </p>
         )}
 
-        <div className="liquid-glass-panel mb-6 rounded-2xl border p-4 text-left text-xs leading-relaxed text-[#111111]/70">
+        <div className="liquid-glass-panel mb-6 rounded-[4px] border p-4 text-left text-xs leading-relaxed text-[#111111]/70">
           <p className="mb-1 font-semibold">Important — before retrying</p>
           <p>
             If an amount was deducted from your bank account,{" "}
@@ -220,7 +220,7 @@ export default function PaymentFailureClient({
         <div className="flex flex-col gap-3">
           <Link
             href={retryHref}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--color-teal)] py-3.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-teal-dark)]"
+            className="flex w-full items-center justify-center gap-2 rounded-[4px] bg-[var(--color-accent)] py-3.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent-dark)]"
           >
             <svg
               width="14"
@@ -238,7 +238,7 @@ export default function PaymentFailureClient({
 
           <Link
             href="/"
-            className="flex w-full items-center justify-center rounded-full border border-[var(--color-teal)] py-3.5 text-sm font-medium text-[var(--color-teal)] transition-colors hover:bg-[var(--color-teal)] hover:text-white"
+            className="flex w-full items-center justify-center rounded-[4px] border border-[var(--color-accent)] py-3.5 text-sm font-medium text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)] hover:text-white"
           >
             Back to home
           </Link>

@@ -402,7 +402,7 @@ export function ConfirmationStep({
       <>
         {topBar}
         <div className="flex min-h-[320px] items-center justify-center" role="status" aria-live="polite">
-          <LoaderCircle className="animate-spin text-[var(--color-teal)]" size={28} aria-hidden="true" />
+          <LoaderCircle className="animate-spin text-[var(--color-accent)]" size={28} aria-hidden="true" />
           <span className="sr-only">Validating contact and delivery details</span>
         </div>
       </>
@@ -417,14 +417,14 @@ export function ConfirmationStep({
         <div className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-[#111111]/50">Cart {cartId}</p>
+            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-[#111111]/50">SPEC CART · {cartId}</p>
             <h1 className="text-2xl font-semibold text-[#111111]">Review & payment</h1>
             {draft.projectName && <p className="mt-1 text-sm font-medium text-[#111111]/60">{draft.projectName}</p>}
           </div>
           <button
             type="button"
             onClick={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping`)}
-            className="inline-flex shrink-0 items-center gap-2 self-start whitespace-nowrap rounded-full border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-teal)] hover:text-[#111111] sm:self-auto"
+            className="inline-flex shrink-0 items-center gap-2 self-start whitespace-nowrap rounded-[4px] border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-accent)] hover:text-[#111111] sm:self-auto"
           >
             <ArrowLeft size={16} strokeWidth={2.2} />
             Back to delivery details
@@ -501,7 +501,7 @@ export function ConfirmationStep({
             </div>
           </div>
           {draft.shippingInformation.multipleLocations && (
-            <div className="mt-4 rounded-md bg-[#F7F7F7] p-3 text-xs leading-relaxed text-[#111111]/65">
+            <div className="mt-4 rounded-[4px] bg-[#F7F7F7] p-3 text-xs leading-relaxed text-[#111111]/65">
               <p className="font-medium text-[#111111]">
                 Multiple delivery locations requested
               </p>
@@ -512,15 +512,15 @@ export function ConfirmationStep({
             </div>
           )}
           {draft.billingInformation.purchaseOrder && (
-            <div className="mt-3 flex items-center gap-2 rounded-md bg-[#F7F7F7] p-3 text-xs text-[#111111]/65">
-              <FileText size={16} className="shrink-0 text-[var(--color-teal-dark)]" />
+            <div className="mt-3 flex items-center gap-2 rounded-[4px] bg-[#F7F7F7] p-3 text-xs text-[#111111]/65">
+              <FileText size={16} className="shrink-0 text-[var(--color-accent-dark)]" />
               <span>Purchase order attached: <strong className="text-[#111111]">{draft.billingInformation.purchaseOrder.fileName}</strong></span>
             </div>
           )}
         </ReviewSection>
 
         {(draft.projectPreferences.orderNotes || draft.projectPreferences.receiveEmails) && (
-          <section className="liquid-glass-panel rounded-[24px] border p-5">
+          <section className="liquid-glass-panel rounded-[4px] border p-5">
             <h3 className="text-sm font-medium text-[#111111]">Project notes & communication</h3>
             {draft.projectPreferences.orderNotes && (
               <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[#111111]/70">{draft.projectPreferences.orderNotes}</p>
@@ -531,16 +531,16 @@ export function ConfirmationStep({
           </section>
         )}
 
-        <section className="liquid-glass-panel rounded-[24px] border p-5">
+        <section className="liquid-glass-panel rounded-[4px] border p-5">
           <h3 className="mb-4 text-sm font-medium text-[#111111]">Order summary</h3>
           <div className="space-y-4">
             {draft.items.map((item) => <ProductRecapCard key={item.id} item={item} />)}
           </div>
         </section>
 
-        <section className="liquid-glass-panel rounded-[24px] border !border-[var(--color-teal)]/25 p-5">
+        <section className="liquid-glass-panel rounded-[4px] border !border-[var(--color-accent)]/25 p-5">
           <div className="flex items-start gap-3">
-            <span className="rounded-full bg-white p-2 text-[var(--color-teal-dark)]"><ShieldCheck size={18} /></span>
+            <span className="rounded-[4px] bg-white p-2 text-[var(--color-accent-dark)]"><ShieldCheck size={18} /></span>
             <div className="min-w-0 flex-1">
               <h3 className="text-sm font-semibold text-[#111111]">What happens after reservation?</h3>
               <div className="mt-3 grid gap-2 text-xs leading-relaxed text-[#111111]/65 sm:grid-cols-2">
@@ -549,11 +549,11 @@ export function ConfirmationStep({
                   "Final pricing and shipping are confirmed before the balance is due.",
                   "Production starts only after your final approval and agreed payment terms.",
                 ].map((item) => (
-                  <p key={item} className="flex items-start gap-2"><CheckCircle2 size={14} className="mt-0.5 shrink-0 text-[var(--color-teal-dark)]" />{item}</p>
+                  <p key={item} className="flex items-start gap-2"><CheckCircle2 size={14} className="mt-0.5 shrink-0 text-[var(--color-accent-dark)]" />{item}</p>
                 ))}
               </div>
-              <div className="mt-4 flex items-center gap-2 border-t border-[var(--color-teal)]/20 pt-3 text-xs font-medium text-[#111111]/65">
-                <CreditCard size={15} className="text-[var(--color-teal-dark)]" />
+              <div className="mt-4 flex items-center gap-2 border-t border-[var(--color-accent)]/20 pt-3 text-xs font-medium text-[#111111]/65">
+                <CreditCard size={15} className="text-[var(--color-accent-dark)]" />
                 {durableCheckoutEnabled
                   ? "Your order number and immutable specification are saved before PayU opens."
                   : "Secure payment through PayU using UPI, card or net banking."}
@@ -562,13 +562,13 @@ export function ConfirmationStep({
           </div>
         </section>
 
-        <section className="liquid-glass-panel rounded-[24px] border p-5">
+        <section className="liquid-glass-panel rounded-[4px] border p-5">
           <label className="flex cursor-pointer items-start gap-3 text-sm text-[#111111]">
             <input
               type="checkbox"
               checked={termsAccepted}
               onChange={(event) => setTermsAccepted(event.target.checked)}
-              className="mt-0.5 h-4 w-4 accent-[var(--color-teal)]"
+              className="mt-0.5 h-4 w-4 accent-[var(--color-accent)]"
             />
             I agree to the reservation terms: {formatInr(RESERVATION_FEE)} is
             charged today and credited against the final invoice.
@@ -595,9 +595,9 @@ export function ConfirmationStep({
             type="button"
             disabled={!termsAccepted || isProcessing}
             onClick={handlePayment}
-            className={`flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold transition-colors ${
+            className={`flex w-full items-center justify-center gap-2 rounded-[4px] py-3 text-sm font-semibold transition-colors ${
               termsAccepted && !isProcessing
-                ? "bg-[var(--color-teal)] text-white hover:bg-[var(--color-teal-dark)]"
+                ? "bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-dark)]"
                 : "cursor-not-allowed bg-[#E5E5E5] text-[#111111]/40"
             }`}
           >
@@ -632,10 +632,10 @@ function ReviewSection({
   children: ReactNode;
 }) {
   return (
-    <section className="liquid-glass-panel rounded-[24px] border p-5">
+    <section className="liquid-glass-panel rounded-[4px] border p-5">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="text-[var(--color-teal-dark)]">{icon}</span>
+          <span className="text-[var(--color-accent-dark)]">{icon}</span>
           <h3 className="text-sm font-medium text-[#111111]">{title}</h3>
         </div>
         <button
@@ -669,8 +669,8 @@ function ProductRecapCard({ item }: { item: CartItem }) {
   const productSizes = getProduct(item.productId)?.sizes ?? Object.keys(item.sizeQuantities);
 
   return (
-    <div className="liquid-glass-control flex gap-4 rounded-2xl border p-4">
-      <div className="h-24 w-20 shrink-0 overflow-hidden rounded-md bg-[#F7F7F7]">
+    <div className="liquid-glass-control flex gap-4 rounded-[4px] border p-4">
+      <div className="h-24 w-20 shrink-0 overflow-hidden rounded-[4px] bg-[#F7F7F7]">
         <ArtworkPositionProvider activeView="front">
           <CanvasRenderer
             view="front"
@@ -686,7 +686,7 @@ function ProductRecapCard({ item }: { item: CartItem }) {
       <div className="flex-1">
         <p className="text-sm font-medium text-[#111111]">{item.productName}</p>
         <p className="text-xs text-[#111111]/60">
-          {item.colour.name || "Bright White"} · {units} units · {formatInr(unitPrice)}/unit
+          {item.colour.name || "Bright White"} · <span className="font-mono">{units} units · {formatInr(unitPrice)}/unit</span>
           {discountPercent > 0 ? ` · ${discountPercent}% off` : ""}
         </p>
         <div

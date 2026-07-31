@@ -310,8 +310,8 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
         {feedback && <ActionFeedback {...feedback} onDismiss={feedback.tone === 'loading' ? undefined : () => setFeedback(null)} actionLabel={feedback.tone === 'error' ? 'Retry PDF' : undefined} onAction={feedback.tone === 'error' ? handleDownloadApprovalPdf : undefined} />}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-[#111111]/50">
-              Cart {cartId}
+            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-[#111111]/50">
+              SPEC CART · {cartId}
             </p>
             <h1 className="text-2xl font-semibold text-[#111111]">Order summary</h1>
           </div>
@@ -319,7 +319,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             <button
               type="button"
               onClick={() => router.push('/configurator')}
-              className="inline-flex items-center gap-2 rounded-full border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-teal)] hover:text-[#111111]"
+              className="inline-flex items-center gap-2 rounded-[4px] border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-accent)] hover:text-[#111111]"
             >
               <ArrowLeft size={16} strokeWidth={2.2} />
               Back to configurator
@@ -327,7 +327,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             <button
               type="button"
               onClick={handleAddAnotherProduct}
-              className="inline-flex items-center gap-2 rounded-full border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-teal)] hover:text-[#111111]"
+              className="inline-flex items-center gap-2 rounded-[4px] border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-accent)] hover:text-[#111111]"
             >
               <Plus size={16} strokeWidth={2.2} />
               Add another product
@@ -338,7 +338,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
         {!draftLoaded && <OrderItemSkeleton />}
 
         {draftLoaded && items.length === 0 && (
-          <section className="liquid-glass-surface rounded-[28px] border p-8 text-center">
+          <section className="liquid-glass-surface rounded-[4px] border p-8 text-center">
             <h2 className="text-lg font-medium text-[#111111]">Your cart is empty</h2>
             <p className="mt-1 text-sm text-[#111111]/60">
               Add a product to continue your order.
@@ -346,7 +346,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             <button
               type="button"
               onClick={handleAddAnotherProduct}
-              className="mt-5 rounded-full bg-[var(--color-teal)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+              className="mt-5 rounded-[4px] bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
             >
               Add product
             </button>
@@ -363,10 +363,10 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
           const itemDiscountPercent = getCartItemDiscountPercent(item);
           const garmentTotal = itemUnitPrice * itemUnits;
           return (
-            <section key={item.id} className="liquid-glass-panel rounded-[24px] border p-5">
+            <section key={item.id} className="liquid-glass-panel rounded-[4px] border p-5">
               <div className="flex flex-col gap-5 md:flex-row">
                 <div className="w-full shrink-0 md:w-44">
-                  <div className="relative aspect-[3/4] overflow-hidden rounded-md bg-[#F7F7F7]">
+                  <div className="relative aspect-[3/4] overflow-hidden rounded-[4px] bg-[#F7F7F7]">
                     <div className="absolute inset-0 flex items-center justify-center">
                       <ArtworkPositionProvider activeView={selectedView}>
                         <CanvasRenderer
@@ -423,22 +423,22 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                         {item.productName}
                       </h2>
                       <p className="text-sm text-[#111111]/60">
-                        {item.colour.name} · {itemUnits} units
+                        {item.colour.name} · <span className="font-mono">{itemUnits} units</span>
                       </p>
                     </div>
                     <div className="flex max-w-[420px] shrink-0 flex-wrap justify-end gap-2">
                       <button
                         type="button"
                         onClick={() => handleEdit(item)}
-                        className="rounded-full border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-teal)] hover:text-[#111111]"
+                        className="rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-accent)] hover:text-[#111111]"
                       >
                         Edit design
                       </button>
-                      <button type="button" onClick={() => handleDuplicate(item)} className="inline-flex items-center gap-1 rounded-full border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-teal)]"><Copy size={13} /> Duplicate</button>
-                      {item.artwork.front && <button type="button" onClick={() => handleRemoveArtworkSide(item.id, "front")} className="rounded-full border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-teal)]">Remove front print</button>}
-                      {item.artwork.back && <button type="button" onClick={() => handleRemoveArtworkSide(item.id, "back")} className="rounded-full border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-teal)]">Remove back print</button>}
+                      <button type="button" onClick={() => handleDuplicate(item)} className="inline-flex items-center gap-1 rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-accent)]"><Copy size={13} /> Duplicate</button>
+                      {item.artwork.front && <button type="button" onClick={() => handleRemoveArtworkSide(item.id, "front")} className="rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-accent)]">Remove front print</button>}
+                      {item.artwork.back && <button type="button" onClick={() => handleRemoveArtworkSide(item.id, "back")} className="rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-accent)]">Remove back print</button>}
                       {pendingDeleteItemId === item.id ? (
-                        <div className="flex items-center gap-2 rounded-md border border-[#E5E5E5] px-2 py-1.5 text-xs text-[#111111]/70">
+                        <div className="flex items-center gap-2 rounded-[4px] border border-[#E5E5E5] px-2 py-1.5 text-xs text-[#111111]/70">
                           <span>Remove this item?</span>
                           <button
                             type="button"
@@ -459,7 +459,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                         <button
                           type="button"
                           onClick={() => setPendingDeleteItemId(item.id)}
-                          className="rounded-full border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-teal)] hover:text-[#111111]"
+                          className="rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-accent)] hover:text-[#111111]"
                         >
                           Delete
                         </button>
@@ -467,7 +467,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-[#E5E5E5] bg-[#F7F7F7] px-3 py-2 text-xs leading-relaxed text-[#111111]/60">
+                  <div className="rounded-[4px] border border-[#E5E5E5] bg-[#F7F7F7] px-3 py-2 text-xs leading-relaxed text-[#111111]/60">
                     We applied a recommended company-order size mix to the quantity selected in Studio. Adjust any size below before continuing; the total and volume price update automatically.
                   </div>
 
@@ -481,7 +481,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                   />
 
                   {sizeChart && (
-                    <details className="liquid-glass-control rounded-xl border p-3 text-xs text-[#111111]">
+                    <details className="liquid-glass-control rounded-[4px] border p-3 text-xs text-[#111111]">
                       <summary className="cursor-pointer font-semibold">Fit / measurement chart</summary>
                       <div className="mt-3 overflow-x-auto">
                         <table className="w-full min-w-[420px] text-left">
@@ -511,16 +511,16 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                     </details>
                   )}
 
-                  <div className="rounded-md border border-[#E5E5E5] bg-[#F7F7F7] px-4 py-3 text-sm text-[#111111]">
+                  <div className="rounded-[4px] border border-[#E5E5E5] bg-[#F7F7F7] px-4 py-3 text-sm text-[#111111]">
                     <div className="flex items-center justify-between gap-4">
                       <span className="font-medium">Item total</span>
                       <span className="flex items-center gap-2 text-right font-semibold">
                         {itemDiscountPercent > 0 && (
-                          <span className="rounded-full bg-[#EAF7EA] px-2 py-0.5 text-[10px] font-medium text-[#1B7F36]">
+                          <span className="rounded-[4px] bg-[#EAF7EA] px-2 py-0.5 text-[10px] font-medium text-[#1B7F36]">
                             {itemDiscountPercent}% off
                           </span>
                         )}
-                        <span>
+                        <span className="font-mono">
                           {formatInr(itemUnitPrice)} × {itemUnits} = {formatInr(garmentTotal)}
                         </span>
                       </span>
@@ -560,20 +560,20 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
 
 function OrderItemSkeleton() {
   return (
-    <section className="liquid-glass-panel rounded-[24px] border p-5" aria-label="Loading order items">
+    <section className="liquid-glass-panel rounded-[4px] border p-5" aria-label="Loading order items">
       <div className="flex flex-col gap-5 md:flex-row">
-        <div className="h-56 w-full shrink-0 rounded-md bg-[#F7F7F7] md:w-44" />
+        <div className="h-56 w-full shrink-0 rounded-[4px] bg-[#F7F7F7] md:w-44" />
         <div className="min-w-0 flex-1 space-y-5">
           <div className="space-y-2">
             <div className="h-5 w-44 rounded bg-[#F7F7F7]" />
             <div className="h-4 w-28 rounded bg-[#F7F7F7]" />
           </div>
-          <div className="grid grid-cols-6 gap-px overflow-hidden rounded-md border border-[#E5E5E5] bg-[#E5E5E5]">
+          <div className="grid grid-cols-6 gap-px overflow-hidden rounded-[4px] border border-[#E5E5E5] bg-[#E5E5E5]">
             {SIZES.map((size) => (
               <div key={size} className="h-16 bg-[#F7F7F7]" />
             ))}
           </div>
-          <div className="h-12 rounded-md bg-[#F7F7F7]" />
+          <div className="h-12 rounded-[4px] bg-[#F7F7F7]" />
         </div>
       </div>
     </section>

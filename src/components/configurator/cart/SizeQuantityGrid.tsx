@@ -58,17 +58,17 @@ export function SizeQuantityGrid({
     <div className="w-full">
       <div className="mb-2 flex items-center justify-end gap-3 text-xs text-[#111111]/60">
         <span>Minimum {minimumUnits} units</span>
-        <span className="font-medium text-[#111111]">{totalUnits} units</span>
+        <span className="font-mono font-medium text-[#111111]">{totalUnits} units</span>
       </div>
       {sizes.length > 1 && (
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <span className="text-[11px] font-semibold uppercase tracking-wide text-[#111111]/45">Quick allocation</span>
-          <button type="button" onClick={() => applyPreset(ALLOCATION_PRESETS.recommended)} className="rounded-full border border-[#E5E5E5] px-2.5 py-1 text-[11px] font-semibold text-[#111111]/65 hover:border-[var(--color-teal)]">Recommended mix</button>
-          <button type="button" onClick={() => applyPreset(ALLOCATION_PRESETS.equal)} className="rounded-full border border-[#E5E5E5] px-2.5 py-1 text-[11px] font-semibold text-[#111111]/65 hover:border-[var(--color-teal)]">Equal split</button>
-          <button type="button" onClick={() => applyPreset(ALLOCATION_PRESETS.larger)} className="rounded-full border border-[#E5E5E5] px-2.5 py-1 text-[11px] font-semibold text-[#111111]/65 hover:border-[var(--color-teal)]">More L–XXL</button>
+          <button type="button" onClick={() => applyPreset(ALLOCATION_PRESETS.recommended)} className="rounded-[4px] border border-[#E5E5E5] px-2.5 py-1 text-[11px] font-semibold text-[#111111]/65 hover:border-[var(--color-accent)]">Recommended mix</button>
+          <button type="button" onClick={() => applyPreset(ALLOCATION_PRESETS.equal)} className="rounded-[4px] border border-[#E5E5E5] px-2.5 py-1 text-[11px] font-semibold text-[#111111]/65 hover:border-[var(--color-accent)]">Equal split</button>
+          <button type="button" onClick={() => applyPreset(ALLOCATION_PRESETS.larger)} className="rounded-[4px] border border-[#E5E5E5] px-2.5 py-1 text-[11px] font-semibold text-[#111111]/65 hover:border-[var(--color-accent)]">More L–XXL</button>
         </div>
       )}
-      <div className={`liquid-glass-control grid ${columnsClass} gap-px overflow-hidden rounded-xl border`}>
+      <div className={`liquid-glass-control grid ${columnsClass} gap-px overflow-hidden rounded-[4px] border`}>
         {sizes.map((size) => (
           <div key={size} className="bg-white/25 px-2 py-2 text-center text-xs font-medium tracking-wide text-[#111111]">
             {size}
@@ -79,13 +79,13 @@ export function SizeQuantityGrid({
             <label className="sr-only" htmlFor={inputId(size)}>
               Quantity for size {size}
             </label>
-            <div className="flex h-9 items-center justify-between rounded-lg bg-white/30 px-1">
+            <div className="flex h-9 items-center justify-between rounded-[4px] bg-white/30 px-1">
               <button
                 type="button"
                 aria-label={`Decrease ${size} quantity`}
                 disabled={totalUnits <= minimumUnits || (value[size] ?? 0) <= 0}
                 onClick={() => onChange(size, Math.max(0, (value[size] ?? 0) - 1))}
-                className="flex h-7 w-7 items-center justify-center rounded-md text-lg leading-none text-[#111111]/80 hover:bg-white disabled:cursor-not-allowed disabled:text-[#111111]/25"
+                className="flex h-7 w-7 items-center justify-center rounded-[4px] text-lg leading-none text-[#111111]/80 hover:bg-white disabled:cursor-not-allowed disabled:text-[#111111]/25"
               >
                 −
               </button>
@@ -96,13 +96,13 @@ export function SizeQuantityGrid({
                 min={0}
                 value={value[size] ?? 0}
                 onChange={(e) => handleInputChange(size, e.target.value)}
-                className="h-full w-8 bg-transparent text-center text-sm font-medium text-[#111111] outline-none"
+                className="h-full w-8 bg-transparent text-center font-mono text-sm font-medium text-[#111111] outline-none"
               />
               <button
                 type="button"
                 aria-label={`Increase ${size} quantity`}
                 onClick={() => onChange(size, (value[size] ?? 0) + 1)}
-                className="flex h-7 w-7 items-center justify-center rounded-md text-lg leading-none text-[#111111]/80 hover:bg-white"
+                className="flex h-7 w-7 items-center justify-center rounded-[4px] text-lg leading-none text-[#111111]/80 hover:bg-white"
               >
                 +
               </button>
@@ -114,7 +114,7 @@ export function SizeQuantityGrid({
       <div className="mt-3 flex items-center justify-end border-t border-[#E5E5E5] pt-3 text-sm">
         <div className="text-[#111111]">
           <span className="font-medium">Price/unit:</span>{' '}
-          <span>{formatInr(unitPrice)}</span>
+          <span className="font-mono">{formatInr(unitPrice)}</span>
         </div>
       </div>
     </div>
