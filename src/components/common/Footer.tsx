@@ -57,6 +57,8 @@ export default function Footer() {
           <span className="mb-1 text-xs font-medium uppercase tracking-widest text-[#111111]/40">Company & contact</span>
           <Link href="/about" className={linkClass}>About Garmops</Link>
           <Link href="/contact" className={linkClass}>Contact</Link>
+          <Link href="/terms" className={linkClass}>Terms of Service</Link>
+          <Link href="/privacy" className={linkClass}>Privacy Policy</Link>
           <a href="mailto:hello@garmops.com" className={`${linkClass} break-all sm:break-normal`}>hello@garmops.com</a>
           <a href="tel:+918800711169" className={linkClass}>+91-8800711169</a>
           <a href="https://moistcorp.com" target="_blank" rel="noopener noreferrer" className={linkClass}>Moist Corp</a>

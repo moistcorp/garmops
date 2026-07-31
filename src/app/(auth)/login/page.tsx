@@ -1,6 +1,6 @@
 import Link from "next/link";
 import AuthActionForm from "@/components/auth/AuthActionForm";
-import AuthShell from "@/components/auth/AuthShell";
+import CustomerAuthShell from "@/components/auth/CustomerAuthShell";
 import { safeInternalPath } from "@/lib/auth/redirects";
 
 export default async function LoginPage({
@@ -10,20 +10,23 @@ export default async function LoginPage({
 }) {
   const { next } = await searchParams;
   return (
-    <AuthShell
-      eyebrow="Secure workspace"
+    <CustomerAuthShell
       title="Welcome back"
-      description="Sign in with your work email. Staff accounts continue through authenticator MFA."
+      description="Sign in to manage your orders and quotes."
       footer={
         <>
           New customer?{" "}
-          <Link href="/register" className="text-[var(--color-accent)] hover:underline">
+          <Link
+            href="/register"
+            prefetch={false}
+            className="text-[var(--color-accent)] hover:underline"
+          >
             Create an account
           </Link>
         </>
       }
     >
       <AuthActionForm variant="login" next={safeInternalPath(next)} />
-    </AuthShell>
+    </CustomerAuthShell>
   );
 }

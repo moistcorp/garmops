@@ -1,13 +1,12 @@
 import Link from "next/link";
 import AuthActionForm from "@/components/auth/AuthActionForm";
-import AuthShell from "@/components/auth/AuthShell";
+import CustomerAuthShell from "@/components/auth/CustomerAuthShell";
 
 export default function RegisterPage() {
   return (
-    <AuthShell
-      eyebrow="Customer account"
-      title="Create your company workspace"
-      description="The first verified registrant becomes the organization owner. Use a work email you can verify."
+    <CustomerAuthShell
+      title="Create an account"
+      description="Create your account to manage your orders and quotes."
       footer={
         <>
           Already registered?{" "}
@@ -18,6 +17,6 @@ export default function RegisterPage() {
       }
     >
       <AuthActionForm variant="register" />
-    </AuthShell>
+    </CustomerAuthShell>
   );
 }

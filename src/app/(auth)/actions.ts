@@ -34,32 +34,50 @@ const loginSchema = z.object({
   next: z.string().optional(),
 });
 
-const registerSchema = z
-  .object({
-    firstName: name,
-    lastName: name,
-    email,
-    password,
-    companyName: z.string().trim().min(2).max(200),
-    phone: z
-      .string()
-      .trim()
-      .regex(/^\+[1-9][0-9]{7,14}$/),
-    department: optionalText(120),
-    jobTitle: optionalText(120),
-    website: z
-      .string()
-      .trim()
-      .max(500)
-      .refine((value) => !value || z.url().safeParse(value).success, "Enter a valid URL")
-      .transform((value) => value || null),
-    gstin: z
-      .string()
-      .trim()
-      .toUpperCase()
-      .refine(
-        (value) =>
-          !value || /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(value),
+const customerIdentitySchema = {
+  firstName: name,
+  lastName: name,
+  companyName: z.string().trim().min(2).max(200),
+};
+
+const registrationPhone = z
+  .string()
+  .trim()
+  .regex(/^[0-9]{10}$/, "Enter a 10-digit Indian mobile number")
+  .transform((value) => `+91${value}`);
+
+const onboardingPhone = z
+  .string()
+  .trim()
+  .regex(/^\+[1-9][0-9]{7,14}$/);
+
+const registerSchema = z.object({
+  ...customerIdentitySchema,
+  email,
+  password,
+  phone: registrationPhone,
+  terms: z.literal("on"),
+  privacy: z.literal("on"),
+});
+
+const onboardingSchema = z.object({
+  ...customerIdentitySchema,
+  phone: onboardingPhone,
+  department: optionalText(120),
+  jobTitle: optionalText(120),
+  website: z
+    .string()
+    .trim()
+    .max(500)
+    .refine((value) => !value || z.url().safeParse(value).success, "Enter a valid URL")
+    .transform((value) => value || null),
+  gstin: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .refine(
+      (value) =>
+        !value || /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(value),
         "Enter a valid GSTIN",
       )
       .transform((value) => value || null),
@@ -67,8 +85,6 @@ const registerSchema = z
     terms: z.literal("on"),
     privacy: z.literal("on"),
   });
-
-const onboardingSchema = registerSchema.omit({ email: true, password: true });
 const emailSchema = z.object({ email });
 const resetSchema = z
   .object({
@@ -218,11 +234,6 @@ export async function registerAction(
         last_name: parsed.data.lastName,
         company_name: parsed.data.companyName,
         phone: parsed.data.phone,
-        department: parsed.data.department,
-        job_title: parsed.data.jobTitle,
-        website: parsed.data.website,
-        gstin: parsed.data.gstin,
-        industry: parsed.data.industry,
       },
     },
   });
@@ -231,7 +242,7 @@ export async function registerAction(
     return actionError("We could not complete registration. Please try again.");
   }
   return actionSuccess(
-    "Check your work email for the verification link, then finish company setup.",
+    "Check your email for the verification link, then finish setting up your account.",
   );
 }
 

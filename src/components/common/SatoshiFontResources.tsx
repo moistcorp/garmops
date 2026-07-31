@@ -4,8 +4,6 @@ import { preconnect } from 'react-dom'
 
 const FONT_SHARE_API_ORIGIN = 'https://api.fontshare.com'
 const FONT_SHARE_CDN_ORIGIN = 'https://cdn.fontshare.com'
-const SATOSHI_VARIABLE_STYLESHEET =
-  'https://api.fontshare.com/v2/css?f[]=satoshi@1&display=swap'
 const GOOGLE_FONTS_ORIGIN = 'https://fonts.googleapis.com'
 const GOOGLE_FONTS_CDN_ORIGIN = 'https://fonts.gstatic.com'
 const IBM_PLEX_MONO_STYLESHEET =
@@ -17,16 +15,11 @@ export default function SatoshiFontResources() {
   preconnect(GOOGLE_FONTS_ORIGIN)
   preconnect(GOOGLE_FONTS_CDN_ORIGIN, { crossOrigin: 'anonymous' })
 
-  return <>
-    <link
-      href={SATOSHI_VARIABLE_STYLESHEET}
-      rel="stylesheet"
-      precedence="satoshi"
-    />
+  return (
     <link
       href={IBM_PLEX_MONO_STYLESHEET}
       rel="stylesheet"
       precedence="ibm-plex-mono"
     />
-  </>
+  )
 }

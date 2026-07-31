@@ -138,6 +138,7 @@ export default function Navbar() {
             {accountsEnabled && (
               <Link
                 href="/login"
+                prefetch={false}
                 className="font-mono text-[11px] uppercase tracking-[0.06em] text-[#444444] transition-colors hover:text-[var(--color-accent)]"
               >
                 Account
@@ -269,6 +270,7 @@ export default function Navbar() {
           {accountsEnabled && (
             <Link
               href="/login"
+              prefetch={false}
               tabIndex={open ? 0 : -1}
               onClick={closeMenu}
               className="mt-2 block rounded-[4px] border border-[var(--color-rule)] px-5 py-3 text-center font-mono text-[11px] uppercase tracking-[0.06em] text-[#111111]/70"

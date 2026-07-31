@@ -17,6 +17,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: absoluteUrl('/journal'), priority: 0.8, changeFrequency: 'weekly' as const },
     { url: absoluteUrl('/contact'), priority: 0.7, changeFrequency: 'yearly' as const },
     { url: absoluteUrl('/about'), priority: 0.7, changeFrequency: 'yearly' as const },
+    { url: absoluteUrl('/terms'), priority: 0.3, changeFrequency: 'yearly' as const },
+    { url: absoluteUrl('/privacy'), priority: 0.3, changeFrequency: 'yearly' as const },
     { url: absoluteUrl('/work'), priority: 0.8, changeFrequency: 'monthly' as const },
   ].map(page => ({
     ...page,

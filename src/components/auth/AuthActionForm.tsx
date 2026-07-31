@@ -49,6 +49,7 @@ function Field({
   autoComplete,
   defaultValue,
   placeholder,
+  prefix,
   error,
 }: {
   label: string;
@@ -58,21 +59,41 @@ function Field({
   autoComplete?: string;
   defaultValue?: string;
   placeholder?: string;
+  prefix?: string;
   error?: string[];
 }) {
   return (
     <label className="flex flex-col gap-1.5 text-xs font-medium uppercase tracking-wide text-black/55">
       {label}
-      <input
-        className={inputClass}
-        name={name}
-        type={type}
-        required={required}
-        autoComplete={autoComplete}
-        defaultValue={defaultValue}
-        placeholder={placeholder}
-        aria-invalid={Boolean(error?.length)}
-      />
+      {prefix ? (
+        <div className="flex">
+          <span className="techpack-control inline-flex items-center rounded-r-none border-r-0 px-3 text-sm text-black/55">
+            {prefix}
+          </span>
+          <input
+            className={`${inputClass} rounded-l-none`}
+            name={name}
+            type={type}
+            required={required}
+            autoComplete={autoComplete}
+            defaultValue={defaultValue}
+            placeholder={placeholder}
+            inputMode={type === "tel" ? "numeric" : undefined}
+            aria-invalid={Boolean(error?.length)}
+          />
+        </div>
+      ) : (
+        <input
+          className={inputClass}
+          name={name}
+          type={type}
+          required={required}
+          autoComplete={autoComplete}
+          defaultValue={defaultValue}
+          placeholder={placeholder}
+          aria-invalid={Boolean(error?.length)}
+        />
+      )}
       {error?.[0] ? <span className="normal-case text-red-700">{error[0]}</span> : null}
     </label>
   );
@@ -81,9 +102,11 @@ function Field({
 function CompanyFields({
   defaults,
   errors,
+  includeAdditionalFields = true,
 }: {
   defaults: Defaults;
   errors?: Record<string, string[]>;
+  includeAdditionalFields?: boolean;
 }) {
   return (
     <>
@@ -92,25 +115,41 @@ function CompanyFields({
         <Field label="Last name *" name="lastName" required autoComplete="family-name" defaultValue={defaults.lastName} error={errors?.lastName} />
       </div>
       <Field label="Company *" name="companyName" required autoComplete="organization" defaultValue={defaults.companyName} error={errors?.companyName} />
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Phone in E.164 format *" name="phone" type="tel" required autoComplete="tel" placeholder="+919876543210" defaultValue={defaults.phone} error={errors?.phone} />
-        <Field label="Industry" name="industry" defaultValue={defaults.industry} error={errors?.industry} />
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Department" name="department" autoComplete="organization-title" defaultValue={defaults.department} error={errors?.department} />
-        <Field label="Job title" name="jobTitle" autoComplete="organization-title" defaultValue={defaults.jobTitle} error={errors?.jobTitle} />
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Website" name="website" type="url" autoComplete="url" placeholder="https://company.com" defaultValue={defaults.website} error={errors?.website} />
-        <Field label="GSTIN" name="gstin" defaultValue={defaults.gstin} error={errors?.gstin} />
-      </div>
+      <Field
+        label={includeAdditionalFields ? "Phone in E.164 format *" : "Phone *"}
+        name="phone"
+        type="tel"
+        required
+        autoComplete="tel"
+        placeholder={includeAdditionalFields ? "+919876543210" : "9876543210"}
+        defaultValue={defaults.phone}
+        prefix={includeAdditionalFields ? undefined : "+91"}
+        error={errors?.phone}
+      />
+      {includeAdditionalFields ? (
+        <>
+          <Field label="Industry" name="industry" defaultValue={defaults.industry} error={errors?.industry} />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Department" name="department" autoComplete="organization-title" defaultValue={defaults.department} error={errors?.department} />
+            <Field label="Job title" name="jobTitle" autoComplete="organization-title" defaultValue={defaults.jobTitle} error={errors?.jobTitle} />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Website" name="website" type="url" autoComplete="url" placeholder="https://company.com" defaultValue={defaults.website} error={errors?.website} />
+            <Field label="GSTIN" name="gstin" defaultValue={defaults.gstin} error={errors?.gstin} />
+          </div>
+        </>
+      ) : null}
       <label className="flex items-start gap-3 text-sm text-black/60">
         <input className="mt-1" type="checkbox" name="terms" required />
-        <span>I accept the current terms of service.</span>
+        <span>
+          I accept the <Link href="/terms" className="text-[var(--color-accent)] hover:underline">Terms of Service</Link>.
+        </span>
       </label>
       <label className="flex items-start gap-3 text-sm text-black/60">
         <input className="mt-1" type="checkbox" name="privacy" required />
-        <span>I acknowledge the current privacy policy.</span>
+        <span>
+          I acknowledge the <Link href="/privacy" className="text-[var(--color-accent)] hover:underline">Privacy Policy</Link>.
+        </span>
       </label>
     </>
   );
@@ -153,8 +192,8 @@ export default function AuthActionForm({
       {next ? <input type="hidden" name="next" value={next} /> : null}
       {variant === "login" ? (
         <>
-          <Field label="Work email *" name="email" type="email" required autoComplete="email" error={errors?.email} />
-          <Field label="Password *" name="password" type="password" required autoComplete="current-password" error={errors?.password} />
+          <Field label="Email" name="email" type="email" required autoComplete="email" error={errors?.email} />
+          <Field label="Password" name="password" type="password" required autoComplete="current-password" error={errors?.password} />
           <div className="text-right">
             <Link href="/forgot-password" className="text-xs text-[var(--color-accent)] hover:underline">
               Forgot password?
@@ -165,9 +204,9 @@ export default function AuthActionForm({
 
       {variant === "register" ? (
         <>
-          <CompanyFields defaults={defaults} errors={errors} />
-          <Field label="Work email *" name="email" type="email" required autoComplete="email" error={errors?.email} />
-          <Field label="Password *" name="password" type="password" required autoComplete="new-password" error={errors?.password} />
+          <CompanyFields defaults={defaults} errors={errors} includeAdditionalFields={false} />
+          <Field label="Email" name="email" type="email" required autoComplete="email" error={errors?.email} />
+          <Field label="Password" name="password" type="password" required autoComplete="new-password" error={errors?.password} />
         </>
       ) : null}
 

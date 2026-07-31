@@ -15,8 +15,6 @@ export default function AppChrome({ children }: { children: React.ReactNode }) {
     pathname.startsWith("/staff") ||
     pathname.startsWith("/auth") ||
     [
-      "/login",
-      "/register",
       "/verify-email",
       "/forgot-password",
       "/reset-password",
