@@ -33,7 +33,7 @@ export default function Work() {
       {/* Featured — first case study */}
       <section className="max-w-7xl mx-auto px-4 pb-12 sm:px-6 sm:pb-16">
         <Link href={`/work/${caseStudies[0].slug}`} className="group block">
-          <div className="liquid-glass-surface grid gap-0 overflow-hidden rounded-[28px] border transition-all duration-300 hover:!border-[var(--color-teal)]/45 md:grid-cols-2">
+          <div className="liquid-glass-surface grid gap-0 overflow-hidden rounded-[4px] border transition-all duration-300 hover:!border-[var(--color-accent)]/45 md:grid-cols-2">
             {/* Image */}
             <div className="relative aspect-video md:aspect-auto bg-[var(--color-cream-soft)] flex items-center justify-center min-h-64 overflow-hidden">
               {caseStudies[0].coverImage ? (
@@ -54,7 +54,7 @@ export default function Work() {
             <div className="flex flex-col justify-between p-5 sm:p-8 md:p-10">
               <div>
                 <div className="mb-5 flex flex-wrap items-center gap-3 sm:mb-6">
-                  <span className="text-xs border border-[#ECE7DF] rounded-full px-2.5 py-1 text-[#111111]/50">
+                  <span className="text-xs border border-[#ECE7DF] rounded-[4px] px-2.5 py-1 text-[#111111]/50">
                     {caseStudies[0].industry}
                   </span>
                   <span className="text-xs text-[#111111]/30">{caseStudies[0].date}</span>
@@ -72,7 +72,7 @@ export default function Work() {
                 </div>
               </div>
               <div className="mt-8 pt-6 border-t border-[#ECE7DF]">
-                <span className="text-xs font-medium text-[var(--color-teal)] group-hover:underline">
+                <span className="text-xs font-medium text-[var(--color-accent)] group-hover:underline">
                   Read case study
                 </span>
               </div>
@@ -88,7 +88,7 @@ export default function Work() {
             <Link
               key={cs.slug}
               href={`/work/${cs.slug}`}
-              className="liquid-glass-panel group flex flex-col overflow-hidden rounded-[24px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-teal)]/45"
+              className="liquid-glass-panel group flex flex-col overflow-hidden rounded-[4px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45"
             >
               {/* Image */}
               <div className="relative w-full aspect-video bg-[var(--color-cream-soft)] flex items-center justify-center overflow-hidden">
@@ -108,7 +108,7 @@ export default function Work() {
               {/* Content */}
               <div className="p-6 flex flex-col gap-3 flex-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs border border-[#ECE7DF] rounded-full px-2.5 py-1 text-[#111111]/50">
+                  <span className="text-xs border border-[#ECE7DF] rounded-[4px] px-2.5 py-1 text-[#111111]/50">
                     {cs.industry}
                   </span>
                   <span className="text-xs text-[#111111]/30">{cs.date}</span>
@@ -130,7 +130,7 @@ export default function Work() {
       {/* CTA */}
       <section className="app-liquid-section py-12 sm:py-16">
         <div className="max-w-7xl mx-auto flex flex-col items-center justify-between gap-6 px-4 sm:px-6 md:flex-row">
-          <div className="liquid-glass-dark flex w-full flex-col items-stretch justify-between gap-6 rounded-[26px] border p-6 sm:rounded-[30px] sm:p-8 md:flex-row md:items-center md:p-10">
+          <div className="liquid-glass-dark flex w-full flex-col items-stretch justify-between gap-6 rounded-[4px] border p-6 sm:rounded-[4px] sm:p-8 md:flex-row md:items-center md:p-10">
           <div>
             <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">
               Want results like these?
@@ -140,13 +140,13 @@ export default function Work() {
           <div className="flex shrink-0 flex-col gap-3 min-[360px]:flex-row">
             <Link
               href="/configurator"
-              className="rounded-full bg-white px-6 py-3.5 text-center text-sm font-medium text-[var(--color-navy)] transition hover:bg-white/90 sm:px-7"
+              className="rounded-[4px] bg-white px-6 py-3.5 text-center text-sm font-medium text-[var(--color-navy)] transition hover:bg-white/90 sm:px-7"
             >
               Start designing
             </Link>
             <Link
               href="/contact"
-              className="rounded-full border border-white/30 px-6 py-3.5 text-center text-sm font-medium text-white transition hover:bg-white/10 sm:px-7"
+              className="rounded-[4px] border border-white/30 px-6 py-3.5 text-center text-sm font-medium text-white transition hover:bg-white/10 sm:px-7"
             >
               Contact us
             </Link>

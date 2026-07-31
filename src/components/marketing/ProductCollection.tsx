@@ -32,7 +32,7 @@ export default function ProductCollection({
             page={pagePath}
             event="seo_landing_product_click"
             label={product.slug}
-            className="liquid-glass-panel group flex min-w-0 flex-col overflow-hidden rounded-[24px] border transition-transform hover:-translate-y-0.5 hover:!border-[var(--color-teal)]/45"
+            className="liquid-glass-panel group flex min-w-0 flex-col overflow-hidden rounded-[4px] border transition-transform hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45"
           >
             <div className="relative aspect-[4/3] overflow-hidden bg-[var(--color-cream-soft)]">
               {product.image ? (

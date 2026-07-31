@@ -61,7 +61,7 @@ export default function ContactClient() {
     }
   }
 
-  const inputClass = "liquid-glass-control border px-4 py-3 rounded-xl text-sm focus:outline-none focus:!border-[var(--color-teal)] transition-colors"
+  const inputClass = "liquid-glass-control border px-4 py-3 rounded-[4px] text-sm focus:outline-none focus:!border-[var(--color-accent)] transition-colors"
 
   return (
     <div className="app-liquid-bg">
@@ -78,12 +78,12 @@ export default function ContactClient() {
       <section className="max-w-7xl mx-auto grid gap-10 px-4 pb-16 sm:px-6 sm:pb-24 md:grid-cols-2 md:gap-16">
         <div>
           {submitted ? (
-            <div role="status" className="liquid-glass-dark rounded-3xl border p-6 text-white sm:p-10">
+            <div role="status" className="liquid-glass-dark rounded-[4px] border p-6 text-white sm:p-10">
               <h2 className="text-2xl font-bold mb-2">We&apos;ve got your request.</h2>
               <p className="text-white/50 text-sm">Our team will reach out within 24 hours with a detailed quote.</p>
             </div>
           ) : (
-            <form onSubmit={submit} aria-busy={submitting} className="liquid-glass-surface flex flex-col gap-4 rounded-[30px] border p-5 sm:p-7">
+            <form onSubmit={submit} aria-busy={submitting} className="liquid-glass-surface flex flex-col gap-4 rounded-[4px] border p-5 sm:p-7">
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="contact-name" className="text-xs font-medium text-[#111111]/60 uppercase tracking-wide">Full name *</label>
@@ -129,7 +129,7 @@ export default function ContactClient() {
                 />
               )}
               {submitError && <p role="alert" className="text-sm text-red-700">{submitError}</p>}
-              <button type="submit" disabled={submitting || (protectedContactEnabled && !turnstileToken)} className="bg-[var(--color-teal)] text-white px-6 py-3.5 rounded-full text-sm font-medium hover:bg-[var(--color-teal-dark)] transition-colors disabled:cursor-not-allowed disabled:opacity-60">
+              <button type="submit" disabled={submitting || (protectedContactEnabled && !turnstileToken)} className="bg-[var(--color-accent)] text-white px-6 py-3.5 rounded-[4px] text-sm font-medium hover:bg-[var(--color-accent-dark)] transition-colors disabled:cursor-not-allowed disabled:opacity-60">
                 {submitting ? 'Sending…' : 'Submit request'}
               </button>
             </form>
@@ -142,7 +142,7 @@ export default function ContactClient() {
             { label: 'Email', content: 'hello@garmops.com', isEmail: true },
             { label: 'MOQ & Turnaround', content: `50 pieces minimum. ${DELIVERY_DAYS}-day standard production. ${RUSH_DELIVERY_DAYS}-day rush production available.` },
           ].map(item => (
-            <div key={item.label} className="liquid-glass-panel rounded-2xl border p-5">
+            <div key={item.label} className="liquid-glass-panel rounded-[4px] border p-5">
               <p className="text-xs font-medium text-[#111111]/40 mb-2 uppercase tracking-widest">{item.label}</p>
               {item.isEmail ? (
                 <a href={`mailto:${item.content}`} className="text-sm text-[#111111] hover:underline">{item.content}</a>
@@ -151,9 +151,9 @@ export default function ContactClient() {
               )}
             </div>
           ))}
-          <div className="liquid-glass-panel rounded-2xl border p-5">
+          <div className="liquid-glass-panel rounded-[4px] border p-5">
             <p className="text-xs font-medium text-[#111111]/40 mb-2 uppercase tracking-widest">Or start directly</p>
-            <Link href="/configurator" className="inline-block border border-[var(--color-teal)] text-[var(--color-teal)] px-5 py-2.5 rounded-full text-sm hover:bg-[var(--color-teal)] hover:text-white transition-colors">
+            <Link href="/configurator" className="inline-block border border-[var(--color-accent)] text-[var(--color-accent)] px-5 py-2.5 rounded-[4px] text-sm hover:bg-[var(--color-accent)] hover:text-white transition-colors">
               Open the configurator
             </Link>
           </div>

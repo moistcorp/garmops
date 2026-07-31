@@ -39,7 +39,7 @@ export default function HowItWorks() {
       <section className="max-w-7xl mx-auto px-4 pb-10 pt-10 sm:px-6 sm:pb-16 sm:pt-20">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">The process</p>
         <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] max-w-xl leading-tight mb-6 tracking-tight">
-          Custom apparel, from brief to <span className="text-[var(--color-teal)]">delivery</span>
+          Custom apparel, from brief to <span className="text-[var(--color-accent)]">delivery</span>
         </h1>
         <p className="max-w-lg text-base leading-relaxed text-[#111111]/50 sm:text-lg">
           A straightforward process built around your timeline. No back-and-forth, no surprises.
@@ -49,7 +49,7 @@ export default function HowItWorks() {
       <section className="max-w-7xl mx-auto px-4 pb-16 sm:px-6 sm:pb-24">
         <div className="flex flex-col gap-4">
           {steps.map(s => (
-            <div key={s.num} className="liquid-glass-panel grid items-start gap-3 rounded-[24px] border p-5 sm:gap-6 sm:p-6 md:grid-cols-12 md:p-8">
+            <div key={s.num} className="liquid-glass-panel grid items-start gap-3 rounded-[4px] border p-5 sm:gap-6 sm:p-6 md:grid-cols-12 md:p-8">
               <p className="md:col-span-1 text-2xl font-bold text-[#111111]/15">{s.num}</p>
               <h3 className="md:col-span-4 text-base font-semibold text-[#111111]">{s.title}</h3>
               <p className="md:col-span-7 text-[#111111]/50 leading-relaxed text-sm">{s.desc}</p>
@@ -64,7 +64,7 @@ export default function HowItWorks() {
           <h2 className="mb-8 text-3xl font-bold tracking-tight text-[#111111] sm:mb-12 sm:text-4xl">Common questions</h2>
           <div className="grid gap-4">
             {faqs.map(f => (
-              <div key={f.q} className="liquid-glass-panel grid gap-3 rounded-2xl border p-5 sm:gap-6 sm:p-6 md:grid-cols-2">
+              <div key={f.q} className="liquid-glass-panel grid gap-3 rounded-[4px] border p-5 sm:gap-6 sm:p-6 md:grid-cols-2">
                 <p className="text-[#111111] font-medium text-sm">{f.q}</p>
                 <p className="text-[#111111]/50 leading-relaxed text-sm">{f.a}</p>
               </div>
@@ -76,7 +76,7 @@ export default function HowItWorks() {
       <section className="max-w-7xl mx-auto px-4 py-14 text-center sm:px-6 sm:py-20">
         <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">Ready to start?</h2>
         <p className="text-[#111111]/50 mb-8 text-sm">Configure your order in minutes. We&apos;ll take it from there.</p>
-        <Link href="/configurator" className="inline-block bg-[var(--color-teal)] text-white px-8 py-4 rounded-full hover:bg-[var(--color-teal-dark)] transition text-sm font-medium">
+        <Link href="/configurator" className="inline-block bg-[var(--color-accent)] text-white px-8 py-4 rounded-[4px] hover:bg-[var(--color-accent-dark)] transition text-sm font-medium">
           Start designing
         </Link>
       </section>

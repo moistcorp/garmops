@@ -54,7 +54,7 @@ export default function HomepageCaseStudies() {
                 className="group w-[84vw] max-w-[430px] shrink-0 snap-start sm:w-[420px] lg:w-[380px] xl:w-[420px]"
               >
 
-                <div className="liquid-glass-panel overflow-hidden rounded-[24px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-teal)]/45">
+                <div className="liquid-glass-panel overflow-hidden rounded-[4px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45">
 
                   {/* Image */}
 
@@ -64,15 +64,15 @@ export default function HomepageCaseStudies() {
 
                     <div className="absolute top-4 left-4 z-20 flex flex-wrap gap-2">
 
-                      <span className="liquid-glass-chip rounded-full px-3 py-1 text-xs font-medium">
+                      <span className="liquid-glass-chip rounded-[4px] px-3 py-1 text-xs font-medium">
                         ● {cs.color}
                       </span>
 
-                      <span className="liquid-glass-chip rounded-full px-3 py-1 text-xs font-medium">
+                      <span className="liquid-glass-chip rounded-[4px] px-3 py-1 text-xs font-medium">
                         {cs.product}
                       </span>
 
-                      <span className="liquid-glass-chip rounded-full px-3 py-1 text-xs font-medium">
+                      <span className="liquid-glass-chip rounded-[4px] px-3 py-1 text-xs font-medium">
                         {cs.printMethod}
                       </span>
 
@@ -153,7 +153,7 @@ export default function HomepageCaseStudies() {
                 &ldquo;{featuredTestimonial.quote}&rdquo;
               </p>
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-full bg-[var(--color-teal)] text-white flex items-center justify-center text-sm font-semibold shrink-0">
+                <div className="w-11 h-11 rounded-[4px] bg-[var(--color-accent)] text-white flex items-center justify-center text-sm font-semibold shrink-0">
                   {initials(featuredTestimonial.author)}
                 </div>
                 <div>

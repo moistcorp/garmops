@@ -3,14 +3,14 @@ import type { LandingPageLink } from '@/lib/landingPages'
 
 function LinkGroup({ title, links }: { title: string; links: LandingPageLink[] }) {
   return (
-    <div className="liquid-glass-panel rounded-[24px] border p-6 sm:p-8">
+    <div className="liquid-glass-panel rounded-[4px] border p-6 sm:p-8">
       <h3 className="text-lg font-semibold text-[#111111]">{title}</h3>
       <ul className="mt-5 space-y-3">
         {links.map(link => (
           <li key={link.href}>
             <Link
               href={link.href}
-              className="text-sm leading-6 text-[var(--color-teal-dark)] underline decoration-[var(--color-teal)]/35 underline-offset-4 hover:decoration-current"
+              className="text-sm leading-6 text-[var(--color-accent-dark)] underline decoration-[var(--color-accent)]/35 underline-offset-4 hover:decoration-current"
             >
               {link.label}
             </Link>

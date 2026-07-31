@@ -18,8 +18,8 @@ export default function ProcessSteps({
       </div>
       <ol className="mt-8 grid gap-4 md:grid-cols-2">
         {steps.map((step, index) => (
-          <li key={step.title} className="liquid-glass-panel grid grid-cols-[auto_1fr] gap-4 rounded-[22px] border p-5 sm:p-6">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-teal)] text-xs font-semibold text-white">
+          <li key={step.title} className="liquid-glass-panel grid grid-cols-[auto_1fr] gap-4 rounded-[4px] border p-5 sm:p-6">
+            <span className="flex h-9 w-9 items-center justify-center rounded-[4px] bg-[var(--color-accent)] text-xs font-semibold text-white">
               {String(index + 1).padStart(2, '0')}
             </span>
             <div>

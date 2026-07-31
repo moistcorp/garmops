@@ -44,7 +44,7 @@ export default function EmailCapture() {
             {status === 'success' ? (
               <p
                 role="status"
-                className="text-sm font-medium text-[var(--color-teal)] border border-[var(--color-teal)]/30 bg-[var(--color-teal)]/5 rounded-full px-5 py-3 inline-block"
+                className="text-sm font-medium text-[var(--color-accent)] border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/5 rounded-[4px] px-5 py-3 inline-block"
               >
                 Thanks — you&apos;re on the list.
               </p>
@@ -52,7 +52,7 @@ export default function EmailCapture() {
               <form
                 onSubmit={handleSubmit}
                 aria-busy={status === 'loading'}
-                className="liquid-glass-surface mx-auto flex max-w-sm items-center gap-2 rounded-full border py-2 pl-4 pr-2 sm:pl-6"
+                className="liquid-glass-surface mx-auto flex max-w-sm items-center gap-2 rounded-[4px] border py-2 pl-4 pr-2 sm:pl-6"
               >
                 <input
                   type="email"
@@ -72,7 +72,7 @@ export default function EmailCapture() {
                 <button
                   type="submit"
                   disabled={status === 'loading'}
-                  className="whitespace-nowrap rounded-full bg-[var(--color-teal)] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-teal-dark)] disabled:opacity-50 sm:px-5"
+                  className="whitespace-nowrap rounded-[4px] bg-[var(--color-accent)] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent-dark)] disabled:opacity-50 sm:px-5"
                 >
                   {status === 'loading' ? 'Submitting…' : 'Subscribe'}
                 </button>

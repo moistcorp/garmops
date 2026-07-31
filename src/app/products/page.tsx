@@ -48,7 +48,7 @@ export default function Products() {
       </section>
 
       <section className="max-w-7xl mx-auto px-4 pb-10 sm:px-6 sm:pb-12">
-        <div className="liquid-glass-surface flex flex-col items-start justify-between gap-4 rounded-[26px] border px-5 py-5 sm:px-8 md:flex-row md:items-center">
+        <div className="liquid-glass-surface flex flex-col items-start justify-between gap-4 rounded-[4px] border px-5 py-5 sm:px-8 md:flex-row md:items-center">
           <p className="text-sm text-[#111111]/60">
             Ships within 24 hours.
           </p>
@@ -63,7 +63,7 @@ export default function Products() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map(p => (
             <Link key={p.id} href={`/products/${p.slug}`}
-              className="liquid-glass-panel group flex flex-col overflow-hidden rounded-[24px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-teal)]/45">
+              className="liquid-glass-panel group flex flex-col overflow-hidden rounded-[4px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45">
               <div className="relative w-full aspect-[3/4] bg-[var(--color-cream-soft)] flex items-center justify-center overflow-hidden">
                 {p.image ? (
                   <Image src={p.image} alt={productImageAlt(p)} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -91,7 +91,7 @@ export default function Products() {
             <p className="text-[#111111]/50 text-sm">Custom apparel for brands, cafes, and companies. MOQ 50 pieces.</p>
           </div>
           <div className="flex shrink-0 gap-3">
-            <Link href="/configurator" className="w-full rounded-full bg-[var(--color-teal)] px-6 py-3 text-center text-sm font-medium text-white transition hover:bg-[var(--color-teal-dark)] md:w-auto">Start designing</Link>
+            <Link href="/configurator" className="w-full rounded-[4px] bg-[var(--color-accent)] px-6 py-3 text-center text-sm font-medium text-white transition hover:bg-[var(--color-accent-dark)] md:w-auto">Start designing</Link>
           </div>
         </div>
       </section>

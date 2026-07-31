@@ -38,7 +38,7 @@ export default function AboutPage() {
       </section>
 
       <section className="mx-auto grid max-w-7xl gap-6 px-4 pb-16 sm:px-6 sm:pb-24 lg:grid-cols-[1.4fr_1fr]">
-        <div className="liquid-glass-surface rounded-[30px] border p-6 sm:p-9">
+        <div className="liquid-glass-surface rounded-[4px] border p-6 sm:p-9">
           <h2 className="text-2xl font-bold tracking-tight text-[#111111]">What we make</h2>
           <div className="mt-5 space-y-4 text-sm leading-7 text-[#111111]/65">
             <p>
@@ -52,16 +52,16 @@ export default function AboutPage() {
             </p>
           </div>
           <div className="mt-7 flex flex-col gap-3 min-[360px]:flex-row">
-            <Link href="/products" className="rounded-full bg-[var(--color-teal)] px-6 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-[var(--color-teal-dark)]">
+            <Link href="/products" className="rounded-[4px] bg-[var(--color-accent)] px-6 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent-dark)]">
               Explore products
             </Link>
-            <Link href="/contact" className="rounded-full border border-[var(--color-teal)] px-6 py-3 text-center text-sm font-medium text-[var(--color-teal-dark)] transition-colors hover:bg-[var(--color-teal)] hover:text-white">
+            <Link href="/contact" className="rounded-[4px] border border-[var(--color-accent)] px-6 py-3 text-center text-sm font-medium text-[var(--color-accent-dark)] transition-colors hover:bg-[var(--color-accent)] hover:text-white">
               Talk to the team
             </Link>
           </div>
         </div>
 
-        <aside className="liquid-glass-panel rounded-[30px] border p-6 sm:p-8" aria-label="Garmops at a glance">
+        <aside className="liquid-glass-panel rounded-[4px] border p-6 sm:p-8" aria-label="Garmops at a glance">
           <h2 className="text-lg font-bold tracking-tight text-[#111111]">At a glance</h2>
           <dl className="mt-5 divide-y divide-white/60">
             {facts.map(([label, value]) => (

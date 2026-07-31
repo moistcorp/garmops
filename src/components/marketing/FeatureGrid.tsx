@@ -32,13 +32,13 @@ export default function FeatureGrid({
 
       <div className="mt-8 grid gap-4 md:grid-cols-2">
         {features.map((feature) => (
-          <article key={feature.title} className="liquid-glass-panel rounded-[22px] border p-5 sm:p-6">
+          <article key={feature.title} className="liquid-glass-panel rounded-[4px] border p-5 sm:p-6">
             <h3 className="text-base font-semibold text-[#111111]">{feature.title}</h3>
             <p className="mt-2 text-sm leading-6 text-[#3f3f3f]">{feature.description}</p>
             {feature.link && (
               <Link
                 href={feature.link.href}
-                className="mt-4 inline-flex text-sm font-medium text-[var(--color-teal-dark)] underline-offset-4 hover:underline"
+                className="mt-4 inline-flex text-sm font-medium text-[var(--color-accent-dark)] underline-offset-4 hover:underline"
               >
                 {feature.link.label}
               </Link>
@@ -53,7 +53,7 @@ export default function FeatureGrid({
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-[var(--color-teal-dark)] underline decoration-[var(--color-teal)]/35 underline-offset-4 hover:decoration-current"
+              className="text-sm font-medium text-[var(--color-accent-dark)] underline decoration-[var(--color-accent)]/35 underline-offset-4 hover:decoration-current"
             >
               {link.label}
             </Link>

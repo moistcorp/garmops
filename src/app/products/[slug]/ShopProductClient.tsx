@@ -88,7 +88,7 @@ export default function ShopProductClient({
           {/* Image */}
           <div className="relative">
             {product.image ? (
-              <div className="relative aspect-[3/4] overflow-hidden rounded-2xl border border-[#ECE7DF] shadow-[0_8px_30px_rgba(22,33,43,0.06)]">
+              <div className="relative aspect-[3/4] overflow-hidden rounded-[4px] border border-[#ECE7DF] ">
                 <Image
                   src={product.image}
                   alt={productImageAlt(product)}
@@ -98,14 +98,14 @@ export default function ShopProductClient({
                 />
               </div>
             ) : (
-              <div className="aspect-[3/4] bg-[var(--color-cream-soft)] rounded-2xl border border-[#ECE7DF] flex items-center justify-center">
+              <div className="aspect-[3/4] bg-[var(--color-cream-soft)] rounded-[4px] border border-[#ECE7DF] flex items-center justify-center">
                 <span className="text-xs text-[#111111]/20 uppercase tracking-wide">Product photo</span>
               </div>
             )}
           </div>
 
           {/* Info */}
-          <div className="liquid-glass-surface flex flex-col gap-6 rounded-[26px] border p-4 sm:rounded-[30px] sm:p-7">
+          <div className="liquid-glass-surface flex flex-col gap-6 rounded-[4px] border p-4 sm:rounded-[4px] sm:p-7">
             <div>
               <p className="text-xs text-[#111111]/40 uppercase tracking-widest mb-2">
                 {product.category}
@@ -136,10 +136,10 @@ export default function ShopProductClient({
                       key={s}
                       type="button"
                       onClick={() => { setSelectedSize(s); setError('') }}
-                      className={`min-w-12 h-12 rounded-xl px-3 text-sm whitespace-nowrap border transition-colors ${
+                      className={`min-w-12 h-12 rounded-[4px] px-3 text-sm whitespace-nowrap border transition-colors ${
                         selectedSize === s
                           ? 'liquid-glass-selected'
-                          : 'liquid-glass-control text-[#111111] hover:!border-[var(--color-teal)] hover:text-[var(--color-teal)]'
+                          : 'liquid-glass-control text-[#111111] hover:!border-[var(--color-accent)] hover:text-[var(--color-accent)]'
                       }`}
                     >
                       {s}
@@ -159,7 +159,7 @@ export default function ShopProductClient({
                 <button
                   type="button"
                   onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                  className="liquid-glass-control flex h-10 w-10 items-center justify-center rounded-full border text-lg transition-colors hover:!border-[var(--color-teal)] hover:text-[var(--color-teal)]"
+                  className="liquid-glass-control flex h-10 w-10 items-center justify-center rounded-[4px] border text-lg transition-colors hover:!border-[var(--color-accent)] hover:text-[var(--color-accent)]"
                 >
                   -
                 </button>
@@ -168,7 +168,7 @@ export default function ShopProductClient({
                   type="button"
                   onClick={() => setQuantity(q => Math.min(MAX_SAMPLE_ITEM_QUANTITY, q + 1))}
                   disabled={quantity >= MAX_SAMPLE_ITEM_QUANTITY}
-                  className="liquid-glass-control flex h-10 w-10 items-center justify-center rounded-full border text-lg transition-colors hover:!border-[var(--color-teal)] hover:text-[var(--color-teal)] disabled:cursor-not-allowed disabled:opacity-40"
+                  className="liquid-glass-control flex h-10 w-10 items-center justify-center rounded-[4px] border text-lg transition-colors hover:!border-[var(--color-accent)] hover:text-[var(--color-accent)] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   +
                 </button>
@@ -180,26 +180,26 @@ export default function ShopProductClient({
               <button
                 type="button"
                 onClick={handleBuyNow}
-                className="w-full rounded-full bg-[var(--color-teal)] text-white py-4 text-sm font-medium hover:bg-[var(--color-teal-dark)] transition-colors"
+                className="w-full rounded-[4px] bg-[var(--color-accent)] text-white py-4 text-sm font-medium hover:bg-[var(--color-accent-dark)] transition-colors"
               >
                 Buy now
               </button>
               <button
                 type="button"
                 onClick={handleAdd}
-                className="w-full rounded-full border border-[var(--color-teal)] text-[var(--color-teal)] py-4 text-sm font-medium hover:bg-[var(--color-teal)] hover:text-white transition-colors"
+                className="w-full rounded-[4px] border border-[var(--color-accent)] text-[var(--color-accent)] py-4 text-sm font-medium hover:bg-[var(--color-accent)] hover:text-white transition-colors"
               >
                 {added ? 'Added to cart' : 'Add to cart'}
               </button>
               <Link
                 href="/configurator"
-                className="w-full py-2 text-center text-sm font-medium text-[#111111]/55 underline-offset-4 transition-colors hover:text-[var(--color-teal)] hover:underline"
+                className="w-full py-2 text-center text-sm font-medium text-[#111111]/55 underline-offset-4 transition-colors hover:text-[var(--color-accent)] hover:underline"
               >
                 Customise this product in the configurator
               </Link>
               <Link
                 href={categoryPath}
-                className="w-full py-1 text-center text-sm font-medium text-[#111111]/55 underline-offset-4 transition-colors hover:text-[var(--color-teal)] hover:underline"
+                className="w-full py-1 text-center text-sm font-medium text-[#111111]/55 underline-offset-4 transition-colors hover:text-[var(--color-accent)] hover:underline"
               >
                 {productCategoryLinkLabel(product)}
               </Link>
@@ -241,7 +241,7 @@ export default function ShopProductClient({
                 <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-3">
                   Size chart
                 </p>
-                <div className="liquid-glass-panel overflow-hidden rounded-2xl border">
+                <div className="liquid-glass-panel overflow-hidden rounded-[4px] border">
                   <div className="overflow-x-auto" role="region" aria-label="Product size chart" tabIndex={0}>
                   <table className="min-w-max w-full text-xs">
                     <thead>
@@ -317,7 +317,7 @@ export default function ShopProductClient({
           </p>
         </div>
         <div className="mt-8 grid gap-5 md:grid-cols-3">
-          <article className="liquid-glass-panel rounded-[22px] border p-5 sm:p-6">
+          <article className="liquid-glass-panel rounded-[4px] border p-5 sm:p-6">
             <h3 className="text-base font-semibold text-[#111111]">Suitable use cases</h3>
             <ul className="mt-4 space-y-2">
               {suitableUseCases.map(useCase => (
@@ -325,7 +325,7 @@ export default function ShopProductClient({
               ))}
             </ul>
           </article>
-          <article className="liquid-glass-panel rounded-[22px] border p-5 sm:p-6">
+          <article className="liquid-glass-panel rounded-[4px] border p-5 sm:p-6">
             <h3 className="text-base font-semibold text-[#111111]">Decoration methods to review</h3>
             <ul className="mt-4 space-y-2">
               {decorationMethods.map(method => (
@@ -333,16 +333,16 @@ export default function ShopProductClient({
               ))}
             </ul>
           </article>
-          <article className="liquid-glass-panel rounded-[22px] border p-5 sm:p-6">
+          <article className="liquid-glass-panel rounded-[4px] border p-5 sm:p-6">
             <h3 className="text-base font-semibold text-[#111111]">Continue the order</h3>
             <div className="mt-4 flex flex-col items-start gap-3">
-              <Link href={categoryPath} className="text-sm font-medium text-[var(--color-teal-dark)] underline underline-offset-4">
+              <Link href={categoryPath} className="text-sm font-medium text-[var(--color-accent-dark)] underline underline-offset-4">
                 {productCategoryLinkLabel(product)}
               </Link>
-              <Link href="/pricing" className="text-sm font-medium text-[var(--color-teal-dark)] underline underline-offset-4">
+              <Link href="/pricing" className="text-sm font-medium text-[var(--color-accent-dark)] underline underline-offset-4">
                 Estimate bulk apparel pricing
               </Link>
-              <Link href="/configurator" className="text-sm font-medium text-[var(--color-teal-dark)] underline underline-offset-4">
+              <Link href="/configurator" className="text-sm font-medium text-[var(--color-accent-dark)] underline underline-offset-4">
                 Configure this garment for a bulk order
               </Link>
             </div>
@@ -361,7 +361,7 @@ export default function ShopProductClient({
               <Link
                 key={p.id}
                 href={`/products/${p.slug}`}
-                className="liquid-glass-panel group flex flex-col overflow-hidden rounded-[24px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-teal)]/45"
+                className="liquid-glass-panel group flex flex-col overflow-hidden rounded-[4px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45"
               >
                 <div className="relative w-full aspect-[3/4] bg-[var(--color-cream-soft)] flex items-center justify-center overflow-hidden">
                   {p.image ? (

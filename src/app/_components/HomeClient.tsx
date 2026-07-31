@@ -104,7 +104,7 @@ export default function HomeClient() {
       <section className="app-liquid-section"> <div className="max-w-7xl mx-auto px-4 py-14 sm:px-6 sm:py-24">
         <Reveal>
           <p className="text-xs text-[#595959] font-medium mb-4 tracking-widest uppercase">Who we work with</p>
-          <h2 className="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">Premium merch for every <span className="text-[var(--color-teal)]">industry</span></h2>
+          <h2 className="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">Premium merch for every <span className="text-[var(--color-accent)]">industry</span></h2>
           <p className="mb-8 max-w-lg text-sm leading-relaxed text-[#4a4a4a] sm:mb-12">
             From hospitality to creative agencies, Garmops delivers premium branded merchandise tailored to different industries.
           </p>
@@ -121,13 +121,13 @@ export default function HomeClient() {
                   )}
                   {/* Pill tag overlay, Nugget-style */}
                   <div className="absolute top-4 left-4 z-10">
-                    <span className="liquid-glass-chip rounded-full px-3.5 py-1.5 text-xs font-medium text-[#111111]">
+                    <span className="liquid-glass-chip rounded-[4px] px-3.5 py-1.5 text-xs font-medium text-[#111111]">
                       {i.name}
                     </span>
                   </div>
                   {/* Liquid glass reveal button on hover */}
-                  <div className="liquid-glass-chip absolute right-4 top-4 flex h-10 w-10 translate-y-1 items-center justify-center rounded-full opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-                    <svg className="w-4 h-4 text-[var(--color-teal)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <div className="liquid-glass-chip absolute right-4 top-4 flex h-10 w-10 translate-y-1 items-center justify-center rounded-[4px] opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                    <svg className="w-4 h-4 text-[var(--color-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M17 7H8M17 7v9" />
                     </svg>
                   </div>
@@ -135,7 +135,7 @@ export default function HomeClient() {
                 <div className="p-5 flex flex-col gap-1.5">
                   <h3 className="text-sm font-semibold text-[#111111]">{i.name}</h3>
                   <p className="text-xs text-[#4a4a4a] leading-relaxed">{i.desc}</p>
-                  <span className="mt-2 text-xs font-medium text-[var(--color-teal-dark)]">
+                  <span className="mt-2 text-xs font-medium text-[var(--color-accent-dark)]">
                     {i.href ? `Explore ${i.name.toLowerCase()}` : 'Custom apparel for this sector'}
                   </span>
                 </div>
@@ -147,12 +147,12 @@ export default function HomeClient() {
                 {i.href ? (
                   <Link
                     href={i.href}
-                    className="liquid-glass-panel group flex h-full flex-col overflow-hidden rounded-[24px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-teal)]/45"
+                    className="liquid-glass-panel group flex h-full flex-col overflow-hidden rounded-[4px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45"
                   >
                     {card}
                   </Link>
                 ) : (
-                  <div className="liquid-glass-panel group flex h-full flex-col overflow-hidden rounded-[24px] border">
+                  <div className="liquid-glass-panel group flex h-full flex-col overflow-hidden rounded-[4px] border">
                     {card}
                   </div>
                 )}
@@ -168,7 +168,7 @@ export default function HomeClient() {
           <Reveal>
             <p className="mb-4 text-xs font-medium uppercase tracking-widest text-[#595959]">Product categories</p>
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Start with the <span className="text-[var(--color-teal)]">right garment</span>
+              Start with the <span className="text-[var(--color-accent)]">right garment</span>
             </h2>
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#4a4a4a]">
               Compare product specifications, intended uses and decoration choices before building a bulk order.
@@ -179,11 +179,11 @@ export default function HomeClient() {
               <Reveal key={category.href} delay={index * 60}>
                 <Link
                   href={category.href}
-                  className="liquid-glass-panel group flex h-full flex-col rounded-[22px] border p-5 transition-transform hover:-translate-y-0.5 hover:!border-[var(--color-teal)]/45"
+                  className="liquid-glass-panel group flex h-full flex-col rounded-[4px] border p-5 transition-transform hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45"
                 >
                   <h3 className="text-base font-semibold text-[#111111]">{category.title}</h3>
                   <p className="mt-2 flex-1 text-sm leading-6 text-[#4a4a4a]">{category.description}</p>
-                  <span className="mt-5 text-sm font-medium text-[var(--color-teal-dark)] group-hover:underline">
+                  <span className="mt-5 text-sm font-medium text-[var(--color-accent-dark)] group-hover:underline">
                     {category.label}
                   </span>
                 </Link>
@@ -203,14 +203,10 @@ export default function HomeClient() {
       <section className="py-14 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <Reveal>
-            <div className="liquid-glass-dark relative flex flex-col items-stretch justify-between gap-8 overflow-hidden rounded-[26px] border p-6 sm:rounded-3xl sm:p-10 md:flex-row md:items-center md:p-14">
-              {/* Ambient liquid-glass orbs */}
-              <div className="pointer-events-none absolute -top-24 -right-16 w-72 h-72 bg-[var(--color-teal)]/20 rounded-full blur-3xl" />
-              <div className="pointer-events-none absolute -bottom-28 left-1/3 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
-
+            <div className="liquid-glass-dark relative flex flex-col items-stretch justify-between gap-8 overflow-hidden rounded-[4px] border p-6 sm:rounded-[4px] sm:p-10 md:flex-row md:items-center md:p-14">
               <div className="relative max-w-lg">
                 <p className="text-xs text-white/60 font-medium mb-4 tracking-widest uppercase">Pricing</p>
-                <h2 className="text-3xl md:text-4xl font-bold text-white mb-3 tracking-tight">
+                <h2 className="font-mono text-3xl font-bold text-white mb-3 tracking-tight md:text-4xl">
                   Starts at &#8377;{startingPrice.toLocaleString('en-IN')}/piece
                 </h2>
                 <p className="text-white/70 text-sm leading-relaxed mb-5">
@@ -219,7 +215,7 @@ export default function HomeClient() {
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {pricingHighlights.map(f => (
-                    <span key={f} className="backdrop-blur-md bg-white/10 border border-white/20 rounded-full px-3.5 py-1.5 text-xs text-white/90">
+                    <span key={f} className="rounded-[4px] border border-white/20 bg-white/10 px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.05em] text-white/90">
                       {f}
                     </span>
                   ))}
@@ -227,10 +223,10 @@ export default function HomeClient() {
               </div>
 
               <div className="relative flex w-full shrink-0 flex-col gap-3 md:w-auto">
-                <Link href="/pricing" className="rounded-full bg-white px-5 py-3.5 text-center text-sm font-medium text-[var(--color-navy)] transition-all hover:scale-[1.02] hover:bg-white/90 active:scale-[0.98] sm:px-8">
+                <Link href="/pricing" className="rounded-[4px] bg-white px-5 py-3.5 text-center font-mono text-xs uppercase tracking-[0.05em] text-[var(--color-navy)] transition-colors hover:bg-white/90 sm:px-8">
                   Get a detailed estimate
                 </Link>
-                <Link href="/configurator" className="rounded-full border border-white/30 bg-white/5 px-5 py-3.5 text-center text-sm font-medium text-white backdrop-blur-md transition-all hover:scale-[1.02] hover:bg-white/10 active:scale-[0.98] sm:px-8">
+                <Link href="/configurator" className="rounded-[4px] border border-white/30 bg-white/5 px-5 py-3.5 text-center font-mono text-xs uppercase tracking-[0.05em] text-white transition-colors hover:bg-white/10 sm:px-8">
                   Start designing
                 </Link>
               </div>
@@ -245,9 +241,9 @@ export default function HomeClient() {
           <div className="grid gap-8 lg:grid-cols-[300px_1fr] lg:gap-12">
             <Reveal>
               <p className="text-xs text-[#595959] font-medium mb-4 tracking-widest uppercase">FAQ</p>
-              <h2 className="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">Common <span className="text-[var(--color-teal)]">questions</span></h2>
+              <h2 className="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">Common <span className="text-[var(--color-accent)]">questions</span></h2>
               <p className="text-[#4a4a4a] text-sm leading-relaxed">
-                Can&apos;t find what you&apos;re looking for? <Link href="/contact" className="underline hover:text-[var(--color-teal)]">Get in touch</Link>.
+                Can&apos;t find what you&apos;re looking for? <Link href="/contact" className="underline hover:text-[var(--color-accent)]">Get in touch</Link>.
               </p>
             </Reveal>
             <Reveal delay={100}>
@@ -256,7 +252,7 @@ export default function HomeClient() {
                   <div
                     key={item.q}
                     className={`border-b border-[#E5E5E5] transition-all duration-300 ${
-                      openFaq === i ? 'liquid-glass-panel my-2 rounded-2xl border px-5' : ''
+                      openFaq === i ? 'liquid-glass-panel my-2 rounded-[4px] border px-5' : ''
                     }`}
                   >
                     <button
@@ -270,7 +266,7 @@ export default function HomeClient() {
                       <span className="text-base font-semibold text-[#111111]">{item.q}</span>
                       <svg
                         aria-hidden="true"
-                        className={`w-4 h-4 shrink-0 transition-all duration-300 ${openFaq === i ? 'rotate-45 text-[var(--color-teal)]' : 'text-[#555555]'}`}
+                        className={`w-4 h-4 shrink-0 transition-all duration-300 ${openFaq === i ? 'rotate-45 text-[var(--color-accent)]' : 'text-[#555555]'}`}
                         fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />

@@ -50,7 +50,7 @@ export default function WhyGarmops() {
               {accordionItems.map((item, i) => (
                 <div
                   key={i}
-                  className={openIndex === i ? 'liquid-glass-panel my-2 rounded-2xl border px-3 sm:px-4' : 'px-3 sm:px-4'}
+                  className={openIndex === i ? 'liquid-glass-panel my-2 rounded-[4px] border px-3 sm:px-4' : 'px-3 sm:px-4'}
                 >
                   <button
                     type="button"
@@ -60,10 +60,10 @@ export default function WhyGarmops() {
                     aria-controls={`why-garmops-panel-${i}`}
                     className="w-full flex items-center justify-between py-5 text-left gap-4"
                   >
-                    <span className={`text-base font-semibold leading-snug transition-colors ${openIndex === i ? 'text-[var(--color-teal)]' : 'text-[#111111]/60'}`}>
+                    <span className={`text-base font-semibold leading-snug transition-colors ${openIndex === i ? 'text-[var(--color-accent)]' : 'text-[#111111]/60'}`}>
                       {item.title}
                     </span>
-                    <span className={`shrink-0 w-5 h-5 flex items-center justify-center transition-colors ${openIndex === i ? 'text-[var(--color-teal)]' : 'text-[#666666]'}`}>
+                    <span className={`shrink-0 w-5 h-5 flex items-center justify-center transition-colors ${openIndex === i ? 'text-[var(--color-accent)]' : 'text-[#666666]'}`}>
                       <svg
                         aria-hidden="true"
                         className={`w-4 h-4 transition-transform duration-200 ${openIndex === i ? 'rotate-180' : ''}`}
@@ -89,7 +89,7 @@ export default function WhyGarmops() {
           </div>
 
           {/* RIGHT — dynamic image, crossfades with active section */}
-          <div className="relative w-full aspect-square border border-[#ECE7DF] overflow-hidden rounded-2xl shadow-[0_8px_30px_rgba(22,33,43,0.06)]">
+          <div className="relative w-full aspect-square border border-[#ECE7DF] overflow-hidden rounded-[4px] ">
             {accordionItems.map((item, i) => (
               <Image
                 key={item.image}

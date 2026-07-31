@@ -65,7 +65,7 @@ export default function HeroScrollVideo() {
             Custom apparel manufacturer in India
           </p>
           <h1 className="mb-5 text-[2.5rem] font-bold leading-[1.02] tracking-tight text-[#111111] min-[360px]:text-5xl md:text-6xl lg:text-7xl">
-            Custom apparel<br />for your<br /><span className="text-[var(--color-teal)]">business</span>
+            Custom apparel<br />for your<br /><span className="text-[var(--color-accent)]">business</span>
           </h1>
           <p className="mb-8 max-w-sm text-[15px] leading-relaxed text-[#4a4a4a] sm:mb-10 sm:text-base">
             Premium custom T-shirts, hoodies, polos and branded merchandise, made in India. Design online and order from 50 pieces.
@@ -91,10 +91,10 @@ export default function HeroScrollVideo() {
             </div>
           </div>
           <div className="grid w-full grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:flex sm:flex-wrap">
-            <Link href="/configurator" className="rounded-full bg-[var(--color-teal)] px-5 py-3.5 text-center text-sm font-medium text-white transition-colors hover:bg-[var(--color-teal-dark)] sm:px-8 sm:py-4">
+            <Link href="/configurator" className="rounded-[4px] bg-[var(--color-accent)] px-5 py-3.5 text-center text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent-dark)] sm:px-8 sm:py-4">
               Start designing
             </Link>
-            <Link href="/products" className="rounded-full border border-[#111111]/20 px-5 py-3.5 text-center text-sm font-medium text-[#111111] transition-colors hover:border-[#111111] sm:px-8 sm:py-4">
+            <Link href="/products" className="rounded-[4px] border border-[#111111]/20 px-5 py-3.5 text-center text-sm font-medium text-[#111111] transition-colors hover:border-[#111111] sm:px-8 sm:py-4">
               View catalogue
             </Link>
           </div>
@@ -109,7 +109,7 @@ export default function HeroScrollVideo() {
             sizes="(max-width: 1023px) 100vw, 50vw"
             priority
           />
-          <div className="liquid-glass-surface absolute bottom-4 left-4 z-10 rounded-2xl border px-4 py-3 sm:bottom-8 sm:left-8 sm:px-5 sm:py-4">
+          <div className="liquid-glass-surface absolute bottom-4 left-4 z-10 rounded-[4px] border px-4 py-3 sm:bottom-8 sm:left-8 sm:px-5 sm:py-4">
             <p className="text-xs text-[#595959] uppercase tracking-widest mb-1">Starting from</p>
             <p className="text-2xl font-bold text-[#111111]">&#8377;350</p>
             <p className="text-xs text-[#4a4a4a]">per piece &middot; MOQ 50</p>
@@ -118,7 +118,7 @@ export default function HeroScrollVideo() {
       </section>
 
       {useSimpleMedia ? (
-        <section className="relative mx-3 my-3 aspect-[4/3] overflow-hidden rounded-[24px] bg-black sm:mx-4 sm:my-4 sm:aspect-video sm:rounded-3xl" aria-label="Garmops production showcase">
+        <section className="relative mx-3 my-3 aspect-[4/3] overflow-hidden rounded-[4px] bg-black sm:mx-4 sm:my-4 sm:aspect-video sm:rounded-[4px]" aria-label="Garmops production showcase">
           <Image
             src="/hero.webp"
             alt="Garmops custom apparel production"

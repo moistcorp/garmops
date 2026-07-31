@@ -80,7 +80,7 @@ export default function PricingClient() {
               <label className="text-xs font-medium text-[#111111]/50 uppercase tracking-widest block mb-3">
                 Select product
               </label>
-              <div ref={dropdownRef} className="liquid-glass-surface overflow-hidden rounded-[24px] border">
+              <div ref={dropdownRef} className="liquid-glass-surface overflow-hidden rounded-[4px] border">
                 {/* Selected product — always visible */}
                 <button
                   ref={dropdownButtonRef}
@@ -91,7 +91,7 @@ export default function PricingClient() {
                   aria-haspopup="listbox"
                   className="flex w-full items-center gap-4 bg-white/20 px-4 py-4 text-left transition-colors hover:bg-white/35"
                 >
-                  <div className="liquid-glass-control flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border">
+                  <div className="liquid-glass-control flex h-12 w-12 shrink-0 items-center justify-center rounded-[4px] border">
                     <Image src={selectedProduct.icon} alt={selectedProduct.name} width={36} height={36} className="object-contain" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -118,7 +118,7 @@ export default function PricingClient() {
                         onClick={() => { setSelected(p.name); setDropdownOpen(false); dropdownButtonRef.current?.focus() }}
                         className={`flex w-full items-center gap-4 px-4 py-3.5 text-left transition-colors hover:bg-white/35 ${i < arr.length - 1 ? 'border-b border-white/55' : ''}`}
                       >
-                        <div className="liquid-glass-control flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border">
+                        <div className="liquid-glass-control flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] border">
                           <Image src={p.icon} alt={p.name} width={30} height={30} className="object-contain" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -144,7 +144,7 @@ export default function PricingClient() {
                 type="range" min={50} max={1000} step={50} value={qty}
                 onChange={e => setQty(Number(e.target.value))}
                 onInput={e => setQty(Number((e.target as HTMLInputElement).value))}
-                className="w-full accent-[var(--color-teal)]"
+                className="w-full accent-[var(--color-accent)]"
               />
               <div className="flex justify-between text-xs text-[#111111]/30 mt-1">
                 <span>50 pcs</span><span>1000 pcs</span>
@@ -152,7 +152,7 @@ export default function PricingClient() {
             </div>
 
             {/* Rush order toggle */}
-            <div className="liquid-glass-panel rounded-[24px] border p-4">
+            <div className="liquid-glass-panel rounded-[4px] border p-4">
               <div className="flex items-center justify-between mb-1">
                 <div className="min-w-0 pr-3">
                   <p className="text-sm font-semibold text-[#111111]">Rush order</p>
@@ -166,9 +166,9 @@ export default function PricingClient() {
                   role="switch"
                   aria-checked={rush}
                   aria-label="Rush order"
-                  className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${rush ? 'bg-[var(--color-teal)]' : 'bg-[#E5E5E5]'}`}
+                  className={`relative h-6 w-11 shrink-0 rounded-[4px] transition-colors ${rush ? 'bg-[var(--color-accent)]' : 'bg-[#E5E5E5]'}`}
                 >
-                  <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${rush ? 'left-6' : 'left-1'}`} />
+                  <span className={`absolute top-1 w-4 h-4 bg-white rounded-[4px] transition-all ${rush ? 'left-6' : 'left-1'}`} />
                 </button>
               </div>
               {rush && (
@@ -183,7 +183,7 @@ export default function PricingClient() {
               <p className="text-xs font-medium text-[#111111]/50 uppercase tracking-widest mb-3">
                 Volume discounts
               </p>
-              <div className="liquid-glass-panel flex flex-col overflow-hidden rounded-[24px] border">
+              <div className="liquid-glass-panel flex flex-col overflow-hidden rounded-[4px] border">
                 {VOLUME_TIERS.map(t => (
                   <div
                     key={t.min}
@@ -204,7 +204,7 @@ export default function PricingClient() {
                 <p className="text-xs font-medium text-[#111111]/50 uppercase tracking-widest mb-3">
                   Rush premiums (per piece)
                 </p>
-                <div className="liquid-glass-panel flex flex-col overflow-hidden rounded-[24px] border">
+                <div className="liquid-glass-panel flex flex-col overflow-hidden rounded-[4px] border">
                   {RUSH_TIERS.map(t => (
                     <div
                       key={t.min}
@@ -225,7 +225,7 @@ export default function PricingClient() {
 
           {/* Output */}
           <div className="flex flex-col gap-4">
-            <div className="liquid-glass-dark rounded-[26px] border p-5 text-white sm:rounded-[30px] sm:p-8">
+            <div className="liquid-glass-dark rounded-[4px] border p-5 text-white sm:rounded-[4px] sm:p-8">
               <p className="text-xs text-white/50 mb-1 uppercase tracking-widest">Estimate for</p>
               <p className="text-base font-semibold mb-1">{selected}</p>
               <p className="text-xs text-white/40 mb-6">{qty} pieces &middot; {deliveryDays}-day delivery</p>
@@ -285,13 +285,13 @@ export default function PricingClient() {
 
             <Link
               href="/contact"
-              className="bg-[var(--color-teal)] text-white text-sm font-medium px-6 py-4 rounded-full text-center hover:bg-[var(--color-teal-dark)] transition"
+              className="bg-[var(--color-accent)] text-white text-sm font-medium px-6 py-4 rounded-[4px] text-center hover:bg-[var(--color-accent-dark)] transition"
             >
               Get a firm quote
             </Link>
             <Link
               href="/configurator"
-              className="border border-[var(--color-teal)] text-[var(--color-teal)] text-sm font-medium px-6 py-4 rounded-full text-center hover:bg-[var(--color-teal)] hover:text-white transition"
+              className="border border-[var(--color-accent)] text-[var(--color-accent)] text-sm font-medium px-6 py-4 rounded-[4px] text-center hover:bg-[var(--color-accent)] hover:text-white transition"
             >
               Start designing instead
             </Link>
@@ -311,14 +311,14 @@ export default function PricingClient() {
               { title: 'Neck label', desc: 'Basic neck label included. Woven/custom labels quoted separately' },
               { title: 'QA & packing', desc: 'Every piece inspected and individually packed before dispatch' },
             ].map(i => (
-              <div key={i.title} className="liquid-glass-panel rounded-2xl border p-5">
+              <div key={i.title} className="liquid-glass-panel rounded-[4px] border p-5">
                 <p className="font-semibold text-sm mb-1">{i.title}</p>
                 <p className="text-xs text-[#111111]/50 leading-relaxed">{i.desc}</p>
               </div>
             ))}
           </div>
 
-          <div className="liquid-glass-panel mt-6 rounded-2xl border p-5">
+          <div className="liquid-glass-panel mt-6 rounded-[4px] border p-5">
             <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-3">Not included — quoted separately</p>
             <div className="grid md:grid-cols-3 gap-4 text-xs text-[#111111]/60">
               <p>Multi-color screen print (additional per color)</p>

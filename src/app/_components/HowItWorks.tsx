@@ -267,7 +267,7 @@ export default function HowItWorks() {
         className="how-it-works-progress"
         style={{
           height: '100%',
-          background: 'var(--color-teal)',
+          background: 'var(--color-accent)',
           animationDuration: `${STEP_DURATION}ms`,
           animationPlayState: isTimerRunning
             ? 'running'
@@ -331,7 +331,7 @@ export default function HowItWorks() {
               ref={element => {
                 cardRefs.current[index] = element
               }}
-              className="liquid-glass-panel rounded-[24px] border p-4"
+              className="liquid-glass-panel rounded-[4px] border p-4"
               style={{
                 scrollSnapAlign: 'start',
                 flexShrink: 0,
@@ -447,7 +447,7 @@ export default function HowItWorks() {
                     key={step.number}
                     type="button"
                     onClick={() => selectStep(index)}
-                    className={isActive ? 'liquid-glass-panel rounded-2xl border' : ''}
+                    className={isActive ? 'liquid-glass-panel rounded-[4px] border' : ''}
                     style={{
                       width: '100%',
                       textAlign: 'left',
@@ -470,7 +470,7 @@ export default function HowItWorks() {
                           fontSize: '12px',
                           fontWeight: 700,
                           color: isActive
-                            ? 'var(--color-teal)'
+                            ? 'var(--color-accent)'
                             : '#666666',
                         }}
                       >
@@ -482,7 +482,7 @@ export default function HowItWorks() {
                           fontSize: '20px',
                           fontWeight: 700,
                           color: isActive
-                            ? 'var(--color-teal)'
+                            ? 'var(--color-accent)'
                             : '#555555',
                           lineHeight: 1.2,
                         }}

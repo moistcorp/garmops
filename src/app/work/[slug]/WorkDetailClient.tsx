@@ -28,7 +28,7 @@ export default function WorkDetailClient({
             {/* Header */}
             <div className="mb-10">
               <div className="mb-4 flex flex-wrap items-center gap-3">
-                <span className="text-xs border border-[#ECE7DF] rounded-full px-2.5 py-1 text-[#111111]/50">
+                <span className="text-xs border border-[#ECE7DF] rounded-[4px] px-2.5 py-1 text-[#111111]/50">
                   {cs.industry}
                 </span>
                 <span className="text-xs text-[#111111]/30">{cs.date}</span>
@@ -40,7 +40,7 @@ export default function WorkDetailClient({
             </div>
 
             {/* Cover image */}
-            <div className="relative w-full aspect-video bg-[var(--color-cream-soft)] rounded-2xl flex items-center justify-center mb-12 overflow-hidden">
+            <div className="relative w-full aspect-video bg-[var(--color-cream-soft)] rounded-[4px] flex items-center justify-center mb-12 overflow-hidden">
               {cs.coverImage ? (
                 <Image src={cs.coverImage} alt={cs.client} fill sizes="(max-width: 1024px) 100vw, 66vw" className="object-cover" />
               ) : (
@@ -65,7 +65,7 @@ export default function WorkDetailClient({
             </div>
 
             {/* Result */}
-            <div className="liquid-glass-panel mb-10 rounded-[24px] border p-5 sm:mb-12 sm:p-8">
+            <div className="liquid-glass-panel mb-10 rounded-[4px] border p-5 sm:mb-12 sm:p-8">
               <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-3">
                 The result
               </p>
@@ -80,7 +80,7 @@ export default function WorkDetailClient({
                 </h2>
                 <p className="text-[#111111]/60 leading-relaxed text-sm">{section.body}</p>
                 {section.image && (
-                  <div className="relative mt-6 w-full aspect-video bg-[var(--color-cream-soft)] rounded-2xl overflow-hidden">
+                  <div className="relative mt-6 w-full aspect-video bg-[var(--color-cream-soft)] rounded-[4px] overflow-hidden">
                     <Image src={section.image} alt={section.heading} fill sizes="(max-width: 1024px) 100vw, 66vw" className="object-cover" />
                   </div>
                 )}
@@ -89,12 +89,12 @@ export default function WorkDetailClient({
 
             {/* Testimonial */}
             {cs.testimonial && (
-              <div className="liquid-glass-surface mb-12 rounded-3xl border p-5 sm:p-8">
+              <div className="liquid-glass-surface mb-12 rounded-[4px] border p-5 sm:p-8">
                 <p className="mb-6 text-xl font-semibold leading-snug tracking-tight text-[#111111] sm:text-2xl">
                   &ldquo;{cs.testimonial.quote}&rdquo;
                 </p>
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-teal)] text-sm font-semibold text-white">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-[4px] bg-[var(--color-accent)] text-sm font-semibold text-white">
                     {cs.testimonial.author.split(' ').map(part => part[0]).join('').slice(0, 2)}
                   </div>
                   <div>
@@ -110,7 +110,7 @@ export default function WorkDetailClient({
           <div className="flex flex-col gap-6 lg:pt-20">
 
             {/* Project details */}
-            <div className="liquid-glass-surface rounded-[24px] border p-6">
+            <div className="liquid-glass-surface rounded-[4px] border p-6">
               <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-4">
                 Project details
               </p>
@@ -131,7 +131,7 @@ export default function WorkDetailClient({
             </div>
 
             {/* Deliverables */}
-            <div className="liquid-glass-panel rounded-[24px] border p-6">
+            <div className="liquid-glass-panel rounded-[4px] border p-6">
               <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-4">
                 Deliverables
               </p>
@@ -146,20 +146,20 @@ export default function WorkDetailClient({
             </div>
 
             {/* CTA */}
-            <div className="liquid-glass-dark flex flex-col gap-3 rounded-[24px] border p-6">
+            <div className="liquid-glass-dark flex flex-col gap-3 rounded-[4px] border p-6">
               <p className="text-sm font-semibold text-white">Want something similar?</p>
               <p className="text-xs text-white/50 leading-relaxed">
                 We work with brands across India. MOQ 50 pieces, quote in 24 hours.
               </p>
               <Link
                 href="/configurator"
-                className="bg-white text-[var(--color-navy)] px-4 py-2.5 rounded-full text-xs font-medium text-center hover:bg-white/90 transition-colors"
+                className="bg-white text-[var(--color-navy)] px-4 py-2.5 rounded-[4px] text-xs font-medium text-center hover:bg-white/90 transition-colors"
               >
                 Start designing
               </Link>
               <Link
                 href="/contact"
-                className="border border-white/20 text-white/70 px-4 py-2.5 rounded-full text-xs font-medium text-center hover:bg-white/10 transition-colors"
+                className="border border-white/20 text-white/70 px-4 py-2.5 rounded-[4px] text-xs font-medium text-center hover:bg-white/10 transition-colors"
               >
                 Contact us
               </Link>
@@ -180,7 +180,7 @@ export default function WorkDetailClient({
                 <Link
                   key={cs.slug}
                   href={`/work/${cs.slug}`}
-                  className="liquid-glass-panel group flex flex-col overflow-hidden rounded-[24px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-teal)]/45"
+                  className="liquid-glass-panel group flex flex-col overflow-hidden rounded-[4px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45"
                 >
                   <div className="relative w-full aspect-video bg-[var(--color-cream-soft)] flex items-center justify-center overflow-hidden">
                     {cs.coverImage ? (
