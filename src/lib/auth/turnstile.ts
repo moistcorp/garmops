@@ -16,12 +16,15 @@ export async function verifyTurnstile(
   remoteIp?: string,
 ) {
   const environment = getServerEnvironment();
-  if (
-    typeof token !== "string" ||
-    token.length < 1 ||
-    token.length > 2048 ||
-    !environment.TURNSTILE_SECRET
-  ) {
+  const invalidToken =
+    typeof token !== "string" || token.length < 1 || token.length > 2048;
+  if (invalidToken || !environment.TURNSTILE_SECRET) {
+    console.warn("[turnstile] verification skipped", {
+      tokenPresent: typeof token === "string" && token.length > 0,
+      tokenLength: typeof token === "string" ? token.length : 0,
+      secretConfigured: Boolean(environment.TURNSTILE_SECRET),
+      expectedAction,
+    });
     return false;
   }
 
@@ -42,15 +45,37 @@ export async function verifyTurnstile(
         signal: AbortSignal.timeout(8_000),
       },
     );
-    if (!response.ok) return false;
-
-    const result = (await response.json()) as TurnstileResponse;
-    if (result.success !== true || result.action !== expectedAction) return false;
+    if (!response.ok) {
+      const responseBody = await response.text();
+      console.warn("[turnstile] siteverify HTTP failure", {
+        status: response.status,
+        expectedAction,
+        responseBody: responseBody.slice(0, 500),
+      });
+      return false;
+    }
 
     const expectedHostname = new URL(
       environment.NEXT_PUBLIC_APP_URL,
     ).hostname.toLowerCase();
-    return result.hostname?.toLowerCase() === expectedHostname;
+    const result = (await response.json()) as TurnstileResponse;
+    const accepted =
+      result.success === true &&
+      result.action === expectedAction &&
+      result.hostname?.toLowerCase() === expectedHostname;
+
+    if (!accepted) {
+      console.warn("[turnstile] verification rejected", {
+        success: result.success === true,
+        action: result.action,
+        expectedAction,
+        hostname: result.hostname,
+        expectedHostname,
+        errorCodes: result["error-codes"],
+      });
+    }
+
+    return accepted;
   } catch {
     return false;
   }
