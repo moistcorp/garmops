@@ -194,7 +194,7 @@ function NeckLabelPreview({ neckLabel }: { neckLabel: NeckLabel }) {
   return (
     <svg
       viewBox={`0 0 ${w} ${h}`}
-      className="h-full w-full overflow-visible drop-shadow-sm"
+      className="h-full w-full overflow-visible drop-"
       preserveAspectRatio="none"
       role="img"
       aria-label="Neck label preview"
@@ -319,7 +319,7 @@ export default function CanvasRenderer({
   artwork,
   neckLabel,
   interactive = true,
-  className = "aspect-square h-[min(78dvh,820px)] max-h-[820px] max-w-full rounded-lg bg-[#F5F5F5]",
+  className = "aspect-square h-[min(78dvh,820px)] max-h-[820px] max-w-full rounded-[4px] bg-[#F5F5F5]",
   style,
   showProductionGuides = true,
   exclusiveLayerCache = false,
@@ -612,14 +612,14 @@ export default function CanvasRenderer({
             <div
               role="presentation"
               onPointerDown={(e) => handleDragStart(e, "resize")}
-              className="absolute -bottom-5 left-1/2 z-20 h-3 w-3 -translate-x-1/2 cursor-ns-resize rounded-full bg-[#B534CC] ring-1 ring-white/90"
+              className="absolute -bottom-5 left-1/2 z-20 h-3 w-3 -translate-x-1/2 cursor-ns-resize rounded-[4px] bg-[#B534CC] ring-1 ring-white/90"
             />
           )}
           {dragMode && (
             <div
               role="status"
               aria-live="polite"
-              className="pointer-events-none absolute left-1/2 top-[calc(100%+30px)] z-30 min-w-max -translate-x-1/2 rounded-xl border border-white/65 bg-[#111111]/78 px-3 py-2 font-sans text-[11px] font-semibold leading-4 text-white shadow-lg backdrop-blur-md"
+              className="pointer-events-none absolute left-1/2 top-[calc(100%+30px)] z-30 min-w-max -translate-x-1/2 rounded-[4px] border border-white/65 bg-[#111111]/78 px-3 py-2 font-sans text-[11px] font-semibold leading-4 text-white  "
             >
               {dragMode === "move" ? (
                 <>

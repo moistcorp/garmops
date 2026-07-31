@@ -242,7 +242,7 @@ export function ArtworkPanel({
     if (!current.technique) return null;
     return (
       <div
-        className="configurator-glass-subtle flex flex-col gap-3 rounded-2xl p-3"
+        className="configurator-glass-subtle flex flex-col gap-3 rounded-[4px] p-3"
         onFocusCapture={() => onViewChange?.(side)}
         onPointerDownCapture={() => onViewChange?.(side)}
       >
@@ -265,7 +265,7 @@ export function ArtworkPanel({
             <button
               type="button"
               onClick={() => copyArtworkToOtherSide(side)}
-              className="configurator-glass-control flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold text-[#111111]/70 hover:!border-[var(--color-teal)]/45 hover:text-[var(--color-teal)]"
+              className="configurator-glass-control flex items-center gap-1.5 rounded-[4px] border px-3 py-1.5 text-xs font-semibold text-[#111111]/70 hover:!border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
             >
               <Copy size={13} strokeWidth={2.2} />
               Copy to {side === "front" ? "back" : "front"}
@@ -285,7 +285,7 @@ export function ArtworkPanel({
     const contentId = `artwork-${side}-accordion-content`;
 
     return (
-      <section className="configurator-glass-subtle overflow-hidden rounded-2xl p-3">
+      <section className="configurator-glass-subtle overflow-hidden rounded-[4px] p-3">
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -295,7 +295,7 @@ export function ArtworkPanel({
               setExpandedSide(isExpanded ? null : side);
               if (!isExpanded) onViewChange?.(side);
             }}
-            className="flex min-w-0 flex-1 items-center justify-between gap-3 rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-teal)]/40"
+            className="flex min-w-0 flex-1 items-center justify-between gap-3 rounded-[4px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/40"
           >
             <span className="min-w-0">
               <span className="block text-xs font-semibold uppercase tracking-wide text-[#111111]/70">
@@ -309,7 +309,7 @@ export function ArtworkPanel({
             </span>
             <span className="ml-auto flex shrink-0 items-center gap-2">
               {isReady && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-[#EAF7EA] px-2 py-1 text-[10px] font-semibold text-[#1B7F36]">
+                <span className="inline-flex items-center gap-1 rounded-[4px] bg-[#EAF7EA] px-2 py-1 text-[10px] font-semibold text-[#1B7F36]">
                   <CheckCircle2 size={12} strokeWidth={2.4} />
                   Ready for review
                 </span>
@@ -330,7 +330,7 @@ export function ArtworkPanel({
               aria-label={`Delete ${SIDE_LABELS[side].toLowerCase()} artwork`}
               title={`Delete ${SIDE_LABELS[side].toLowerCase()} artwork`}
               onClick={() => handleSideChange(side, undefined)}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#C83E3E] transition-colors hover:bg-[#FFF0F0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C83E3E]/30"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] text-[#C83E3E] transition-colors hover:bg-[#FFF0F0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C83E3E]/30"
             >
               <Trash2 size={16} strokeWidth={2.2} />
             </button>

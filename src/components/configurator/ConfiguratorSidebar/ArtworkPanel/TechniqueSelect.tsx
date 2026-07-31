@@ -83,7 +83,7 @@ function TechniqueThumbnail({ technique }: { technique: ArtworkTechnique }) {
   return (
     <span
       aria-hidden="true"
-      className="h-14 w-14 shrink-0 rounded-xl border border-white/70 bg-white bg-no-repeat shadow-sm"
+      className="h-14 w-14 shrink-0 rounded-[4px] border border-white/70 bg-white bg-no-repeat "
       style={{
         backgroundImage: "url(/images/print-techniques.webp)",
         backgroundSize: `${TECHNIQUE_SHEET_SIZE * scale}px ${TECHNIQUE_SHEET_SIZE * scale}px`,
@@ -223,7 +223,7 @@ export function TechniqueSelect({
             setOpen(false);
           }
         }}
-        className="configurator-glass-control flex min-h-11 w-full items-center justify-between gap-3 rounded-xl border px-3 text-left outline-none focus:!border-[var(--color-teal)]/60"
+        className="configurator-glass-control flex min-h-11 w-full items-center justify-between gap-3 rounded-[4px] border px-3 text-left outline-none focus:!border-[var(--color-accent)]/60"
       >
         <span
           className={`text-sm font-medium leading-none tracking-normal ${
@@ -247,9 +247,9 @@ export function TechniqueSelect({
           id={listboxId}
           role="listbox"
           aria-labelledby={labelId}
-          className="z-40 overflow-hidden rounded-2xl border border-[#111111]/15 bg-white/82 shadow-[0_18px_45px_rgba(22,33,43,0.18)] ring-1 ring-white/75 backdrop-blur-2xl"
+          className="z-40 overflow-hidden rounded-[4px] border border-[#111111]/15 bg-white/82  ring-1 ring-white/75 "
         >
-          <div className="relative m-2.5 overflow-hidden rounded-xl bg-[#18283B] px-4 py-4 text-white">
+          <div className="relative m-2.5 overflow-hidden rounded-[4px] bg-[#18283B] px-4 py-4 text-white">
             <span
               aria-hidden="true"
               className="absolute inset-0 bg-[url('/images/print-techniques.webp')] bg-[length:420%] bg-[position:96%_86%] opacity-50"
@@ -269,7 +269,7 @@ export function TechniqueSelect({
                 href="/how-it-works"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="shrink-0 rounded-full border border-white/70 px-3 py-1.5 text-[11px] font-semibold text-white transition-colors hover:bg-white/10"
+                className="shrink-0 rounded-[4px] border border-white/70 px-3 py-1.5 text-[11px] font-semibold text-white transition-colors hover:bg-white/10"
               >
                 Learn more
               </a>
@@ -294,7 +294,7 @@ export function TechniqueSelect({
                   onMouseEnter={() => setHighlightedIndex(index)}
                   onKeyDown={(event) => handleOptionKeyDown(event, index)}
                   onClick={() => chooseTechnique(technique)}
-                  className={`flex w-full items-start gap-3 rounded-xl px-2.5 py-3 text-left outline-none transition-colors ${
+                  className={`flex w-full items-start gap-3 rounded-[4px] px-2.5 py-3 text-left outline-none transition-colors ${
                     selected
                       ? "bg-[#EAF3F1]"
                       : highlighted
@@ -321,7 +321,7 @@ export function TechniqueSelect({
                       size={15}
                       strokeWidth={2.5}
                       aria-hidden="true"
-                      className="mt-1 shrink-0 text-[var(--color-teal-dark)]"
+                      className="mt-1 shrink-0 text-[var(--color-accent-dark)]"
                     />
                   )}
                 </button>

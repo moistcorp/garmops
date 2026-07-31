@@ -46,14 +46,14 @@ function Stepper({ label, value, onChange, min, max = MAX_DIM, tooltip, disabled
         {tooltip && (
           <span className="group relative inline-flex">
             <Info className="h-3 w-3 text-neutral-400" />
-            <span className="pointer-events-none absolute bottom-full left-1/2 mb-1 w-40 -translate-x-1/2 rounded bg-neutral-900 px-2 py-1 text-[11px] leading-snug text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100 z-10">
+            <span className="pointer-events-none absolute bottom-full left-1/2 mb-1 w-40 -translate-x-1/2 rounded bg-neutral-900 px-2 py-1 text-[11px] leading-snug text-white opacity-0  transition-opacity group-hover:opacity-100 z-10">
               {tooltip}
             </span>
           </span>
         )}
       </div>
       <div
-        className={`configurator-glass-control flex items-center rounded-lg border ${
+        className={`configurator-glass-control flex items-center rounded-[4px] border ${
           disabled ? "opacity-50" : ""
         }`}
       >
@@ -169,7 +169,7 @@ export function PositionControls({
               aria-label={label}
               aria-pressed={state.alignH === value}
               onClick={() => setAlignH(value)}
-              className={`rounded-md border p-1.5 ${
+              className={`rounded-[4px] border p-1.5 ${
                 state.alignH === value
                   ? "border-neutral-900 bg-neutral-900 text-white"
                   : "configurator-glass-control border text-neutral-500 hover:!bg-white/60 hover:text-neutral-900"
@@ -186,7 +186,7 @@ export function PositionControls({
               aria-label={label}
               aria-pressed={state.alignV === value}
               onClick={() => setAlignV(value)}
-              className={`rounded-md border p-1.5 ${
+              className={`rounded-[4px] border p-1.5 ${
                 state.alignV === value
                   ? "border-neutral-900 bg-neutral-900 text-white"
                   : "configurator-glass-control border text-neutral-500 hover:!bg-white/60 hover:text-neutral-900"
@@ -211,7 +211,7 @@ export function PositionControls({
           onClick={() => update({ aspectLocked: !state.aspectLocked })}
           aria-label={state.aspectLocked ? "Unlock aspect ratio" : "Lock aspect ratio"}
           aria-pressed={state.aspectLocked}
-          className={`mb-1 rounded-md border p-1.5 ${
+          className={`mb-1 rounded-[4px] border p-1.5 ${
             state.aspectLocked
               ? "border-neutral-900 bg-neutral-900 text-white"
               : "configurator-glass-control border text-neutral-500 hover:!bg-white/60 hover:text-neutral-900"

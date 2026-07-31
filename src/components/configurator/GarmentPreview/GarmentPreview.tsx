@@ -20,7 +20,7 @@ interface GarmentPreviewProps {
 }
 
 export const NECK_PREVIEW_CANVAS_CLASS =
-  "aspect-square h-[165%] max-w-none shrink-0 translate-y-[3%] rounded-lg sm:h-[180%] sm:translate-y-[4%] lg:h-[190%] lg:translate-y-[5%]";
+  "aspect-square h-[165%] max-w-none shrink-0 translate-y-[3%] rounded-[4px] sm:h-[180%] sm:translate-y-[4%] lg:h-[190%] lg:translate-y-[5%]";
 
 function luminance(hex: string): number {
   const clean = hex.replace("#", "");
@@ -65,7 +65,7 @@ export default function GarmentPreview({
 
   return (
     <div className="relative h-full w-full min-h-0">
-      <div className="absolute inset-3 overflow-hidden rounded-xl bg-white sm:inset-4">
+      <div className="absolute inset-3 overflow-hidden rounded-[4px] bg-white sm:inset-4">
         <div className="flex h-full w-full items-center justify-center">
           <CanvasRenderer
             view={activeView}
@@ -78,7 +78,7 @@ export default function GarmentPreview({
             className={
               activeView === "neck"
                 ? NECK_PREVIEW_CANVAS_CLASS
-                : "aspect-square h-[min(68dvh,760px)] max-h-full max-w-full scale-110 rounded-lg"
+                : "aspect-square h-[min(68dvh,760px)] max-h-full max-w-full scale-110 rounded-[4px]"
             }
           />
         </div>
@@ -87,7 +87,7 @@ export default function GarmentPreview({
       {(quality.warning || contrastWarning) && (
         <div
           role="status"
-          className="absolute inset-x-6 top-16 z-20 rounded-xl border border-[#E7C56A] bg-[#FFF8E7]/90 px-3 py-2 text-xs leading-relaxed text-[#6E4D08] backdrop-blur-md"
+          className="absolute inset-x-6 top-16 z-20 rounded-[4px] border border-[#E7C56A] bg-[#FFF8E7]/90 px-3 py-2 text-xs leading-relaxed text-[#6E4D08] "
         >
           {quality.warning ?? contrastWarning}
         </div>

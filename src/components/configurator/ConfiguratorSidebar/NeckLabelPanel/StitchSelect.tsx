@@ -23,7 +23,7 @@ export default function StitchSelect({ value, onChange }: StitchSelectProps): JS
             type="button"
             onClick={() => onChange(option.value)}
             aria-pressed={selected}
-            className={`min-h-12 rounded-xl border px-3 py-2 text-center font-sans text-[13px] font-semibold leading-tight tracking-normal transition-all ${
+            className={`min-h-12 rounded-[4px] border px-3 py-2 text-center font-sans text-[13px] font-semibold leading-tight tracking-normal transition-all ${
               selected
                 ? 'configurator-glass-selected'
                 : 'configurator-glass-control border text-[#111111]/75 hover:!bg-white/60 hover:text-[#111111]'

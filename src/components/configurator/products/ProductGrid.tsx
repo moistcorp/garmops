@@ -74,7 +74,7 @@ export default function ProductGrid() {
 
   return (
     <div className="space-y-6">
-      <section className="liquid-glass-surface rounded-[28px] border p-4 sm:p-5" aria-labelledby="product-guidance-title">
+      <section className="liquid-glass-surface rounded-[4px] border p-4 sm:p-5" aria-labelledby="product-guidance-title">
         <div className="flex flex-col gap-1">
           <h2 id="product-guidance-title" className="text-base font-semibold text-[#111111]">Help us recommend the right product</h2>
           <p className="text-sm text-[#111111]/60">These details only improve recommendations and delivery guidance. You can still browse every product.</p>
@@ -86,7 +86,7 @@ export default function ProductGrid() {
               id="product-use-case"
               value={useCase}
               onChange={(event) => setUseCase(event.target.value as ProductUseCase | "")}
-              className="liquid-glass-control min-h-11 w-full rounded-xl border px-3 text-sm text-[#111111]"
+              className="liquid-glass-control min-h-11 w-full rounded-[4px] border px-3 text-sm text-[#111111]"
             >
               <option value="">Show all products</option>
               {PRODUCT_USE_CASES.map((option) => <option key={option} value={option}>{option}</option>)}
@@ -108,7 +108,7 @@ export default function ProductGrid() {
                   event.currentTarget.blur();
                 }
               }}
-              className="liquid-glass-control min-h-11 w-full rounded-xl border px-3 text-sm text-[#111111]"
+              className="liquid-glass-control min-h-11 w-full rounded-[4px] border px-3 text-sm text-[#111111]"
             />
           </div>
           <div>
@@ -119,7 +119,7 @@ export default function ProductGrid() {
               min={todayInputValue()}
               value={targetDate}
               onChange={(event) => updateTargetDate(event.target.value)}
-              className="liquid-glass-control min-h-11 w-full rounded-xl border px-3 text-sm text-[#111111]"
+              className="liquid-glass-control min-h-11 w-full rounded-[4px] border px-3 text-sm text-[#111111]"
             />
           </div>
         </div>
@@ -143,10 +143,10 @@ export default function ProductGrid() {
       </div>
 
       {comparedProducts.length > 0 && (
-        <section className="liquid-glass-surface sticky bottom-4 z-30 overflow-hidden rounded-[26px] border !border-[var(--color-teal)]/30" aria-labelledby="comparison-title">
+        <section className="liquid-glass-surface sticky bottom-4 z-30 overflow-hidden rounded-[4px] border !border-[var(--color-accent)]/30" aria-labelledby="comparison-title">
           <div className="flex items-center justify-between gap-3 border-b border-white/60 bg-white/15 px-4 py-3">
             <div><h2 id="comparison-title" className="text-sm font-semibold text-[#111111]">Product comparison</h2><p className="text-xs text-[#111111]/55">Compare up to three options before customising.</p></div>
-            <button type="button" onClick={() => setCompareIds([])} className="liquid-glass-control rounded-full border px-3 py-1.5 text-xs font-semibold text-[#111111]/65">Clear comparison</button>
+            <button type="button" onClick={() => setCompareIds([])} className="liquid-glass-control rounded-[4px] border px-3 py-1.5 text-xs font-semibold text-[#111111]/65">Clear comparison</button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-left text-xs">
@@ -155,7 +155,7 @@ export default function ProductGrid() {
                   <th className="w-40 px-4 py-3 font-semibold text-[#111111]/55">Attribute</th>
                   {comparedProducts.map((product) => (
                     <th key={product.id} className="px-4 py-3 text-sm font-semibold text-[#111111]">
-                      <div className="flex items-center justify-between gap-2"><span>{product.name}</span><button type="button" aria-label={`Remove ${product.name} from comparison`} onClick={() => toggleCompare(product.id, false)} className="rounded-full p-1 hover:bg-white"><X size={14} /></button></div>
+                      <div className="flex items-center justify-between gap-2"><span>{product.name}</span><button type="button" aria-label={`Remove ${product.name} from comparison`} onClick={() => toggleCompare(product.id, false)} className="rounded-[4px] p-1 hover:bg-white"><X size={14} /></button></div>
                     </th>
                   ))}
                 </tr>

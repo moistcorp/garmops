@@ -143,7 +143,7 @@ export function ConfiguratorSidebar({
 
   return (
     <section className="flex h-full min-h-0 flex-col overflow-hidden bg-transparent">
-      <div className="shrink-0 border-b border-white/55 bg-white/15 px-4 py-3 backdrop-blur-xl">
+      <div className="shrink-0 border-b border-[var(--color-rule)] bg-[var(--color-cream)] px-4 py-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
@@ -156,10 +156,10 @@ export function ConfiguratorSidebar({
 
           <span
             aria-live="polite"
-            className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold ${
+            className={`inline-flex shrink-0 items-center gap-1 rounded-[4px] border px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.04em] ${
               saveStatus === "error"
-                ? "border border-white/60 bg-[#FFF0F0]/65 text-[#A63A3A] shadow-sm backdrop-blur-lg"
-                : "border border-white/60 bg-[#EDF6F3]/65 text-[var(--color-teal-dark)] shadow-sm backdrop-blur-lg"
+                ? "border-[#A63A3A]/35 bg-[#FFF0F0] text-[#A63A3A]"
+                : "border-[var(--color-accent)]/30 bg-[var(--color-cream-soft)] text-[var(--color-accent-dark)]"
             }`}
           >
             <SaveStatusIcon
@@ -177,13 +177,13 @@ export function ConfiguratorSidebar({
       </div>
 
       {draftRestored && (
-        <div className="configurator-glass-subtle flex shrink-0 items-center justify-between gap-2 border-x-0 border-t-0 px-4 py-2 text-xs text-[#315D55]">
+        <div className="configurator-glass-subtle flex shrink-0 items-center justify-between gap-2 border-x-0 border-t-0 px-4 py-2 text-xs text-[#1D49B4]">
           <span>Restored your saved progress.</span>
           <button
             type="button"
             onClick={onDismissDraftRestored}
             aria-label="Dismiss restored progress message"
-            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full hover:bg-white"
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[4px] border border-[var(--color-rule)] hover:bg-white"
           >
             <X size={13} aria-hidden="true" />
           </button>

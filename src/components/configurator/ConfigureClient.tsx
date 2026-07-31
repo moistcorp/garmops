@@ -1054,12 +1054,12 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
           <div
             role="status"
             aria-live="polite"
-            className={`mx-auto flex max-w-[1480px] flex-wrap items-center gap-2 rounded-2xl border px-3 py-2 text-xs shadow-sm backdrop-blur-xl ${
+            className={`mx-auto flex max-w-[1480px] flex-wrap items-center gap-2 rounded-[4px] border px-3 py-2 text-xs   ${
               cloudSaveStatus === "conflict"
                 ? "border-amber-300/70 bg-amber-50/90 text-amber-950"
                 : cloudSaveStatus === "error"
                   ? "border-rose-200/80 bg-rose-50/90 text-rose-900"
-                  : "border-white/75 bg-white/55 text-[#315F66]"
+                  : "border-white/75 bg-white/55 text-[#1D49B4]"
             }`}
           >
             {cloudSaveStatus === "saving" ? (
@@ -1081,21 +1081,21 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 <button
                   type="button"
                   onClick={handleUseThisDevice}
-                  className="rounded-full bg-[#315F66] px-3 py-1.5 font-semibold text-white hover:bg-[#254b51]"
+                  className="rounded-[4px] bg-[#1D49B4] px-3 py-1.5 font-semibold text-white hover:bg-[#173A91]"
                 >
                   Use this device
                 </button>
                 <button
                   type="button"
                   onClick={handleUseCloudVersion}
-                  className="rounded-full border border-amber-900/20 bg-white/70 px-3 py-1.5 font-semibold hover:bg-white"
+                  className="rounded-[4px] border border-amber-900/20 bg-white/70 px-3 py-1.5 font-semibold hover:bg-white"
                 >
                   Use cloud version
                 </button>
                 <button
                   type="button"
                   onClick={handleCreateCloudCopy}
-                  className="rounded-full border border-amber-900/20 bg-white/70 px-3 py-1.5 font-semibold hover:bg-white"
+                  className="rounded-[4px] border border-amber-900/20 bg-white/70 px-3 py-1.5 font-semibold hover:bg-white"
                 >
                   Create a copy
                 </button>
@@ -1110,7 +1110,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                         `/account/designs/${encodeURIComponent(cloudLink.designId)}`
                       )
                     }
-                    className="rounded-full border border-[#315F66]/20 bg-white/70 px-3 py-1.5 font-semibold hover:bg-white"
+                    className="rounded-[4px] border border-[#1D49B4]/20 bg-white/70 px-3 py-1.5 font-semibold hover:bg-white"
                   >
                     View in account
                   </button>
@@ -1118,7 +1118,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 <button
                   type="button"
                   onClick={handleSaveToAccount}
-                  className="rounded-full bg-[#315F66] px-3 py-1.5 font-semibold text-white hover:bg-[#254b51]"
+                  className="rounded-[4px] bg-[#1D49B4] px-3 py-1.5 font-semibold text-white hover:bg-[#173A91]"
                 >
                   {cloudLink ? "Save now" : "Save to account"}
                 </button>
@@ -1153,11 +1153,11 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         </div>
 
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 overflow-y-auto px-4 pb-20 lg:grid-cols-[minmax(0,1fr)_clamp(360px,34vw,420px)] lg:overflow-hidden lg:px-5 lg:pb-4 xl:grid-cols-[minmax(0,1fr)_440px]">
-          <main className="relative flex min-h-[72dvh] min-w-0 flex-col overflow-hidden rounded-2xl border border-white/70 bg-white shadow-[0_12px_34px_rgba(22,33,43,0.08)] ring-1 ring-black/5 lg:min-h-0">
-            <div className="pointer-events-none absolute left-4 top-4 z-20 flex h-10 max-w-[calc(100%-2rem)] items-center gap-3 overflow-hidden rounded-full border border-white/65 bg-white/35 px-4 shadow-[0_8px_24px_rgba(22,33,43,0.12),inset_0_1px_0_rgba(255,255,255,0.8)] ring-1 ring-black/5 backdrop-blur-2xl backdrop-saturate-150">
+          <main className="relative flex min-h-[72dvh] min-w-0 flex-col overflow-hidden rounded-[4px] border border-white/70 bg-white  ring-1 ring-black/5 lg:min-h-0">
+            <div className="pointer-events-none absolute left-4 top-4 z-20 flex h-10 max-w-[calc(100%-2rem)] items-center gap-3 overflow-hidden rounded-[4px] border border-white/65 bg-white/35 px-4  ring-1 ring-black/5  ">
               <span
                 aria-hidden="true"
-                className="absolute inset-px rounded-full bg-gradient-to-b from-white/50 via-white/15 to-white/5"
+                className="absolute inset-px rounded-[4px] bg-gradient-to-b from-white/50 via-white/15 to-white/5"
               />
               <Image
                 src="/logo3.png"
@@ -1204,7 +1204,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
           <aside className="contents lg:flex lg:min-h-0 lg:min-w-0 lg:flex-col lg:gap-3 lg:overflow-hidden">
             <section
               aria-label="Active customisation controls"
-              className={`configurator-glass-stack configurator-glass-surface fixed inset-x-3 bottom-0 z-50 flex flex-col overflow-hidden rounded-t-2xl border border-b-0 transition-[height] duration-300 ease-in-out lg:static lg:z-auto lg:min-h-0 lg:flex-1 lg:rounded-[28px] lg:border-b ${
+              className={`configurator-glass-stack configurator-glass-surface fixed inset-x-3 bottom-0 z-50 flex flex-col overflow-hidden rounded-t-2xl border border-b-0 transition-[height] duration-300 ease-in-out lg:static lg:z-auto lg:min-h-0 lg:flex-1 lg:rounded-[4px] lg:border-b ${
                 isDrawerOpen ? "h-[42dvh]" : "h-14"
               } lg:h-auto`}
             >

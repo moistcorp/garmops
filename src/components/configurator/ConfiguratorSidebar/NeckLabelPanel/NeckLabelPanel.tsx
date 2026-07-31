@@ -52,10 +52,10 @@ function DimensionPreview({
   return (
     <span className="flex h-8 items-center justify-center" aria-hidden="true">
       <span
-        className={`block rounded-[3px] border shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] ${
+        className={`block rounded-[3px] border  ${
           selected
             ? 'border-white/90 bg-white/30'
-            : 'border-[#315F66]/45 bg-[#4F959F]/14'
+            : 'border-[#1D49B4]/45 bg-[#1D49B4]/14'
         }`}
         style={{
           width: `${Math.max(22, widthMm * 0.75)}px`,
@@ -64,7 +64,7 @@ function DimensionPreview({
       >
         <span
           className={`block h-full w-full border-t border-dashed ${
-            selected ? 'border-white/90' : 'border-[#315F66]/65'
+            selected ? 'border-white/90' : 'border-[#1D49B4]/65'
           }`}
         />
       </span>
@@ -228,7 +228,7 @@ export default function NeckLabelPanel({
   return (
     <div className="flex flex-col gap-5">
       {alreadyConfigured && (
-        <p className="configurator-glass-subtle rounded-xl px-3 py-2 text-xs font-medium text-[#111111]/60">
+        <p className="configurator-glass-subtle rounded-[4px] px-3 py-2 text-xs font-medium text-[#111111]/60">
           {isToteProduct ? 'Bag label' : 'Neck label'} configured. Edit any option below to update.
         </p>
       )}
@@ -246,7 +246,7 @@ export default function NeckLabelPanel({
                 type="button"
                 onClick={() => handleDimensionsSelected(option)}
                 aria-pressed={selected}
-                className={`flex min-h-[78px] flex-col items-center justify-center gap-2 rounded-xl border font-sans text-[12px] font-semibold leading-tight tracking-normal transition-all ${
+                className={`flex min-h-[78px] flex-col items-center justify-center gap-2 rounded-[4px] border font-sans text-[12px] font-semibold leading-tight tracking-normal transition-all ${
                   selected
                     ? 'configurator-glass-selected'
                     : 'configurator-glass-control border text-[#111111]/70 hover:!bg-white/60 hover:text-[#111111]'
@@ -272,8 +272,8 @@ export default function NeckLabelPanel({
           }}
         />
         {fileUrl ? (
-          <div className="configurator-glass-subtle flex min-h-[88px] items-center gap-3 rounded-[22px] p-3">
-            <div className="configurator-glass-control flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border">
+          <div className="configurator-glass-subtle flex min-h-[88px] items-center gap-3 rounded-[4px] p-3">
+            <div className="configurator-glass-control flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[4px] border">
               {source === 'sample' ? (
                 <Image src={SAMPLE_ARTWORK_HREF} alt="" width={56} height={56} className="h-full w-full object-contain p-2" unoptimized />
               ) : (
@@ -297,7 +297,7 @@ export default function NeckLabelPanel({
               type="button"
               onClick={handleRemoveArtwork}
               aria-label={`Remove ${isToteProduct ? 'bag label' : 'neck label'} artwork`}
-              className="configurator-glass-control flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-[#C62828] transition-colors hover:!border-[#C62828]/25 hover:!bg-[#FFF1F1]/70"
+              className="configurator-glass-control flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px] border text-[#C62828] transition-colors hover:!border-[#C62828]/25 hover:!bg-[#FFF1F1]/70"
             >
               <Trash2 size={17} strokeWidth={2} />
             </button>
@@ -315,13 +315,13 @@ export default function NeckLabelPanel({
               setDragging(false);
               handleUploadFile(event.dataTransfer.files?.[0]);
             }}
-            className="configurator-glass-dropzone relative flex flex-col items-center overflow-hidden rounded-[22px] px-4 py-5 text-center transition-all duration-200"
+            className="configurator-glass-dropzone relative flex flex-col items-center overflow-hidden rounded-[4px] px-4 py-5 text-center transition-all duration-200"
           >
             <label
               htmlFor={uploadInputId}
-              className="group relative z-10 flex min-h-24 w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-2xl px-3 transition-colors hover:bg-white/20 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--color-teal)]"
+              className="group relative z-10 flex min-h-24 w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[4px] px-3 transition-colors hover:bg-white/20 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--color-accent)]"
             >
-              <span className="configurator-glass-control mb-1 flex h-10 w-10 items-center justify-center rounded-full border text-[var(--color-teal-dark)] transition-transform group-hover:-translate-y-0.5">
+              <span className="configurator-glass-control mb-1 flex h-10 w-10 items-center justify-center rounded-[4px] border text-[var(--color-accent-dark)] transition-transform group-hover:-translate-y-0.5">
                 <Upload size={17} strokeWidth={2.2} aria-hidden="true" />
               </span>
               <span className="text-sm font-medium text-[#111111]">
@@ -335,7 +335,7 @@ export default function NeckLabelPanel({
               <a
                 href={TEMPLATE_HREF}
                 download
-                className="configurator-glass-control inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-medium text-[#111111]/80 transition-colors hover:!border-[var(--color-teal)]/45 hover:text-[var(--color-teal-dark)]"
+                className="configurator-glass-control inline-flex min-h-9 items-center gap-1.5 rounded-[4px] border px-3 text-xs font-medium text-[#111111]/80 transition-colors hover:!border-[var(--color-accent)]/45 hover:text-[var(--color-accent-dark)]"
               >
                 Download templates
                 <Download size={13} strokeWidth={2.2} />
@@ -343,7 +343,7 @@ export default function NeckLabelPanel({
               <button
                 type="button"
                 onClick={handleSampleArtwork}
-                className="configurator-glass-control min-h-9 rounded-full border !border-[var(--color-teal)]/30 px-3 text-xs font-semibold text-[var(--color-teal-dark)] transition-colors hover:!border-[var(--color-teal)]/55 hover:!bg-white/55"
+                className="configurator-glass-control min-h-9 rounded-[4px] border !border-[var(--color-accent)]/30 px-3 text-xs font-semibold text-[var(--color-accent-dark)] transition-colors hover:!border-[var(--color-accent)]/55 hover:!bg-white/55"
               >
                 <Plus size={13} strokeWidth={2.4} className="mr-1 inline" />
                 Try sample artwork
@@ -355,7 +355,7 @@ export default function NeckLabelPanel({
 
       {uploadError && <p className="text-xs text-red-600">{uploadError}</p>}
       {persistenceWarning && (
-        <p className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">
+        <p className="rounded-[4px] border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">
           {persistenceWarning}
         </p>
       )}

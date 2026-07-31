@@ -48,7 +48,7 @@ export function GuidelinesToggles(props: GuidelinesTogglesProps): JSX.Element {
         role="switch"
         aria-checked={maximumArea}
         onClick={toggleMaxArea}
-        className="configurator-glass-control flex w-full items-center justify-between gap-4 rounded-xl border px-3 py-2.5 text-left"
+        className="configurator-glass-control flex w-full items-center justify-between gap-4 rounded-[4px] border px-3 py-2.5 text-left"
       >
         <span className="min-w-0">
           <span className="block text-xs font-semibold text-[#111111]/80">
@@ -60,12 +60,12 @@ export function GuidelinesToggles(props: GuidelinesTogglesProps): JSX.Element {
         </span>
         <span
           aria-hidden="true"
-          className={`relative h-6 w-11 shrink-0 rounded-full p-0.5 transition-colors ${
-            maximumArea ? "bg-[var(--color-teal)]" : "bg-[#111111]/15"
+          className={`relative h-6 w-11 shrink-0 rounded-[4px] p-0.5 transition-colors ${
+            maximumArea ? "bg-[var(--color-accent)]" : "bg-[#111111]/15"
           }`}
         >
           <span
-            className={`block h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
+            className={`block h-5 w-5 rounded-[4px] bg-white  transition-transform ${
               maximumArea ? "translate-x-5" : "translate-x-0"
             }`}
           />
@@ -77,7 +77,7 @@ export function GuidelinesToggles(props: GuidelinesTogglesProps): JSX.Element {
         role="switch"
         aria-checked={leftChest}
         onClick={toggleLeftChest}
-        className="configurator-glass-control flex w-full items-center justify-between gap-4 rounded-xl border px-3 py-2.5 text-left"
+        className="configurator-glass-control flex w-full items-center justify-between gap-4 rounded-[4px] border px-3 py-2.5 text-left"
       >
         <span className="min-w-0">
           <span className="block text-xs font-semibold text-[#111111]/80">
@@ -89,12 +89,12 @@ export function GuidelinesToggles(props: GuidelinesTogglesProps): JSX.Element {
         </span>
         <span
           aria-hidden="true"
-          className={`relative h-6 w-11 shrink-0 rounded-full p-0.5 transition-colors ${
-            leftChest ? "bg-[var(--color-teal)]" : "bg-[#111111]/15"
+          className={`relative h-6 w-11 shrink-0 rounded-[4px] p-0.5 transition-colors ${
+            leftChest ? "bg-[var(--color-accent)]" : "bg-[#111111]/15"
           }`}
         >
           <span
-            className={`block h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
+            className={`block h-5 w-5 rounded-[4px] bg-white  transition-transform ${
               leftChest ? "translate-x-5" : "translate-x-0"
             }`}
           />

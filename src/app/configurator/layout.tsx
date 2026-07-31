@@ -9,8 +9,8 @@ export default function ConfiguratorLayout({
   return (
     <>
       <main className="app-liquid-bg flex min-h-dvh items-center justify-center px-6 py-12 lg:hidden">
-        <section className="liquid-glass-surface w-full max-w-md rounded-[28px] border p-7 text-center">
-          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-teal)]/10 text-[var(--color-teal-dark)]">
+        <section className="w-full max-w-md border border-[var(--color-rule)] bg-[var(--color-cream)] p-7 text-center">
+          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-[4px] border border-[var(--color-accent)]/30 bg-[var(--color-cream-soft)] text-[var(--color-accent-dark)]">
             <MonitorUp size={25} aria-hidden="true" />
           </span>
           <p className="mt-5 text-xs font-semibold uppercase tracking-wide text-[#111111]/50">
@@ -26,7 +26,7 @@ export default function ConfiguratorLayout({
           </p>
           <Link
             href="/"
-            className="mt-6 inline-flex rounded-full bg-[var(--color-teal)] px-6 py-3 text-sm font-semibold text-white hover:bg-[var(--color-teal-dark)]"
+            className="mt-6 inline-flex rounded-[4px] bg-[var(--color-accent)] px-6 py-3 font-mono text-xs font-semibold uppercase tracking-[0.06em] text-white hover:bg-[var(--color-accent-dark)]"
           >
             Back to home
           </Link>

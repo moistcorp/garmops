@@ -47,14 +47,14 @@ export default function GarmentColourPanel({ value, onChange, unitBasePrice }: G
     <div className="flex flex-col gap-6">
       {/* Section A — Signature */}
       <div className="flex flex-col gap-3">
-        <div className="configurator-glass-subtle flex items-center justify-between gap-2 rounded-xl px-3 py-2">
+        <div className="configurator-glass-subtle flex items-center justify-between gap-2 rounded-[4px] px-3 py-2">
           <div>
-            <h3 className="text-sm font-semibold text-[#111111]">Signature</h3>
+            <h3 className="font-mono text-xs font-semibold uppercase tracking-[0.06em] text-[#111111]">Signature colours</h3>
             <p className="text-xs text-[#111111]/55">
               Ready stock — 50-unit order minimum, standard lead time
             </p>
           </div>
-          <span className="configurator-glass-control shrink-0 rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#2E7D32]">
+          <span className="configurator-glass-control shrink-0 rounded-[4px] border px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.06em] text-[#2E7D32]">
             Included
           </span>
         </div>
@@ -67,18 +67,18 @@ export default function GarmentColourPanel({ value, onChange, unitBasePrice }: G
 
       {/* Section B — Custom Dye */}
       <div className="flex flex-col gap-3 border-t border-white/55 pt-6">
-        <div className="configurator-glass-subtle flex items-center justify-between gap-2 rounded-xl px-3 py-2">
+        <div className="configurator-glass-subtle flex items-center justify-between gap-2 rounded-[4px] px-3 py-2">
           <div>
-            <h3 className="text-sm font-semibold text-[#111111]">Custom Dye</h3>
+            <h3 className="font-mono text-xs font-semibold uppercase tracking-[0.06em] text-[#111111]">Custom dye / Pantone</h3>
             <p className="text-xs text-[#111111]/55">
               Choose from the currently available dye-to-match references.
             </p>
           </div>
-          <span className="shrink-0 rounded-full border border-white/55 bg-[#F5E6C8]/65 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#8A6212] shadow-sm backdrop-blur-lg">
+          <span className="shrink-0 rounded-[4px] border border-[#8A6212]/30 bg-[#FFFBF2] px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.04em] text-[#8A6212]">
             {customDyeDeltaLabel}
           </span>
         </div>
-        <p className="rounded-xl border border-[#F0E2C0]/70 bg-[#FFFBF2]/55 px-3 py-2 text-xs leading-relaxed text-[#8A6212] shadow-sm backdrop-blur-lg">
+        <p className="rounded-[4px] border border-[#8A6212]/30 bg-[#FFFBF2] px-3 py-2 text-xs leading-relaxed text-[#8A6212]">
           Dye-to-match runs a dedicated batch: minimum {CUSTOM_DYE_MOQ_UNITS} units per colour,
           and adds {CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS.min}–{CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS.max} days
           to your production lead time.

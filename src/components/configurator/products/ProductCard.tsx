@@ -84,7 +84,7 @@ export default function ProductCard({
           : "bg-[#F2F0EA] text-[#111111]/55";
 
   return (
-    <article ref={cardRef} className={`liquid-glass-panel group relative flex h-full self-stretch flex-col overflow-hidden rounded-[24px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-teal)]/45 ${recommended ? "!border-[var(--color-teal)]/60" : ""}`}>
+    <article ref={cardRef} className={`liquid-glass-panel group relative flex h-full self-stretch flex-col overflow-hidden rounded-[4px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45 ${recommended ? "!border-[var(--color-accent)]/60" : ""}`}>
       <div className="relative aspect-[3/4] w-full shrink-0 overflow-hidden bg-white">
         <Link
           href={configuratorHref}
@@ -111,11 +111,11 @@ export default function ProductCard({
 
         <div className="pointer-events-none absolute inset-x-3 top-3 z-20 flex items-start justify-between gap-2">
           {recommended ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-teal)] px-2.5 py-1 text-[10px] font-semibold text-white shadow-sm">
+            <span className="inline-flex items-center gap-1 rounded-[4px] bg-[var(--color-accent)] px-2.5 py-1 text-[10px] font-semibold text-white ">
               <Sparkles size={12} aria-hidden="true" /> Recommended
             </span>
           ) : <span />}
-          <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold shadow-sm ${feasibilityClass}`}>
+          <span className={`rounded-[4px] px-2.5 py-1 text-[10px] font-semibold  ${feasibilityClass}`}>
             {targetDate ? feasibility.label : product.standardLeadTime}
           </span>
         </div>
@@ -127,7 +127,7 @@ export default function ProductCard({
             <Link
               href={configuratorHref}
               onClick={() => trackConfiguratorEvent("product_selected", { product_id: product.id, quantity, use_case: selectedUseCase || null })}
-              className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-[#111111] hover:text-[var(--color-teal-dark)]"
+              className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-[#111111] hover:text-[var(--color-accent-dark)]"
             >
               {product.name}
             </Link>
@@ -140,18 +140,18 @@ export default function ProductCard({
             aria-expanded={detailsOpen}
             aria-controls={`product-details-${product.id}`}
             aria-label={`${detailsOpen ? "Hide" : "Show"} details for ${product.name}`}
-            className="liquid-glass-control flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-[#111111]/60 hover:!border-[var(--color-teal)] hover:text-[var(--color-teal)]"
+            className="liquid-glass-control flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] border text-[#111111]/60 hover:!border-[var(--color-accent)] hover:text-[var(--color-accent)]"
           >
             <ChevronDown size={15} strokeWidth={2.2} className={`transition-transform ${detailsOpen ? "rotate-180" : ""}`} />
           </button>
         </div>
 
         <div className="grid min-h-[92px] grid-cols-2 gap-2 text-[11px]">
-          <div className="h-full rounded-xl bg-[#F7F7F7] p-2.5">
+          <div className="h-full rounded-[4px] bg-[#F7F7F7] p-2.5">
             <p className="font-semibold text-[#111111]">Best for</p>
             <p className="mt-0.5 leading-snug text-[#111111]/60">{product.bestFor.slice(0, 2).join(", ")}</p>
           </div>
-          <div className="h-full rounded-xl bg-[#F7F7F7] p-2.5">
+          <div className="h-full rounded-[4px] bg-[#F7F7F7] p-2.5">
             <p className="font-semibold text-[#111111]">Feel & fit</p>
             <p className="mt-0.5 leading-snug text-[#111111]/60">{product.fabricFeel} · {product.fit}</p>
           </div>
@@ -174,7 +174,7 @@ export default function ProductCard({
           <Link
             href={configuratorHref}
             onClick={() => trackConfiguratorEvent("product_selected", { product_id: product.id, quantity, use_case: selectedUseCase || null })}
-            className="flex min-h-10 flex-1 items-center justify-center rounded-full bg-[var(--color-teal)] px-4 text-sm font-semibold text-white hover:bg-[var(--color-teal-dark)]"
+            className="flex min-h-10 flex-1 items-center justify-center rounded-[4px] bg-[var(--color-accent)] px-4 text-sm font-semibold text-white hover:bg-[var(--color-accent-dark)]"
           >
             Customise
           </Link>
@@ -183,7 +183,7 @@ export default function ProductCard({
             aria-pressed={compared}
             disabled={!compared && compareDisabled}
             onClick={() => onCompareChange(!compared)}
-            className={`flex min-h-10 w-28 shrink-0 items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${compared ? "border-[var(--color-teal)] bg-[var(--color-teal)]/10 text-[var(--color-teal-dark)]" : "border-[#E5E5E5] text-[#111111]/65 hover:border-[var(--color-teal)]"}`}
+            className={`flex min-h-10 w-28 shrink-0 items-center justify-center gap-1.5 rounded-[4px] border px-3 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${compared ? "border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent-dark)]" : "border-[#E5E5E5] text-[#111111]/65 hover:border-[var(--color-accent)]"}`}
           >
             {compared ? <Check size={14} /> : <GitCompareArrows size={14} />}
             {compared ? "Added" : "Compare"}
