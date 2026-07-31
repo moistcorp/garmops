@@ -115,7 +115,7 @@ const serverEnvironmentSchema = z
     FINANCE_ALERT_EMAIL: optionalEmail,
 
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: optionalText(512),
-    TURNSTILE_SECRET_KEY: optionalText(2048),
+    TURNSTILE_SECRET: optionalText(2048),
 
     CRON_SECRET: optionalText(2048),
     JOB_WORKER_ID: z.string().trim().min(1).max(120).default("garmops-vercel"),
@@ -192,7 +192,7 @@ const serverEnvironmentSchema = z
       [
         "AUTH_RATE_LIMIT_SALT",
         "NEXT_PUBLIC_TURNSTILE_SITE_KEY",
-        "TURNSTILE_SECRET_KEY",
+        "TURNSTILE_SECRET",
       ],
       "when authentication is enabled"
     );

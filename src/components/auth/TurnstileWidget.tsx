@@ -93,7 +93,11 @@ export default function TurnstileWidget({
         onLoad={renderWidget}
         onReady={renderWidget}
       />
-      <div ref={containerRef} className="min-h-[65px]" />
+      <div
+        ref={containerRef}
+        className="cf-turnstile min-h-[65px]"
+        data-action="turnstile-spin-v2"
+      />
       <input type="hidden" name="cf-turnstile-response" value={token} />
     </>
   );

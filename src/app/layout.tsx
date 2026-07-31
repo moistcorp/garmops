@@ -46,9 +46,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang={siteConfig.language}>
-      <body className="bg-white text-[#111111] antialiased">
+    <html lang={siteConfig.language} className="font-sans">
+      <head>
         <SatoshiFontResources />
+      </head>
+      <body className="font-sans bg-white text-[#111111] antialiased">
         <AppChrome>{children}</AppChrome>
       </body>
     </html>

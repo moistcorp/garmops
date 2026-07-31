@@ -17,8 +17,8 @@
   --text-secondary: #1d2a36;
   --text-muted: #53606b;
   --font-satoshi:
-    "Satoshi", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
+    "Satoshi Variable", "Satoshi-Variable", "Satoshi", ui-sans-serif,
+    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono:
     "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     "Liberation Mono", "Courier New", monospace;
@@ -32,6 +32,10 @@
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+}
+
+html {
+  font-family: var(--font-satoshi);
 }
 
 body {

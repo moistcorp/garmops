@@ -20,13 +20,13 @@ export async function verifyTurnstile(
     typeof token !== "string" ||
     token.length < 1 ||
     token.length > 2048 ||
-    !environment.TURNSTILE_SECRET_KEY
+    !environment.TURNSTILE_SECRET
   ) {
     return false;
   }
 
   const form = new URLSearchParams({
-    secret: environment.TURNSTILE_SECRET_KEY,
+    secret: environment.TURNSTILE_SECRET,
     response: token,
     idempotency_key: randomUUID(),
   });
@@ -45,13 +45,7 @@ export async function verifyTurnstile(
     if (!response.ok) return false;
 
     const result = (await response.json()) as TurnstileResponse;
-    if (!result.success || result.action !== expectedAction) return false;
-
-    const isDevelopmentTestKey =
-      environment.APP_ENV !== "production" &&
-      environment.TURNSTILE_SECRET_KEY ===
-        "1x0000000000000000000000000000000AA";
-    if (isDevelopmentTestKey) return true;
+    if (result.success !== true || result.action !== expectedAction) return false;
 
     const expectedHostname = new URL(
       environment.NEXT_PUBLIC_APP_URL,

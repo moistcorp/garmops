@@ -199,7 +199,11 @@ export async function registerAction(
     if (!(await passPublicProtection("register", parsed.data.email, formData))) {
       return actionError("Security verification failed. Please try again.");
     }
-  } catch {
+  } catch (error) {
+    console.error(
+      "[registerAction] public protection failed:",
+      error instanceof Error ? error.message : error,
+    );
     return actionError("Registration is temporarily unavailable. Please try again.");
   }
 
