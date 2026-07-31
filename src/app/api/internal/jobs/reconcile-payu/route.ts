@@ -2,7 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 
 import { getServerEnvironment } from "@/lib/config/env";
-import { isFeatureEnabled } from "@/lib/config/featureFlags";
+import { durableOrdersAvailable } from "@/lib/orders/api";
 import { reconcilePayuAttempt } from "@/lib/domain/payments/processPayuEvent";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -25,7 +25,7 @@ function authorised(request: NextRequest): boolean {
 }
 
 export async function GET(request: NextRequest) {
-  if (!isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED")) {
+  if (!durableOrdersAvailable()) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
   if (!authorised(request)) {

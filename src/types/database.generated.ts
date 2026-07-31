@@ -1025,6 +1025,10 @@ export type Database = {
           amount_paid_paise: number
           artwork_approved_at: string | null
           assigned_staff_user_id: string | null
+          assigned_team: string | null
+          expected_approval_at: string | null
+          expected_production_at: string | null
+          expected_qc_at: string | null
           billing_snapshot: Json
           cancelled_at: string | null
           company_snapshot: Json
@@ -1067,6 +1071,10 @@ export type Database = {
           amount_paid_paise?: number
           artwork_approved_at?: string | null
           assigned_staff_user_id?: string | null
+          assigned_team?: string | null
+          expected_approval_at?: string | null
+          expected_production_at?: string | null
+          expected_qc_at?: string | null
           billing_snapshot: Json
           cancelled_at?: string | null
           company_snapshot: Json
@@ -1109,6 +1117,10 @@ export type Database = {
           amount_paid_paise?: number
           artwork_approved_at?: string | null
           assigned_staff_user_id?: string | null
+          assigned_team?: string | null
+          expected_approval_at?: string | null
+          expected_production_at?: string | null
+          expected_qc_at?: string | null
           billing_snapshot?: Json
           cancelled_at?: string | null
           company_snapshot?: Json

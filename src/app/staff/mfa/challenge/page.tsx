@@ -2,6 +2,8 @@ import AuthShell from "@/components/auth/AuthShell";
 import MfaFlow from "@/components/staff/MfaFlow";
 import { requireStaffRecord } from "@/lib/auth/guards";
 
+export const dynamic = "force-dynamic";
+
 export default async function StaffMfaChallengePage() {
   await requireStaffRecord({ allowInvited: true });
   return (

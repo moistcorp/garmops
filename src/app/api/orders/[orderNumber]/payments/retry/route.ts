@@ -4,6 +4,8 @@ import { NextRequest } from "next/server";
 import {
   authenticateOrderApi,
   durableCustomOrdersAvailable,
+  durableOrdersAvailable,
+  durableSampleOrdersAvailable,
   hasExpectedOrderOrigin,
   orderJson,
   orderJsonError,
@@ -13,7 +15,7 @@ import {
   orderNumberSchema,
   retryOrderPaymentRequestSchema,
 } from "@/lib/orders/schema";
-import { retryCustomOrderPayment } from "@/lib/orders/service";
+import { retryOrderPayment } from "@/lib/orders/service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -74,8 +76,8 @@ export async function POST(
   request: NextRequest,
   context: RetryRouteContext,
 ) {
-  if (!durableCustomOrdersAvailable()) {
-    return orderJsonError("Durable custom ordering is unavailable", 503);
+  if (!durableOrdersAvailable()) {
+    return orderJsonError("Durable ordering is unavailable", 503);
   }
   if (!hasExpectedOrderOrigin(request)) {
     return orderJsonError("Invalid request origin", 403);
@@ -98,7 +100,7 @@ export async function POST(
 
   const { data: order, error } = await auth.supabase
     .from("orders")
-    .select("id, organization_id")
+    .select("id, organization_id, order_type")
     .eq("order_number", number.data)
     .maybeSingle();
   if (error || !order) return orderJsonError("Order not found", 404);
@@ -114,9 +116,16 @@ export async function POST(
   if (!membership) {
     return orderJsonError("Payment retry is unavailable", 403);
   }
+  const flowEnabled =
+    order.order_type === "sample_purchase"
+      ? durableSampleOrdersAvailable()
+      : durableCustomOrdersAvailable();
+  if (!flowEnabled) {
+    return orderJsonError("This checkout flow is unavailable", 503);
+  }
 
   try {
-    const result = await retryCustomOrderPayment({
+    const result = await retryOrderPayment({
       orderId: order.id,
       userId: auth.user.id,
       idempotencyKey: parsed.data.idempotencyKey,

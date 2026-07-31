@@ -32,6 +32,14 @@ export function durableCustomOrdersAvailable(): boolean {
   return isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED");
 }
 
+export function durableSampleOrdersAvailable(): boolean {
+  return isFeatureEnabled("DURABLE_SAMPLE_CHECKOUT_ENABLED");
+}
+
+export function durableOrdersAvailable(): boolean {
+  return durableCustomOrdersAvailable() || durableSampleOrdersAvailable();
+}
+
 export function hasExpectedOrderOrigin(request: NextRequest): boolean {
   const origin = request.headers.get("origin");
   if (!origin) return false;

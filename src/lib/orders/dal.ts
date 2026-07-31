@@ -64,11 +64,42 @@ export async function getCustomerOrder(
       order: orderResult,
       items: { data: null, error: null },
       history: { data: null, error: null },
+      comments: { data: null, error: null },
       payments: [],
+      approvals: [],
+      shipments: [],
+      shipmentEvents: [],
+      files: [],
     };
   }
 
-  const [items, history, payments] = await Promise.all([
+  const customerApprovals = supabase.from("approvals") as unknown as {
+    select: (columns: string) => {
+      eq: (column: string, value: string) => {
+        order: (
+          column: string,
+          options: { ascending: boolean },
+        ) => Promise<{
+          data: Array<{
+            id: string;
+            design_version_id: string;
+            approval_pdf_file_id: string | null;
+            status: string;
+            expires_at: string | null;
+            viewed_at: string | null;
+            responded_at: string | null;
+            response_note: string | null;
+            snapshot_sha256: string | null;
+            revoked_at: string | null;
+            created_at: string;
+          }> | null;
+          error: { message: string } | null;
+        }>;
+      };
+    };
+  };
+
+  const [items, history, comments, payments, approvals, shipments, files] = await Promise.all([
     supabase
       .from("order_items")
       .select(
@@ -84,10 +115,56 @@ export async function getCustomerOrder(
       .eq("order_id", orderResult.data.id)
       .eq("customer_visible", true)
       .order("created_at"),
+    supabase
+      .from("order_comments")
+      .select(
+        "id, author_user_id, body, action_required, action_type, resolved_at, created_at",
+      )
+      .eq("order_id", orderResult.data.id)
+      .eq("visibility", "customer")
+      .order("created_at"),
     getSafePaymentAttempts(orderResult.data.id),
+    customerApprovals
+      .select("id, design_version_id, approval_pdf_file_id, status, expires_at, viewed_at, responded_at, response_note, snapshot_sha256, revoked_at, created_at")
+      .eq("order_id", orderResult.data.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("shipments")
+      .select("id, shipment_number, carrier, tracking_number, tracking_url, status, package_count, dispatched_at, estimated_delivery_at, delivered_at, customer_visible_note, created_at")
+      .eq("order_id", orderResult.data.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("order_files")
+      .select("id, kind, original_filename, safe_filename, content_type, scan_status, created_at")
+      .eq("order_id", orderResult.data.id)
+      .eq("visibility", "customer")
+      .is("deleted_at", null)
+      .in("scan_status", ["clean", "not_required"])
+      .order("created_at", { ascending: false }),
   ]);
 
-  return { order: orderResult, items, history, payments };
+  const { data: shipmentEvents, error: shipmentEventsError } = await (
+    supabase.rpc as unknown as (
+      name: string,
+      args: Record<string, unknown>,
+    ) => Promise<{
+      data: Array<{
+        id: string;
+        shipment_id: string;
+        status: string;
+        occurred_at: string;
+        location: string | null;
+        customer_message: string | null;
+      }> | null;
+      error: { message: string } | null;
+    }>
+  )("customer_shipment_events", { p_order_id: orderResult.data.id });
+
+  const phase11Error =
+    approvals.error ?? shipments.error ?? files.error ?? shipmentEventsError;
+  if (phase11Error) throw new Error("Order history could not be loaded");
+
+  return { order: orderResult, items, history, comments, payments, approvals: approvals.data ?? [], shipments: shipments.data ?? [], shipmentEvents: shipmentEvents ?? [], files: files.data ?? [] };
 }
 
 export async function getSafePaymentAttempts(orderId: string) {

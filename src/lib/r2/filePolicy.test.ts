@@ -72,6 +72,35 @@ describe("private upload policy", () => {
     ).toEqual({ ok: false, error: "Invalid upload request" });
   });
 
+  it("accepts hashed PDF-only approval evidence", () => {
+    expect(
+      validateUploadRequest({
+        ...validArtwork,
+        kind: "approval_pdf",
+        filename: "approval.pdf",
+        contentType: "application/pdf",
+        sha256: "a".repeat(64),
+      }),
+    ).toMatchObject({
+      ok: true,
+      value: {
+        kind: "approval_pdf",
+        extension: "pdf",
+        contentType: "application/pdf",
+        sha256: "a".repeat(64),
+      },
+    });
+    expect(
+      validateUploadRequest({
+        ...validArtwork,
+        kind: "approval_pdf",
+        filename: "approval.svg",
+        contentType: "image/svg+xml",
+        sha256: "a".repeat(64),
+      }),
+    ).toEqual({ ok: false, error: "File type is not allowed" });
+  });
+
   it("enforces the per-kind byte limit", () => {
     expect(
       validateUploadRequest({

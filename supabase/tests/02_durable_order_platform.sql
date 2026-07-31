@@ -405,7 +405,7 @@ select is(
   128000::bigint,
   'verified sample amount is stored exactly in paise'
 );
-select is((select count(*) from public.invoices), 1::bigint, 'sample finalisation creates no reservation invoice');
+select is((select count(*) from public.invoices where kind in ('reservation_retainer', 'reservation_invoice')), 1::bigint, 'sample finalisation creates no reservation invoice');
 select is(
   (
     select count(*)

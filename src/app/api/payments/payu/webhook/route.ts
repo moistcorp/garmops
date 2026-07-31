@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { isFeatureEnabled } from "@/lib/config/featureFlags";
+import { durableOrdersAvailable } from "@/lib/orders/api";
 import { processPayuEvent } from "@/lib/domain/payments/processPayuEvent";
 import type { PayuIncomingFields } from "@/lib/providers/payu/types";
 
@@ -59,7 +59,7 @@ async function readPayload(request: NextRequest): Promise<PayuIncomingFields> {
 }
 
 export async function POST(request: NextRequest) {
-  if (!isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED")) {
+  if (!durableOrdersAvailable()) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 

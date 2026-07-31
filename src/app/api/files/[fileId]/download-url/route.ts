@@ -28,18 +28,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
   if (!auth.ok) return auth.response;
 
   const { fileId } = await context.params;
-  const [{ data: file, error }, { data: canViewAll }] = await Promise.all([
-    auth.supabase
+  const { data: file, error } = await auth.supabase
       .from("order_files")
       .select(
         "id, bucket_name, object_key, safe_filename, content_type, upload_status, scan_status, deleted_at",
       )
       .eq("id", fileId)
-      .maybeSingle(),
-    auth.supabase.rpc("staff_has_permission", {
-      p_permission_name: "view_all_orders",
-    }),
-  ]);
+      .maybeSingle();
 
   if (
     error ||
@@ -52,10 +47,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
     return jsonError("File not found", 404);
   }
 
-  const customerDownloadable =
+  const clearedForDownload =
     file.scan_status === "clean" || file.scan_status === "not_required";
-  if (!canViewAll && !customerDownloadable) {
-    return jsonError("File not found", 404);
+  if (!clearedForDownload) {
+    return jsonError("File is awaiting security review", 423);
   }
 
   try {

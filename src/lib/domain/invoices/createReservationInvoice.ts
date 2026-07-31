@@ -162,7 +162,7 @@ export async function createReservationInvoice(
     });
   }
 
-  const { error: processingError } = await (invoiceTable as any)
+  const { error: processingError } = await invoiceTable
     .update({
       sync_status: "processing",
       attempt_count: invoice.attempt_count,
@@ -265,7 +265,7 @@ export async function createReservationInvoice(
     });
   }
 
-  const { error: documentUpdateError } = await (invoiceTable as any)
+  const { error: documentUpdateError } = await invoiceTable
     .update({
       zoho_contact_id: customer.customerId,
       zoho_document_id: document.documentId,
@@ -378,7 +378,7 @@ export async function createReservationInvoice(
   }
 
   const completedAt = new Date().toISOString();
-  const { error: completeError } = await (invoiceTable as any)
+  const { error: completeError } = await invoiceTable
     .update({
       sync_status: "completed",
       zoho_contact_id: customer.customerId,
@@ -457,7 +457,8 @@ export async function markReservationInvoiceFailure(
 ): Promise<ZohoProviderError> {
   const providerError = asZohoProviderError(error);
   const admin = createAdminClient();
-  await (admin.from("invoices") as any)
+  await admin
+    .from("invoices")
     .update({
       sync_status: providerError.retryable ? "retryable_failure" : "permanent_failure",
       last_error_code: providerError.code.slice(0, 160),

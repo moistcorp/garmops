@@ -12,11 +12,14 @@ import {
 } from "lucide-react";
 
 import InvoiceDownloadButton from "@/components/account/InvoiceDownloadButton";
+import CustomerOrderReplyForm from "@/components/account/CustomerOrderReplyForm";
 import PaymentRetryButton from "@/components/account/PaymentRetryButton";
 import PortalPlaceholder from "@/components/portal/PortalPlaceholder";
+import CustomerOrderLifecyclePanel from "@/components/account/CustomerOrderLifecyclePanel";
 import { requireOrganizationMember } from "@/lib/auth/guards";
 import { isFeatureEnabled } from "@/lib/config/featureFlags";
 import { getCustomerOrder } from "@/lib/orders/dal";
+import { assessReorder } from "@/lib/domain/orders/reorder";
 import {
   formatMoneyPaise,
   formatOrderDate,
@@ -24,6 +27,8 @@ import {
   publicOrderStatusLabel,
 } from "@/lib/orders/format";
 import { orderNumberSchema } from "@/lib/orders/schema";
+
+export const dynamic = "force-dynamic";
 
 function record(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -36,11 +41,14 @@ export default async function AccountOrderDetailPage({
 }: {
   params: Promise<{ orderNumber: string }>;
 }) {
-  if (!isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED")) {
+  if (
+    !isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED") &&
+    !isFeatureEnabled("DURABLE_SAMPLE_CHECKOUT_ENABLED")
+  ) {
     return (
       <PortalPlaceholder
         title="Order unavailable"
-        description="Durable custom ordering is disabled for this environment."
+        description="Durable ordering is disabled for this environment."
       />
     );
   }
@@ -67,7 +75,7 @@ export default async function AccountOrderDetailPage({
     );
   }
   if (result.order.error || !result.order.data) notFound();
-  if (result.items.error || result.history.error) {
+  if (result.items.error || result.history.error || result.comments.error) {
     return (
       <PortalPlaceholder
         title="Order unavailable"
@@ -77,8 +85,22 @@ export default async function AccountOrderDetailPage({
   }
 
   const order = result.order.data;
+  const orderFlowEnabled =
+    order.order_type === "sample_purchase"
+      ? isFeatureEnabled("DURABLE_SAMPLE_CHECKOUT_ENABLED")
+      : isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED");
+  if (!orderFlowEnabled) {
+    return (
+      <PortalPlaceholder
+        title="Order unavailable"
+        description="This order type is disabled for this environment."
+      />
+    );
+  }
+  const sampleOrder = order.order_type === "sample_purchase";
   const items = result.items.data ?? [];
   const history = result.history.data ?? [];
+  const comments = result.comments.data ?? [];
   const payments = result.payments;
   const latestPayment = payments[0];
   const retryable =
@@ -88,6 +110,15 @@ export default async function AccountOrderDetailPage({
     !payments.some((payment) => payment.status === "paid");
   const shipping = record(order.shipping_snapshot);
   const shippingAddress = record(shipping.address);
+  const reorderAssessment =
+    !sampleOrder && order.status === "delivered" && ["owner", "buyer"].includes(membership.role)
+      ? await assessReorder({
+          supabase,
+          organizationId: membership.organization_id,
+          sourceOrderNumber: order.order_number,
+        })
+      : null;
+
   const { data: invoice } = await supabase
     .from("invoices")
     .select("id, sync_status, document_number, issue_date, total_paise, pdf_file_id, last_error_message")
@@ -132,6 +163,7 @@ export default async function AccountOrderDetailPage({
               initialAttemptNumber={latestPayment.attempt_number}
               initialPaymentAttemptId={latestPayment.id}
               initialPaymentStatus={latestPayment.status}
+              paymentPurpose={latestPayment.purpose as "reservation" | "sample_full"}
             />
           ) : null}
         </div>
@@ -140,8 +172,12 @@ export default async function AccountOrderDetailPage({
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
           {
-            label: "Reservation",
-            value: formatMoneyPaise(order.reservation_amount_paise),
+            label: sampleOrder ? "Full sample payment" : "Reservation",
+            value: formatMoneyPaise(
+              sampleOrder
+                ? order.estimated_total_paise
+                : order.reservation_amount_paise,
+            ),
             icon: ReceiptIndianRupee,
           },
           {
@@ -179,6 +215,16 @@ export default async function AccountOrderDetailPage({
         ))}
       </div>
 
+      <CustomerOrderLifecyclePanel
+        order={{ order_number: order.order_number, status: order.status, order_type: order.order_type }}
+        membershipRole={membership.role}
+        approvals={result.approvals}
+        shipments={result.shipments}
+        shipmentEvents={result.shipmentEvents}
+        files={result.files}
+        reorderAssessment={reorderAssessment}
+      />
+
       <div className="grid gap-5 xl:grid-cols-[1.25fr_0.75fr]">
         <div className="space-y-5">
           <section className="liquid-glass-surface rounded-3xl border p-6">
@@ -203,7 +249,9 @@ export default async function AccountOrderDetailPage({
                       <div>
                         <h4 className="font-semibold">{item.product_name}</h4>
                         <p className="mt-1 text-sm text-black/50">
-                          {String(colour.name ?? "Colour to review")} ·{" "}
+                          {sampleOrder
+                            ? `${String(record(item.product_snapshot).gsm ?? "Catalogue")} GSM sample`
+                            : String(colour.name ?? "Colour to review")} ·{" "}
                           {item.quantity.toLocaleString("en-IN")} units
                         </p>
                       </div>
@@ -229,6 +277,38 @@ export default async function AccountOrderDetailPage({
                 );
               })}
             </div>
+          </section>
+
+          <section className="liquid-glass-surface rounded-3xl border p-6">
+            <div className="flex items-center gap-2">
+              <Clock3 size={18} className="text-[#4F8B92]" aria-hidden="true" />
+              <h3 className="font-semibold">Messages and action requests</h3>
+            </div>
+            <div className="mt-5 space-y-3">
+              {comments.map((comment) => (
+                <article
+                  key={comment.id}
+                  className={`rounded-2xl border p-4 ${comment.action_required && !comment.resolved_at ? "border-blue-200 bg-blue-50/60" : "border-black/7 bg-white/45"}`}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="text-xs font-semibold">
+                      {comment.action_required
+                        ? comment.resolved_at
+                          ? "Action completed"
+                          : "Action required"
+                        : "Order message"}
+                    </p>
+                    <p className="text-[10px] uppercase tracking-wider text-black/30">
+                      {formatOrderTimestamp(comment.created_at)}
+                    </p>
+                  </div>
+                  <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-black/60">{comment.body}</p>
+                  {comment.action_type ? <p className="mt-2 text-xs capitalize text-black/40">Requested: {comment.action_type.replaceAll("_", " ")}</p> : null}
+                </article>
+              ))}
+              {!comments.length ? <p className="py-5 text-center text-sm text-black/40">No customer messages yet.</p> : null}
+            </div>
+            <CustomerOrderReplyForm orderId={order.id} orderNumber={order.order_number} />
           </section>
 
           <section className="liquid-glass-surface rounded-3xl border p-6">
@@ -291,7 +371,10 @@ export default async function AccountOrderDetailPage({
                     </span>
                   </div>
                   <p className="mt-2 text-sm text-black/50">
-                    {formatMoneyPaise(payment.amount_paise)} · reservation
+                    {formatMoneyPaise(payment.amount_paise)} ·{" "}
+                    {payment.purpose === "sample_full"
+                      ? "full sample payment"
+                      : "reservation"}
                   </p>
                   <p className="mt-2 text-[10px] uppercase tracking-wider text-black/30">
                     {formatOrderTimestamp(payment.created_at)}
@@ -305,9 +388,14 @@ export default async function AccountOrderDetailPage({
             <section className="liquid-glass-surface rounded-3xl border p-6">
               <div className="flex items-center gap-2">
                 <ReceiptIndianRupee size={18} className="text-[#4F8B92]" aria-hidden="true" />
-                <h3 className="font-semibold">Reservation invoice</h3>
+                <h3 className="font-semibold">{sampleOrder ? "Sample tax document" : "Reservation invoice"}</h3>
               </div>
-              <p className="mt-4 font-semibold">{invoice.document_number ?? "Being generated"}</p>
+              <p className="mt-4 font-semibold">
+                {invoice.document_number ??
+                  (sampleOrder && invoice.sync_status === "not_required"
+                    ? "Automation not enabled"
+                    : "Being generated")}
+              </p>
               <p className="mt-2 text-sm capitalize text-black/50">
                 {invoice.sync_status.replaceAll("_", " ")}
                 {invoice.total_paise !== null ? ` · ${formatMoneyPaise(invoice.total_paise)}` : ""}
@@ -317,6 +405,10 @@ export default async function AccountOrderDetailPage({
               ) : null}
               {invoice.sync_status === "completed" && invoice.pdf_file_id ? (
                 <div className="mt-4"><InvoiceDownloadButton fileId={invoice.pdf_file_id} /></div>
+              ) : sampleOrder && invoice.sync_status === "not_required" ? (
+                <p className="mt-3 text-xs leading-relaxed text-black/40">
+                  Your verified sample payment is recorded. Automatic sample tax invoicing remains disabled until finance supplies the required Zoho item and tax configuration.
+                </p>
               ) : (
                 <p className="mt-3 text-xs leading-relaxed text-black/40">
                   Your verified payment is safe. The official PDF will appear here after Zoho and private storage finish processing.

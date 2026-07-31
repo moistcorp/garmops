@@ -6,7 +6,7 @@ import {
 } from "@/lib/domain/payments/result";
 import { processPayuEvent } from "@/lib/domain/payments/processPayuEvent";
 import { getServerEnvironment } from "@/lib/config/env";
-import { isFeatureEnabled } from "@/lib/config/featureFlags";
+import { durableOrdersAvailable } from "@/lib/orders/api";
 import type { PayuIncomingFields } from "@/lib/providers/payu/types";
 
 export const runtime = "nodejs";
@@ -77,7 +77,7 @@ function resultRedirect(
 }
 
 export async function POST(request: NextRequest) {
-  if (!isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED")) {
+  if (!durableOrdersAvailable()) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 

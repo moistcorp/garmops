@@ -2,6 +2,8 @@ import AuthActionForm from "@/components/auth/AuthActionForm";
 import AuthShell from "@/components/auth/AuthShell";
 import { requireVerifiedUser } from "@/lib/auth/guards";
 
+export const dynamic = "force-dynamic";
+
 export default async function AccountOnboardingPage() {
   const { user, supabase } = await requireVerifiedUser("/account/onboarding");
   const { data: existing } = await supabase

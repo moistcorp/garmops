@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 
+import { isFeatureEnabled } from "@/lib/config/featureFlags";
 import DurablePaymentResult from "@/components/payment/DurablePaymentResult";
 import { loadDurablePaymentResult } from "@/lib/domain/payments/loadResult";
 import {
@@ -51,7 +52,7 @@ export default async function PaymentFailurePage({
     }
   }
 
-  // Retained for the sample-cart flow until its durable migration in Phase 12.
+  // Legacy configurator fallback only. Durable sample checkout never reads browser order data.
   const transactionId =
     typeof query.txnid === "string" ? query.txnid : "";
   const error = typeof query.error === "string" ? query.error : "";
@@ -61,7 +62,8 @@ export default async function PaymentFailurePage({
   const verified =
     payment?.status === "failure" &&
     payment.mock === false &&
-    payment.txnid === transactionId;
+    payment.txnid === transactionId &&
+    !(payment.kind === "sample-cart" && isFeatureEnabled("DURABLE_SAMPLE_CHECKOUT_ENABLED"));
   return (
     <PaymentFailureClient
       verified={verified}

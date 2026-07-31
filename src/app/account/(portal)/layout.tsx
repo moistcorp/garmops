@@ -1,6 +1,8 @@
 import PortalShell from "@/components/portal/PortalShell";
 import { requireOrganizationMember } from "@/lib/auth/guards";
 
+export const dynamic = "force-dynamic";
+
 const nav = [
   { href: "/account", label: "Overview" },
   { href: "/account/orders", label: "Orders" },

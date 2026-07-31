@@ -242,6 +242,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing transaction ID' }, { status: 400 })
     }
 
+    if (type === 'sample' && isFeatureEnabled('DURABLE_SAMPLE_CHECKOUT_ENABLED')) {
+      return NextResponse.json(
+        { error: 'Legacy sample confirmation is disabled. Durable order notifications are sent from verified database records.' },
+        { status: 410 }
+      )
+    }
+
     const paymentKind: PaymentKind | null =
       type === 'contact'
         ? null

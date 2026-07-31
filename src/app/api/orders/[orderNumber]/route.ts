@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 
 import {
   authenticateOrderApi,
-  durableCustomOrdersAvailable,
+  durableOrdersAvailable,
   orderJson,
   orderJsonError,
 } from "@/lib/orders/api";
@@ -20,8 +20,8 @@ export async function GET(
   _request: NextRequest,
   context: OrderRouteContext,
 ) {
-  if (!durableCustomOrdersAvailable()) {
-    return orderJsonError("Durable custom ordering is unavailable", 503);
+  if (!durableOrdersAvailable()) {
+    return orderJsonError("Durable ordering is unavailable", 503);
   }
 
   const { orderNumber } = await context.params;

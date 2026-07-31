@@ -10,12 +10,14 @@ export default function PaymentRetryButton({
   initialPaymentAttemptId,
   initialPaymentStatus,
   confirmation = false,
+  paymentPurpose = "reservation",
 }: {
   orderNumber: string;
   initialAttemptNumber: number;
   initialPaymentAttemptId: string;
   initialPaymentStatus: string;
   confirmation?: boolean;
+  paymentPurpose?: "reservation" | "sample_full";
 }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
@@ -53,7 +55,11 @@ export default function PaymentRetryButton({
     <div>
       <button type="button" onClick={startPayment} disabled={pending} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#315F66] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#254b51] disabled:cursor-wait disabled:opacity-60 sm:w-auto">
         {pending ? <LoaderCircle size={16} className="animate-spin" aria-hidden="true" /> : confirmation ? <CreditCard size={16} aria-hidden="true" /> : <RotateCcw size={16} aria-hidden="true" />}
-        {pending ? "Opening secure payment…" : confirmation ? "Continue to secure payment" : `Retry reservation payment${initialAttemptNumber > 1 ? ` · attempt ${initialAttemptNumber}` : ""}`}
+        {pending
+          ? "Opening secure payment…"
+          : confirmation
+            ? `Continue to secure ${paymentPurpose === "sample_full" ? "sample" : "reservation"} payment`
+            : `Retry ${paymentPurpose === "sample_full" ? "sample" : "reservation"} payment${initialAttemptNumber > 1 ? ` · attempt ${initialAttemptNumber}` : ""}`}
       </button>
       {error ? <p className="mt-3 text-xs leading-relaxed text-red-700" role="alert">{error}</p> : null}
     </div>

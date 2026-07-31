@@ -3,6 +3,7 @@ import { z } from "zod";
 export const browserUploadKinds = [
   "customer_artwork",
   "purchase_order",
+  "approval_pdf",
   "proof",
   "qc_photo",
   "packing_list",
@@ -51,6 +52,10 @@ export const uploadPolicies: Readonly<Record<BrowserUploadKind, UploadPolicy>> =
       format(["png"], ["image/png"]),
       format(["jpg", "jpeg"], ["image/jpeg"]),
     ],
+  },
+  approval_pdf: {
+    maximumBytes: 20 * mebibyte,
+    formats: [format(["pdf"], ["application/pdf"])],
   },
   proof: {
     maximumBytes: 20 * mebibyte,
@@ -114,13 +119,22 @@ const uploadRequestSchema = z
       .optional(),
   })
   .strict()
-  .refine(
-    ({ orderId, designProjectId }) => Boolean(orderId) !== Boolean(designProjectId),
-    {
-      message: "Exactly one upload target is required",
-      path: ["orderId"],
-    },
-  );
+  .superRefine((value, context) => {
+    if (Boolean(value.orderId) === Boolean(value.designProjectId)) {
+      context.addIssue({
+        code: "custom",
+        message: "Exactly one upload target is required",
+        path: ["orderId"],
+      });
+    }
+    if (value.kind === "approval_pdf" && !value.sha256) {
+      context.addIssue({
+        code: "custom",
+        message: "Approval evidence requires SHA-256",
+        path: ["sha256"],
+      });
+    }
+  });
 
 export type ValidatedUploadRequest = Readonly<{
   orderId?: string;

@@ -3,6 +3,7 @@
 import type { CartDraft } from "@/components/configurator/cart/cartDraft";
 import type { CartItem } from "@/components/configurator/cart/OrderReviewStep";
 import type { BuildDraft } from "@/lib/configurator/buildDraft";
+import { CUSTOM_ORDER_TERMS_VERSION } from "@/lib/orders/terms";
 import {
   readCloudDesignLink,
   saveBuildDraftToCloud,
@@ -11,7 +12,6 @@ import {
 } from "@/lib/designs/client";
 
 const PREPARED_ORDER_PREFIX = "garmops:durable-order:";
-export const CUSTOM_ORDER_TERMS_VERSION = "reservation-v1-2026-07-29";
 
 type PreparedOrder = {
   fingerprint: string;

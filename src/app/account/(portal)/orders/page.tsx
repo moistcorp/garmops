@@ -21,6 +21,8 @@ import {
   type OrderListFilter,
 } from "@/lib/orders/schema";
 
+export const dynamic = "force-dynamic";
+
 const filters: Array<{ value: OrderListFilter; label: string }> = [
   { value: "all", label: "All" },
   { value: "action_required", label: "Action required" },
@@ -37,11 +39,14 @@ export default async function AccountOrdersPage({
 }: {
   searchParams: Promise<{ filter?: string }>;
 }) {
-  if (!isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED")) {
+  if (
+    !isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED") &&
+    !isFeatureEnabled("DURABLE_SAMPLE_CHECKOUT_ENABLED")
+  ) {
     return (
       <PortalPlaceholder
         title="Orders"
-        description="Durable custom ordering is disabled for this environment."
+        description="Durable ordering is disabled for this environment."
       />
     );
   }
@@ -84,13 +89,25 @@ export default async function AccountOrdersPage({
             retained independently from later design edits.
           </p>
         </div>
-        <Link
-          href="/configurator"
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#315F66] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#254b51]"
-        >
-          <ShoppingBag size={16} aria-hidden="true" />
-          Configure a new order
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          {isFeatureEnabled("DURABLE_SAMPLE_CHECKOUT_ENABLED") ? (
+            <Link
+              href="/products"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-black/10 px-4 py-2.5 text-sm font-semibold transition hover:border-[#4F8B92]/40"
+            >
+              Browse samples
+            </Link>
+          ) : null}
+          {isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED") ? (
+            <Link
+              href="/configurator"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#315F66] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#254b51]"
+            >
+              <ShoppingBag size={16} aria-hidden="true" />
+              Configure a new order
+            </Link>
+          ) : null}
+        </div>
       </div>
 
       <div className="flex gap-2 overflow-x-auto border-b border-black/8 pb-3">
@@ -139,8 +156,12 @@ export default async function AccountOrdersPage({
                     </span>
                   </div>
                   <p className="mt-2 text-sm text-black/50">
-                    {item?.product_name ?? "Custom merchandise"}
+                    {item?.product_name ??
+                      (order.order_type === "sample_purchase"
+                        ? "Catalogue samples"
+                        : "Custom merchandise")}
                     {item ? ` · ${item.quantity.toLocaleString("en-IN")} units` : ""}
+                    {order.order_type === "sample_purchase" ? " · Sample order" : ""}
                   </p>
                 </div>
                 <div className="flex items-start gap-2">
@@ -174,11 +195,16 @@ export default async function AccountOrdersPage({
                   )}
                   <div>
                     <p className="text-[10px] uppercase tracking-widest text-black/30">
-                      Reservation
+                      {order.order_type === "sample_purchase"
+                        ? "Full payment"
+                        : "Reservation"}
                     </p>
                     <p className="mt-1 text-sm text-black/65">
-                      {formatMoneyPaise(order.reservation_amount_paise)} ·{" "}
-                      {paymentIncomplete ? "unpaid" : "recorded"}
+                      {formatMoneyPaise(
+                        order.order_type === "sample_purchase"
+                          ? order.estimated_total_paise
+                          : order.reservation_amount_paise,
+                      )} · {paymentIncomplete ? "unpaid" : "recorded"}
                     </p>
                   </div>
                 </div>
@@ -200,8 +226,7 @@ export default async function AccountOrdersPage({
           />
           <h3 className="mt-4 font-semibold">No matching orders</h3>
           <p className="mx-auto mt-2 max-w-md text-sm text-black/45">
-            Submitted custom orders appear here immediately, before payment
-            begins.
+            Submitted custom and catalogue sample orders appear here immediately, before payment begins.
           </p>
         </div>
       )}

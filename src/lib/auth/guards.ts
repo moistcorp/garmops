@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { safeInternalPath } from "@/lib/auth/redirects";
 import type { StaffRole } from "@/lib/auth/constants";
+import type { StaffPermission } from "@/lib/staff/permissions";
 
 export async function requireUser(next = "/account") {
   const supabase = await createClient();
@@ -92,7 +93,7 @@ export async function requireStaffMfa() {
   return context;
 }
 
-export async function requireStaffPermission(permission: string) {
+export async function requireStaffPermission(permission: StaffPermission) {
   const context = await requireStaffMfa();
   const { data, error } = await context.supabase.rpc("staff_has_permission", {
     p_permission_name: permission,

@@ -72,9 +72,10 @@ describe("custom order submission schema", () => {
     ).toBe(false);
   });
 
-  it("accepts only durable custom order numbers", () => {
+  it("accepts durable custom and sample order numbers", () => {
     expect(orderNumberSchema.safeParse("GAR-2026-000184").success).toBe(true);
-    expect(orderNumberSchema.safeParse("SAM-2026-000184").success).toBe(false);
+    expect(orderNumberSchema.safeParse("SAM-2026-000184").success).toBe(true);
+    expect(orderNumberSchema.safeParse("ORD-2026-000184").success).toBe(false);
     expect(orderNumberSchema.safeParse("../GAR-2026-000184").success).toBe(
       false,
     );

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isFeatureEnabled } from "@/lib/config/featureFlags";
 import {
   PAYMENT_RESULT_COOKIE,
   createPaymentResultCookie,
@@ -77,6 +78,16 @@ export async function POST(request: NextRequest) {
     };
 
     const payment = decodePaymentToken(fields.udf1);
+    if (payment?.kind === "sample-cart" && isFeatureEnabled("DURABLE_SAMPLE_CHECKOUT_ENABLED")) {
+      return NextResponse.redirect(
+        redirectUrl(request, "/payment/failure", {
+          txnid: fields.txnid,
+          error: "Legacy sample payment is disabled. Open the saved order from your account.",
+        }),
+        303,
+      );
+    }
+
     const authentic =
       payment !== null &&
       payment.txnid === fields.txnid &&
@@ -130,6 +141,16 @@ export async function GET(request: NextRequest) {
         error: "Invalid mock payment",
       }),
       303
+    );
+  }
+
+  if (payment.kind === "sample-cart" && isFeatureEnabled("DURABLE_SAMPLE_CHECKOUT_ENABLED")) {
+    return NextResponse.redirect(
+      redirectUrl(request, "/payment/failure", {
+        txnid: payment.txnid,
+        error: "Legacy sample payment is disabled. Open the saved order from your account.",
+      }),
+      303,
     );
   }
 

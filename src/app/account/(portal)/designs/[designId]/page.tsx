@@ -19,6 +19,8 @@ import { getProduct } from "@/lib/configurator/products";
 import { getCloudDesign } from "@/lib/designs/dal";
 import { cloudDesignSnapshotSchema } from "@/lib/designs/schema";
 
+export const dynamic = "force-dynamic";
+
 function formatTimestamp(value: string): string {
   return new Intl.DateTimeFormat("en-IN", {
     dateStyle: "medium",

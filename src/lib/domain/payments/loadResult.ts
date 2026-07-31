@@ -10,7 +10,7 @@ export async function loadDurablePaymentResult(
   const { data, error } = await admin
     .from("payment_attempts")
     .select(
-      "id, amount_paise, status, order_id, orders!inner(order_number, submitted_at)",
+      "id, amount_paise, status, order_id, orders!inner(order_number, order_type, submitted_at)",
     )
     .eq("id", attemptId)
     .maybeSingle();
@@ -18,6 +18,7 @@ export async function loadDurablePaymentResult(
 
   const order = data.orders as unknown as {
     order_number: string;
+    order_type: string;
     submitted_at: string;
   };
   if (order.order_number !== orderNumber) return null;
@@ -32,6 +33,7 @@ export async function loadDurablePaymentResult(
 
   return {
     orderNumber,
+    orderType: order.order_type,
     submittedAt: order.submitted_at,
     amountPaise: data.amount_paise,
     paymentStatus: data.status,

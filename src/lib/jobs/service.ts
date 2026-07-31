@@ -88,7 +88,7 @@ async function sendPaymentConfirmation(job: IntegrationJob): Promise<void> {
   const admin = createAdminClient();
   const { data: attempt, error } = await admin
     .from("payment_attempts")
-    .select("id, status, amount_paise, customer_email, customer_name, orders!inner(order_number, customer_user_id, organization_id)")
+    .select("id, status, amount_paise, customer_email, customer_name, purpose, orders!inner(order_number, order_type, customer_user_id, organization_id)")
     .eq("id", paymentAttemptId)
     .single();
   if (error || !attempt) throw new Error(error?.message ?? "Payment attempt not found");
@@ -97,9 +97,11 @@ async function sendPaymentConfirmation(job: IntegrationJob): Promise<void> {
   }
   const order = attempt.orders as unknown as {
     order_number: string;
+    order_type: string;
     customer_user_id: string;
     organization_id: string;
   };
+  const sampleOrder = order.order_type === "sample_purchase" || attempt.purpose === "sample_full";
   const { data: invoice } = await admin
     .from("invoices")
     .select("sync_status, document_number")
@@ -113,8 +115,10 @@ async function sendPaymentConfirmation(job: IntegrationJob): Promise<void> {
   const safeName = escapeHtml(attempt.customer_name);
   const safeOrder = escapeHtml(order.order_number);
   const invoiceMessage = invoice?.document_number
-    ? `Your official reservation document <strong>${escapeHtml(invoice.document_number)}</strong> is available in your account.`
-    : "Your official reservation document is being generated and will appear in your account shortly.";
+    ? `Your official ${sampleOrder ? "sample tax" : "reservation"} document <strong>${escapeHtml(invoice.document_number)}</strong> is available in your account.`
+    : sampleOrder && invoice?.sync_status === "not_required"
+      ? "Your sample payment is recorded. Automatic sample tax invoicing is not enabled yet; Garmops finance can issue the required document separately."
+      : `Your official ${sampleOrder ? "sample tax" : "reservation"} document is being generated and will appear in your account shortly.`;
 
   await sendResendEmail({
     to: attempt.customer_email,
@@ -122,9 +126,9 @@ async function sendPaymentConfirmation(job: IntegrationJob): Promise<void> {
     idempotencyKey: `garmops-payment-confirmation-${attempt.id}`,
     html: `
       <div style="font-family:Arial,sans-serif;max-width:620px;margin:0 auto;color:#111827">
-        <h1 style="font-size:24px">Reservation payment confirmed</h1>
+        <h1 style="font-size:24px">${sampleOrder ? "Sample payment" : "Reservation payment"} confirmed</h1>
         <p>Hi ${safeName},</p>
-        <p>We verified your ${amount} reservation payment for order <strong>${safeOrder}</strong>.</p>
+        <p>We verified your ${amount} ${sampleOrder ? "full sample" : "reservation"} payment for order <strong>${safeOrder}</strong>.</p>
         <p>${invoiceMessage}</p>
         <p><a href="${escapeHtml(new URL(`/account/orders/${encodeURIComponent(order.order_number)}`, getServerEnvironment().NEXT_PUBLIC_APP_URL).toString())}">View your order</a></p>
         <p style="font-size:12px;color:#6b7280">This email is generated from the verified PayU payment record. Do not reply with payment credentials.</p>
@@ -154,7 +158,8 @@ function retryableFrom(error: unknown): boolean {
 async function handleJob(job: IntegrationJob): Promise<void> {
   if (job.job_type === "create_reservation_invoice") {
     try {
-      await (createAdminClient().from("invoices") as any)
+      await createAdminClient()
+        .from("invoices")
         .update({ attempt_count: job.attempt_count })
         .eq("id", job.aggregate_id);
       await createReservationInvoice(job.aggregate_id);

@@ -41,9 +41,9 @@ export function grossPaiseToExclusiveRatePaise(
   if (!Number.isSafeInteger(taxBasisPoints) || taxBasisPoints < 0 || taxBasisPoints > 100_000) {
     throw new Error("Invalid tax basis points");
   }
-  const denominator = 10_000n + BigInt(taxBasisPoints);
-  const numerator = BigInt(grossPaise) * 10_000n;
-  const rounded = (numerator + denominator / 2n) / denominator;
+  const denominator = BigInt(10_000) + BigInt(taxBasisPoints);
+  const numerator = BigInt(grossPaise) * BigInt(10_000);
+  const rounded = (numerator + denominator / BigInt(2)) / denominator;
   const result = Number(rounded);
   if (!Number.isSafeInteger(result)) throw new Error("Exclusive rate exceeds safe range");
   return result;

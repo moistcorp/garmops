@@ -15,6 +15,20 @@ import { requireStaffPermission } from "@/lib/auth/guards";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getServerEnvironment } from "@/lib/config/env";
+import {
+  staffActionError,
+  staffActionSuccess,
+  type StaffActionState,
+} from "@/lib/staff/actionState";
+import {
+  assignmentSchema,
+  commentSchema,
+  expectedDatesSchema,
+  fileVisibilitySchema,
+  prioritySchema,
+  resolveActionSchema,
+  statusTransitionSchema,
+} from "@/lib/staff/schema";
 
 const inviteSchema = z.object({
   firstName: z.string().trim().min(1).max(80),
@@ -170,4 +184,251 @@ export async function retryInvoiceAction(formData: FormData) {
     return;
   }
   revalidatePath("/staff/invoices");
+}
+
+type StaffRpc = (
+  name: string,
+  args: Record<string, unknown>,
+) => Promise<{ data: unknown; error: { message: string } | null }>;
+
+function staffRpc(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  name: string,
+  args: Record<string, unknown>,
+) {
+  return (supabase.rpc as unknown as StaffRpc)(name, args);
+}
+
+function mutationErrorMessage(message: string) {
+  const known: Record<string, string> = {
+    STAFF_PERMISSION_DENIED: "You do not have permission to make this change.",
+    STATUS_ROLE_DENIED: "Your staff role cannot move the order to that stage.",
+    INVALID_STATUS_TRANSITION: "That status change is not allowed from the current stage.",
+    VERIFIED_PAYMENT_REQUIRED: "A verified payment is required before this stage.",
+    APPROVAL_DOCUMENT_REQUIRED: "Upload and request the approval document before this stage.",
+    APPROVED_ARTWORK_REQUIRED: "The current artwork version must be approved first.",
+    SHIPMENT_REQUIRED: "Add shipment or carrier details before dispatching the order.",
+    HIGH_IMPACT_PERMISSION_REQUIRED: "This high-impact change requires operations-admin approval.",
+    CANCELLATION_REASON_REQUIRED: "A reason is required to cancel an order already in production.",
+    REASSIGNMENT_REASON_REQUIRED: "A reassignment reason is required for priority orders.",
+    ASSIGNEE_NOT_ACTIVE: "Select an active staff member.",
+    PRIORITY_REASON_REQUIRED: "A reason is required for high or urgent priority.",
+    EXPECTED_DATE_SEQUENCE_INVALID: "Expected dates must follow approval, production, QC, then dispatch order.",
+    EXPECTED_DATE_BEFORE_ORDER: "Expected dates cannot be earlier than the order date.",
+    ACTION_REQUEST_MUST_BE_CUSTOMER_VISIBLE: "Action requests must be customer-visible.",
+    FILE_NOT_CLEARED_FOR_CUSTOMER: "This file cannot be shared until its safety review is complete.",
+    VISIBILITY_REASON_REQUIRED: "Explain why the file visibility is changing.",
+    PRIVATE_ORDER_FILE_CANNOT_BE_PUBLIC: "Private order files cannot be made permanently public.",
+  };
+  const code = Object.keys(known).find((entry) => message.includes(entry));
+  return code ? known[code] : "The operation could not be completed. Refresh and try again.";
+}
+
+function revalidateStaffOrder(orderNumber: string) {
+  revalidatePath("/staff");
+  revalidatePath("/staff/orders");
+  revalidatePath(`/staff/orders/${orderNumber}`);
+  revalidatePath(`/account/orders/${orderNumber}`);
+}
+
+export async function transitionOrderAction(
+  _state: StaffActionState,
+  formData: FormData,
+): Promise<StaffActionState> {
+  const context = await requireStaffPermission("change_order_status");
+  const parsed = statusTransitionSchema.safeParse({
+    orderId: formData.get("orderId"),
+    orderNumber: formData.get("orderNumber"),
+    toStatus: formData.get("toStatus"),
+    customerMessage: formData.get("customerMessage") || undefined,
+    internalNote: formData.get("internalNote") || undefined,
+    reason: formData.get("reason") || undefined,
+  });
+  if (!parsed.success) return staffActionError("Check the status update fields.");
+
+  const { error } = await staffRpc(context.supabase, "staff_transition_order", {
+    p_order_id: parsed.data.orderId,
+    p_to_status: parsed.data.toStatus,
+    p_customer_message: parsed.data.customerMessage ?? null,
+    p_internal_note: parsed.data.internalNote ?? null,
+    p_reason: parsed.data.reason ?? null,
+  });
+  if (error) return staffActionError(mutationErrorMessage(error.message));
+
+  revalidateStaffOrder(parsed.data.orderNumber);
+  return staffActionSuccess("Order status updated.");
+}
+
+export async function assignOrderAction(
+  _state: StaffActionState,
+  formData: FormData,
+): Promise<StaffActionState> {
+  const context = await requireStaffPermission("assign_order");
+  const parsed = assignmentSchema.safeParse({
+    orderId: formData.get("orderId"),
+    orderNumber: formData.get("orderNumber"),
+    assignedStaffUserId: formData.get("assignedStaffUserId") ?? "",
+    assignedTeam: formData.get("assignedTeam") || undefined,
+    reason: formData.get("reason") || undefined,
+  });
+  if (!parsed.success) return staffActionError("Check the assignment details.");
+
+  const { error } = await staffRpc(context.supabase, "staff_assign_order", {
+    p_order_id: parsed.data.orderId,
+    p_assigned_staff_user_id: parsed.data.assignedStaffUserId || null,
+    p_assigned_team: parsed.data.assignedTeam ?? null,
+    p_reason: parsed.data.reason ?? null,
+  });
+  if (error) return staffActionError(mutationErrorMessage(error.message));
+
+  revalidateStaffOrder(parsed.data.orderNumber);
+  return staffActionSuccess("Assignment updated.");
+}
+
+export async function setOrderPriorityAction(
+  _state: StaffActionState,
+  formData: FormData,
+): Promise<StaffActionState> {
+  const context = await requireStaffPermission("set_order_priority");
+  const parsed = prioritySchema.safeParse({
+    orderId: formData.get("orderId"),
+    orderNumber: formData.get("orderNumber"),
+    priority: formData.get("priority"),
+    reason: formData.get("reason") || undefined,
+  });
+  if (!parsed.success) return staffActionError("Check the priority details.");
+
+  const { error } = await staffRpc(context.supabase, "staff_set_order_priority", {
+    p_order_id: parsed.data.orderId,
+    p_priority: parsed.data.priority,
+    p_reason: parsed.data.reason ?? null,
+  });
+  if (error) return staffActionError(mutationErrorMessage(error.message));
+
+  revalidateStaffOrder(parsed.data.orderNumber);
+  return staffActionSuccess("Priority updated.");
+}
+
+function formDate(value: FormDataEntryValue | null) {
+  if (typeof value !== "string" || value.trim() === "") return "";
+  const trimmed = value.trim();
+  const indiaLocal = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(trimmed)
+    ? `${trimmed}:00+05:30`
+    : trimmed;
+  const parsed = new Date(indiaLocal);
+  return Number.isNaN(parsed.getTime()) ? value : parsed.toISOString();
+}
+
+export async function setOrderDatesAction(
+  _state: StaffActionState,
+  formData: FormData,
+): Promise<StaffActionState> {
+  const context = await requireStaffPermission("set_expected_dates");
+  const parsed = expectedDatesSchema.safeParse({
+    orderId: formData.get("orderId"),
+    orderNumber: formData.get("orderNumber"),
+    expectedApprovalAt: formDate(formData.get("expectedApprovalAt")),
+    expectedProductionAt: formDate(formData.get("expectedProductionAt")),
+    expectedQcAt: formDate(formData.get("expectedQcAt")),
+    estimatedDispatchAt: formDate(formData.get("estimatedDispatchAt")),
+  });
+  if (!parsed.success) return staffActionError("Check the expected dates.");
+
+  const { error } = await staffRpc(context.supabase, "staff_set_order_dates", {
+    p_order_id: parsed.data.orderId,
+    p_expected_approval_at: parsed.data.expectedApprovalAt || null,
+    p_expected_production_at: parsed.data.expectedProductionAt || null,
+    p_expected_qc_at: parsed.data.expectedQcAt || null,
+    p_estimated_dispatch_at: parsed.data.estimatedDispatchAt || null,
+  });
+  if (error) return staffActionError(mutationErrorMessage(error.message));
+
+  revalidateStaffOrder(parsed.data.orderNumber);
+  return staffActionSuccess("Expected dates updated.");
+}
+
+export async function addOrderCommentAction(
+  _state: StaffActionState,
+  formData: FormData,
+): Promise<StaffActionState> {
+  const visibility = formData.get("visibility");
+  const context = await requireStaffPermission(
+    visibility === "staff_only" ? "add_internal_note" : "send_customer_update",
+  );
+  const parsed = commentSchema.safeParse({
+    orderId: formData.get("orderId"),
+    orderNumber: formData.get("orderNumber"),
+    visibility,
+    body: formData.get("body"),
+    actionRequired: formData.get("actionRequired") === "on",
+    actionType: formData.get("actionType") || undefined,
+  });
+  if (!parsed.success) return staffActionError("Write a valid note or customer update.");
+
+  const { error } = await staffRpc(context.supabase, "staff_add_order_comment", {
+    p_order_id: parsed.data.orderId,
+    p_visibility: parsed.data.visibility,
+    p_body: parsed.data.body,
+    p_action_required: parsed.data.actionRequired,
+    p_action_type: parsed.data.actionType ?? null,
+  });
+  if (error) return staffActionError(mutationErrorMessage(error.message));
+
+  revalidateStaffOrder(parsed.data.orderNumber);
+  return staffActionSuccess(
+    parsed.data.visibility === "customer"
+      ? "Customer update published."
+      : "Internal note added.",
+  );
+}
+
+export async function resolveOrderActionRequestAction(
+  _state: StaffActionState,
+  formData: FormData,
+): Promise<StaffActionState> {
+  const context = await requireStaffPermission("manage_action_requests");
+  const parsed = resolveActionSchema.safeParse({
+    commentId: formData.get("commentId"),
+    orderNumber: formData.get("orderNumber"),
+    resolutionNote: formData.get("resolutionNote") || undefined,
+  });
+  if (!parsed.success) return staffActionError("Check the action request.");
+
+  const { error } = await staffRpc(context.supabase, "staff_resolve_order_action", {
+    p_comment_id: parsed.data.commentId,
+    p_resolution_note: parsed.data.resolutionNote ?? null,
+  });
+  if (error) return staffActionError(mutationErrorMessage(error.message));
+
+  revalidateStaffOrder(parsed.data.orderNumber);
+  return staffActionSuccess("Action request resolved.");
+}
+
+export async function changeOrderFileVisibilityAction(
+  _state: StaffActionState,
+  formData: FormData,
+): Promise<StaffActionState> {
+  const context = await requireStaffPermission("change_file_visibility");
+  const parsed = fileVisibilitySchema.safeParse({
+    fileId: formData.get("fileId"),
+    orderNumber: formData.get("orderNumber"),
+    visibility: formData.get("visibility"),
+    reason: formData.get("reason"),
+  });
+  if (!parsed.success) return staffActionError("Check the file visibility change.");
+
+  const { error } = await staffRpc(
+    context.supabase,
+    "staff_change_order_file_visibility",
+    {
+      p_file_id: parsed.data.fileId,
+      p_visibility: parsed.data.visibility,
+      p_reason: parsed.data.reason,
+    },
+  );
+  if (error) return staffActionError(mutationErrorMessage(error.message));
+
+  revalidateStaffOrder(parsed.data.orderNumber);
+  revalidatePath("/staff/files");
+  return staffActionSuccess("File visibility updated.");
 }

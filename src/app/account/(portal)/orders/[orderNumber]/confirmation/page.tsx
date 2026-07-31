@@ -18,16 +18,21 @@ import {
 } from "@/lib/orders/format";
 import { orderNumberSchema } from "@/lib/orders/schema";
 
+export const dynamic = "force-dynamic";
+
 export default async function OrderConfirmationPage({
   params,
 }: {
   params: Promise<{ orderNumber: string }>;
 }) {
-  if (!isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED")) {
+  if (
+    !isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED") &&
+    !isFeatureEnabled("DURABLE_SAMPLE_CHECKOUT_ENABLED")
+  ) {
     return (
       <PortalPlaceholder
         title="Confirmation unavailable"
-        description="Durable custom ordering is disabled for this environment."
+        description="Durable ordering is disabled for this environment."
       />
     );
   }
@@ -55,6 +60,18 @@ export default async function OrderConfirmationPage({
   }
   if (result.order.error || !result.order.data) notFound();
   const order = result.order.data;
+  const sampleOrder = order.order_type === "sample_purchase";
+  const orderFlowEnabled = sampleOrder
+    ? isFeatureEnabled("DURABLE_SAMPLE_CHECKOUT_ENABLED")
+    : isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED");
+  if (!orderFlowEnabled) {
+    return (
+      <PortalPlaceholder
+        title="Confirmation unavailable"
+        description="This order type is disabled for this environment."
+      />
+    );
+  }
   const latestPayment = result.payments[0];
 
   return (
@@ -89,8 +106,12 @@ export default async function OrderConfirmationPage({
             },
             {
               icon: ShieldCheck,
-              label: "Due now",
-              value: formatMoneyPaise(order.reservation_amount_paise),
+              label: sampleOrder ? "Full amount due" : "Due now",
+              value: formatMoneyPaise(
+                sampleOrder
+                  ? order.estimated_total_paise
+                  : order.reservation_amount_paise,
+              ),
             },
           ].map((item) => (
             <div
@@ -113,7 +134,7 @@ export default async function OrderConfirmationPage({
 
       <section className="liquid-glass-panel rounded-3xl border p-6 sm:p-8">
         <h3 className="text-lg font-semibold">
-          Continue with the reservation payment
+          {sampleOrder ? "Continue with the full sample payment" : "Continue with the reservation payment"}
         </h3>
         <p className="mt-2 text-sm leading-relaxed text-black/50">
           Payment attempts belong to this order. Retrying never changes the
@@ -127,6 +148,7 @@ export default async function OrderConfirmationPage({
               initialAttemptNumber={latestPayment.attempt_number}
               initialPaymentAttemptId={latestPayment.id}
               initialPaymentStatus={latestPayment.status}
+              paymentPurpose={latestPayment.purpose as "reservation" | "sample_full"}
               confirmation
             />
           ) : latestPayment?.status === "pending" ? (
@@ -136,7 +158,7 @@ export default async function OrderConfirmationPage({
             </p>
           ) : latestPayment?.status === "paid" ? (
             <p className="text-sm leading-relaxed text-emerald-700">
-              The reservation payment has been verified. Open the order to see
+              {sampleOrder ? "The sample payment" : "The reservation payment"} has been verified. Open the order to see
               its current status.
             </p>
           ) : (

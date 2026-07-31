@@ -3,6 +3,7 @@ import crypto from 'crypto'
 import { products } from '@/lib/products'
 import { createPaymentToken, type PaymentKind } from '@/lib/payu'
 import { RESERVATION_PRODUCT_INFO } from '@/lib/configurator/reservation'
+import { isFeatureEnabled } from '@/lib/config/featureFlags'
 
 const RESERVATION_AMOUNT = '499.00'
 const MAX_ITEM_QUANTITY = 100
@@ -51,6 +52,13 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const { txnid, amount, productinfo, firstname, email, items } = body
+
+    if (Array.isArray(items) && isFeatureEnabled('DURABLE_SAMPLE_CHECKOUT_ENABLED')) {
+      return NextResponse.json(
+        { error: 'Legacy sample checkout is disabled. Submit a durable sample order instead.' },
+        { status: 410 },
+      )
+    }
 
     if (
       typeof txnid !== 'string' ||

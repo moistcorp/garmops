@@ -4,6 +4,8 @@ import { z } from "zod";
 import {
   authenticateOrderApi,
   durableCustomOrdersAvailable,
+  durableOrdersAvailable,
+  durableSampleOrdersAvailable,
   hasExpectedOrderOrigin,
   orderJson,
   orderJsonError,
@@ -19,6 +21,7 @@ const schema = z.object({ paymentAttemptId: z.string().uuid() }).strict();
 
 type AttemptOrder = {
   organization_id: string;
+  order_type: string;
   status: string;
   expires_at: string | null;
   customer_snapshot: unknown;
@@ -33,7 +36,7 @@ function customerPhone(snapshot: unknown): string {
 }
 
 export async function POST(request: NextRequest) {
-  if (!durableCustomOrdersAvailable()) {
+  if (!durableOrdersAvailable()) {
     return orderJsonError("Durable checkout is unavailable", 503);
   }
   if (!hasExpectedOrderOrigin(request)) {
@@ -55,7 +58,7 @@ export async function POST(request: NextRequest) {
   const { data: attempt, error } = await admin
     .from("payment_attempts")
     .select(
-      "id, order_id, status, amount_paise, currency, provider_merchant_txn_id, expected_product_info, customer_email, customer_name, orders!inner(organization_id, status, expires_at, customer_snapshot)",
+      "id, order_id, status, amount_paise, currency, provider_merchant_txn_id, expected_product_info, customer_email, customer_name, orders!inner(organization_id, order_type, status, expires_at, customer_snapshot)",
     )
     .eq("id", parsed.data.paymentAttemptId)
     .maybeSingle();
@@ -64,6 +67,14 @@ export async function POST(request: NextRequest) {
   }
 
   const order = attempt.orders as unknown as AttemptOrder;
+  const flowEnabled =
+    order.order_type === "sample_purchase"
+      ? durableSampleOrdersAvailable()
+      : durableCustomOrdersAvailable();
+  if (!flowEnabled) {
+    return orderJsonError("This checkout flow is unavailable", 503);
+  }
+
   const { data: membership } = await auth.supabase
     .from("organization_members")
     .select("role")

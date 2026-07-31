@@ -390,7 +390,7 @@ const serverEnvironmentSchema = z
 
     if (environment.ZOHO_INVOICE_API_BASE_URL) {
       const api = new URL(environment.ZOHO_INVOICE_API_BASE_URL);
-      const officialApiHosts = new Set(Object.values(ZOHO_DATA_CENTRE_HOSTS));
+      const officialApiHosts = new Set<string>(Object.values(ZOHO_DATA_CENTRE_HOSTS));
       if (
         api.protocol !== "https:" ||
         !officialApiHosts.has(api.hostname) ||

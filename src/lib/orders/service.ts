@@ -282,7 +282,7 @@ export async function submitCustomOrder(input: {
   };
 }
 
-export async function retryCustomOrderPayment(input: {
+export async function retryOrderPayment(input: {
   orderId: string;
   userId: string;
   idempotencyKey: string;
@@ -304,3 +304,5 @@ export async function retryCustomOrderPayment(input: {
   }
   return result;
 }
+
+export const retryCustomOrderPayment = retryOrderPayment;

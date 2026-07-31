@@ -118,7 +118,7 @@ export const retryOrderPaymentRequestSchema = z
 
 export const orderNumberSchema = z
   .string()
-  .regex(/^GAR-[0-9]{4}-[0-9]{6}$/);
+  .regex(/^(?:GAR|SAM)-[0-9]{4}-[0-9]{6}$/);
 
 export const orderListFilterSchema = z.enum([
   "all",
