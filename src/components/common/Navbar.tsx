@@ -96,15 +96,13 @@ export default function Navbar() {
   const closeMenu = () => setOpenPathname(null)
 
   return (
-    <header className="sticky top-0 z-50 w-full px-2.5 pb-2.5 pt-[max(0.625rem,env(safe-area-inset-top))] sm:px-4 sm:pb-3 sm:pt-4">
-      <div
-        className={`liquid-glass-nav relative z-50 mx-auto max-w-7xl rounded-full border transition-all duration-200 ${
-          scrolled
-            ? 'liquid-glass-nav-scrolled'
-            : ''
-        }`}
-      >
-        <div className="flex min-h-12 items-center justify-between gap-3 px-4 py-2 sm:gap-4 sm:px-6 sm:py-3">
+    <header
+      className={`sticky top-0 z-50 w-full border-b bg-[var(--color-cream)] transition-colors duration-200 ${
+        scrolled ? 'border-[rgba(22,33,43,0.36)]' : 'border-[var(--color-rule)]'
+      }`}
+    >
+      <div className="relative z-50 mx-auto max-w-7xl">
+        <div className="flex min-h-14 items-center justify-between gap-3 px-4 py-2 sm:gap-4 sm:px-6 sm:py-3">
           <Link href="/" className="flex min-w-0 shrink items-center" aria-label="Garmops home">
             <Image
               src="/logo3.png"
@@ -124,10 +122,10 @@ export default function Navbar() {
                   key={link.href}
                   href={link.href}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`text-xs tracking-wide transition-colors ${
+                  className={`inline-flex min-h-10 items-center border-b-2 font-mono text-[11px] uppercase tracking-[0.06em] transition-colors ${
                     isActive
-                      ? 'font-semibold text-[var(--color-teal)]'
-                      : 'text-[#444444] hover:text-[var(--color-teal)]'
+                      ? 'border-[var(--color-accent)] text-[var(--color-navy)]'
+                      : 'border-transparent text-[#444444] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]'
                   }`}
                 >
                   {link.label}
@@ -140,43 +138,33 @@ export default function Navbar() {
             {accountsEnabled && (
               <Link
                 href="/login"
-                className="text-xs text-[#444444] transition-colors hover:text-[var(--color-teal)]"
+                className="font-mono text-[11px] uppercase tracking-[0.06em] text-[#444444] transition-colors hover:text-[var(--color-accent)]"
               >
                 Account
               </Link>
             )}
             <Link
               href="/cart"
-              className="relative text-xs text-[#444444] transition-colors hover:text-[var(--color-teal)]"
-            >
-              Cart
-              {itemCount > 0 && (
-                <span className="absolute -right-3 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--color-teal)] px-1 text-[10px] leading-none text-white">
-                  {itemCount > 99 ? '99+' : itemCount}
-                </span>
-              )}
+                className="font-mono text-[11px] uppercase tracking-[0.06em] text-[#444444] transition-colors hover:text-[var(--color-accent)]"
+              >
+              CART{itemCount > 0 ? ` · ${itemCount > 99 ? '99+' : itemCount}` : ''}
             </Link>
             <Link
               href="/configurator"
-              className="rounded-full bg-[var(--color-teal)] px-5 py-2.5 text-xs tracking-wide text-white transition-colors hover:bg-[var(--color-teal-dark)]"
+              className="rounded-[4px] bg-[var(--color-accent)] px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.06em] text-[var(--color-cream)] transition-colors hover:bg-[var(--color-accent-dark)]"
             >
-              Start designing
+              START DESIGNING
             </Link>
           </div>
 
           <div className="flex shrink-0 items-center gap-2.5 min-[360px]:gap-4 lg:hidden">
-            <Link href="/cart" className="relative flex min-h-11 items-center text-sm text-[#111111]/60">
-              Cart
-              {itemCount > 0 && (
-                <span className="absolute -right-3 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--color-teal)] px-1 text-[10px] leading-none text-white">
-                  {itemCount > 99 ? '99+' : itemCount}
-                </span>
-              )}
+            <Link href="/cart" className="flex min-h-11 items-center font-mono text-[11px] uppercase tracking-[0.06em] text-[#111111]/60">
+              CART{itemCount > 0 ? ` · ${itemCount > 99 ? '99+' : itemCount}` : ''}
             </Link>
             <button
               ref={menuButtonRef}
               type="button"
-              className="relative flex h-11 w-11 items-center justify-center rounded-full text-[#111111] transition-colors hover:bg-black/5"
+              className="relative flex h-11 w-11 items-center justify-center rounded-[4px] border border-transparent text-[#111111] transition-colors hover:border-[var(--color-rule)] hover:bg-[var(--color-cream-soft)]"
               onClick={() => setOpenPathname(open ? null : pathname)}
               aria-label={open ? 'Close menu' : 'Open menu'}
               aria-expanded={open}
@@ -213,7 +201,7 @@ export default function Navbar() {
           aria-label="Close menu"
           tabIndex={-1}
           onClick={closeMenu}
-          className={`absolute inset-0 bg-[#111111]/20 backdrop-blur-sm transition-opacity duration-200 ${
+          className={`absolute inset-0 bg-[#16212B]/20 transition-opacity duration-200 ${
             open ? 'opacity-100' : 'opacity-0'
           }`}
         />
@@ -222,7 +210,7 @@ export default function Navbar() {
           ref={mobileNavRef}
           id="mobile-navigation"
           aria-label="Mobile navigation"
-          className={`liquid-glass-nav absolute inset-x-2.5 top-[calc(max(0.625rem,env(safe-area-inset-top))+3.75rem)] max-h-[calc(100dvh-5.25rem-env(safe-area-inset-bottom))] overflow-y-auto rounded-[26px] border px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 transition-all duration-200 sm:inset-x-4 sm:rounded-[28px] sm:px-5 sm:pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pt-4 ${
+          className={`absolute inset-x-0 top-14 max-h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom))] overflow-y-auto border-b border-[var(--color-rule)] bg-[var(--color-cream)] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 transition-all duration-200 sm:px-5 sm:pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pt-4 ${
             open ? 'translate-y-0 opacity-100' : '-translate-y-3 opacity-0'
           }`}
         >
@@ -237,8 +225,8 @@ export default function Navbar() {
                   tabIndex={open ? 0 : -1}
                   aria-current={isActive ? 'page' : undefined}
                   onClick={closeMenu}
-                  className={`border-b border-white/60 px-1 py-3.5 text-base leading-none transition-colors sm:py-4 sm:text-[17px] ${
-                    isActive ? 'font-semibold text-[var(--color-teal)]' : 'text-[#111111]/65'
+                  className={`border-b-2 px-1 py-3.5 font-mono text-[11px] uppercase tracking-[0.06em] leading-none transition-colors sm:py-4 sm:text-xs ${
+                    isActive ? 'border-[var(--color-accent)] text-[var(--color-navy)]' : 'border-transparent text-[#111111]/65'
                   }`}
                 >
                   {link.label}
@@ -247,10 +235,10 @@ export default function Navbar() {
             })}
           </div>
 
-          <div className="mt-5 grid gap-5 border-t border-white/70 pt-5 sm:grid-cols-2">
+          <div className="mt-5 grid gap-5 border-t border-[var(--color-rule)] pt-5 sm:grid-cols-2">
             {mobileGroups.map(group => (
               <div key={group.label}>
-                <p className="px-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#111111]/40">
+                <p className="px-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#111111]/40">
                   {group.label}
                 </p>
                 <div className="mt-2 flex flex-col">
@@ -260,7 +248,7 @@ export default function Navbar() {
                       href={link.href}
                       tabIndex={open ? 0 : -1}
                       onClick={closeMenu}
-                      className="px-1 py-2.5 text-sm text-[#111111]/65 transition-colors hover:text-[var(--color-teal)]"
+                      className="px-1 py-2.5 text-sm text-[#111111]/65 transition-colors hover:text-[var(--color-accent)]"
                     >
                       {link.label}
                     </Link>
@@ -274,16 +262,16 @@ export default function Navbar() {
             href="/configurator"
             tabIndex={open ? 0 : -1}
             onClick={closeMenu}
-            className="mt-5 block rounded-full bg-[var(--color-teal)] px-5 py-3.5 text-center text-base font-medium text-white transition-colors hover:bg-[var(--color-teal-dark)]"
+            className="mt-5 block rounded-[4px] bg-[var(--color-accent)] px-5 py-3.5 text-center font-mono text-[11px] uppercase tracking-[0.06em] text-[var(--color-cream)] transition-colors hover:bg-[var(--color-accent-dark)]"
           >
-            Start designing
+            START DESIGNING
           </Link>
           {accountsEnabled && (
             <Link
               href="/login"
               tabIndex={open ? 0 : -1}
               onClick={closeMenu}
-              className="mt-2 block rounded-full border border-black/10 px-5 py-3 text-center text-sm font-medium text-[#111111]/70"
+              className="mt-2 block rounded-[4px] border border-[var(--color-rule)] px-5 py-3 text-center font-mono text-[11px] uppercase tracking-[0.06em] text-[#111111]/70"
             >
               Customer account
             </Link>
@@ -304,7 +292,7 @@ export default function Navbar() {
               window.dispatchEvent(new CustomEvent('garmops:analytics', { detail: payload }))
               closeMenu()
             }}
-            className="mt-2 block rounded-full border border-[var(--color-teal)]/35 px-5 py-3 text-center text-sm font-medium text-[var(--color-teal-dark)]"
+            className="mt-2 block rounded-[4px] border border-[var(--color-accent)] px-5 py-3 text-center font-mono text-[11px] uppercase tracking-[0.06em] text-[var(--color-accent-dark)]"
           >
             Chat on WhatsApp
           </a>
