@@ -53,7 +53,7 @@ function Stepper({ label, value, onChange, min, max = MAX_DIM, tooltip, disabled
         )}
       </div>
       <div
-        className={`configurator-glass-control flex items-center rounded-[4px] border ${
+        className={`techpack-control flex items-center rounded-[4px] border ${
           disabled ? "opacity-50" : ""
         }`}
       >
@@ -172,7 +172,7 @@ export function PositionControls({
               className={`rounded-[4px] border p-1.5 ${
                 state.alignH === value
                   ? "border-neutral-900 bg-neutral-900 text-white"
-                  : "configurator-glass-control border text-neutral-500 hover:!bg-white/60 hover:text-neutral-900"
+                  : "techpack-control border text-neutral-500 hover:!bg-white/60 hover:text-neutral-900"
               }`}
             >
               <Icon className="h-4 w-4" />
@@ -189,7 +189,7 @@ export function PositionControls({
               className={`rounded-[4px] border p-1.5 ${
                 state.alignV === value
                   ? "border-neutral-900 bg-neutral-900 text-white"
-                  : "configurator-glass-control border text-neutral-500 hover:!bg-white/60 hover:text-neutral-900"
+                  : "techpack-control border text-neutral-500 hover:!bg-white/60 hover:text-neutral-900"
               }`}
             >
               <Icon className="h-4 w-4" />
@@ -214,7 +214,7 @@ export function PositionControls({
           className={`mb-1 rounded-[4px] border p-1.5 ${
             state.aspectLocked
               ? "border-neutral-900 bg-neutral-900 text-white"
-              : "configurator-glass-control border text-neutral-500 hover:!bg-white/60 hover:text-neutral-900"
+              : "techpack-control border text-neutral-500 hover:!bg-white/60 hover:text-neutral-900"
           }`}
         >
           {state.aspectLocked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}

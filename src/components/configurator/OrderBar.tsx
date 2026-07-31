@@ -110,7 +110,7 @@ function VolumeDiscountProgress({ quantity }: { quantity: number }) {
         : "Volume pricing updates automatically in the Sizes & quantity step";
 
   return (
-    <div className="configurator-glass-subtle rounded-[4px] px-3 py-2.5">
+    <div className="techpack-subtle rounded-[4px] px-3 py-2.5">
       <div className="flex items-start gap-2 text-[11px] font-semibold leading-snug text-[#1D49B4]">
         <TrendingUp size={14} strokeWidth={2.4} className="mt-0.5 shrink-0" aria-hidden="true" />
         <span>{message}</span>
@@ -193,7 +193,7 @@ export function OrderBar({
   return (
     <section
       aria-label="Order estimate"
-      className="configurator-glass-stack configurator-glass-surface grid gap-2.5 rounded-[4px] border p-3"
+      className="techpack-stack techpack-surface grid gap-2.5 rounded-[4px] border p-3"
     >
       <VolumeDiscountProgress quantity={quantity} />
 
@@ -273,7 +273,7 @@ export function OrderBar({
           >
             Quantity
           </label>
-          <div className="configurator-glass-control flex h-10 w-full items-center justify-between rounded-[4px] border px-1.5 sm:w-32">
+          <div className="techpack-control flex h-10 w-full items-center justify-between rounded-[4px] border px-1.5 sm:w-32">
             <button
               type="button"
               aria-label="Decrease quantity"

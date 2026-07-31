@@ -246,8 +246,8 @@ export default function PaymentSuccessClient({
 
   if (!verified) {
     return (
-      <div className="app-liquid-bg flex min-h-[80vh] items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
-        <div className="liquid-glass-surface w-full max-w-md rounded-[4px] border p-5 text-center sm:rounded-[4px] sm:p-9">
+      <div className="techpack-canvas flex min-h-[80vh] items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
+        <div className="techpack-surface w-full max-w-md rounded-[4px] border p-5 text-center sm:rounded-[4px] sm:p-9">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-[4px] bg-amber-50 text-2xl text-amber-700">
             !
           </div>
@@ -284,8 +284,8 @@ export default function PaymentSuccessClient({
   return (
     <>
       {!isSampleOrder && <ConfiguratorTopBar currentStep="reserve" />}
-      <div className="app-liquid-bg flex min-h-[80vh] items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
-        <div className="liquid-glass-surface w-full max-w-md rounded-[4px] border p-5 text-center sm:rounded-[4px] sm:p-9">
+      <div className="techpack-canvas flex min-h-[80vh] items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
+        <div className="techpack-surface w-full max-w-md rounded-[4px] border p-5 text-center sm:rounded-[4px] sm:p-9">
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-[4px] bg-[var(--color-accent)]/10">
           <svg
             width="28"
@@ -343,7 +343,7 @@ export default function PaymentSuccessClient({
           </p>
         )}
 
-        <div className="liquid-glass-panel mb-8 rounded-[4px] border p-5 text-left text-xs leading-relaxed text-[#111111]/60">
+        <div className="techpack-panel mb-8 rounded-[4px] border p-5 text-left text-xs leading-relaxed text-[#111111]/60">
           <p className="mb-2 font-medium text-[#111111]">What happens next</p>
           {isSampleOrder ? (
             <ul className="flex flex-col gap-1.5">

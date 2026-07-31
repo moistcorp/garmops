@@ -12,6 +12,7 @@ import { requireOrganizationMember } from "@/lib/auth/guards";
 import { isFeatureEnabled } from "@/lib/config/featureFlags";
 import { listCustomerOrders } from "@/lib/orders/dal";
 import {
+  formatOrderCode,
   formatMoneyPaise,
   formatOrderDate,
   publicOrderStatusLabel,
@@ -140,17 +141,14 @@ export default async function AccountOrdersPage({
               <Link
                 key={order.id}
                 href={`/account/orders/${encodeURIComponent(order.order_number)}`}
-                className="group techpack-surface grid gap-5 rounded-[4px] border p-5 transition hover:-translate-y-0.5 hover:border-[#1D49B4]/30 hover: hover:/8 lg:grid-cols-[1.2fr_1fr_1fr_auto] lg:items-center"
+                className="group techpack-surface grid gap-5 rounded-[4px] border p-5 transition hover:-translate-y-0.5 hover:border-[#1D49B4]/30 hover:bg-black/[0.03] lg:grid-cols-[1.2fr_1fr_1fr_auto] lg:items-center"
               >
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-semibold">{order.order_number}</h3>
+                    <h3 className="font-semibold">{formatOrderCode(order.order_number)}</h3>
                     <span
-                      className={`rounded-[4px] px-2.5 py-1 text-[10px] font-semibold ${
-                        paymentIncomplete
-                          ? "bg-amber-100 text-amber-800"
-                          : "bg-[#1D49B4]/12 text-[#1D49B4]"
-                      }`}
+                      className="techpack-stamp"
+                      data-tone={paymentIncomplete ? "warning" : "accent"}
                     >
                       {publicOrderStatusLabel(order.public_status)}
                     </span>

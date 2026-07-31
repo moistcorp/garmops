@@ -33,7 +33,7 @@ export default function LandingHero({ content }: { content: SeoLandingPageConten
               page={path}
               event="seo_landing_cta_click"
               label="secondary"
-              className="liquid-glass-control rounded-[4px] border px-6 py-3.5 text-center text-sm font-medium text-[#111111] transition-colors hover:!border-[var(--color-accent)] hover:text-[var(--color-accent-dark)]"
+              className="techpack-control rounded-[4px] border px-6 py-3.5 text-center text-sm font-medium text-[#111111] transition-colors hover:!border-[var(--color-accent)] hover:text-[var(--color-accent-dark)]"
             >
               {content.cta.secondary.label}
             </LandingTrackedLink>
@@ -42,7 +42,7 @@ export default function LandingHero({ content }: { content: SeoLandingPageConten
       </div>
 
       {content.heroImage && (
-        <div className="liquid-glass-surface relative aspect-[4/3] overflow-hidden rounded-[4px] border sm:rounded-[4px] lg:aspect-[5/6]">
+        <div className="techpack-surface relative aspect-[4/3] overflow-hidden rounded-[4px] border sm:rounded-[4px] lg:aspect-[5/6]">
           <Image
             src={content.heroImage}
             alt={content.heroImageAlt ?? content.title}

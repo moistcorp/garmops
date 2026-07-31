@@ -3,6 +3,7 @@ import { CheckCircle2, FileText, ShieldCheck } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { hashApprovalToken } from "@/lib/domain/approvals/approval";
 import { externalApprovalResponseAction } from "./actions";
+import { formatOrderCode } from "@/lib/orders/format";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +41,7 @@ export default async function ExternalApprovalPage({
     <div className="mx-auto max-w-2xl space-y-6">
       <section className="rounded-[4px] border border-[var(--color-rule)] bg-white p-6   sm:p-9">
         <div className="flex items-center gap-2 text-[#1D49B4]"><ShieldCheck size={19} /><span className="text-xs font-semibold uppercase tracking-wider">Secure versioned approval</span></div>
-        <h1 className="mt-5 text-2xl font-semibold">Artwork approval for {order.order_number}</h1>
+        <h1 className="mt-5 text-2xl font-semibold">Artwork approval for {formatOrderCode(order.order_number)}</h1>
         <p className="mt-2 text-sm text-black/55">{order.organizations?.display_name ?? "Garmops customer"}</p>
         <p className="mt-5 text-sm leading-relaxed text-black/60">This request applies only to the immutable PDF and design version linked below. Approving it does not approve later artwork changes.</p>
         <a href={`/api/approvals/external/${encodeURIComponent(token)}/document`} className="mt-6 inline-flex items-center gap-2 rounded-[4px] bg-[#16212B] px-5 py-3 text-sm font-semibold text-white"><FileText size={16} /> Download approval PDF</a>

@@ -59,7 +59,7 @@ export default function HeroScrollVideo() {
 
   return (
     <>
-      <section className="app-liquid-bg grid lg:min-h-[90vh] lg:grid-cols-2">
+      <section className="techpack-canvas grid lg:min-h-[90vh] lg:grid-cols-2">
         <div className="flex flex-col justify-center px-4 py-12 min-[360px]:px-5 sm:px-8 sm:py-16 md:px-16 lg:py-0">
           <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.16em] text-[#595959] sm:mb-6 sm:text-xs sm:tracking-widest">
             Custom apparel manufacturer in India
@@ -109,7 +109,7 @@ export default function HeroScrollVideo() {
             sizes="(max-width: 1023px) 100vw, 50vw"
             priority
           />
-          <div className="liquid-glass-surface absolute bottom-4 left-4 z-10 rounded-[4px] border px-4 py-3 sm:bottom-8 sm:left-8 sm:px-5 sm:py-4">
+          <div className="techpack-surface absolute bottom-4 left-4 z-10 rounded-[4px] border px-4 py-3 sm:bottom-8 sm:left-8 sm:px-5 sm:py-4">
             <p className="text-xs text-[#595959] uppercase tracking-widest mb-1">Starting from</p>
             <p className="text-2xl font-bold text-[#111111]">&#8377;350</p>
             <p className="text-xs text-[#4a4a4a]">per piece &middot; MOQ 50</p>

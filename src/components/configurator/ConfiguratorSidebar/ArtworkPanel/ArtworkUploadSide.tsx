@@ -221,7 +221,7 @@ function VectorConversionDialog({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div ref={dialogRef} className="liquid-glass-surface relative w-full max-w-[720px] rounded-[4px] border p-6 sm:p-8">
+      <div ref={dialogRef} className="techpack-surface relative w-full max-w-[720px] rounded-[4px] border p-6 sm:p-8">
         <button
           ref={closeButtonRef}
           type="button"
@@ -250,7 +250,7 @@ function VectorConversionDialog({
           </div>
 
           <div className="flex flex-col gap-3">
-            <div className="liquid-glass-panel grid gap-4 rounded-[4px] border p-5 sm:grid-cols-[32px_minmax(0,1fr)_auto] sm:items-center">
+            <div className="techpack-panel grid gap-4 rounded-[4px] border p-5 sm:grid-cols-[32px_minmax(0,1fr)_auto] sm:items-center">
               <span className="text-2xl font-bold">1</span>
               <div className="flex flex-col gap-2">
                 <h3 className="text-base font-bold">Access Converter and upload your file</h3>
@@ -269,7 +269,7 @@ function VectorConversionDialog({
               </button>
             </div>
 
-            <div className="liquid-glass-panel grid gap-4 rounded-[4px] border p-5 sm:grid-cols-[32px_minmax(0,1fr)]">
+            <div className="techpack-panel grid gap-4 rounded-[4px] border p-5 sm:grid-cols-[32px_minmax(0,1fr)]">
               <span className="text-2xl font-bold">2</span>
               <div className="flex flex-col gap-2">
                 <h3 className="text-base font-bold">Download your converted file</h3>
@@ -280,7 +280,7 @@ function VectorConversionDialog({
               </div>
             </div>
 
-            <div className="liquid-glass-panel grid gap-4 rounded-[4px] border p-5 sm:grid-cols-[32px_minmax(0,1fr)_auto] sm:items-center">
+            <div className="techpack-panel grid gap-4 rounded-[4px] border p-5 sm:grid-cols-[32px_minmax(0,1fr)_auto] sm:items-center">
               <span className="text-2xl font-bold">3</span>
               <div className="flex flex-col gap-2">
                 <h3 className="text-base font-bold">Upload your .svg in Studio</h3>
@@ -520,10 +520,10 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
             setDragging(false);
             handleFiles(event.dataTransfer.files);
           }}
-          className="configurator-glass-dropzone relative flex flex-col items-center overflow-hidden rounded-[4px] px-4 py-5 text-center transition-all duration-200"
+          className="techpack-dropzone relative flex flex-col items-center overflow-hidden rounded-[4px] px-4 py-5 text-center transition-all duration-200"
         >
           {isPending && (
-            <span className="configurator-glass-control absolute right-3 top-3 z-20 rounded-[4px] border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-accent-dark)]">
+            <span className="techpack-control absolute right-3 top-3 z-20 rounded-[4px] border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-accent-dark)]">
               Uploading
             </span>
           )}
@@ -532,7 +532,7 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
             onClick={() => inputRef.current?.click()}
             className="group relative z-10 flex min-h-24 w-full flex-col items-center justify-center gap-1.5 rounded-[4px] px-3 transition-colors hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)]"
           >
-            <span className="configurator-glass-control mb-1 flex h-10 w-10 items-center justify-center rounded-[4px] border text-[var(--color-accent-dark)] transition-transform group-hover:-translate-y-0.5">
+            <span className="techpack-control mb-1 flex h-10 w-10 items-center justify-center rounded-[4px] border text-[var(--color-accent-dark)] transition-transform group-hover:-translate-y-0.5">
               <Upload size={17} strokeWidth={2.2} aria-hidden="true" />
             </span>
             <span className="text-sm font-medium text-[#111111]">
@@ -544,7 +544,7 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
             <a
               href={PRINT_TEMPLATES_HREF}
               download
-              className="configurator-glass-control inline-flex min-h-9 items-center gap-1.5 rounded-[4px] border px-3 text-xs font-medium text-[#111111]/80 transition-colors hover:!border-[var(--color-accent)]/45 hover:text-[var(--color-accent-dark)]"
+              className="techpack-control inline-flex min-h-9 items-center gap-1.5 rounded-[4px] border px-3 text-xs font-medium text-[#111111]/80 transition-colors hover:!border-[var(--color-accent)]/45 hover:text-[var(--color-accent-dark)]"
             >
               Download templates
               <Download size={13} strokeWidth={2.2} />
@@ -552,16 +552,16 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
             <button
               type="button"
               onClick={handleTrySample}
-              className="configurator-glass-control min-h-9 rounded-[4px] border !border-[var(--color-accent)]/30 px-3 text-xs font-semibold text-[var(--color-accent-dark)] transition-colors hover:!border-[var(--color-accent)]/55 hover:!bg-white/55"
+              className="techpack-control min-h-9 rounded-[4px] border !border-[var(--color-accent)]/30 px-3 text-xs font-semibold text-[var(--color-accent-dark)] transition-colors hover:!border-[var(--color-accent)]/55 hover:!bg-white/55"
             >
               Try sample artwork
             </button>
           </div>
         </div>
       ) : (
-        <div className="configurator-glass-subtle flex flex-col gap-2 rounded-[4px] p-3">
+        <div className="techpack-subtle flex flex-col gap-2 rounded-[4px] p-3">
           <div className="flex items-center gap-3">
-            <div className="configurator-glass-control flex h-10 w-10 shrink-0 items-center justify-center border text-[10px] uppercase text-[#111111]/50">
+            <div className="techpack-control flex h-10 w-10 shrink-0 items-center justify-center border text-[10px] uppercase text-[#111111]/50">
               {value.fileType}
             </div>
             <div className="min-w-0 flex-1">

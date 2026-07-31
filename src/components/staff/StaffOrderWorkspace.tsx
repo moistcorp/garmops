@@ -18,6 +18,7 @@ import {
 
 import { requireStaffPermission } from "@/lib/auth/guards";
 import {
+  formatOrderCode,
   formatMoneyPaise,
   formatOrderDate,
   formatOrderTimestamp,
@@ -66,15 +67,15 @@ function toDateTimeLocal(value: string | null) {
 
 function statusTone(status: string) {
   if (["delivered", "completed", "paid", "approved"].includes(status)) {
-    return "bg-emerald-100 text-emerald-700";
+    return "success";
   }
   if (["failed", "permanent_failure", "cancelled", "refunded"].includes(status)) {
-    return "bg-red-100 text-red-700";
+    return "danger";
   }
   if (["needs_customer_action", "action_required", "urgent"].includes(status)) {
-    return "bg-amber-100 text-amber-700";
+    return "warning";
   }
-  return "bg-[#1D49B4]/12 text-[#1D49B4]";
+  return "accent";
 }
 
 export default async function StaffOrderWorkspace({
@@ -110,20 +111,20 @@ export default async function StaffOrderWorkspace({
         <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className={`rounded-[4px] px-2.5 py-1 text-[11px] font-semibold ${statusTone(order.status)}`}>
+              <span className="techpack-stamp" data-tone={statusTone(order.status)}>
                 {ORDER_STATUS_LABELS[order.status]}
               </span>
-              <span className={`rounded-[4px] px-2.5 py-1 text-[11px] font-semibold ${statusTone(order.internal_priority)}`}>
+              <span className="techpack-stamp" data-tone={statusTone(order.internal_priority)}>
                 {order.internal_priority} priority
               </span>
               {openActions.length ? (
-                <span className="rounded-[4px] bg-blue-100 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
+                <span className="techpack-stamp" data-tone="accent">
                   {openActions.length} open action{openActions.length === 1 ? "" : "s"}
                 </span>
               ) : null}
             </div>
             <h1 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">
-              {order.order_number}
+              {formatOrderCode(order.order_number)}
             </h1>
             <p className="mt-2 text-sm text-black/50">
               {order.organizations?.display_name ?? String(company.displayName ?? "Customer")} · {String(customer.name ?? "Customer")}

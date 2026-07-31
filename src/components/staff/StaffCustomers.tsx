@@ -3,7 +3,11 @@ import { notFound } from "next/navigation";
 import { ArrowRight, Building2, Mail, MapPin, ReceiptIndianRupee, Users } from "lucide-react";
 
 import { requireStaffPermission } from "@/lib/auth/guards";
-import { formatMoneyPaise, formatOrderTimestamp } from "@/lib/orders/format";
+import {
+  formatMoneyPaise,
+  formatOrderCode,
+  formatOrderTimestamp,
+} from "@/lib/orders/format";
 import { ORDER_STATUS_LABELS } from "@/lib/staff/statuses";
 
 function one(value: string | string[] | undefined) {
@@ -134,11 +138,11 @@ export async function StaffCustomerDetail({ organizationId }: { organizationId: 
       <section className="techpack-surface rounded-[4px] border p-6">
         <h2 className="font-semibold">Orders</h2>
         <div className="mt-4 divide-y divide-black/7">
-          {orders.data?.map((order) => <Link key={order.id} href={`/staff/orders/${order.order_number}`} className="flex items-center justify-between gap-4 py-4"><div><p className="text-sm font-semibold">{order.order_number}</p><p className="mt-1 text-xs text-black/45">{ORDER_STATUS_LABELS[order.status as keyof typeof ORDER_STATUS_LABELS]} · {formatOrderTimestamp(order.submitted_at)}</p></div><div className="text-right"><p className="text-sm font-semibold">{formatMoneyPaise(order.estimated_total_paise)}</p><p className="mt-1 text-xs capitalize text-black/40">{order.internal_priority}</p></div></Link>)}
+          {orders.data?.map((order) => <Link key={order.id} href={`/staff/orders/${order.order_number}`} className="flex items-center justify-between gap-4 py-4"><div><p className="text-sm font-semibold">{formatOrderCode(order.order_number)}</p><p className="mt-1 text-xs text-black/45">{ORDER_STATUS_LABELS[order.status as keyof typeof ORDER_STATUS_LABELS]} · {formatOrderTimestamp(order.submitted_at)}</p></div><div className="text-right"><p className="text-sm font-semibold">{formatMoneyPaise(order.estimated_total_paise)}</p><p className="mt-1 text-xs capitalize text-black/40">{order.internal_priority}</p></div></Link>)}
         </div>
       </section>
 
-      {actions.data?.length ? <section className="techpack-surface rounded-[4px] border p-6"><h2 className="font-semibold">Open action requests</h2><div className="mt-4 space-y-3">{actions.data.map((action) => { const order = action.orders as unknown as { order_number: string }; return <Link key={action.id} href={`/staff/orders/${order.order_number}`} className="block rounded-[4px] border border-blue-200 bg-blue-50/60 p-4"><p className="text-sm font-semibold">{order.order_number} · {action.action_type?.replaceAll("_", " ") ?? "General"}</p><p className="mt-2 text-sm text-black/60">{action.body}</p><p className="mt-2 text-[10px] uppercase tracking-wider text-black/30">{formatOrderTimestamp(action.created_at)}</p></Link>; })}</div></section> : null}
+          {actions.data?.length ? <section className="techpack-surface rounded-[4px] border p-6"><h2 className="font-semibold">Open action requests</h2><div className="mt-4 space-y-3">{actions.data.map((action) => { const order = action.orders as unknown as { order_number: string }; return <Link key={action.id} href={`/staff/orders/${order.order_number}`} className="block rounded-[4px] border border-blue-200 bg-blue-50/60 p-4"><p className="text-sm font-semibold">{formatOrderCode(order.order_number)} · {action.action_type?.replaceAll("_", " ") ?? "General"}</p><p className="mt-2 text-sm text-black/60">{action.body}</p><p className="mt-2 text-[10px] uppercase tracking-wider text-black/30">{formatOrderTimestamp(action.created_at)}</p></Link>; })}</div></section> : null}
     </div>
   );
 }

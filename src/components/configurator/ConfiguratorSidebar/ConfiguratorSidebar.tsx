@@ -177,7 +177,7 @@ export function ConfiguratorSidebar({
       </div>
 
       {draftRestored && (
-        <div className="configurator-glass-subtle flex shrink-0 items-center justify-between gap-2 border-x-0 border-t-0 px-4 py-2 text-xs text-[#1D49B4]">
+        <div className="techpack-subtle flex shrink-0 items-center justify-between gap-2 border-x-0 border-t-0 px-4 py-2 text-xs text-[#1D49B4]">
           <span>Restored your saved progress.</span>
           <button
             type="button"

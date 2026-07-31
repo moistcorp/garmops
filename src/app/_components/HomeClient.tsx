@@ -101,7 +101,7 @@ export default function HomeClient() {
      <HeroScrollVideo />
 
       {/* INDUSTRIES */}
-      <section className="app-liquid-section"> <div className="max-w-7xl mx-auto px-4 py-14 sm:px-6 sm:py-24">
+      <section className="techpack-section"> <div className="max-w-7xl mx-auto px-4 py-14 sm:px-6 sm:py-24">
         <Reveal>
           <p className="text-xs text-[#595959] font-medium mb-4 tracking-widest uppercase">Who we work with</p>
           <h2 className="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">Premium merch for every <span className="text-[var(--color-accent)]">industry</span></h2>
@@ -121,12 +121,12 @@ export default function HomeClient() {
                   )}
                   {/* Pill tag overlay, Nugget-style */}
                   <div className="absolute top-4 left-4 z-10">
-                    <span className="liquid-glass-chip rounded-[4px] px-3.5 py-1.5 text-xs font-medium text-[#111111]">
+                    <span className="techpack-chip rounded-[4px] px-3.5 py-1.5 text-xs font-medium text-[#111111]">
                       {i.name}
                     </span>
                   </div>
                   {/* Liquid glass reveal button on hover */}
-                  <div className="liquid-glass-chip absolute right-4 top-4 flex h-10 w-10 translate-y-1 items-center justify-center rounded-[4px] opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                  <div className="techpack-chip absolute right-4 top-4 flex h-10 w-10 translate-y-1 items-center justify-center rounded-[4px] opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
                     <svg className="w-4 h-4 text-[var(--color-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M17 7H8M17 7v9" />
                     </svg>
@@ -147,12 +147,12 @@ export default function HomeClient() {
                 {i.href ? (
                   <Link
                     href={i.href}
-                    className="liquid-glass-panel group flex h-full flex-col overflow-hidden rounded-[4px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45"
+                    className="techpack-panel group flex h-full flex-col overflow-hidden rounded-[4px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45"
                   >
                     {card}
                   </Link>
                 ) : (
-                  <div className="liquid-glass-panel group flex h-full flex-col overflow-hidden rounded-[4px] border">
+                  <div className="techpack-panel group flex h-full flex-col overflow-hidden rounded-[4px] border">
                     {card}
                   </div>
                 )}
@@ -163,7 +163,7 @@ export default function HomeClient() {
       </div>
       </section>
 
-      <section className="app-liquid-section">
+      <section className="techpack-section">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-24">
           <Reveal>
             <p className="mb-4 text-xs font-medium uppercase tracking-widest text-[#595959]">Product categories</p>
@@ -179,7 +179,7 @@ export default function HomeClient() {
               <Reveal key={category.href} delay={index * 60}>
                 <Link
                   href={category.href}
-                  className="liquid-glass-panel group flex h-full flex-col rounded-[4px] border p-5 transition-transform hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45"
+                  className="techpack-panel group flex h-full flex-col rounded-[4px] border p-5 transition-transform hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45"
                 >
                   <h3 className="text-base font-semibold text-[#111111]">{category.title}</h3>
                   <p className="mt-2 flex-1 text-sm leading-6 text-[#4a4a4a]">{category.description}</p>
@@ -203,7 +203,7 @@ export default function HomeClient() {
       <section className="py-14 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <Reveal>
-            <div className="liquid-glass-dark relative flex flex-col items-stretch justify-between gap-8 overflow-hidden rounded-[4px] border p-6 sm:rounded-[4px] sm:p-10 md:flex-row md:items-center md:p-14">
+            <div className="techpack-dark relative flex flex-col items-stretch justify-between gap-8 overflow-hidden rounded-[4px] border p-6 sm:rounded-[4px] sm:p-10 md:flex-row md:items-center md:p-14">
               <div className="relative max-w-lg">
                 <p className="text-xs text-white/60 font-medium mb-4 tracking-widest uppercase">Pricing</p>
                 <h2 className="font-mono text-3xl font-bold text-white mb-3 tracking-tight md:text-4xl">
@@ -236,7 +236,7 @@ export default function HomeClient() {
       </section>
 
       {/* FAQ */}
-      <section className="app-liquid-section">
+      <section className="techpack-section">
         <div className="max-w-7xl mx-auto px-4 py-14 sm:px-6 sm:py-24">
           <div className="grid gap-8 lg:grid-cols-[300px_1fr] lg:gap-12">
             <Reveal>
@@ -252,7 +252,7 @@ export default function HomeClient() {
                   <div
                     key={item.q}
                     className={`border-b border-[#E5E5E5] transition-all duration-300 ${
-                      openFaq === i ? 'liquid-glass-panel my-2 rounded-[4px] border px-5' : ''
+                      openFaq === i ? 'techpack-panel my-2 rounded-[4px] border px-5' : ''
                     }`}
                   >
                     <button

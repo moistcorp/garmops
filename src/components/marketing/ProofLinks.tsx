@@ -6,7 +6,7 @@ export default function ProofLinks({ caseStudies }: { caseStudies: CaseStudy[] }
   if (caseStudies.length === 0) {
     return (
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
-        <div className="liquid-glass-panel rounded-[4px] border p-6 sm:p-8">
+        <div className="techpack-panel rounded-[4px] border p-6 sm:p-8">
           <h2 className="text-2xl font-bold tracking-tight text-[#111111] sm:text-3xl">Review relevant production work</h2>
           <p className="mt-3 max-w-2xl text-sm leading-7 text-[#3f3f3f]">
             Browse documented Garmops projects for product, quantity, decoration and delivery context.
@@ -35,7 +35,7 @@ export default function ProofLinks({ caseStudies }: { caseStudies: CaseStudy[] }
           <Link
             key={study.slug}
             href={`/work/${study.slug}`}
-            className="liquid-glass-panel group grid overflow-hidden rounded-[4px] border sm:grid-cols-[0.42fr_0.58fr]"
+            className="techpack-panel group grid overflow-hidden rounded-[4px] border sm:grid-cols-[0.42fr_0.58fr]"
           >
             <div className="relative aspect-[4/3] min-h-48 overflow-hidden bg-[var(--color-cream-soft)] sm:aspect-auto">
               {study.coverImage && (

@@ -12,7 +12,7 @@ export default function WorkDetailClient({
   related: CaseStudy[]
 }) {
   return (
-    <div className="app-liquid-bg">
+    <div className="techpack-canvas">
       <div className="max-w-7xl mx-auto px-4 py-10 sm:px-6 sm:py-16">
         <Breadcrumbs crumbs={[
           { label: 'Home', href: '/' },
@@ -65,7 +65,7 @@ export default function WorkDetailClient({
             </div>
 
             {/* Result */}
-            <div className="liquid-glass-panel mb-10 rounded-[4px] border p-5 sm:mb-12 sm:p-8">
+            <div className="techpack-panel mb-10 rounded-[4px] border p-5 sm:mb-12 sm:p-8">
               <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-3">
                 The result
               </p>
@@ -89,7 +89,7 @@ export default function WorkDetailClient({
 
             {/* Testimonial */}
             {cs.testimonial && (
-              <div className="liquid-glass-surface mb-12 rounded-[4px] border p-5 sm:p-8">
+              <div className="techpack-surface mb-12 rounded-[4px] border p-5 sm:p-8">
                 <p className="mb-6 text-xl font-semibold leading-snug tracking-tight text-[#111111] sm:text-2xl">
                   &ldquo;{cs.testimonial.quote}&rdquo;
                 </p>
@@ -110,7 +110,7 @@ export default function WorkDetailClient({
           <div className="flex flex-col gap-6 lg:pt-20">
 
             {/* Project details */}
-            <div className="liquid-glass-surface rounded-[4px] border p-6">
+            <div className="techpack-surface rounded-[4px] border p-6">
               <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-4">
                 Project details
               </p>
@@ -131,7 +131,7 @@ export default function WorkDetailClient({
             </div>
 
             {/* Deliverables */}
-            <div className="liquid-glass-panel rounded-[4px] border p-6">
+            <div className="techpack-panel rounded-[4px] border p-6">
               <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-4">
                 Deliverables
               </p>
@@ -146,7 +146,7 @@ export default function WorkDetailClient({
             </div>
 
             {/* CTA */}
-            <div className="liquid-glass-dark flex flex-col gap-3 rounded-[4px] border p-6">
+            <div className="techpack-dark flex flex-col gap-3 rounded-[4px] border p-6">
               <p className="text-sm font-semibold text-white">Want something similar?</p>
               <p className="text-xs text-white/50 leading-relaxed">
                 We work with brands across India. MOQ 50 pieces, quote in 24 hours.
@@ -180,7 +180,7 @@ export default function WorkDetailClient({
                 <Link
                   key={cs.slug}
                   href={`/work/${cs.slug}`}
-                  className="liquid-glass-panel group flex flex-col overflow-hidden rounded-[4px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45"
+                  className="techpack-panel group flex flex-col overflow-hidden rounded-[4px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45"
                 >
                   <div className="relative w-full aspect-video bg-[var(--color-cream-soft)] flex items-center justify-center overflow-hidden">
                     {cs.coverImage ? (

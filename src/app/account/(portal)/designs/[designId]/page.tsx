@@ -18,6 +18,7 @@ import type { ProductId } from "@/lib/configurator/pricing";
 import { getProduct } from "@/lib/configurator/products";
 import { getCloudDesign } from "@/lib/designs/dal";
 import { cloudDesignSnapshotSchema } from "@/lib/designs/schema";
+import { formatOrderCode } from "@/lib/orders/format";
 
 export const dynamic = "force-dynamic";
 
@@ -106,10 +107,10 @@ export default async function AccountDesignDetailPage({
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-[4px] bg-[#1D49B4]/12 px-2.5 py-1 text-[11px] font-semibold capitalize text-[#1D49B4]">
+              <span className="techpack-stamp" data-tone="accent">
                 {design.status}
               </span>
-              <span className="rounded-[4px] bg-black/5 px-2.5 py-1 text-[11px] font-semibold text-black/45">
+              <span className="techpack-stamp" data-tone="neutral">
                 Current version {design.current_version}
               </span>
             </div>
@@ -203,7 +204,7 @@ export default async function AccountDesignDetailPage({
                   </p>
                 </div>
                 {entry.version_number === design.current_version ? (
-                  <span className="rounded-[4px] bg-[#1D49B4]/12 px-2 py-1 text-[10px] font-semibold text-[#1D49B4]">
+                  <span className="techpack-stamp" data-tone="accent">
                     Current
                   </span>
                 ) : null}
@@ -226,7 +227,7 @@ export default async function AccountDesignDetailPage({
                 >
                   <div className="flex items-center justify-between gap-4">
                     <p className="text-sm font-semibold">
-                      {order.order_number}
+                      {formatOrderCode(order.order_number)}
                     </p>
                     <span className="text-[10px] uppercase tracking-wider text-black/40">
                       {order.status.replaceAll("_", " ")}

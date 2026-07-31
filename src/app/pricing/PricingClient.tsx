@@ -58,7 +58,7 @@ export default function PricingClient() {
   const rushChargeTotal = rushCharge * qty
 
   return (
-    <div className="app-liquid-bg">
+    <div className="techpack-canvas">
       <section className="max-w-7xl mx-auto px-4 pb-10 pt-10 sm:px-6 sm:pb-12 sm:pt-20">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Pricing</p>
         <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] max-w-xl leading-tight mb-4 tracking-tight">
@@ -80,7 +80,7 @@ export default function PricingClient() {
               <label className="text-xs font-medium text-[#111111]/50 uppercase tracking-widest block mb-3">
                 Select product
               </label>
-              <div ref={dropdownRef} className="liquid-glass-surface overflow-hidden rounded-[4px] border">
+              <div ref={dropdownRef} className="techpack-surface overflow-hidden rounded-[4px] border">
                 {/* Selected product — always visible */}
                 <button
                   ref={dropdownButtonRef}
@@ -91,7 +91,7 @@ export default function PricingClient() {
                   aria-haspopup="listbox"
                   className="flex w-full items-center gap-4 bg-white/20 px-4 py-4 text-left transition-colors hover:bg-white/35"
                 >
-                  <div className="liquid-glass-control flex h-12 w-12 shrink-0 items-center justify-center rounded-[4px] border">
+                  <div className="techpack-control flex h-12 w-12 shrink-0 items-center justify-center rounded-[4px] border">
                     <Image src={selectedProduct.icon} alt={selectedProduct.name} width={36} height={36} className="object-contain" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -118,7 +118,7 @@ export default function PricingClient() {
                         onClick={() => { setSelected(p.name); setDropdownOpen(false); dropdownButtonRef.current?.focus() }}
                         className={`flex w-full items-center gap-4 px-4 py-3.5 text-left transition-colors hover:bg-white/35 ${i < arr.length - 1 ? 'border-b border-white/55' : ''}`}
                       >
-                        <div className="liquid-glass-control flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] border">
+                        <div className="techpack-control flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] border">
                           <Image src={p.icon} alt={p.name} width={30} height={30} className="object-contain" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -152,7 +152,7 @@ export default function PricingClient() {
             </div>
 
             {/* Rush order toggle */}
-            <div className="liquid-glass-panel rounded-[4px] border p-4">
+            <div className="techpack-panel rounded-[4px] border p-4">
               <div className="flex items-center justify-between mb-1">
                 <div className="min-w-0 pr-3">
                   <p className="text-sm font-semibold text-[#111111]">Rush order</p>
@@ -183,12 +183,12 @@ export default function PricingClient() {
               <p className="text-xs font-medium text-[#111111]/50 uppercase tracking-widest mb-3">
                 Volume discounts
               </p>
-              <div className="liquid-glass-panel flex flex-col overflow-hidden rounded-[4px] border">
+              <div className="techpack-panel flex flex-col overflow-hidden rounded-[4px] border">
                 {VOLUME_TIERS.map(t => (
                   <div
                     key={t.min}
                     className={`flex justify-between border-b border-white/55 px-4 py-3 text-xs transition-colors last:border-0 ${
-                      getDiscount(qty) === t.discount ? 'liquid-glass-selected text-white' : 'text-[#111111]/50'
+                      getDiscount(qty) === t.discount ? 'techpack-selected text-white' : 'text-[#111111]/50'
                     }`}
                   >
                     <span>{t.min}{t.max === Infinity ? '+' : `–${t.max}`} pcs</span>
@@ -204,13 +204,13 @@ export default function PricingClient() {
                 <p className="text-xs font-medium text-[#111111]/50 uppercase tracking-widest mb-3">
                   Rush premiums (per piece)
                 </p>
-                <div className="liquid-glass-panel flex flex-col overflow-hidden rounded-[4px] border">
+                <div className="techpack-panel flex flex-col overflow-hidden rounded-[4px] border">
                   {RUSH_TIERS.map(t => (
                     <div
                       key={t.min}
                       className={`flex justify-between border-b border-white/55 px-4 py-3 text-xs transition-colors last:border-0 ${
                         getRushCharge(qty) === t.charge && qty >= t.min && qty <= t.max
-                          ? 'liquid-glass-selected text-white'
+                          ? 'techpack-selected text-white'
                           : 'text-[#111111]/50'
                       }`}
                     >
@@ -225,7 +225,7 @@ export default function PricingClient() {
 
           {/* Output */}
           <div className="flex flex-col gap-4">
-            <div className="liquid-glass-dark rounded-[4px] border p-5 text-white sm:rounded-[4px] sm:p-8">
+            <div className="techpack-dark rounded-[4px] border p-5 text-white sm:rounded-[4px] sm:p-8">
               <p className="text-xs text-white/50 mb-1 uppercase tracking-widest">Estimate for</p>
               <p className="text-base font-semibold mb-1">{selected}</p>
               <p className="text-xs text-white/40 mb-6">{qty} pieces &middot; {deliveryDays}-day delivery</p>
@@ -300,7 +300,7 @@ export default function PricingClient() {
       </section>
 
       {/* What's included */}
-      <section className="app-liquid-section py-12 sm:py-16">
+      <section className="techpack-section py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <h2 className="text-2xl font-bold mb-2 tracking-tight">What&apos;s included in every order</h2>
           <p className="text-[#111111]/50 text-sm mb-8">Base prices include the following. GST is shown separately and included in the final estimated total.</p>
@@ -311,14 +311,14 @@ export default function PricingClient() {
               { title: 'Neck label', desc: 'Basic neck label included. Woven/custom labels quoted separately' },
               { title: 'QA & packing', desc: 'Every piece inspected and individually packed before dispatch' },
             ].map(i => (
-              <div key={i.title} className="liquid-glass-panel rounded-[4px] border p-5">
+              <div key={i.title} className="techpack-panel rounded-[4px] border p-5">
                 <p className="font-semibold text-sm mb-1">{i.title}</p>
                 <p className="text-xs text-[#111111]/50 leading-relaxed">{i.desc}</p>
               </div>
             ))}
           </div>
 
-          <div className="liquid-glass-panel mt-6 rounded-[4px] border p-5">
+          <div className="techpack-panel mt-6 rounded-[4px] border p-5">
             <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-3">Not included — quoted separately</p>
             <div className="grid md:grid-cols-3 gap-4 text-xs text-[#111111]/60">
               <p>Multi-color screen print (additional per color)</p>

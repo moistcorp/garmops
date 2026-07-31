@@ -14,7 +14,7 @@ function initials(name: string) {
 
 export default function HomepageCaseStudies() {
   return (
-    <section className="app-liquid-section py-14 sm:py-24">
+    <section className="techpack-section py-14 sm:py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
 
         {/* Header */}
@@ -54,7 +54,7 @@ export default function HomepageCaseStudies() {
                 className="group w-[84vw] max-w-[430px] shrink-0 snap-start sm:w-[420px] lg:w-[380px] xl:w-[420px]"
               >
 
-                <div className="liquid-glass-panel overflow-hidden rounded-[4px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45">
+                <div className="techpack-panel overflow-hidden rounded-[4px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45">
 
                   {/* Image */}
 
@@ -64,15 +64,15 @@ export default function HomepageCaseStudies() {
 
                     <div className="absolute top-4 left-4 z-20 flex flex-wrap gap-2">
 
-                      <span className="liquid-glass-chip rounded-[4px] px-3 py-1 text-xs font-medium">
+                      <span className="techpack-chip rounded-[4px] px-3 py-1 text-xs font-medium">
                         ● {cs.color}
                       </span>
 
-                      <span className="liquid-glass-chip rounded-[4px] px-3 py-1 text-xs font-medium">
+                      <span className="techpack-chip rounded-[4px] px-3 py-1 text-xs font-medium">
                         {cs.product}
                       </span>
 
-                      <span className="liquid-glass-chip rounded-[4px] px-3 py-1 text-xs font-medium">
+                      <span className="techpack-chip rounded-[4px] px-3 py-1 text-xs font-medium">
                         {cs.printMethod}
                       </span>
 
@@ -97,10 +97,6 @@ export default function HomepageCaseStudies() {
                       </div>
 
                     )}
-
-                    {/* Bottom gradient */}
-
-                    <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
 
                   </div>
 

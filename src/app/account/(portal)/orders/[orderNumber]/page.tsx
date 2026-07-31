@@ -21,6 +21,7 @@ import { isFeatureEnabled } from "@/lib/config/featureFlags";
 import { getCustomerOrder } from "@/lib/orders/dal";
 import { assessReorder } from "@/lib/domain/orders/reorder";
 import {
+  formatOrderCode,
   formatMoneyPaise,
   formatOrderDate,
   formatOrderTimestamp,
@@ -140,11 +141,11 @@ export default async function AccountOrderDetailPage({
       <section className="techpack-surface rounded-[4px] border p-6 sm:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <span className="rounded-[4px] bg-[#1D49B4]/12 px-2.5 py-1 text-[11px] font-semibold text-[#1D49B4]">
+            <span className="techpack-stamp" data-tone="accent">
               {publicOrderStatusLabel(order.public_status)}
             </span>
             <h2 className="mt-4 text-2xl font-semibold tracking-tight">
-              {order.order_number}
+              {formatOrderCode(order.order_number)}
             </h2>
             <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-black/50">
               <span className="inline-flex items-center gap-2">

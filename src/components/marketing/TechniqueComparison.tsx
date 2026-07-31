@@ -35,7 +35,7 @@ export default function TechniqueComparison({
       </div>
       <div className="mt-8 grid gap-4 md:grid-cols-2">
         {techniqueKeys.map(key => (
-          <article key={key} className="liquid-glass-panel rounded-[4px] border p-5 sm:p-6">
+          <article key={key} className="techpack-panel rounded-[4px] border p-5 sm:p-6">
             <h3 className="text-base font-semibold text-[#111111]">{techniques[key].title}</h3>
             <p className="mt-2 text-sm leading-6 text-[#3f3f3f]">{techniques[key].description}</p>
           </article>

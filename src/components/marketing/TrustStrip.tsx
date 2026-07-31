@@ -1,7 +1,7 @@
 export default function TrustStrip({ points }: { points: string[] }) {
   return (
     <section aria-label="Order facts" className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 sm:pb-20">
-      <div className="liquid-glass-surface grid overflow-hidden rounded-[4px] border sm:grid-cols-2 lg:grid-cols-3">
+      <div className="techpack-surface grid overflow-hidden rounded-[4px] border sm:grid-cols-2 lg:grid-cols-3">
         {points.map((point) => (
           <p
             key={point}

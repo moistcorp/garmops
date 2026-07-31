@@ -33,7 +33,7 @@ export default function ViewTabs({
     <div
       role="tablist"
       aria-label="Garment preview view"
-      className="configurator-glass-control inline-flex shrink-0 items-center gap-0.5 rounded-[4px] border p-0.5"
+      className="techpack-control inline-flex shrink-0 items-center gap-0.5 rounded-[4px] border p-0.5"
     >
       {viewOptions.map((opt, index) => {
         const isActive = opt.id === activeView;

@@ -114,15 +114,12 @@ export default async function AccountDesignsPage({
               <Link
                 key={design.id}
                 href={`/account/designs/${encodeURIComponent(design.id)}`}
-                className="group techpack-surface flex min-h-52 flex-col rounded-[4px] border p-5 transition hover:-translate-y-0.5 hover:border-[#1D49B4]/30 hover: hover:/8"
+                className="group techpack-surface flex min-h-52 flex-col rounded-[4px] border p-5 transition hover:-translate-y-0.5 hover:border-[#1D49B4]/30 hover:bg-black/[0.03]"
               >
                 <div className="flex items-start justify-between gap-4">
                   <span
-                    className={`inline-flex items-center gap-1.5 rounded-[4px] px-2.5 py-1 text-[11px] font-semibold ${
-                      design.status === "archived"
-                        ? "bg-black/6 text-black/45"
-                        : "bg-[#1D49B4]/12 text-[#1D49B4]"
-                    }`}
+                    className="techpack-stamp"
+                    data-tone={design.status === "archived" ? "neutral" : "accent"}
                   >
                     {design.status === "archived" ? (
                       <Archive size={12} aria-hidden="true" />

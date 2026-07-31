@@ -51,7 +51,7 @@ export function DeliveryDatePicker({
     `flex-1 rounded-[4px] border px-5 py-3 text-left transition-colors ${
       active
         ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-white"
-        : "liquid-glass-control text-[#111111] hover:!border-[var(--color-accent)]"
+        : "techpack-control text-[#111111] hover:!border-[var(--color-accent)]"
     }`;
 
   const isSame = (a?: Date, b?: Date) =>
@@ -126,12 +126,12 @@ export function DeliveryDatePicker({
       </div>
 
       {showCalendar && (
-        <div className="liquid-glass-control space-y-2 rounded-[4px] border p-3">
+        <div className="techpack-control space-y-2 rounded-[4px] border p-3">
           <input
             type="date"
             min={toInputValue(options.standard)}
             value={selectedDate ? toInputValue(selectedDate) : ""}
-            className="liquid-glass-control rounded-[4px] border px-3 py-2 text-sm text-[#111111] focus:!border-[var(--color-accent)] focus:outline-none"
+            className="techpack-control rounded-[4px] border px-3 py-2 text-sm text-[#111111] focus:!border-[var(--color-accent)] focus:outline-none"
             onChange={(e) => handleFlexiblePick(e.target.value)}
           />
           {calendarError && (

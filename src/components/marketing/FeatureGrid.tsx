@@ -32,7 +32,7 @@ export default function FeatureGrid({
 
       <div className="mt-8 grid gap-4 md:grid-cols-2">
         {features.map((feature) => (
-          <article key={feature.title} className="liquid-glass-panel rounded-[4px] border p-5 sm:p-6">
+          <article key={feature.title} className="techpack-panel rounded-[4px] border p-5 sm:p-6">
             <h3 className="text-base font-semibold text-[#111111]">{feature.title}</h3>
             <p className="mt-2 text-sm leading-6 text-[#3f3f3f]">{feature.description}</p>
             {feature.link && (

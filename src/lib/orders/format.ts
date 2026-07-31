@@ -22,6 +22,17 @@ export function formatOrderTimestamp(value: string): string {
   }).format(new Date(value));
 }
 
+export function formatOrderCode(orderNumber: string): string {
+  const normalized = orderNumber.trim();
+  const prefix = normalized.startsWith("SAM-") ? "SAMPLE" : "ORDER";
+  return `${prefix} · ${normalized}`;
+}
+
+export function formatSpecCode(reference: string): string {
+  const normalized = reference.trim();
+  return `SPEC · ${normalized || "DRAFT"}`;
+}
+
 export function publicOrderStatusLabel(status: string): string {
   const labels: Record<string, string> = {
     payment_incomplete: "Payment incomplete",

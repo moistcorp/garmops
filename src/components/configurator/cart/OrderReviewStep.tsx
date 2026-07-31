@@ -35,6 +35,7 @@ import { generateApprovalPdf } from '@/lib/configurator/approvalPdf';
 import { RESERVATION_FEE } from '@/lib/configurator/reservation';
 import { ActionFeedback, type ActionFeedbackTone } from '../ActionFeedback';
 import { trackConfiguratorEvent } from '@/lib/configurator/analytics';
+import { formatSpecCode } from '@/lib/orders/format';
 
 export interface CartItem {
   id: string;
@@ -311,7 +312,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-[#111111]/50">
-              SPEC CART · {cartId}
+              {formatSpecCode(`CART-${cartId}`)}
             </p>
             <h1 className="text-2xl font-semibold text-[#111111]">Order summary</h1>
           </div>
@@ -338,7 +339,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
         {!draftLoaded && <OrderItemSkeleton />}
 
         {draftLoaded && items.length === 0 && (
-          <section className="liquid-glass-surface rounded-[4px] border p-8 text-center">
+          <section className="techpack-surface rounded-[4px] border p-8 text-center">
             <h2 className="text-lg font-medium text-[#111111]">Your cart is empty</h2>
             <p className="mt-1 text-sm text-[#111111]/60">
               Add a product to continue your order.
@@ -363,7 +364,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
           const itemDiscountPercent = getCartItemDiscountPercent(item);
           const garmentTotal = itemUnitPrice * itemUnits;
           return (
-            <section key={item.id} className="liquid-glass-panel rounded-[4px] border p-5">
+            <section key={item.id} className="techpack-panel rounded-[4px] border p-5">
               <div className="flex flex-col gap-5 md:flex-row">
                 <div className="w-full shrink-0 md:w-44">
                   <div className="relative aspect-[3/4] overflow-hidden rounded-[4px] bg-[#F7F7F7]">
@@ -481,7 +482,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                   />
 
                   {sizeChart && (
-                    <details className="liquid-glass-control rounded-[4px] border p-3 text-xs text-[#111111]">
+                    <details className="techpack-control rounded-[4px] border p-3 text-xs text-[#111111]">
                       <summary className="cursor-pointer font-semibold">Fit / measurement chart</summary>
                       <div className="mt-3 overflow-x-auto">
                         <table className="w-full min-w-[420px] text-left">
@@ -543,11 +544,11 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             delivery="Calculated at shipping"
             total={totals.total}
             onNext={handleNext}
-            nextLabel="Continue to delivery"
+            nextLabel="Confirm spec · delivery"
             nextDisabled={!cartIsValid || cartUnitCount < 50}
             disabledMessage={
               !cartIsValid || cartUnitCount < 50
-                ? "Complete the size allocation and ensure every product meets its minimum order quantity."
+                ? "Qty must meet the minimum per colourway and every size allocation must be complete."
                 : undefined
             }
             sticky={false}
@@ -560,7 +561,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
 
 function OrderItemSkeleton() {
   return (
-    <section className="liquid-glass-panel rounded-[4px] border p-5" aria-label="Loading order items">
+    <section className="techpack-panel rounded-[4px] border p-5" aria-label="Loading order items">
       <div className="flex flex-col gap-5 md:flex-row">
         <div className="h-56 w-full shrink-0 rounded-[4px] bg-[#F7F7F7] md:w-44" />
         <div className="min-w-0 flex-1 space-y-5">

@@ -44,7 +44,7 @@ export function ArtworkAreaSizeSelect(props?: ArtworkAreaSizeSelectProps): JSX.E
           id={selectId}
           value={value}
           onChange={(event) => handleChange(event.target.value as PrintAreaSize)}
-          className="configurator-glass-control h-11 w-full appearance-none rounded-[4px] border px-3 pr-9 text-sm font-medium leading-none tracking-normal text-[#111111]/80 outline-none focus:!border-[var(--color-accent)]/60"
+          className="techpack-control h-11 w-full appearance-none rounded-[4px] border px-3 pr-9 text-sm font-medium leading-none tracking-normal text-[#111111]/80 outline-none focus:!border-[var(--color-accent)]/60"
         >
           {SIZE_ORDER.map((size) => {
             const dims = PRINT_AREA_SIZE_CHART[size];

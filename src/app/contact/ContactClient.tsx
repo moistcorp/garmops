@@ -61,10 +61,10 @@ export default function ContactClient() {
     }
   }
 
-  const inputClass = "liquid-glass-control border px-4 py-3 rounded-[4px] text-sm focus:outline-none focus:!border-[var(--color-accent)] transition-colors"
+  const inputClass = "techpack-control border px-4 py-3 rounded-[4px] text-sm focus:outline-none focus:!border-[var(--color-accent)] transition-colors"
 
   return (
-    <div className="app-liquid-bg">
+    <div className="techpack-canvas">
       <section className="max-w-7xl mx-auto px-4 pb-10 pt-10 sm:px-6 sm:pb-16 sm:pt-20">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Get in touch</p>
         <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] max-w-xl leading-tight mb-6 tracking-tight">
@@ -78,12 +78,12 @@ export default function ContactClient() {
       <section className="max-w-7xl mx-auto grid gap-10 px-4 pb-16 sm:px-6 sm:pb-24 md:grid-cols-2 md:gap-16">
         <div>
           {submitted ? (
-            <div role="status" className="liquid-glass-dark rounded-[4px] border p-6 text-white sm:p-10">
+            <div role="status" className="techpack-dark rounded-[4px] border p-6 text-white sm:p-10">
               <h2 className="text-2xl font-bold mb-2">We&apos;ve got your request.</h2>
               <p className="text-white/50 text-sm">Our team will reach out within 24 hours with a detailed quote.</p>
             </div>
           ) : (
-            <form onSubmit={submit} aria-busy={submitting} className="liquid-glass-surface flex flex-col gap-4 rounded-[4px] border p-5 sm:p-7">
+            <form onSubmit={submit} aria-busy={submitting} className="techpack-surface flex flex-col gap-4 rounded-[4px] border p-5 sm:p-7">
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="contact-name" className="text-xs font-medium text-[#111111]/60 uppercase tracking-wide">Full name *</label>
@@ -142,7 +142,7 @@ export default function ContactClient() {
             { label: 'Email', content: 'hello@garmops.com', isEmail: true },
             { label: 'MOQ & Turnaround', content: `50 pieces minimum. ${DELIVERY_DAYS}-day standard production. ${RUSH_DELIVERY_DAYS}-day rush production available.` },
           ].map(item => (
-            <div key={item.label} className="liquid-glass-panel rounded-[4px] border p-5">
+            <div key={item.label} className="techpack-panel rounded-[4px] border p-5">
               <p className="text-xs font-medium text-[#111111]/40 mb-2 uppercase tracking-widest">{item.label}</p>
               {item.isEmail ? (
                 <a href={`mailto:${item.content}`} className="text-sm text-[#111111] hover:underline">{item.content}</a>
@@ -151,7 +151,7 @@ export default function ContactClient() {
               )}
             </div>
           ))}
-          <div className="liquid-glass-panel rounded-[4px] border p-5">
+          <div className="techpack-panel rounded-[4px] border p-5">
             <p className="text-xs font-medium text-[#111111]/40 mb-2 uppercase tracking-widest">Or start directly</p>
             <Link href="/configurator" className="inline-block border border-[var(--color-accent)] text-[var(--color-accent)] px-5 py-2.5 rounded-[4px] text-sm hover:bg-[var(--color-accent)] hover:text-white transition-colors">
               Open the configurator

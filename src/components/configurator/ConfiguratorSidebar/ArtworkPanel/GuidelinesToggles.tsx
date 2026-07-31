@@ -48,7 +48,7 @@ export function GuidelinesToggles(props: GuidelinesTogglesProps): JSX.Element {
         role="switch"
         aria-checked={maximumArea}
         onClick={toggleMaxArea}
-        className="configurator-glass-control flex w-full items-center justify-between gap-4 rounded-[4px] border px-3 py-2.5 text-left"
+        className="techpack-control flex w-full items-center justify-between gap-4 rounded-[4px] border px-3 py-2.5 text-left"
       >
         <span className="min-w-0">
           <span className="block text-xs font-semibold text-[#111111]/80">
@@ -77,7 +77,7 @@ export function GuidelinesToggles(props: GuidelinesTogglesProps): JSX.Element {
         role="switch"
         aria-checked={leftChest}
         onClick={toggleLeftChest}
-        className="configurator-glass-control flex w-full items-center justify-between gap-4 rounded-[4px] border px-3 py-2.5 text-left"
+        className="techpack-control flex w-full items-center justify-between gap-4 rounded-[4px] border px-3 py-2.5 text-left"
       >
         <span className="min-w-0">
           <span className="block text-xs font-semibold text-[#111111]/80">

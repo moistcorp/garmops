@@ -14,7 +14,11 @@ import StaffOrderQueue from "@/components/staff/StaffOrderQueue";
 import StaffOrderWorkspace from "@/components/staff/StaffOrderWorkspace";
 import { StaffApprovalQueue, StaffShipmentQueue } from "@/components/staff/StaffOrderLifecycleQueues";
 import { requireStaffPermission } from "@/lib/auth/guards";
-import { formatMoneyPaise, formatOrderTimestamp } from "@/lib/orders/format";
+import {
+  formatMoneyPaise,
+  formatOrderCode,
+  formatOrderTimestamp,
+} from "@/lib/orders/format";
 
 export const dynamic = "force-dynamic";
 
@@ -114,8 +118,8 @@ async function FinanceInvoices() {
                   <div className="flex gap-3">
                     <Icon size={18} className={invoice.sync_status === "permanent_failure" ? "mt-0.5 text-red-700" : "mt-0.5 text-[#1D49B4]"} aria-hidden="true" />
                     <div>
-                      <p className="font-semibold">{invoice.document_number ?? (invoice.kind === "sample_tax_invoice" ? `Sample tax document · ${order.order_number}` : order.order_number)}</p>
-                      <p className="mt-1 text-xs text-black/45">{order.organizations?.display_name ?? "Customer"} · {order.order_number}</p>
+                      <p className="font-semibold">{invoice.document_number ?? (invoice.kind === "sample_tax_invoice" ? `Sample tax document · ${formatOrderCode(order.order_number)}` : formatOrderCode(order.order_number))}</p>
+                      <p className="mt-1 text-xs text-black/45">{order.organizations?.display_name ?? "Customer"} · {formatOrderCode(order.order_number)}</p>
                       <p className="mt-2 text-sm text-black/55">{invoice.total_paise === null ? "Amount pending" : formatMoneyPaise(invoice.total_paise)} · {invoice.sync_status.replaceAll("_", " ")}</p>
                       {invoice.last_error_message ? <p className="mt-2 max-w-2xl text-xs leading-relaxed text-red-700">{invoice.last_error_code ? `${invoice.last_error_code}: ` : ""}{invoice.last_error_message}</p> : null}
                       <p className="mt-2 text-[10px] uppercase tracking-wider text-black/30">Attempts {invoice.attempt_count} · updated {formatOrderTimestamp(invoice.updated_at)}</p>

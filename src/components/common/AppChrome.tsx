@@ -31,7 +31,7 @@ export default function AppChrome({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="app-liquid-bg min-h-screen min-w-0 overflow-x-clip">
+    <div className="techpack-canvas min-h-screen min-w-0 overflow-x-clip">
       <Navbar />
       <main className="min-w-0">{children}</main>
       <Footer />

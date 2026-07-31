@@ -6,7 +6,7 @@ export default function CommercialCta({ content }: { content: SeoLandingPageCont
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
-      <div className="liquid-glass-dark relative overflow-hidden rounded-[4px] border p-6 text-white sm:p-10 lg:p-14">
+      <div className="techpack-dark relative overflow-hidden rounded-[4px] border p-6 text-white sm:p-10 lg:p-14">
         <div className="relative max-w-3xl">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">{content.cta.title}</h2>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-white/70 sm:text-base">{content.cta.description}</p>

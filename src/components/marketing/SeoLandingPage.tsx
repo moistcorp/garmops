@@ -33,7 +33,7 @@ export default function SeoLandingPage({ content }: { content: SeoLandingPageCon
   ]
 
   return (
-    <article className="app-liquid-bg">
+    <article className="techpack-canvas">
       <JsonLd data={breadcrumbSchema(breadcrumbItems)} />
       <JsonLd
         data={serviceSchema({
@@ -61,7 +61,7 @@ export default function SeoLandingPage({ content }: { content: SeoLandingPageCon
       </div>
       <LandingHero content={content} />
       <TrustStrip points={content.trustPoints} />
-      <div className="app-liquid-section">
+      <div className="techpack-section">
         <FeatureGrid
           title={content.featuresHeading}
           introduction={content.featuresIntroduction}
@@ -75,7 +75,7 @@ export default function SeoLandingPage({ content }: { content: SeoLandingPageCon
         pagePath={path}
       />
       {content.useCases && content.useCasesHeading && (
-        <div className="app-liquid-section">
+        <div className="techpack-section">
           <UseCaseGrid
             title={content.useCasesHeading}
             introduction={content.useCasesIntroduction}
@@ -85,7 +85,7 @@ export default function SeoLandingPage({ content }: { content: SeoLandingPageCon
       )}
       {content.techniqueKeys && <TechniqueComparison techniqueKeys={content.techniqueKeys} />}
       {content.sections?.map((section, index) => (
-        <div key={section.title} className={index % 2 === 0 ? 'app-liquid-section' : undefined}>
+        <div key={section.title} className={index % 2 === 0 ? 'techpack-section' : undefined}>
           <FeatureGrid
             eyebrow={section.eyebrow}
             title={section.title}

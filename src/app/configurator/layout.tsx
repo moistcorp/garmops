@@ -8,7 +8,7 @@ export default function ConfiguratorLayout({
 }>) {
   return (
     <>
-      <main className="app-liquid-bg flex min-h-dvh items-center justify-center px-6 py-12 lg:hidden">
+      <main className="techpack-canvas flex min-h-dvh items-center justify-center px-6 py-12 lg:hidden">
         <section className="w-full max-w-md border border-[var(--color-rule)] bg-[var(--color-cream)] p-7 text-center">
           <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-[4px] border border-[var(--color-accent)]/30 bg-[var(--color-cream-soft)] text-[var(--color-accent-dark)]">
             <MonitorUp size={25} aria-hidden="true" />

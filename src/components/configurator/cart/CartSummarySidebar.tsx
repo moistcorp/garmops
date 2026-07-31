@@ -35,7 +35,7 @@ export function CartSummarySidebar({
   const balanceDue = Math.max(0, total - RESERVATION_FEE);
 
   return (
-    <aside className={`liquid-glass-surface w-full shrink-0 self-start rounded-[4px] border border-[var(--color-rule)] p-5 lg:w-80 ${sticky ? "lg:sticky lg:top-6" : ""}`}>
+    <aside className={`techpack-surface w-full shrink-0 self-start rounded-[4px] border border-[var(--color-rule)] p-5 lg:w-80 ${sticky ? "lg:sticky lg:top-6" : ""}`}>
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-[#111111]/50">
           Price summary
@@ -80,7 +80,7 @@ export function CartSummarySidebar({
         </div>
       </div>
 
-      <div className="liquid-glass-panel mt-4 rounded-[4px] border !border-[var(--color-accent)]/25 p-3">
+      <div className="techpack-panel mt-4 rounded-[4px] border !border-[var(--color-accent)]/25 p-3">
         <div className="flex items-center justify-between gap-3">
           <span className="text-xs font-semibold text-[#111111]">Due today</span>
           <span className="font-mono text-lg font-bold text-[var(--color-accent-dark)]">

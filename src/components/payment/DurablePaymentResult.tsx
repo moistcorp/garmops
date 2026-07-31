@@ -4,7 +4,11 @@ import { CheckCircle2, Clock3, XCircle } from "lucide-react";
 import InvoiceDownloadButton from "@/components/account/InvoiceDownloadButton";
 import ClearPaidSampleCart from "@/components/payment/ClearPaidSampleCart";
 
-import { formatMoneyPaise, formatOrderDate } from "@/lib/orders/format";
+import {
+  formatMoneyPaise,
+  formatOrderCode,
+  formatOrderDate,
+} from "@/lib/orders/format";
 
 export default function DurablePaymentResult({
   result,
@@ -86,7 +90,7 @@ export default function DurablePaymentResult({
             <dt className="text-[10px] uppercase tracking-wider text-black/35">
               Order number
             </dt>
-            <dd className="mt-1 font-semibold">{result.orderNumber}</dd>
+            <dd className="mt-1 font-semibold">{formatOrderCode(result.orderNumber)}</dd>
           </div>
           <div>
             <dt className="text-[10px] uppercase tracking-wider text-black/35">

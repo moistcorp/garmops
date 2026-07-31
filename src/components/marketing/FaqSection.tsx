@@ -9,7 +9,7 @@ export default function FaqSection({ faqs }: { faqs: LandingPageFaq[] }) {
       </div>
       <dl className="mt-8 grid gap-4">
         {faqs.map(faq => (
-          <div key={faq.question} className="liquid-glass-panel grid gap-3 rounded-[4px] border p-5 sm:p-6 md:grid-cols-2 md:gap-8">
+          <div key={faq.question} className="techpack-panel grid gap-3 rounded-[4px] border p-5 sm:p-6 md:grid-cols-2 md:gap-8">
             <dt className="text-sm font-semibold leading-6 text-[#111111]">{faq.question}</dt>
             <dd className="text-sm leading-6 text-[#3f3f3f]">{faq.answer}</dd>
           </div>

@@ -12,13 +12,13 @@ export default function Cart() {
   const grandTotal = cartTotal + shipping
 
   if (!hasHydrated) return (
-    <div className="app-liquid-bg min-h-[70vh] animate-pulse">
+    <div className="techpack-canvas min-h-[70vh] animate-pulse">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16">
         <div className="h-9 w-56 bg-[#ECE7DF] rounded-[4px] mb-12" />
         <div className="grid gap-8 lg:grid-cols-3 lg:gap-12">
           <div className="lg:col-span-2 flex flex-col gap-4">
             {[0, 1].map(i => (
-              <div key={i} className="liquid-glass-panel flex h-28 items-start gap-5 rounded-[4px] border p-5">
+              <div key={i} className="techpack-panel flex h-28 items-start gap-5 rounded-[4px] border p-5">
                 <div className="w-20 h-20 bg-[var(--color-cream-soft)] rounded-[4px] shrink-0" />
                 <div className="flex-1 flex flex-col gap-2 pt-1">
                   <div className="h-4 w-1/2 bg-[#ECE7DF] rounded" />
@@ -27,15 +27,15 @@ export default function Cart() {
               </div>
             ))}
           </div>
-          <div className="liquid-glass-panel h-56 rounded-[4px] border" />
+          <div className="techpack-panel h-56 rounded-[4px] border" />
         </div>
       </div>
     </div>
   )
 
   if (items.length === 0) return (
-    <div className="app-liquid-bg flex min-h-[70vh] items-center justify-center px-4 py-16 text-center sm:px-6 sm:py-24">
-      <div className="liquid-glass-surface w-full max-w-lg rounded-[4px] border p-6 sm:rounded-[4px] sm:p-10">
+    <div className="techpack-canvas flex min-h-[70vh] items-center justify-center px-4 py-16 text-center sm:px-6 sm:py-24">
+      <div className="techpack-surface w-full max-w-lg rounded-[4px] border p-6 sm:rounded-[4px] sm:p-10">
         <h1 className="text-3xl font-bold mb-4 tracking-tight">Your cart is empty</h1>
         <p className="text-[#111111]/50 text-sm mb-8">Add some items from the shop to continue.</p>
         <Link href="/products" className="inline-block bg-[var(--color-accent)] text-white px-6 py-3 rounded-[4px] text-sm font-medium hover:bg-[var(--color-accent-dark)] transition">
@@ -46,7 +46,7 @@ export default function Cart() {
   )
 
   return (
-    <div className="app-liquid-bg min-h-[70vh]">
+    <div className="techpack-canvas min-h-[70vh]">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16">
         <h1 className="mb-8 text-3xl font-bold tracking-tight sm:mb-12 sm:text-4xl">Your cart</h1>
 
@@ -54,7 +54,7 @@ export default function Cart() {
         {/* Items */}
         <div className="lg:col-span-2 flex flex-col gap-4">
           {items.map(item => (
-            <div key={`${item.id}-${item.size}`} className="liquid-glass-panel flex flex-col gap-4 rounded-[4px] border p-4 sm:flex-row sm:gap-5 sm:p-5">
+            <div key={`${item.id}-${item.size}`} className="techpack-panel flex flex-col gap-4 rounded-[4px] border p-4 sm:flex-row sm:gap-5 sm:p-5">
               <div className="flex min-w-0 gap-4 sm:contents">
               <div className="relative w-20 h-20 bg-[var(--color-cream-soft)] rounded-[4px] shrink-0 flex items-center justify-center overflow-hidden">
                 {item.image ? (
@@ -73,14 +73,14 @@ export default function Cart() {
                 <div className="flex items-center gap-2">
                   <button type="button"
                     onClick={() => updateQuantity(item.id, item.size, item.quantity - 1)}
-                    className="liquid-glass-control flex h-10 w-10 items-center justify-center rounded-[4px] border text-base transition-colors hover:text-[var(--color-accent)] sm:h-8 sm:w-8 sm:text-sm">
+                    className="techpack-control flex h-10 w-10 items-center justify-center rounded-[4px] border text-base transition-colors hover:text-[var(--color-accent)] sm:h-8 sm:w-8 sm:text-sm">
                     -
                   </button>
                   <span className="w-6 text-center font-mono text-sm">{item.quantity}</span>
                   <button type="button"
                     onClick={() => updateQuantity(item.id, item.size, item.quantity + 1)}
                     disabled={item.quantity >= MAX_SAMPLE_ITEM_QUANTITY}
-                    className="liquid-glass-control flex h-10 w-10 items-center justify-center rounded-[4px] border text-base transition-colors hover:text-[var(--color-accent)] disabled:cursor-not-allowed disabled:opacity-40 sm:h-8 sm:w-8 sm:text-sm">
+                    className="techpack-control flex h-10 w-10 items-center justify-center rounded-[4px] border text-base transition-colors hover:text-[var(--color-accent)] disabled:cursor-not-allowed disabled:opacity-40 sm:h-8 sm:w-8 sm:text-sm">
                     +
                   </button>
                 </div>
@@ -96,7 +96,7 @@ export default function Cart() {
 
         {/* Summary */}
         <div className="flex flex-col gap-4">
-          <div className="liquid-glass-surface flex flex-col gap-4 rounded-[4px] border p-6 lg:sticky lg:top-28">
+          <div className="techpack-surface flex flex-col gap-4 rounded-[4px] border p-6 lg:sticky lg:top-28">
             <p className="text-sm font-semibold">Order summary</p>
             <div className="flex flex-col gap-2 text-sm border-t border-[#ECE7DF] pt-4">
               <div className="flex justify-between">

@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function CheckoutPage() {
   if (!isFeatureEnabled("DURABLE_SAMPLE_CHECKOUT_ENABLED")) {
     return (
-      <div className="app-liquid-bg min-h-[70vh] px-4 py-12 sm:px-6">
+      <div className="techpack-canvas min-h-[70vh] px-4 py-12 sm:px-6">
         <div className="mx-auto max-w-3xl">
           <PortalPlaceholder
             title="Sample checkout unavailable"
@@ -24,7 +24,7 @@ export default async function CheckoutPage() {
   );
   if (!['owner', 'buyer'].includes(membership.role)) {
     return (
-      <div className="app-liquid-bg min-h-[70vh] px-4 py-12 sm:px-6">
+      <div className="techpack-canvas min-h-[70vh] px-4 py-12 sm:px-6">
         <div className="mx-auto max-w-3xl">
           <PortalPlaceholder
             title="Buyer access required"

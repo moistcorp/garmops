@@ -144,8 +144,8 @@ export default function PaymentFailureClient({
   const supportHref = `mailto:${supportEmail}`;
 
   return (
-    <div className="app-liquid-bg flex min-h-[80vh] items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
-      <div className="liquid-glass-surface w-full max-w-md rounded-[4px] border p-5 text-center sm:rounded-[4px] sm:p-9">
+    <div className="techpack-canvas flex min-h-[80vh] items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
+      <div className="techpack-surface w-full max-w-md rounded-[4px] border p-5 text-center sm:rounded-[4px] sm:p-9">
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-[4px] bg-red-50">
           <svg
             width="28"
@@ -203,7 +203,7 @@ export default function PaymentFailureClient({
           </p>
         )}
 
-        <div className="liquid-glass-panel mb-6 rounded-[4px] border p-4 text-left text-xs leading-relaxed text-[#111111]/70">
+        <div className="techpack-panel mb-6 rounded-[4px] border p-4 text-left text-xs leading-relaxed text-[#111111]/70">
           <p className="mb-1 font-semibold">Important — before retrying</p>
           <p>
             If an amount was deducted from your bank account,{" "}

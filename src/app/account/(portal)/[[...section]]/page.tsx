@@ -6,7 +6,11 @@ import InvoiceDownloadButton from "@/components/account/InvoiceDownloadButton";
 import PortalPlaceholder from "@/components/portal/PortalPlaceholder";
 import { requireOrganizationMember } from "@/lib/auth/guards";
 import { markAllNotificationsReadAction, markNotificationReadAction } from "@/app/account/order-lifecycle-actions";
-import { formatMoneyPaise, formatOrderDate } from "@/lib/orders/format";
+import {
+  formatMoneyPaise,
+  formatOrderCode,
+  formatOrderDate,
+} from "@/lib/orders/format";
 
 export const dynamic = "force-dynamic";
 
@@ -63,7 +67,7 @@ async function DocumentsPage() {
         <div className="mt-5 grid gap-4 xl:grid-cols-2">
           {files?.map((file) => {
             const order = file.orders as unknown as { order_number: string };
-            return <article key={file.id} className="rounded-[4px] border border-black/8 bg-white p-5"><div className="flex items-start justify-between gap-4"><div className="min-w-0"><p className="truncate text-sm font-semibold">{file.original_filename}</p><p className="mt-1 text-xs capitalize text-black/45">{file.kind.replaceAll("_", " ")} · {order.order_number}</p></div><InvoiceDownloadButton fileId={file.id} /></div></article>;
+            return <article key={file.id} className="rounded-[4px] border border-black/8 bg-white p-5"><div className="flex items-start justify-between gap-4"><div className="min-w-0"><p className="truncate text-sm font-semibold">{file.original_filename}</p><p className="mt-1 text-xs capitalize text-black/45">{file.kind.replaceAll("_", " ")} · {formatOrderCode(order.order_number)}</p></div><InvoiceDownloadButton fileId={file.id} /></div></article>;
           })}
           {!files?.length ? <p className="text-sm text-black/40">No customer-visible order files yet.</p> : null}
         </div>
@@ -74,7 +78,7 @@ async function DocumentsPage() {
         <div className="mt-5 grid gap-4 xl:grid-cols-2">
           {invoices?.map((invoice) => {
             const order = invoice.orders as unknown as { order_number: string };
-            return <article key={invoice.id} className="rounded-[4px] border border-black/8 bg-white p-5"><div className="flex items-start justify-between gap-4"><div><div className="flex items-center gap-2"><FileText size={17} className="text-[#1D49B4]" /><p className="text-sm font-semibold">{invoice.document_number ?? (invoice.kind === "sample_tax_invoice" ? "Sample tax document" : "Reservation document")}</p></div><p className="mt-2 text-xs text-black/45">Order {order.order_number}</p><p className="mt-2 text-xs text-black/45">{invoice.total_paise === null ? "Amount pending" : formatMoneyPaise(invoice.total_paise)} · {invoiceStatusCopy(invoice.sync_status)}</p></div>{invoice.sync_status === "completed" && invoice.pdf_file_id ? <InvoiceDownloadButton fileId={invoice.pdf_file_id} /> : null}</div></article>;
+            return <article key={invoice.id} className="rounded-[4px] border border-black/8 bg-white p-5"><div className="flex items-start justify-between gap-4"><div><div className="flex items-center gap-2"><FileText size={17} className="text-[#1D49B4]" /><p className="text-sm font-semibold">{invoice.document_number ?? (invoice.kind === "sample_tax_invoice" ? "Sample tax document" : "Reservation document")}</p></div><p className="mt-2 text-xs text-black/45">{formatOrderCode(order.order_number)}</p><p className="mt-2 text-xs text-black/45">{invoice.total_paise === null ? "Amount pending" : formatMoneyPaise(invoice.total_paise)} · {invoiceStatusCopy(invoice.sync_status)}</p></div>{invoice.sync_status === "completed" && invoice.pdf_file_id ? <InvoiceDownloadButton fileId={invoice.pdf_file_id} /> : null}</div></article>;
           })}
         </div>
       </section>
@@ -104,7 +108,7 @@ async function AccountOverview() {
   ]);
   const active = orders?.filter((o) => !["delivered", "cancelled", "refunded", "expired"].includes(o.status)).length ?? 0;
   const delivered = orders?.filter((o) => o.status === "delivered").length ?? 0;
-  return <div className="space-y-5"><section className="techpack-surface rounded-[4px] border p-6 sm:p-8"><h2 className="text-xl font-semibold">Company operations overview</h2><p className="mt-2 text-sm text-black/50">Orders needing action, versioned approvals, shipments, notifications, and reusable historical configurations are collected here.</p></section><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{[["Active orders",active],["Approvals due",approvals ?? 0],["Unread updates",unread ?? 0],["Documents",documents ?? 0]].map(([label,value]) => <div key={String(label)} className="techpack-panel rounded-[4px] border p-5"><p className="text-[10px] uppercase tracking-wider text-black/35">{label}</p><p className="mt-2 text-2xl font-semibold">{value}</p></div>)}</div><section className="techpack-surface rounded-[4px] border p-6"><div className="flex items-center justify-between gap-4"><h3 className="font-semibold">Recent orders</h3><Link href="/account/orders" className="text-xs font-semibold text-[#1D49B4] hover:underline">View all</Link></div><div className="mt-5 space-y-3">{orders?.map((order) => <Link key={order.id} href={`/account/orders/${order.order_number}`} className="flex items-center justify-between gap-4 rounded-[4px] border border-black/8 bg-white p-4 transition hover:border-[#1D49B4]/40"><div><p className="text-sm font-semibold">{order.order_number}</p><p className="mt-1 text-xs text-black/45">{order.customer_reference ?? "Custom order"}</p></div><span className="text-xs capitalize text-black/50">{order.public_status.replaceAll("_", " ")}</span></Link>)}{!orders?.length ? <p className="text-sm text-black/40">No orders yet.</p> : null}</div>{delivered ? <p className="mt-4 text-xs text-black/45">Delivered orders include a reorder action that creates a fresh price and a new order number.</p> : null}</section></div>;
+  return <div className="space-y-5"><section className="techpack-surface rounded-[4px] border p-6 sm:p-8"><h2 className="text-xl font-semibold">Company operations overview</h2><p className="mt-2 text-sm text-black/50">Orders needing action, versioned approvals, shipments, notifications, and reusable historical configurations are collected here.</p></section><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{[["Active orders",active],["Approvals due",approvals ?? 0],["Unread updates",unread ?? 0],["Documents",documents ?? 0]].map(([label,value]) => <div key={String(label)} className="techpack-panel rounded-[4px] border p-5"><p className="text-[10px] uppercase tracking-wider text-black/35">{label}</p><p className="mt-2 text-2xl font-semibold">{value}</p></div>)}</div><section className="techpack-surface rounded-[4px] border p-6"><div className="flex items-center justify-between gap-4"><h3 className="font-semibold">Recent orders</h3><Link href="/account/orders" className="text-xs font-semibold text-[#1D49B4] hover:underline">View all</Link></div><div className="mt-5 space-y-3">{orders?.map((order) => <Link key={order.id} href={`/account/orders/${order.order_number}`} className="flex items-center justify-between gap-4 rounded-[4px] border border-black/8 bg-white p-4 transition hover:border-[#1D49B4]/40"><div><p className="text-sm font-semibold">{formatOrderCode(order.order_number)}</p><p className="mt-1 text-xs text-black/45">{order.customer_reference ?? "Custom order"}</p></div><span className="techpack-stamp" data-tone="accent">{order.public_status.replaceAll("_", " ")}</span></Link>)}{!orders?.length ? <p className="text-sm text-black/40">No orders yet.</p> : null}</div>{delivered ? <p className="mt-4 text-xs text-black/45">Delivered orders include a reorder action that creates a fresh price and a new order number.</p> : null}</section></div>;
 }
 
 export default async function AccountSectionPage({

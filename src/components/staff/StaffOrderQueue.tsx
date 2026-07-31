@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, CalendarDays, Filter, Search } from "lucide-react";
 
 import { requireStaffPermission } from "@/lib/auth/guards";
-import { formatOrderTimestamp } from "@/lib/orders/format";
+import { formatOrderCode, formatOrderTimestamp } from "@/lib/orders/format";
 import {
   listAssignableStaff,
   parseStaffQueueFilters,
@@ -164,11 +164,11 @@ export default async function StaffOrderQueue({
             >
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="font-semibold">{order.order_number}</p>
-                  <span className={`rounded-[4px] px-2 py-0.5 text-[10px] font-semibold ${order.internal_priority === 'urgent' ? 'bg-red-100 text-red-700' : order.internal_priority === 'high' ? 'bg-amber-100 text-amber-700' : 'bg-black/5 text-black/50'}`}>
+                  <p className="font-semibold">{formatOrderCode(order.order_number)}</p>
+                  <span className="techpack-stamp" data-tone={order.internal_priority === 'urgent' ? 'danger' : order.internal_priority === 'high' ? 'warning' : 'neutral'}>
                     {order.internal_priority}
                   </span>
-                  {order.open_action_count > 0 ? <span className="rounded-[4px] bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">{order.open_action_count} open action</span> : null}
+                  {order.open_action_count > 0 ? <span className="techpack-stamp" data-tone="accent">{order.open_action_count} open action</span> : null}
                 </div>
                 <p className="mt-1 text-xs text-black/45">{order.organization_name} · {order.customer_name}</p>
               </div>

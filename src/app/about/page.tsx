@@ -25,7 +25,7 @@ const facts = [
 
 export default function AboutPage() {
   return (
-    <div className="app-liquid-bg">
+    <div className="techpack-canvas">
       <JsonLd data={organizationSchema()} />
       <section className="mx-auto max-w-7xl px-4 pb-10 pt-10 sm:px-6 sm:pb-16 sm:pt-20">
         <p className="mb-4 text-xs font-medium uppercase tracking-widest text-[#111111]/40">About Garmops</p>
@@ -38,7 +38,7 @@ export default function AboutPage() {
       </section>
 
       <section className="mx-auto grid max-w-7xl gap-6 px-4 pb-16 sm:px-6 sm:pb-24 lg:grid-cols-[1.4fr_1fr]">
-        <div className="liquid-glass-surface rounded-[4px] border p-6 sm:p-9">
+        <div className="techpack-surface rounded-[4px] border p-6 sm:p-9">
           <h2 className="text-2xl font-bold tracking-tight text-[#111111]">What we make</h2>
           <div className="mt-5 space-y-4 text-sm leading-7 text-[#111111]/65">
             <p>
@@ -61,7 +61,7 @@ export default function AboutPage() {
           </div>
         </div>
 
-        <aside className="liquid-glass-panel rounded-[4px] border p-6 sm:p-8" aria-label="Garmops at a glance">
+        <aside className="techpack-panel rounded-[4px] border p-6 sm:p-8" aria-label="Garmops at a glance">
           <h2 className="text-lg font-bold tracking-tight text-[#111111]">At a glance</h2>
           <dl className="mt-5 divide-y divide-white/60">
             {facts.map(([label, value]) => (

@@ -223,7 +223,7 @@ export function TechniqueSelect({
             setOpen(false);
           }
         }}
-        className="configurator-glass-control flex min-h-11 w-full items-center justify-between gap-3 rounded-[4px] border px-3 text-left outline-none focus:!border-[var(--color-accent)]/60"
+        className="techpack-control flex min-h-11 w-full items-center justify-between gap-3 rounded-[4px] border px-3 text-left outline-none focus:!border-[var(--color-accent)]/60"
       >
         <span
           className={`text-sm font-medium leading-none tracking-normal ${
@@ -256,7 +256,7 @@ export function TechniqueSelect({
             />
             <span
               aria-hidden="true"
-              className="absolute inset-0 bg-gradient-to-r from-[#172A43]/95 via-[#172A43]/75 to-[#172A43]/35"
+              className="absolute inset-0 bg-[#172A43]/85"
             />
             <div className="relative flex items-center justify-between gap-3">
               <div>

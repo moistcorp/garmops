@@ -35,7 +35,7 @@ export default function DimensionSelect({ value, onChange }: DimensionSelectProp
             className={`flex min-h-[72px] items-center justify-center rounded-[4px] px-2 text-xs font-bold transition-colors ${
               isSelected
                 ? "border border-[var(--color-accent)] bg-white/60 text-[#111111]  "
-                : "configurator-glass-control border text-[#111111]/55 hover:!bg-white/60 hover:text-[#111111]"
+                : "techpack-control border text-[#111111]/55 hover:!bg-white/60 hover:text-[#111111]"
             }`}
           >
             {preset.label}

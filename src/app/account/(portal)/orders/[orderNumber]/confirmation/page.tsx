@@ -13,6 +13,7 @@ import { requireOrganizationMember } from "@/lib/auth/guards";
 import { isFeatureEnabled } from "@/lib/config/featureFlags";
 import { getCustomerOrder } from "@/lib/orders/dal";
 import {
+  formatOrderCode,
   formatMoneyPaise,
   formatOrderDate,
 } from "@/lib/orders/format";
@@ -83,7 +84,7 @@ export default async function OrderConfirmationPage({
             Order saved before payment
           </p>
           <h2 className="mt-2 text-3xl font-semibold tracking-tight">
-            {order.order_number}
+            {formatOrderCode(order.order_number)}
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-white/70">
             You can refresh this page or continue on another device. The order

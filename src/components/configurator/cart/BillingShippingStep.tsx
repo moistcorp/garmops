@@ -42,13 +42,14 @@ import {
 import { CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS } from "@/lib/configurator/colours";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 import { ActionFeedback } from "@/components/configurator/ActionFeedback";
+import { formatSpecCode } from "@/lib/orders/format";
 
 export interface BillingShippingStepProps {
   cartId: string;
 }
 
 const INPUT_CLASS =
-  "liquid-glass-control w-full rounded-[4px] border px-3 py-2 text-sm text-[#111111] placeholder:text-[#111111]/40 focus:!border-[var(--color-accent)] focus:outline-none";
+  "techpack-control w-full rounded-[4px] border px-3 py-2 text-sm text-[#111111] placeholder:text-[#111111]/40 focus:!border-[var(--color-accent)] focus:outline-none";
 const LABEL_CLASS = "mb-1 block text-xs font-medium text-[#111111]/70";
 
 function formatIndianPhone(value: string): string {
@@ -333,7 +334,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
             <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-[#111111]/50">
-              SPEC CART · {cartId}
+              {formatSpecCode(`CART-${cartId}`)}
               </p>
               <h1 className="text-2xl font-semibold text-[#111111]">
                 Delivery details
@@ -360,7 +361,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
 
           <section
             id="delivery-target"
-            className="liquid-glass-panel scroll-mt-16 rounded-[4px] border p-5"
+            className="techpack-panel scroll-mt-16 rounded-[4px] border p-5"
           >
             <DeliveryDatePicker
               orderConfirmedDate={deliveryBaseDate}
@@ -384,7 +385,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
 
           <section
             id="contact-details"
-            className="liquid-glass-panel scroll-mt-16 rounded-[4px] border p-5"
+            className="techpack-panel scroll-mt-16 rounded-[4px] border p-5"
           >
             {sectionHeading(
               <UserRound size={18} />,
@@ -498,7 +499,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
 
           <section
             id="shipping-information"
-            className="liquid-glass-panel scroll-mt-16 rounded-[4px] border p-5"
+            className="techpack-panel scroll-mt-16 rounded-[4px] border p-5"
           >
             {sectionHeading(
               <MapPin size={18} />,
@@ -527,7 +528,7 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
             delivery={deliveryLabel}
             total={totals.total}
             onNext={handleNext}
-            nextLabel="Continue to review & payment"
+            nextLabel="Confirm spec · review & payment"
             nextDisabled={!isValid}
             disabledMessage={missingMessage}
             onDisabledNext={handleNext}

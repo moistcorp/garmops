@@ -270,7 +270,7 @@ export function AddressForm({
     setTouched((current) => ({ ...current, [key]: true }));
   const showError = (key: string, invalid: boolean) => touched[key] && invalid;
   const inputClass =
-    "liquid-glass-control w-full rounded-[4px] border px-3 py-2 text-sm text-[#111111] placeholder:text-[#111111]/40 focus:!border-[var(--color-accent)] focus:outline-none";
+    "techpack-control w-full rounded-[4px] border px-3 py-2 text-sm text-[#111111] placeholder:text-[#111111]/40 focus:!border-[var(--color-accent)] focus:outline-none";
   const labelClass = "mb-1 block text-xs font-medium text-[#111111]/70";
 
   return (

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowLeft, Download, LoaderCircle } from "lucide-react";
+import { formatSpecCode } from "@/lib/orders/format";
 import { ConfiguratorStageTracker } from "./ConfiguratorStageTracker";
 import ProductPickerCartLink from "./products/ProductPickerCartLink";
 
@@ -59,7 +60,7 @@ export function ConfiguratorJourney({
   const previousStepHandler = previousStep ? onStepSelect[previousStep.id] : undefined;
   const previousStepHref = previousStep ? links[previousStep.id] ?? backHref : backHref;
   const progressPercent = (currentIndex / (STEPS.length - 1)) * 100;
-  const specCode = `SPEC-${String(currentIndex + 1).padStart(4, "0")}`;
+  const specCode = formatSpecCode("DRAFT");
   const backButtonClass =
     "flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px] border border-[var(--color-rule)] bg-[var(--color-cream)] text-[var(--color-navy)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]";
 
@@ -143,7 +144,7 @@ export function ConfiguratorJourney({
           <div className="relative mt-3 px-1 pb-0.5 sm:mt-4">
             <div aria-hidden="true" className="absolute inset-x-[6.25%] top-[10px] h-[2px] bg-[rgba(22,33,43,0.2)]">
               <span
-                className="configurator-progress-teal absolute inset-y-0 left-0 block"
+                className="techpack-progress absolute inset-y-0 left-0 block"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>

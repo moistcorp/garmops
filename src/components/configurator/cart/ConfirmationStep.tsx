@@ -33,6 +33,7 @@ import {
 } from "./cartDraft";
 import { formatDeliveryLabel, isDeliverySelectionValid } from "@/lib/configurator/delivery";
 import { formatInr } from "@/lib/configurator/pricing";
+import { formatSpecCode } from "@/lib/orders/format";
 import {
   CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS,
   CUSTOM_DYE_MOQ_UNITS,
@@ -417,7 +418,7 @@ export function ConfirmationStep({
         <div className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-[#111111]/50">SPEC CART · {cartId}</p>
+            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-[#111111]/50">{formatSpecCode(`CART-${cartId}`)}</p>
             <h1 className="text-2xl font-semibold text-[#111111]">Review & payment</h1>
             {draft.projectName && <p className="mt-1 text-sm font-medium text-[#111111]/60">{draft.projectName}</p>}
           </div>
@@ -520,7 +521,7 @@ export function ConfirmationStep({
         </ReviewSection>
 
         {(draft.projectPreferences.orderNotes || draft.projectPreferences.receiveEmails) && (
-          <section className="liquid-glass-panel rounded-[4px] border p-5">
+          <section className="techpack-panel rounded-[4px] border p-5">
             <h3 className="text-sm font-medium text-[#111111]">Project notes & communication</h3>
             {draft.projectPreferences.orderNotes && (
               <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[#111111]/70">{draft.projectPreferences.orderNotes}</p>
@@ -531,14 +532,14 @@ export function ConfirmationStep({
           </section>
         )}
 
-        <section className="liquid-glass-panel rounded-[4px] border p-5">
+        <section className="techpack-panel rounded-[4px] border p-5">
           <h3 className="mb-4 text-sm font-medium text-[#111111]">Order summary</h3>
           <div className="space-y-4">
             {draft.items.map((item) => <ProductRecapCard key={item.id} item={item} />)}
           </div>
         </section>
 
-        <section className="liquid-glass-panel rounded-[4px] border !border-[var(--color-accent)]/25 p-5">
+        <section className="techpack-panel rounded-[4px] border !border-[var(--color-accent)]/25 p-5">
           <div className="flex items-start gap-3">
             <span className="rounded-[4px] bg-white p-2 text-[var(--color-accent-dark)]"><ShieldCheck size={18} /></span>
             <div className="min-w-0 flex-1">
@@ -562,7 +563,7 @@ export function ConfirmationStep({
           </div>
         </section>
 
-        <section className="liquid-glass-panel rounded-[4px] border p-5">
+        <section className="techpack-panel rounded-[4px] border p-5">
           <label className="flex cursor-pointer items-start gap-3 text-sm text-[#111111]">
             <input
               type="checkbox"
@@ -607,8 +608,8 @@ export function ConfirmationStep({
                 ? "Creating your order…"
                 : "Opening secure payment…"
               : durableCheckoutEnabled
-                ? `Create order & review payment — ${formatInr(RESERVATION_FEE)}`
-                : `Reserve production review — ${formatInr(RESERVATION_FEE)}`}
+                ? `Lock spec & review payment — ${formatInr(RESERVATION_FEE)}`
+                : `Lock spec & reserve review — ${formatInr(RESERVATION_FEE)}`}
           </button>
           {!termsAccepted && (
             <p className="text-center text-xs text-[#111111]/55">Accept the reservation terms to continue.</p>
@@ -632,7 +633,7 @@ function ReviewSection({
   children: ReactNode;
 }) {
   return (
-    <section className="liquid-glass-panel rounded-[4px] border p-5">
+    <section className="techpack-panel rounded-[4px] border p-5">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className="text-[var(--color-accent-dark)]">{icon}</span>
@@ -669,7 +670,7 @@ function ProductRecapCard({ item }: { item: CartItem }) {
   const productSizes = getProduct(item.productId)?.sizes ?? Object.keys(item.sizeQuantities);
 
   return (
-    <div className="liquid-glass-control flex gap-4 rounded-[4px] border p-4">
+    <div className="techpack-control flex gap-4 rounded-[4px] border p-4">
       <div className="h-24 w-20 shrink-0 overflow-hidden rounded-[4px] bg-[#F7F7F7]">
         <ArtworkPositionProvider activeView="front">
           <CanvasRenderer

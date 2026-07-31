@@ -41,7 +41,7 @@ export default async function JournalPostPage({ params }: { params: Promise<{ sl
   if (!post) notFound()
 
   return (
-    <div className="app-liquid-bg">
+    <div className="techpack-canvas">
     <JsonLd data={articleSchema(post)} />
     <JsonLd data={breadcrumbSchema([
       { name: 'Home', path: '/' },
@@ -57,7 +57,7 @@ export default async function JournalPostPage({ params }: { params: Promise<{ sl
       ]} />
       <div className="mb-8 border-b border-[#ECE7DF] pb-8 sm:mb-10 sm:pb-10">
         <div className="mb-5 flex flex-wrap items-center gap-3 text-xs text-[#111111]/45">
-          <span className="liquid-glass-chip rounded-[4px] px-3 py-1">{post.category}</span>
+          <span className="techpack-chip rounded-[4px] px-3 py-1">{post.category}</span>
           <time dateTime={post.publishedAt}>{post.date}</time>
           <span aria-hidden="true">·</span>
           <span>{post.readTime}</span>
@@ -72,7 +72,7 @@ export default async function JournalPostPage({ params }: { params: Promise<{ sl
         </p>
       </div>
       {post.takeaways && (
-        <aside className="liquid-glass-surface mb-10 rounded-[4px] border p-5 sm:p-7" aria-labelledby="key-takeaways">
+        <aside className="techpack-surface mb-10 rounded-[4px] border p-5 sm:p-7" aria-labelledby="key-takeaways">
           <h2 id="key-takeaways" className="text-lg font-bold tracking-tight text-[#111111]">Key takeaways</h2>
           <ul className="mt-4 space-y-3">
             {post.takeaways.map(item => (
@@ -104,7 +104,7 @@ export default async function JournalPostPage({ params }: { params: Promise<{ sl
               </ul>
             )}
             {section.table && (
-              <div className="liquid-glass-panel mt-6 overflow-hidden rounded-[4px] border">
+              <div className="techpack-panel mt-6 overflow-hidden rounded-[4px] border">
                 <div className="overflow-x-auto" role="region" aria-label={`${section.heading} comparison table`} tabIndex={0}>
                   <table className="w-full min-w-[640px] text-left text-sm">
                     <thead className="bg-white/35">
@@ -146,7 +146,7 @@ export default async function JournalPostPage({ params }: { params: Promise<{ sl
           <h2 id="article-faq" className="text-2xl font-bold tracking-tight text-[#111111]">Frequently asked questions</h2>
           <div className="mt-6 space-y-4">
             {post.faq.map(item => (
-              <div key={item.q} className="liquid-glass-panel rounded-[4px] border p-5">
+              <div key={item.q} className="techpack-panel rounded-[4px] border p-5">
                 <h3 className="font-semibold leading-6 text-[#111111]">{item.q}</h3>
                 <p className="mt-2 text-sm leading-6 text-[#111111]/65">{item.a}</p>
               </div>
@@ -159,14 +159,14 @@ export default async function JournalPostPage({ params }: { params: Promise<{ sl
           <h2 id="continue-planning" className="text-lg font-bold tracking-tight text-[#111111]">Continue planning your order</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
             {post.relatedLinks.map(link => (
-              <Link key={link.href} href={link.href} className="liquid-glass-panel rounded-[4px] border p-4 text-sm font-medium leading-5 text-[#111111] transition-colors hover:!border-[var(--color-accent)]/45 hover:text-[var(--color-accent-dark)]">
+              <Link key={link.href} href={link.href} className="techpack-panel rounded-[4px] border p-4 text-sm font-medium leading-5 text-[#111111] transition-colors hover:!border-[var(--color-accent)]/45 hover:text-[var(--color-accent-dark)]">
                 {link.label} →
               </Link>
             ))}
           </div>
         </section>
       )}
-      <div className="liquid-glass-surface mt-12 flex flex-col gap-4 rounded-[4px] border p-5 sm:mt-14 sm:flex-row sm:items-center sm:justify-between sm:p-7">
+      <div className="techpack-surface mt-12 flex flex-col gap-4 rounded-[4px] border p-5 sm:mt-14 sm:flex-row sm:items-center sm:justify-between sm:p-7">
         <div>
           <h2 className="font-semibold text-[#111111]">Planning a production run?</h2>
           <p className="mt-1 text-sm text-[#111111]/55">Configure your order or ask us about the right specification.</p>

@@ -47,14 +47,14 @@ export default function GarmentColourPanel({ value, onChange, unitBasePrice }: G
     <div className="flex flex-col gap-6">
       {/* Section A — Signature */}
       <div className="flex flex-col gap-3">
-        <div className="configurator-glass-subtle flex items-center justify-between gap-2 rounded-[4px] px-3 py-2">
+        <div className="techpack-subtle flex items-center justify-between gap-2 rounded-[4px] px-3 py-2">
           <div>
             <h3 className="font-mono text-xs font-semibold uppercase tracking-[0.06em] text-[#111111]">Signature colours</h3>
             <p className="text-xs text-[#111111]/55">
               Ready stock — 50-unit order minimum, standard lead time
             </p>
           </div>
-          <span className="configurator-glass-control shrink-0 rounded-[4px] border px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.06em] text-[#2E7D32]">
+          <span className="techpack-control shrink-0 rounded-[4px] border px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.06em] text-[#2E7D32]">
             Included
           </span>
         </div>
@@ -67,7 +67,7 @@ export default function GarmentColourPanel({ value, onChange, unitBasePrice }: G
 
       {/* Section B — Custom Dye */}
       <div className="flex flex-col gap-3 border-t border-white/55 pt-6">
-        <div className="configurator-glass-subtle flex items-center justify-between gap-2 rounded-[4px] px-3 py-2">
+        <div className="techpack-subtle flex items-center justify-between gap-2 rounded-[4px] px-3 py-2">
           <div>
             <h3 className="font-mono text-xs font-semibold uppercase tracking-[0.06em] text-[#111111]">Custom dye / Pantone</h3>
             <p className="text-xs text-[#111111]/55">

@@ -30,12 +30,6 @@ export default function TrustedBy() {
 
           <div className="relative flex-1 overflow-hidden">
 
-            {/* left fade */}
-            <div className="absolute left-0 top-0 h-full w-20 bg-gradient-to-r from-[var(--color-cream)] to-transparent z-10" />
-
-            {/* right fade */}
-            <div className="absolute right-0 top-0 h-full w-20 bg-gradient-to-l from-[var(--color-cream)] to-transparent z-10" />
-
             <div className="marquee flex items-center">
 
               {marquee.map((brand, index) => (

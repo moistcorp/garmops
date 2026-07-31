@@ -242,7 +242,7 @@ export function ArtworkPanel({
     if (!current.technique) return null;
     return (
       <div
-        className="configurator-glass-subtle flex flex-col gap-3 rounded-[4px] p-3"
+        className="techpack-subtle flex flex-col gap-3 rounded-[4px] p-3"
         onFocusCapture={() => onViewChange?.(side)}
         onPointerDownCapture={() => onViewChange?.(side)}
       >
@@ -265,7 +265,7 @@ export function ArtworkPanel({
             <button
               type="button"
               onClick={() => copyArtworkToOtherSide(side)}
-              className="configurator-glass-control flex items-center gap-1.5 rounded-[4px] border px-3 py-1.5 text-xs font-semibold text-[#111111]/70 hover:!border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+              className="techpack-control flex items-center gap-1.5 rounded-[4px] border px-3 py-1.5 text-xs font-semibold text-[#111111]/70 hover:!border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
             >
               <Copy size={13} strokeWidth={2.2} />
               Copy to {side === "front" ? "back" : "front"}
@@ -285,7 +285,7 @@ export function ArtworkPanel({
     const contentId = `artwork-${side}-accordion-content`;
 
     return (
-      <section className="configurator-glass-subtle overflow-hidden rounded-[4px] p-3">
+      <section className="techpack-subtle overflow-hidden rounded-[4px] p-3">
         <div className="flex items-center gap-2">
           <button
             type="button"

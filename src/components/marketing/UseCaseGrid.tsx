@@ -19,7 +19,7 @@ export default function UseCaseGrid({
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {useCases.map(useCase => (
-            <article key={useCase.title} className="liquid-glass-panel rounded-[4px] border p-5">
+            <article key={useCase.title} className="techpack-panel rounded-[4px] border p-5">
               <h3 className="text-sm font-semibold text-[#111111]">{useCase.title}</h3>
               <p className="mt-2 text-sm leading-6 text-[#3f3f3f]">{useCase.description}</p>
             </article>

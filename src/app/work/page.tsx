@@ -18,7 +18,7 @@ export const metadata: Metadata = generateMeta({
 
 export default function Work() {
   return (
-    <div className="app-liquid-bg">
+    <div className="techpack-canvas">
       {/* Header */}
       <section className="max-w-7xl mx-auto px-4 pb-10 pt-10 sm:px-6 sm:pb-16 sm:pt-20">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Case studies</p>
@@ -33,7 +33,7 @@ export default function Work() {
       {/* Featured — first case study */}
       <section className="max-w-7xl mx-auto px-4 pb-12 sm:px-6 sm:pb-16">
         <Link href={`/work/${caseStudies[0].slug}`} className="group block">
-          <div className="liquid-glass-surface grid gap-0 overflow-hidden rounded-[4px] border transition-all duration-300 hover:!border-[var(--color-accent)]/45 md:grid-cols-2">
+          <div className="techpack-surface grid gap-0 overflow-hidden rounded-[4px] border transition-all duration-300 hover:!border-[var(--color-accent)]/45 md:grid-cols-2">
             {/* Image */}
             <div className="relative aspect-video md:aspect-auto bg-[var(--color-cream-soft)] flex items-center justify-center min-h-64 overflow-hidden">
               {caseStudies[0].coverImage ? (
@@ -88,7 +88,7 @@ export default function Work() {
             <Link
               key={cs.slug}
               href={`/work/${cs.slug}`}
-              className="liquid-glass-panel group flex flex-col overflow-hidden rounded-[4px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45"
+              className="techpack-panel group flex flex-col overflow-hidden rounded-[4px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45"
             >
               {/* Image */}
               <div className="relative w-full aspect-video bg-[var(--color-cream-soft)] flex items-center justify-center overflow-hidden">
@@ -128,9 +128,9 @@ export default function Work() {
       </section>
 
       {/* CTA */}
-      <section className="app-liquid-section py-12 sm:py-16">
+      <section className="techpack-section py-12 sm:py-16">
         <div className="max-w-7xl mx-auto flex flex-col items-center justify-between gap-6 px-4 sm:px-6 md:flex-row">
-          <div className="liquid-glass-dark flex w-full flex-col items-stretch justify-between gap-6 rounded-[4px] border p-6 sm:rounded-[4px] sm:p-8 md:flex-row md:items-center md:p-10">
+          <div className="techpack-dark flex w-full flex-col items-stretch justify-between gap-6 rounded-[4px] border p-6 sm:rounded-[4px] sm:p-8 md:flex-row md:items-center md:p-10">
           <div>
             <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">
               Want results like these?

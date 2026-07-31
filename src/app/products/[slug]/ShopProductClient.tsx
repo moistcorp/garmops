@@ -75,7 +75,7 @@ export default function ShopProductClient({
   }
 
   return (
-    <div className="app-liquid-bg">
+    <div className="techpack-canvas">
       <div className="max-w-7xl mx-auto px-4 py-10 sm:px-6 sm:py-16">
         <Breadcrumbs crumbs={[
           { label: 'Home', href: '/' },
@@ -105,7 +105,7 @@ export default function ShopProductClient({
           </div>
 
           {/* Info */}
-          <div className="liquid-glass-surface flex flex-col gap-6 rounded-[4px] border p-4 sm:rounded-[4px] sm:p-7">
+          <div className="techpack-surface flex flex-col gap-6 rounded-[4px] border p-4 sm:rounded-[4px] sm:p-7">
             <div>
               <p className="text-xs text-[#111111]/40 uppercase tracking-widest mb-2">
                 {product.category}
@@ -138,8 +138,8 @@ export default function ShopProductClient({
                       onClick={() => { setSelectedSize(s); setError('') }}
                       className={`min-w-12 h-12 rounded-[4px] px-3 text-sm whitespace-nowrap border transition-colors ${
                         selectedSize === s
-                          ? 'liquid-glass-selected'
-                          : 'liquid-glass-control text-[#111111] hover:!border-[var(--color-accent)] hover:text-[var(--color-accent)]'
+                          ? 'techpack-selected'
+                          : 'techpack-control text-[#111111] hover:!border-[var(--color-accent)] hover:text-[var(--color-accent)]'
                       }`}
                     >
                       {s}
@@ -159,7 +159,7 @@ export default function ShopProductClient({
                 <button
                   type="button"
                   onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                  className="liquid-glass-control flex h-10 w-10 items-center justify-center rounded-[4px] border text-lg transition-colors hover:!border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+                  className="techpack-control flex h-10 w-10 items-center justify-center rounded-[4px] border text-lg transition-colors hover:!border-[var(--color-accent)] hover:text-[var(--color-accent)]"
                 >
                   -
                 </button>
@@ -168,7 +168,7 @@ export default function ShopProductClient({
                   type="button"
                   onClick={() => setQuantity(q => Math.min(MAX_SAMPLE_ITEM_QUANTITY, q + 1))}
                   disabled={quantity >= MAX_SAMPLE_ITEM_QUANTITY}
-                  className="liquid-glass-control flex h-10 w-10 items-center justify-center rounded-[4px] border text-lg transition-colors hover:!border-[var(--color-accent)] hover:text-[var(--color-accent)] disabled:cursor-not-allowed disabled:opacity-40"
+                  className="techpack-control flex h-10 w-10 items-center justify-center rounded-[4px] border text-lg transition-colors hover:!border-[var(--color-accent)] hover:text-[var(--color-accent)] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   +
                 </button>
@@ -241,7 +241,7 @@ export default function ShopProductClient({
                 <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-3">
                   Size chart
                 </p>
-                <div className="liquid-glass-panel overflow-hidden rounded-[4px] border">
+                <div className="techpack-panel overflow-hidden rounded-[4px] border">
                   <div className="overflow-x-auto" role="region" aria-label="Product size chart" tabIndex={0}>
                   <table className="min-w-max w-full text-xs">
                     <thead>
@@ -317,7 +317,7 @@ export default function ShopProductClient({
           </p>
         </div>
         <div className="mt-8 grid gap-5 md:grid-cols-3">
-          <article className="liquid-glass-panel rounded-[4px] border p-5 sm:p-6">
+          <article className="techpack-panel rounded-[4px] border p-5 sm:p-6">
             <h3 className="text-base font-semibold text-[#111111]">Suitable use cases</h3>
             <ul className="mt-4 space-y-2">
               {suitableUseCases.map(useCase => (
@@ -325,7 +325,7 @@ export default function ShopProductClient({
               ))}
             </ul>
           </article>
-          <article className="liquid-glass-panel rounded-[4px] border p-5 sm:p-6">
+          <article className="techpack-panel rounded-[4px] border p-5 sm:p-6">
             <h3 className="text-base font-semibold text-[#111111]">Decoration methods to review</h3>
             <ul className="mt-4 space-y-2">
               {decorationMethods.map(method => (
@@ -333,7 +333,7 @@ export default function ShopProductClient({
               ))}
             </ul>
           </article>
-          <article className="liquid-glass-panel rounded-[4px] border p-5 sm:p-6">
+          <article className="techpack-panel rounded-[4px] border p-5 sm:p-6">
             <h3 className="text-base font-semibold text-[#111111]">Continue the order</h3>
             <div className="mt-4 flex flex-col items-start gap-3">
               <Link href={categoryPath} className="text-sm font-medium text-[var(--color-accent-dark)] underline underline-offset-4">
@@ -361,7 +361,7 @@ export default function ShopProductClient({
               <Link
                 key={p.id}
                 href={`/products/${p.slug}`}
-                className="liquid-glass-panel group flex flex-col overflow-hidden rounded-[4px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45"
+                className="techpack-panel group flex flex-col overflow-hidden rounded-[4px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45"
               >
                 <div className="relative w-full aspect-[3/4] bg-[var(--color-cream-soft)] flex items-center justify-center overflow-hidden">
                   {p.image ? (

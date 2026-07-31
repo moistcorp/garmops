@@ -42,7 +42,7 @@ export default function CustomDyePantoneGrid({
           }}
           placeholder="Search by Pantone code or colour name (e.g. navy, maroon)"
           aria-label="Search Colour"
-          className="configurator-glass-control w-full rounded-[4px] border px-3 py-2 text-sm placeholder:text-[#111111]/40 focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
+          className="techpack-control w-full rounded-[4px] border px-3 py-2 text-sm placeholder:text-[#111111]/40 focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
         />
         <p className="mt-1.5 text-[10px] text-[#111111]/45">
           {filtered.length.toLocaleString("en-IN")} uncoated colour
@@ -62,7 +62,7 @@ export default function CustomDyePantoneGrid({
               className={`group relative flex items-center gap-2 rounded-[4px] border px-2 py-1.5 text-left text-sm transition-colors ${
                 isActive
                   ? "border-[var(--color-accent)] bg-[var(--color-accent)]/6"
-                  : "configurator-glass-control border hover:!border-[var(--color-accent)]/35 hover:!bg-white/55"
+                  : "techpack-control border hover:!border-[var(--color-accent)]/35 hover:!bg-white/55"
               }`}
             >
               <span
@@ -89,7 +89,7 @@ export default function CustomDyePantoneGrid({
         <button
           type="button"
           onClick={() => setVisibleCount((current) => current + PAGE_SIZE)}
-          className="configurator-glass-control self-center rounded-[4px] border px-4 py-2 text-xs font-semibold text-[#111111]/65 hover:!border-[var(--color-accent)]/45 hover:!bg-white/60 hover:text-[#111111]"
+          className="techpack-control self-center rounded-[4px] border px-4 py-2 text-xs font-semibold text-[#111111]/65 hover:!border-[var(--color-accent)]/45 hover:!bg-white/60 hover:text-[#111111]"
         >
           Show more colours
         </button>

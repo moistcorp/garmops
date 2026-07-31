@@ -26,7 +26,7 @@ export default function SignatureColourGrid({
             className={`group relative flex items-center gap-2 rounded-[4px] border px-2 py-1.5 text-left text-sm transition-colors ${
               isActive
                 ? "border-[var(--color-accent)] bg-[var(--color-accent)]/6"
-                : "configurator-glass-control border hover:!border-[var(--color-accent)]/35 hover:!bg-white/55"
+                : "techpack-control border hover:!border-[var(--color-accent)]/35 hover:!bg-white/55"
             }`}
           >
             <span

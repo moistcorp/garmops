@@ -84,7 +84,7 @@ export default function ProductCard({
           : "bg-[#F2F0EA] text-[#111111]/55";
 
   return (
-    <article ref={cardRef} className={`liquid-glass-panel group relative flex h-full self-stretch flex-col overflow-hidden rounded-[4px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45 ${recommended ? "!border-[var(--color-accent)]/60" : ""}`}>
+    <article ref={cardRef} className={`techpack-panel group relative flex h-full self-stretch flex-col overflow-hidden rounded-[4px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45 ${recommended ? "!border-[var(--color-accent)]/60" : ""}`}>
       <div className="relative aspect-[3/4] w-full shrink-0 overflow-hidden bg-white">
         <Link
           href={configuratorHref}
@@ -140,7 +140,7 @@ export default function ProductCard({
             aria-expanded={detailsOpen}
             aria-controls={`product-details-${product.id}`}
             aria-label={`${detailsOpen ? "Hide" : "Show"} details for ${product.name}`}
-            className="liquid-glass-control flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] border text-[#111111]/60 hover:!border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+            className="techpack-control flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] border text-[#111111]/60 hover:!border-[var(--color-accent)] hover:text-[var(--color-accent)]"
           >
             <ChevronDown size={15} strokeWidth={2.2} className={`transition-transform ${detailsOpen ? "rotate-180" : ""}`} />
           </button>

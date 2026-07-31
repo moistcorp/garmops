@@ -228,7 +228,7 @@ export default function NeckLabelPanel({
   return (
     <div className="flex flex-col gap-5">
       {alreadyConfigured && (
-        <p className="configurator-glass-subtle rounded-[4px] px-3 py-2 text-xs font-medium text-[#111111]/60">
+        <p className="techpack-subtle rounded-[4px] px-3 py-2 text-xs font-medium text-[#111111]/60">
           {isToteProduct ? 'Bag label' : 'Neck label'} configured. Edit any option below to update.
         </p>
       )}
@@ -248,8 +248,8 @@ export default function NeckLabelPanel({
                 aria-pressed={selected}
                 className={`flex min-h-[78px] flex-col items-center justify-center gap-2 rounded-[4px] border font-sans text-[12px] font-semibold leading-tight tracking-normal transition-all ${
                   selected
-                    ? 'configurator-glass-selected'
-                    : 'configurator-glass-control border text-[#111111]/70 hover:!bg-white/60 hover:text-[#111111]'
+                    ? 'techpack-selected'
+                    : 'techpack-control border text-[#111111]/70 hover:!bg-white/60 hover:text-[#111111]'
                 }`}
               >
                 <DimensionPreview option={option} selected={selected} />
@@ -272,8 +272,8 @@ export default function NeckLabelPanel({
           }}
         />
         {fileUrl ? (
-          <div className="configurator-glass-subtle flex min-h-[88px] items-center gap-3 rounded-[4px] p-3">
-            <div className="configurator-glass-control flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[4px] border">
+          <div className="techpack-subtle flex min-h-[88px] items-center gap-3 rounded-[4px] p-3">
+            <div className="techpack-control flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[4px] border">
               {source === 'sample' ? (
                 <Image src={SAMPLE_ARTWORK_HREF} alt="" width={56} height={56} className="h-full w-full object-contain p-2" unoptimized />
               ) : (
@@ -297,7 +297,7 @@ export default function NeckLabelPanel({
               type="button"
               onClick={handleRemoveArtwork}
               aria-label={`Remove ${isToteProduct ? 'bag label' : 'neck label'} artwork`}
-              className="configurator-glass-control flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px] border text-[#C62828] transition-colors hover:!border-[#C62828]/25 hover:!bg-[#FFF1F1]/70"
+              className="techpack-control flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px] border text-[#C62828] transition-colors hover:!border-[#C62828]/25 hover:!bg-[#FFF1F1]/70"
             >
               <Trash2 size={17} strokeWidth={2} />
             </button>
@@ -315,13 +315,13 @@ export default function NeckLabelPanel({
               setDragging(false);
               handleUploadFile(event.dataTransfer.files?.[0]);
             }}
-            className="configurator-glass-dropzone relative flex flex-col items-center overflow-hidden rounded-[4px] px-4 py-5 text-center transition-all duration-200"
+            className="techpack-dropzone relative flex flex-col items-center overflow-hidden rounded-[4px] px-4 py-5 text-center transition-all duration-200"
           >
             <label
               htmlFor={uploadInputId}
               className="group relative z-10 flex min-h-24 w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[4px] px-3 transition-colors hover:bg-white/20 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--color-accent)]"
             >
-              <span className="configurator-glass-control mb-1 flex h-10 w-10 items-center justify-center rounded-[4px] border text-[var(--color-accent-dark)] transition-transform group-hover:-translate-y-0.5">
+              <span className="techpack-control mb-1 flex h-10 w-10 items-center justify-center rounded-[4px] border text-[var(--color-accent-dark)] transition-transform group-hover:-translate-y-0.5">
                 <Upload size={17} strokeWidth={2.2} aria-hidden="true" />
               </span>
               <span className="text-sm font-medium text-[#111111]">
@@ -335,7 +335,7 @@ export default function NeckLabelPanel({
               <a
                 href={TEMPLATE_HREF}
                 download
-                className="configurator-glass-control inline-flex min-h-9 items-center gap-1.5 rounded-[4px] border px-3 text-xs font-medium text-[#111111]/80 transition-colors hover:!border-[var(--color-accent)]/45 hover:text-[var(--color-accent-dark)]"
+                className="techpack-control inline-flex min-h-9 items-center gap-1.5 rounded-[4px] border px-3 text-xs font-medium text-[#111111]/80 transition-colors hover:!border-[var(--color-accent)]/45 hover:text-[var(--color-accent-dark)]"
               >
                 Download templates
                 <Download size={13} strokeWidth={2.2} />
@@ -343,7 +343,7 @@ export default function NeckLabelPanel({
               <button
                 type="button"
                 onClick={handleSampleArtwork}
-                className="configurator-glass-control min-h-9 rounded-[4px] border !border-[var(--color-accent)]/30 px-3 text-xs font-semibold text-[var(--color-accent-dark)] transition-colors hover:!border-[var(--color-accent)]/55 hover:!bg-white/55"
+                className="techpack-control min-h-9 rounded-[4px] border !border-[var(--color-accent)]/30 px-3 text-xs font-semibold text-[var(--color-accent-dark)] transition-colors hover:!border-[var(--color-accent)]/55 hover:!bg-white/55"
               >
                 <Plus size={13} strokeWidth={2.4} className="mr-1 inline" />
                 Try sample artwork

@@ -21,8 +21,8 @@ export function PaymentMethodSelect({ value, onChange }: PaymentMethodSelectProp
         aria-pressed={selected}
         className={`flex w-full items-center justify-between gap-4 rounded-[4px] border px-5 py-3 text-left transition-colors ${
           selected
-            ? "liquid-glass-selected"
-            : "liquid-glass-control hover:!border-[var(--color-accent)]"
+            ? "techpack-selected"
+            : "techpack-control hover:!border-[var(--color-accent)]"
         }`}
       >
         <div className="flex items-center gap-3">

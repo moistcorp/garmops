@@ -34,7 +34,7 @@ const faqs = [
 
 export default function HowItWorks() {
   return (
-    <div className="app-liquid-bg">
+    <div className="techpack-canvas">
       <JsonLd data={faqSchema(faqs)} />
       <section className="max-w-7xl mx-auto px-4 pb-10 pt-10 sm:px-6 sm:pb-16 sm:pt-20">
         <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">The process</p>
@@ -49,7 +49,7 @@ export default function HowItWorks() {
       <section className="max-w-7xl mx-auto px-4 pb-16 sm:px-6 sm:pb-24">
         <div className="flex flex-col gap-4">
           {steps.map(s => (
-            <div key={s.num} className="liquid-glass-panel grid items-start gap-3 rounded-[4px] border p-5 sm:gap-6 sm:p-6 md:grid-cols-12 md:p-8">
+            <div key={s.num} className="techpack-panel grid items-start gap-3 rounded-[4px] border p-5 sm:gap-6 sm:p-6 md:grid-cols-12 md:p-8">
               <p className="md:col-span-1 text-2xl font-bold text-[#111111]/15">{s.num}</p>
               <h3 className="md:col-span-4 text-base font-semibold text-[#111111]">{s.title}</h3>
               <p className="md:col-span-7 text-[#111111]/50 leading-relaxed text-sm">{s.desc}</p>
@@ -58,13 +58,13 @@ export default function HowItWorks() {
         </div>
       </section>
 
-      <section className="app-liquid-section py-14 sm:py-20">
+      <section className="techpack-section py-14 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">FAQ</p>
           <h2 className="mb-8 text-3xl font-bold tracking-tight text-[#111111] sm:mb-12 sm:text-4xl">Common questions</h2>
           <div className="grid gap-4">
             {faqs.map(f => (
-              <div key={f.q} className="liquid-glass-panel grid gap-3 rounded-[4px] border p-5 sm:gap-6 sm:p-6 md:grid-cols-2">
+              <div key={f.q} className="techpack-panel grid gap-3 rounded-[4px] border p-5 sm:gap-6 sm:p-6 md:grid-cols-2">
                 <p className="text-[#111111] font-medium text-sm">{f.q}</p>
                 <p className="text-[#111111]/50 leading-relaxed text-sm">{f.a}</p>
               </div>

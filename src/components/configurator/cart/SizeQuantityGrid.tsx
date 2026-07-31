@@ -68,7 +68,7 @@ export function SizeQuantityGrid({
           <button type="button" onClick={() => applyPreset(ALLOCATION_PRESETS.larger)} className="rounded-[4px] border border-[#E5E5E5] px-2.5 py-1 text-[11px] font-semibold text-[#111111]/65 hover:border-[var(--color-accent)]">More L–XXL</button>
         </div>
       )}
-      <div className={`liquid-glass-control grid ${columnsClass} gap-px overflow-hidden rounded-[4px] border`}>
+      <div className={`techpack-control grid ${columnsClass} gap-px overflow-hidden rounded-[4px] border`}>
         {sizes.map((size) => (
           <div key={size} className="bg-white/25 px-2 py-2 text-center text-xs font-medium tracking-wide text-[#111111]">
             {size}
