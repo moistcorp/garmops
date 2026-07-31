@@ -85,8 +85,8 @@ export default async function StaffDashboard() {
 
   return (
     <div className="space-y-6">
-      <section className="liquid-glass-surface rounded-3xl border p-6 sm:p-8">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#315F66]">
+      <section className="techpack-surface rounded-[4px] border p-6 sm:p-8">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#1D49B4]">
           Operations dashboard
         </p>
         <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -100,7 +100,7 @@ export default async function StaffDashboard() {
           </div>
           <Link
             href="/staff/orders?myOrders=true"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-[#315F66] hover:underline"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-[#1D49B4] hover:underline"
           >
             My orders <ArrowRight size={15} aria-hidden="true" />
           </Link>
@@ -112,11 +112,11 @@ export default async function StaffDashboard() {
           <Link
             key={card.label}
             href={card.href}
-            className="liquid-glass-panel group rounded-2xl border p-5 transition hover:-translate-y-0.5 hover:border-[#4F8B92]/40"
+            className="techpack-panel group rounded-[4px] border p-5 transition hover:-translate-y-0.5 hover:border-[#1D49B4]/40"
           >
             <div className="flex items-center justify-between gap-3">
-              <card.icon size={18} className="text-[#4F8B92]" aria-hidden="true" />
-              <ArrowRight size={14} className="text-black/25 transition group-hover:text-[#4F8B92]" aria-hidden="true" />
+              <card.icon size={18} className="text-[#1D49B4]" aria-hidden="true" />
+              <ArrowRight size={14} className="text-black/25 transition group-hover:text-[#1D49B4]" aria-hidden="true" />
             </div>
             <p className="mt-5 text-3xl font-semibold">{card.value.toLocaleString("en-IN")}</p>
             <p className="mt-2 text-sm font-semibold">{card.label}</p>

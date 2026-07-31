@@ -11,8 +11,8 @@ import {
 import { createReorderAction, respondApprovalAction } from "@/app/account/order-lifecycle-actions";
 import { INITIAL_STAFF_ACTION_STATE } from "@/lib/staff/actionState";
 
-const input = "w-full rounded-xl border border-black/10 bg-white/70 px-3 py-2 text-sm outline-none focus:border-[#4F8B92]";
-const button = "rounded-full bg-[#16212B] px-4 py-2 text-xs font-semibold text-white disabled:opacity-50";
+const input = "w-full rounded-[4px] border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-[#1D49B4]";
+const button = "rounded-[4px] bg-[#16212B] px-4 py-2 text-xs font-semibold text-white disabled:opacity-50";
 
 function Message({ state }: { state: typeof INITIAL_STAFF_ACTION_STATE }) {
   if (state.status === "idle" || !state.message) return null;
@@ -28,7 +28,7 @@ export function ApprovalRequestForm({ orderId, orderNumber, files, approvers, de
 }) {
   const [state, action, pending] = useActionState(createApprovalRequestAction, INITIAL_STAFF_ACTION_STATE);
   const [expiry] = useState(() => new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 16));
-  return <form action={action} className="space-y-3 rounded-2xl border border-black/8 bg-white/45 p-4">
+  return <form action={action} className="space-y-3 rounded-[4px] border border-black/8 bg-white p-4">
     <input type="hidden" name="orderId" value={orderId} /><input type="hidden" name="orderNumber" value={orderNumber} />
     <label className="block text-xs font-medium">Design version<select name="designVersionId" className={`${input} mt-1`} required><option value="">Select exact version</option>{designVersions.map((v) => <option key={v.id} value={v.id}>Version {v.version_number}</option>)}</select></label>
     <label className="block text-xs font-medium">Cleared immutable PDF<select name="approvalPdfFileId" className={`${input} mt-1`} required><option value="">Select approval PDF</option>{files.map((f) => <option key={f.id} value={f.id}>{f.original_filename}</option>)}</select></label>
@@ -97,7 +97,7 @@ export function ReorderForm({ orderNumber, idempotencyKey }: { orderNumber: stri
         I understand current pricing and availability will be reviewed again and the old order will not be modified.
       </label>
       <button
-        className="mt-4 rounded-full bg-[#16212B] px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"
+        className="mt-4 rounded-[4px] bg-[#16212B] px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"
         disabled={pending}
       >
         {pending ? "Creating reorder…" : "Create new reorder"}

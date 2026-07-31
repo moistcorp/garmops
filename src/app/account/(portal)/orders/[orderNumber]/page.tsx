@@ -131,16 +131,16 @@ export default async function AccountOrderDetailPage({
     <div className="space-y-6">
       <Link
         href="/account/orders"
-        className="inline-flex items-center gap-2 text-sm font-medium text-black/50 hover:text-[#315F66]"
+        className="inline-flex items-center gap-2 text-sm font-medium text-black/50 hover:text-[#1D49B4]"
       >
         <ArrowLeft size={15} aria-hidden="true" />
         Back to orders
       </Link>
 
-      <section className="liquid-glass-surface rounded-3xl border p-6 sm:p-8">
+      <section className="techpack-surface rounded-[4px] border p-6 sm:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <span className="rounded-full bg-[#4F8B92]/12 px-2.5 py-1 text-[11px] font-semibold text-[#315F66]">
+            <span className="rounded-[4px] bg-[#1D49B4]/12 px-2.5 py-1 text-[11px] font-semibold text-[#1D49B4]">
               {publicOrderStatusLabel(order.public_status)}
             </span>
             <h2 className="mt-4 text-2xl font-semibold tracking-tight">
@@ -200,11 +200,11 @@ export default async function AccountOrderDetailPage({
         ].map((metric) => (
           <div
             key={metric.label}
-            className="liquid-glass-panel rounded-2xl border p-5"
+            className="techpack-panel rounded-[4px] border p-5"
           >
             <metric.icon
               size={17}
-              className="text-[#4F8B92]"
+              className="text-[#1D49B4]"
               aria-hidden="true"
             />
             <p className="mt-4 text-[10px] uppercase tracking-widest text-black/35">
@@ -227,11 +227,11 @@ export default async function AccountOrderDetailPage({
 
       <div className="grid gap-5 xl:grid-cols-[1.25fr_0.75fr]">
         <div className="space-y-5">
-          <section className="liquid-glass-surface rounded-3xl border p-6">
+          <section className="techpack-surface rounded-[4px] border p-6">
             <div className="flex items-center gap-2">
               <Palette
                 size={18}
-                className="text-[#4F8B92]"
+                className="text-[#1D49B4]"
                 aria-hidden="true"
               />
               <h3 className="font-semibold">Immutable order specification</h3>
@@ -243,7 +243,7 @@ export default async function AccountOrderDetailPage({
                 return (
                   <article
                     key={item.id}
-                    className="rounded-2xl border border-black/7 bg-white/45 p-4"
+                    className="rounded-[4px] border border-black/7 bg-white p-4"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
@@ -264,7 +264,7 @@ export default async function AccountOrderDetailPage({
                     <div className="mt-4 flex items-start gap-2 border-t border-black/7 pt-4">
                       <Ruler
                         size={15}
-                        className="mt-0.5 text-[#4F8B92]"
+                        className="mt-0.5 text-[#1D49B4]"
                         aria-hidden="true"
                       />
                       <p className="text-xs leading-relaxed text-black/55">
@@ -279,16 +279,16 @@ export default async function AccountOrderDetailPage({
             </div>
           </section>
 
-          <section className="liquid-glass-surface rounded-3xl border p-6">
+          <section className="techpack-surface rounded-[4px] border p-6">
             <div className="flex items-center gap-2">
-              <Clock3 size={18} className="text-[#4F8B92]" aria-hidden="true" />
+              <Clock3 size={18} className="text-[#1D49B4]" aria-hidden="true" />
               <h3 className="font-semibold">Messages and action requests</h3>
             </div>
             <div className="mt-5 space-y-3">
               {comments.map((comment) => (
                 <article
                   key={comment.id}
-                  className={`rounded-2xl border p-4 ${comment.action_required && !comment.resolved_at ? "border-blue-200 bg-blue-50/60" : "border-black/7 bg-white/45"}`}
+                  className={`rounded-[4px] border p-4 ${comment.action_required && !comment.resolved_at ? "border-blue-200 bg-blue-50/60" : "border-black/7 bg-white"}`}
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <p className="text-xs font-semibold">
@@ -311,11 +311,11 @@ export default async function AccountOrderDetailPage({
             <CustomerOrderReplyForm orderId={order.id} orderNumber={order.order_number} />
           </section>
 
-          <section className="liquid-glass-surface rounded-3xl border p-6">
+          <section className="techpack-surface rounded-[4px] border p-6">
             <div className="flex items-center gap-2">
               <Clock3
                 size={18}
-                className="text-[#4F8B92]"
+                className="text-[#1D49B4]"
                 aria-hidden="true"
               />
               <h3 className="font-semibold">Order timeline</h3>
@@ -324,7 +324,7 @@ export default async function AccountOrderDetailPage({
               {history.map((entry, index) => (
                 <div key={entry.id} className="flex gap-3">
                   <div className="flex flex-col items-center">
-                    <span className="mt-1 h-2.5 w-2.5 rounded-full bg-[#4F8B92]" />
+                    <span className="mt-1 h-2.5 w-2.5 rounded-[4px] bg-[#1D49B4]" />
                     {index < history.length - 1 ? (
                       <span className="mt-1 h-full w-px bg-black/10" />
                     ) : null}
@@ -347,11 +347,11 @@ export default async function AccountOrderDetailPage({
         </div>
 
         <div className="space-y-5">
-          <section className="liquid-glass-surface rounded-3xl border p-6">
+          <section className="techpack-surface rounded-[4px] border p-6">
             <div className="flex items-center gap-2">
               <ReceiptIndianRupee
                 size={18}
-                className="text-[#4F8B92]"
+                className="text-[#1D49B4]"
                 aria-hidden="true"
               />
               <h3 className="font-semibold">Payments</h3>
@@ -360,13 +360,13 @@ export default async function AccountOrderDetailPage({
               {payments.map((payment) => (
                 <div
                   key={payment.id}
-                  className="rounded-2xl border border-black/7 bg-white/45 p-4"
+                  className="rounded-[4px] border border-black/7 bg-white p-4"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-sm font-semibold">
                       Attempt {payment.attempt_number}
                     </p>
-                    <span className="rounded-full bg-black/5 px-2 py-1 text-[10px] font-semibold capitalize text-black/55">
+                    <span className="rounded-[4px] bg-black/5 px-2 py-1 text-[10px] font-semibold capitalize text-black/55">
                       {payment.status}
                     </span>
                   </div>
@@ -385,9 +385,9 @@ export default async function AccountOrderDetailPage({
           </section>
 
           {invoice ? (
-            <section className="liquid-glass-surface rounded-3xl border p-6">
+            <section className="techpack-surface rounded-[4px] border p-6">
               <div className="flex items-center gap-2">
-                <ReceiptIndianRupee size={18} className="text-[#4F8B92]" aria-hidden="true" />
+                <ReceiptIndianRupee size={18} className="text-[#1D49B4]" aria-hidden="true" />
                 <h3 className="font-semibold">{sampleOrder ? "Sample tax document" : "Reservation invoice"}</h3>
               </div>
               <p className="mt-4 font-semibold">
@@ -417,11 +417,11 @@ export default async function AccountOrderDetailPage({
             </section>
           ) : null}
 
-          <section className="liquid-glass-surface rounded-3xl border p-6">
+          <section className="techpack-surface rounded-[4px] border p-6">
             <div className="flex items-center gap-2">
               <MapPin
                 size={18}
-                className="text-[#4F8B92]"
+                className="text-[#1D49B4]"
                 aria-hidden="true"
               />
               <h3 className="font-semibold">Delivery snapshot</h3>

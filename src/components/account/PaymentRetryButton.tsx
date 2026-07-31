@@ -53,7 +53,7 @@ export default function PaymentRetryButton({
 
   return (
     <div>
-      <button type="button" onClick={startPayment} disabled={pending} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#315F66] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#254b51] disabled:cursor-wait disabled:opacity-60 sm:w-auto">
+      <button type="button" onClick={startPayment} disabled={pending} className="inline-flex w-full items-center justify-center gap-2 rounded-[4px] bg-[#1D49B4] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#173A91] disabled:cursor-wait disabled:opacity-60 sm:w-auto">
         {pending ? <LoaderCircle size={16} className="animate-spin" aria-hidden="true" /> : confirmation ? <CreditCard size={16} aria-hidden="true" /> : <RotateCcw size={16} aria-hidden="true" />}
         {pending
           ? "Opening secure payment…"

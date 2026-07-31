@@ -20,9 +20,9 @@ import {
 } from "@/lib/staff/statuses";
 
 const inputClass =
-  "w-full rounded-xl border border-black/10 bg-white/70 px-3 py-2 text-sm outline-none transition focus:border-[#4F8B92]";
+  "w-full rounded-[4px] border border-black/10 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#1D49B4]";
 const buttonClass =
-  "inline-flex items-center justify-center rounded-full bg-[#16212B] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#315F66] disabled:cursor-wait disabled:opacity-50";
+  "inline-flex items-center justify-center rounded-[4px] bg-[#16212B] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#1D49B4] disabled:cursor-wait disabled:opacity-50";
 
 function Message({ state }: { state: typeof INITIAL_STAFF_ACTION_STATE }) {
   if (state.status === "idle" || !state.message) return null;

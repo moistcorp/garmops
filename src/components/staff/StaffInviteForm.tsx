@@ -7,7 +7,7 @@ import {
   STAFF_ROLES,
 } from "@/lib/auth/constants";
 
-const control = "liquid-glass-control rounded-xl border px-4 py-3 text-sm outline-none focus:!border-[var(--color-teal)]";
+const control = "techpack-control rounded-[4px] border px-4 py-3 text-sm outline-none focus:!border-[var(--color-accent)]";
 
 export default function StaffInviteForm() {
   const [state, action, pending] = useActionState(
@@ -28,7 +28,7 @@ export default function StaffInviteForm() {
           {state.message}
         </p>
       ) : null}
-      <button disabled={pending} className="rounded-full bg-[var(--color-teal)] px-5 py-3 text-sm font-medium text-white disabled:opacity-60 sm:col-span-2">
+      <button disabled={pending} className="rounded-[4px] bg-[var(--color-accent)] px-5 py-3 text-sm font-medium text-white disabled:opacity-60 sm:col-span-2">
         {pending ? "Sending…" : "Send secure invitation"}
       </button>
     </form>

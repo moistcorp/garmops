@@ -76,8 +76,8 @@ export default async function OrderConfirmationPage({
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <section className="liquid-glass-surface overflow-hidden rounded-3xl border">
-        <div className="bg-[#315F66] px-6 py-8 text-white sm:px-8">
+      <section className="techpack-surface overflow-hidden rounded-[4px] border">
+        <div className="bg-[#1D49B4] px-6 py-8 text-white sm:px-8">
           <CheckCircle2 size={30} aria-hidden="true" />
           <p className="mt-5 text-xs uppercase tracking-[0.2em] text-white/55">
             Order saved before payment
@@ -116,11 +116,11 @@ export default async function OrderConfirmationPage({
           ].map((item) => (
             <div
               key={item.label}
-              className="rounded-2xl border border-black/7 bg-white/45 p-4"
+              className="rounded-[4px] border border-black/7 bg-white p-4"
             >
               <item.icon
                 size={17}
-                className="text-[#4F8B92]"
+                className="text-[#1D49B4]"
                 aria-hidden="true"
               />
               <p className="mt-4 text-[10px] uppercase tracking-widest text-black/30">
@@ -132,7 +132,7 @@ export default async function OrderConfirmationPage({
         </div>
       </section>
 
-      <section className="liquid-glass-panel rounded-3xl border p-6 sm:p-8">
+      <section className="techpack-panel rounded-[4px] border p-6 sm:p-8">
         <h3 className="text-lg font-semibold">
           {sampleOrder ? "Continue with the full sample payment" : "Continue with the reservation payment"}
         </h3>
@@ -171,7 +171,7 @@ export default async function OrderConfirmationPage({
         <div className="mt-6 border-t border-black/8 pt-5">
           <Link
             href={`/account/orders/${encodeURIComponent(order.order_number)}`}
-            className="text-sm font-semibold text-[#315F66] hover:underline"
+            className="text-sm font-semibold text-[#1D49B4] hover:underline"
           >
             Review the full immutable order
           </Link>

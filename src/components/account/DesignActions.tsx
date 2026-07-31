@@ -171,7 +171,7 @@ export default function DesignActions({
   }
 
   const actionClass =
-    "inline-flex items-center justify-center gap-2 rounded-xl border border-black/10 bg-white/70 px-3.5 py-2.5 text-sm font-semibold text-black/70 transition hover:border-[#4F8B92]/35 hover:text-[#315F66] disabled:cursor-not-allowed disabled:opacity-45";
+    "inline-flex items-center justify-center gap-2 rounded-[4px] border border-black/10 bg-white px-3.5 py-2.5 text-sm font-semibold text-black/70 transition hover:border-[#1D49B4]/35 hover:text-[#1D49B4] disabled:cursor-not-allowed disabled:opacity-45";
 
   return (
     <div className="space-y-3">
@@ -183,7 +183,7 @@ export default function DesignActions({
               `/configurator/build/${encodeURIComponent(snapshot.configId)}?designId=${encodeURIComponent(designId)}`,
             )
           }
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#315F66] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#254b51]"
+          className="inline-flex items-center justify-center gap-2 rounded-[4px] bg-[#1D49B4] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#173A91]"
         >
           <ExternalLink size={16} aria-hidden="true" />
           Resume in Studio

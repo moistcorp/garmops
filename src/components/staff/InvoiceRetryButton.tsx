@@ -6,7 +6,7 @@ export default function InvoiceRetryButton({ invoiceId }: { invoiceId: string })
       <input type="hidden" name="invoiceId" value={invoiceId} />
       <button
         type="submit"
-        className="rounded-xl border border-black/10 px-3 py-2 text-xs font-semibold hover:bg-black/5"
+        className="rounded-[4px] border border-black/10 px-3 py-2 text-xs font-semibold hover:bg-black/5"
       >
         Retry Zoho sync
       </button>

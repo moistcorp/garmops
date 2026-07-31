@@ -8,7 +8,7 @@ export default function VerifyEmailPage() {
       eyebrow="Email verification"
       title="Verify your work email"
       description="Open the verification link we sent. If it expired, request another below."
-      footer={<Link href="/login" className="text-[var(--color-teal)] hover:underline">Return to sign in</Link>}
+      footer={<Link href="/login" className="text-[var(--color-accent)] hover:underline">Return to sign in</Link>}
     >
       <AuthActionForm variant="verify" />
     </AuthShell>

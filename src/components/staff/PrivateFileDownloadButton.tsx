@@ -46,7 +46,7 @@ export default function PrivateFileDownloadButton({
         type="button"
         onClick={download}
         disabled={busy}
-        className="inline-flex items-center gap-2 rounded-xl border border-black/10 bg-white/70 px-3 py-2 text-xs font-semibold text-black/65 disabled:opacity-50"
+        className="inline-flex items-center gap-2 rounded-[4px] border border-black/10 bg-white px-3 py-2 text-xs font-semibold text-black/65 disabled:opacity-50"
       >
         <Download size={13} aria-hidden="true" />
         {busy ? "Preparing…" : label}

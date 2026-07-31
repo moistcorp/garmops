@@ -30,9 +30,6 @@
   --color-navy-soft: #1d2a36;
   --color-rule: rgba(22, 33, 43, 0.2);
 
-  /* Compatibility aliases for older call sites. Both now resolve to blue. */
-  --color-teal: var(--color-accent);
-  --color-teal-dark: var(--color-accent-dark);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 }
@@ -97,74 +94,71 @@ canvas {
 }
 
 /* Tech-pack progress fill: deliberately static and mechanical. */
-.configurator-progress-teal {
+.techpack-progress {
   background: var(--color-accent);
 }
 
-.configurator-studio-bg {
+.techpack-studio-bg {
   background: var(--color-cream-soft);
 }
 
-/* Legacy configurator names retained so visual consumers inherit the new system. */
-.configurator-glass-surface,
-.configurator-glass-subtle,
-.configurator-glass-control,
-.configurator-glass-dropzone,
-.configurator-glass-stack,
-.liquid-glass-surface,
-.liquid-glass-panel,
-.liquid-glass-control,
-.liquid-glass-chip,
-.liquid-glass-nav {
+/* Shared tech-pack materials used across configurator, commerce, and portal surfaces. */
+.techpack-surface,
+.techpack-subtle,
+.techpack-control,
+.techpack-dropzone,
+.techpack-stack,
+.techpack-panel,
+.techpack-chip,
+.techpack-nav {
   border: 1px solid var(--color-rule) !important;
   background: var(--color-cream) !important;
   box-shadow: none !important;
 }
 
-.configurator-glass-dropzone {
+.techpack-dropzone {
   border-style: dashed;
 }
 
-.configurator-glass-dropzone[data-dragging="true"] {
+.techpack-dropzone[data-dragging="true"] {
   border-color: var(--color-accent) !important;
   background: rgba(29, 73, 180, 0.06) !important;
 }
 
-.configurator-glass-selected,
-.liquid-glass-selected {
+.techpack-selected {
   border-color: var(--color-accent) !important;
   background: var(--color-accent) !important;
   color: var(--color-cream) !important;
   box-shadow: none !important;
 }
 
-.liquid-glass-dark {
+.techpack-dark {
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
   background: var(--color-navy) !important;
   box-shadow: none !important;
 }
 
-.liquid-glass-control:hover {
+.techpack-control:hover {
   border-color: var(--color-accent) !important;
   background: var(--color-cream-soft) !important;
 }
 
-.liquid-glass-nav-scrolled {
+.techpack-nav-scrolled {
   border-color: rgba(22, 33, 43, 0.36) !important;
 }
 
-.app-liquid-bg {
+.techpack-canvas {
   background: var(--color-cream);
 }
 
-.app-liquid-section {
+.techpack-section {
   position: relative;
   isolation: isolate;
   overflow: hidden;
   background: transparent;
 }
 
-.app-liquid-bg .app-liquid-bg {
+.techpack-canvas .techpack-canvas {
   background: transparent;
 }
 

@@ -78,7 +78,7 @@ export default async function AccountOrdersPage({
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.18em] text-[#4F8B92]">
+          <p className="text-xs uppercase tracking-[0.18em] text-[#1D49B4]">
             Durable history
           </p>
           <h2 className="mt-2 text-2xl font-semibold tracking-tight">
@@ -93,7 +93,7 @@ export default async function AccountOrdersPage({
           {isFeatureEnabled("DURABLE_SAMPLE_CHECKOUT_ENABLED") ? (
             <Link
               href="/products"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-black/10 px-4 py-2.5 text-sm font-semibold transition hover:border-[#4F8B92]/40"
+              className="inline-flex items-center justify-center gap-2 rounded-[4px] border border-black/10 px-4 py-2.5 text-sm font-semibold transition hover:border-[#1D49B4]/40"
             >
               Browse samples
             </Link>
@@ -101,7 +101,7 @@ export default async function AccountOrdersPage({
           {isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED") ? (
             <Link
               href="/configurator"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#315F66] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#254b51]"
+              className="inline-flex items-center justify-center gap-2 rounded-[4px] bg-[#1D49B4] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#173A91]"
             >
               <ShoppingBag size={16} aria-hidden="true" />
               Configure a new order
@@ -119,9 +119,9 @@ export default async function AccountOrdersPage({
                 ? "/account/orders"
                 : `/account/orders?filter=${entry.value}`
             }
-            className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold ${
+            className={`whitespace-nowrap rounded-[4px] px-3 py-1.5 text-xs font-semibold ${
               filter === entry.value
-                ? "bg-[#315F66] text-white"
+                ? "bg-[#1D49B4] text-white"
                 : "bg-black/5 text-black/55 hover:bg-black/8"
             }`}
           >
@@ -140,16 +140,16 @@ export default async function AccountOrdersPage({
               <Link
                 key={order.id}
                 href={`/account/orders/${encodeURIComponent(order.order_number)}`}
-                className="group liquid-glass-surface grid gap-5 rounded-3xl border p-5 transition hover:-translate-y-0.5 hover:border-[#4F8B92]/30 hover:shadow-lg hover:shadow-[#315F66]/8 lg:grid-cols-[1.2fr_1fr_1fr_auto] lg:items-center"
+                className="group techpack-surface grid gap-5 rounded-[4px] border p-5 transition hover:-translate-y-0.5 hover:border-[#1D49B4]/30 hover: hover:/8 lg:grid-cols-[1.2fr_1fr_1fr_auto] lg:items-center"
               >
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="font-semibold">{order.order_number}</h3>
                     <span
-                      className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${
+                      className={`rounded-[4px] px-2.5 py-1 text-[10px] font-semibold ${
                         paymentIncomplete
                           ? "bg-amber-100 text-amber-800"
-                          : "bg-[#4F8B92]/12 text-[#315F66]"
+                          : "bg-[#1D49B4]/12 text-[#1D49B4]"
                       }`}
                     >
                       {publicOrderStatusLabel(order.public_status)}
@@ -167,7 +167,7 @@ export default async function AccountOrdersPage({
                 <div className="flex items-start gap-2">
                   <CalendarDays
                     size={16}
-                    className="mt-0.5 text-[#4F8B92]"
+                    className="mt-0.5 text-[#1D49B4]"
                     aria-hidden="true"
                   />
                   <div>
@@ -189,7 +189,7 @@ export default async function AccountOrdersPage({
                   ) : (
                     <PackageCheck
                       size={16}
-                      className="mt-0.5 text-[#4F8B92]"
+                      className="mt-0.5 text-[#1D49B4]"
                       aria-hidden="true"
                     />
                   )}
@@ -210,7 +210,7 @@ export default async function AccountOrdersPage({
                 </div>
                 <ArrowRight
                   size={18}
-                  className="text-black/25 transition group-hover:translate-x-0.5 group-hover:text-[#315F66]"
+                  className="text-black/25 transition group-hover:translate-x-0.5 group-hover:text-[#1D49B4]"
                   aria-hidden="true"
                 />
               </Link>
@@ -218,10 +218,10 @@ export default async function AccountOrdersPage({
           })}
         </div>
       ) : (
-        <div className="liquid-glass-surface rounded-3xl border border-dashed p-10 text-center">
+        <div className="techpack-surface rounded-[4px] border border-dashed p-10 text-center">
           <ShoppingBag
             size={28}
-            className="mx-auto text-[#4F8B92]"
+            className="mx-auto text-[#1D49B4]"
             aria-hidden="true"
           />
           <h3 className="mt-4 font-semibold">No matching orders</h3>

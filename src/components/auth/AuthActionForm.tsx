@@ -39,7 +39,7 @@ const actions: Record<
 };
 
 const inputClass =
-  "liquid-glass-control w-full rounded-xl border px-4 py-3 text-sm outline-none transition-colors focus:!border-[var(--color-teal)]";
+  "techpack-control w-full rounded-[4px] border px-4 py-3 text-sm outline-none transition-colors focus:!border-[var(--color-accent)]";
 
 function Field({
   label,
@@ -156,7 +156,7 @@ export default function AuthActionForm({
           <Field label="Work email *" name="email" type="email" required autoComplete="email" error={errors?.email} />
           <Field label="Password *" name="password" type="password" required autoComplete="current-password" error={errors?.password} />
           <div className="text-right">
-            <Link href="/forgot-password" className="text-xs text-[var(--color-teal)] hover:underline">
+            <Link href="/forgot-password" className="text-xs text-[var(--color-accent)] hover:underline">
               Forgot password?
             </Link>
           </div>
@@ -193,7 +193,7 @@ export default function AuthActionForm({
       {state.message ? (
         <p
           role={state.status === "error" ? "alert" : "status"}
-          className={`rounded-xl border px-4 py-3 text-sm ${
+          className={`rounded-[4px] border px-4 py-3 text-sm ${
             state.status === "error"
               ? "border-red-200 bg-red-50 text-red-800"
               : "border-emerald-200 bg-emerald-50 text-emerald-800"
@@ -206,7 +206,7 @@ export default function AuthActionForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-full bg-[var(--color-teal)] px-6 py-3.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-teal-dark)] disabled:cursor-not-allowed disabled:opacity-60"
+        className="rounded-[4px] bg-[var(--color-accent)] px-6 py-3.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent-dark)] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? "Working…" : buttonText[variant]}
       </button>

@@ -17,7 +17,7 @@ export default async function LoginPage({
       footer={
         <>
           New customer?{" "}
-          <Link href="/register" className="text-[var(--color-teal)] hover:underline">
+          <Link href="/register" className="text-[var(--color-accent)] hover:underline">
             Create an account
           </Link>
         </>

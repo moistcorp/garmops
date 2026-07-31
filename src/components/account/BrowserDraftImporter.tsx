@@ -184,21 +184,21 @@ export default function BrowserDraftImporter() {
   if (!candidates.length && !message) return null;
 
   return (
-    <div className="rounded-2xl border border-[#4F8B92]/20 bg-[#4F8B92]/8 p-4">
+    <div className="rounded-[4px] border border-[#1D49B4]/20 bg-[#1D49B4]/8 p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           <CloudUpload
             size={18}
-            className="mt-0.5 shrink-0 text-[#315F66]"
+            className="mt-0.5 shrink-0 text-[#1D49B4]"
             aria-hidden="true"
           />
           <div>
-            <p className="text-sm font-semibold text-[#254b51]">
+            <p className="text-sm font-semibold text-[#173A91]">
               {candidates.length
                 ? `${candidates.length} design${candidates.length === 1 ? "" : "s"} found in this browser`
                 : "Browser import complete"}
             </p>
-            <p className="mt-1 text-xs leading-relaxed text-[#315F66]/75">
+            <p className="mt-1 text-xs leading-relaxed text-[#1D49B4]/75">
               {message ??
                 "Import local Studio and cart drafts, including saved IndexedDB artwork, for cross-device access."}
             </p>
@@ -209,7 +209,7 @@ export default function BrowserDraftImporter() {
             type="button"
             onClick={importDrafts}
             disabled={importing}
-            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#315F66] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#254b51] disabled:opacity-55"
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-[4px] bg-[#1D49B4] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#173A91] disabled:opacity-55"
           >
             {importing ? (
               <LoaderCircle

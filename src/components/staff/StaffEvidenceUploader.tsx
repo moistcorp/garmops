@@ -75,10 +75,10 @@ export default function StaffEvidenceUploader({
   const accept = kind === "approval_pdf" ? "application/pdf,.pdf" : kind === "qc_photo" ? "image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp" : "application/pdf,image/png,image/jpeg,.pdf,.png,.jpg,.jpeg";
 
   return (
-    <div className="rounded-2xl border border-dashed border-black/15 bg-white/35 p-4">
+    <div className="rounded-[4px] border border-dashed border-black/15 bg-white p-4">
       <label className="block text-xs font-semibold text-black/60">Upload {labels[kind]}</label>
       <input ref={input} type="file" accept={accept} className="mt-3 block w-full text-xs" />
-      <button type="button" onClick={upload} disabled={state === "uploading"} className="mt-3 rounded-full bg-[#16212B] px-4 py-2 text-xs font-semibold text-white disabled:opacity-50">
+      <button type="button" onClick={upload} disabled={state === "uploading"} className="mt-3 rounded-[4px] bg-[#16212B] px-4 py-2 text-xs font-semibold text-white disabled:opacity-50">
         {state === "uploading" ? "Uploading…" : "Upload securely"}
       </button>
       {message ? <p className={`mt-2 text-xs ${state === "error" ? "text-red-700" : "text-black/50"}`} role="status">{message}</p> : null}

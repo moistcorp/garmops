@@ -27,18 +27,18 @@ async function TeamSettings() {
 
   return (
     <div className="grid gap-6 xl:grid-cols-2">
-      <section className="liquid-glass-surface rounded-3xl border p-6">
+      <section className="techpack-surface rounded-[4px] border p-6">
         <h1 className="text-xl font-semibold">Invite staff</h1>
         <p className="mb-6 mt-2 text-sm text-black/50">Invitations are inactive until the recipient sets a password and verifies TOTP MFA.</p>
         <StaffInviteForm />
       </section>
-      <section className="liquid-glass-surface rounded-3xl border p-6">
+      <section className="techpack-surface rounded-[4px] border p-6">
         <h2 className="text-xl font-semibold">Staff access</h2>
         <div className="mt-5 space-y-3">
           {staff?.map((member) => {
             const profile = Array.isArray(member.profiles) ? member.profiles[0] : member.profiles;
             return (
-              <div key={member.user_id} className="flex items-center justify-between gap-4 rounded-2xl border border-black/8 bg-white/45 p-4">
+              <div key={member.user_id} className="flex items-center justify-between gap-4 rounded-[4px] border border-black/8 bg-white p-4">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{profile?.first_name} {profile?.last_name}</p>
                   <p className="mt-1 text-xs text-black/40">{member.role.replaceAll("_", " ")} · {member.team ?? "no team"} · {member.active ? "active" : member.deactivated_at ? "deactivated" : "invited"}</p>
@@ -92,16 +92,16 @@ async function FinanceInvoices() {
           { label: "Finance exceptions", value: counts.exceptions },
           { label: "Configured later", value: counts.deferred },
         ].map((metric) => (
-          <div key={metric.label} className="liquid-glass-panel rounded-2xl border p-5">
+          <div key={metric.label} className="techpack-panel rounded-[4px] border p-5">
             <p className="text-[10px] uppercase tracking-wider text-black/35">{metric.label}</p>
             <p className="mt-2 text-2xl font-semibold">{metric.value}</p>
           </div>
         ))}
       </div>
 
-      <section className="liquid-glass-surface rounded-3xl border p-6">
+      <section className="techpack-surface rounded-[4px] border p-6">
         <div className="flex items-center gap-2">
-          <ReceiptIndianRupee size={18} className="text-[#4F8B92]" aria-hidden="true" />
+          <ReceiptIndianRupee size={18} className="text-[#1D49B4]" aria-hidden="true" />
           <h1 className="text-xl font-semibold">Accounting document queue</h1>
         </div>
         <div className="mt-5 space-y-3">
@@ -109,10 +109,10 @@ async function FinanceInvoices() {
             const order = invoice.orders as unknown as { order_number: string; organizations: { display_name: string } | null };
             const Icon = statusIcon(invoice.sync_status);
             return (
-              <article key={invoice.id} className="rounded-2xl border border-black/8 bg-white/45 p-4 sm:p-5">
+              <article key={invoice.id} className="rounded-[4px] border border-black/8 bg-white p-4 sm:p-5">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="flex gap-3">
-                    <Icon size={18} className={invoice.sync_status === "permanent_failure" ? "mt-0.5 text-red-700" : "mt-0.5 text-[#4F8B92]"} aria-hidden="true" />
+                    <Icon size={18} className={invoice.sync_status === "permanent_failure" ? "mt-0.5 text-red-700" : "mt-0.5 text-[#1D49B4]"} aria-hidden="true" />
                     <div>
                       <p className="font-semibold">{invoice.document_number ?? (invoice.kind === "sample_tax_invoice" ? `Sample tax document · ${order.order_number}` : order.order_number)}</p>
                       <p className="mt-1 text-xs text-black/45">{order.organizations?.display_name ?? "Customer"} · {order.order_number}</p>

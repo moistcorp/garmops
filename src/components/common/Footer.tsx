@@ -19,7 +19,7 @@ const solutionLinks = [
   { label: 'Journal', href: '/journal' },
 ]
 
-const linkClass = 'py-1 transition-colors hover:text-[var(--color-teal)]'
+const linkClass = 'py-1 transition-colors hover:text-[var(--color-accent)]'
 
 export default function Footer() {
   return (
@@ -33,9 +33,9 @@ export default function Footer() {
             Bulk custom apparel and branded merchandise made in India from 50 pieces per style.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <span className="rounded-full border border-[#ECE7DF] bg-white px-3 py-1 text-xs text-[#111111]/50">GST Compliant</span>
-            <span className="rounded-full border border-[#ECE7DF] bg-white px-3 py-1 text-xs text-[#111111]/50">Udyam Registered MSME</span>
-            <span className="rounded-full border border-[#ECE7DF] bg-white px-3 py-1 text-xs text-[#111111]/50">Export Registered (IEC)</span>
+            <span className="rounded-[4px] border border-[#ECE7DF] bg-white px-3 py-1 text-xs text-[#111111]/50">GST Compliant</span>
+            <span className="rounded-[4px] border border-[#ECE7DF] bg-white px-3 py-1 text-xs text-[#111111]/50">Udyam Registered MSME</span>
+            <span className="rounded-[4px] border border-[#ECE7DF] bg-white px-3 py-1 text-xs text-[#111111]/50">Export Registered (IEC)</span>
           </div>
         </div>
 
@@ -64,7 +64,7 @@ export default function Footer() {
             href="https://wa.me/918800711169?text=Hi%2C%20I%20found%20Garmops%20and%20would%20like%20to%20know%20more%20about%20custom%20apparel."
             target="_blank"
             rel="noopener noreferrer"
-            className="py-1 text-[var(--color-teal-dark)] transition-colors hover:text-[var(--color-teal)] sm:hidden"
+            className="py-1 text-[var(--color-accent-dark)] transition-colors hover:text-[var(--color-accent)] sm:hidden"
           >
             WhatsApp us
           </a>
@@ -74,7 +74,7 @@ export default function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Garmops on Instagram"
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-[#ECE7DF] bg-white transition-colors hover:border-[var(--color-teal)] hover:text-[var(--color-teal)]"
+              className="flex h-8 w-8 items-center justify-center rounded-[4px] border border-[#ECE7DF] bg-white transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <rect x="2" y="2" width="20" height="20" rx="5" />
@@ -87,7 +87,7 @@ export default function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Garmops on LinkedIn"
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-[#ECE7DF] bg-white transition-colors hover:border-[var(--color-teal)] hover:text-[var(--color-teal)]"
+              className="flex h-8 w-8 items-center justify-center rounded-[4px] border border-[#ECE7DF] bg-white transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M4.98 3.5C4.98 4.88 3.87 6 2.5 6S0 4.88 0 3.5 1.11 1 2.48 1s2.5 1.12 2.5 2.5zM.5 8h4V23h-4V8zM8.5 8h3.83v2.05h.05c.53-1 1.84-2.05 3.79-2.05 4.06 0 4.81 2.67 4.81 6.14V23h-4v-6.75c0-1.61-.03-3.68-2.24-3.68-2.24 0-2.58 1.75-2.58 3.56V23h-4V8z" />

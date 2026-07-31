@@ -56,7 +56,7 @@ export default async function AccountDesignsPage({
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.18em] text-[#4F8B92]">
+          <p className="text-xs uppercase tracking-[0.18em] text-[#1D49B4]">
             Cloud workspace
           </p>
           <h2 className="mt-2 text-2xl font-semibold tracking-tight">
@@ -69,7 +69,7 @@ export default async function AccountDesignsPage({
         </div>
         <Link
           href="/configurator"
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#315F66] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#254b51]"
+          className="inline-flex items-center justify-center gap-2 rounded-[4px] bg-[#1D49B4] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#173A91]"
         >
           <Plus size={16} aria-hidden="true" />
           Start a design
@@ -79,9 +79,9 @@ export default async function AccountDesignsPage({
       <div className="flex items-center gap-2 border-b border-black/8 pb-3">
         <Link
           href="/account/designs"
-          className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
+          className={`rounded-[4px] px-3 py-1.5 text-xs font-semibold ${
             !includeArchived
-              ? "bg-[#315F66] text-white"
+              ? "bg-[#1D49B4] text-white"
               : "bg-black/5 text-black/55 hover:bg-black/8"
           }`}
         >
@@ -89,9 +89,9 @@ export default async function AccountDesignsPage({
         </Link>
         <Link
           href="/account/designs?archived=1"
-          className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
+          className={`rounded-[4px] px-3 py-1.5 text-xs font-semibold ${
             includeArchived
-              ? "bg-[#315F66] text-white"
+              ? "bg-[#1D49B4] text-white"
               : "bg-black/5 text-black/55 hover:bg-black/8"
           }`}
         >
@@ -114,14 +114,14 @@ export default async function AccountDesignsPage({
               <Link
                 key={design.id}
                 href={`/account/designs/${encodeURIComponent(design.id)}`}
-                className="group liquid-glass-surface flex min-h-52 flex-col rounded-3xl border p-5 transition hover:-translate-y-0.5 hover:border-[#4F8B92]/30 hover:shadow-lg hover:shadow-[#315F66]/8"
+                className="group techpack-surface flex min-h-52 flex-col rounded-[4px] border p-5 transition hover:-translate-y-0.5 hover:border-[#1D49B4]/30 hover: hover:/8"
               >
                 <div className="flex items-start justify-between gap-4">
                   <span
-                    className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                    className={`inline-flex items-center gap-1.5 rounded-[4px] px-2.5 py-1 text-[11px] font-semibold ${
                       design.status === "archived"
                         ? "bg-black/6 text-black/45"
-                        : "bg-[#4F8B92]/12 text-[#315F66]"
+                        : "bg-[#1D49B4]/12 text-[#1D49B4]"
                     }`}
                   >
                     {design.status === "archived" ? (
@@ -155,7 +155,7 @@ export default async function AccountDesignsPage({
                   </div>
                   <ArrowRight
                     size={17}
-                    className="text-black/25 transition group-hover:translate-x-0.5 group-hover:text-[#315F66]"
+                    className="text-black/25 transition group-hover:translate-x-0.5 group-hover:text-[#1D49B4]"
                     aria-hidden="true"
                   />
                 </div>
@@ -164,8 +164,8 @@ export default async function AccountDesignsPage({
           })}
         </div>
       ) : (
-        <div className="liquid-glass-surface rounded-3xl border border-dashed p-10 text-center">
-          <Cloud size={28} className="mx-auto text-[#4F8B92]" aria-hidden="true" />
+        <div className="techpack-surface rounded-[4px] border border-dashed p-10 text-center">
+          <Cloud size={28} className="mx-auto text-[#1D49B4]" aria-hidden="true" />
           <h3 className="mt-4 font-semibold">
             {includeArchived ? "No designs yet" : "No active cloud designs"}
           </h3>

@@ -69,7 +69,7 @@ export default async function AccountDesignDetailPage({
       <div className="space-y-5">
         <Link
           href="/account/designs"
-          className="inline-flex items-center gap-2 text-sm font-medium text-black/50 hover:text-[#315F66]"
+          className="inline-flex items-center gap-2 text-sm font-medium text-black/50 hover:text-[#1D49B4]"
         >
           <ArrowLeft size={15} aria-hidden="true" />
           Back to designs
@@ -96,20 +96,20 @@ export default async function AccountDesignDetailPage({
     <div className="space-y-6">
       <Link
         href="/account/designs"
-        className="inline-flex items-center gap-2 text-sm font-medium text-black/50 hover:text-[#315F66]"
+        className="inline-flex items-center gap-2 text-sm font-medium text-black/50 hover:text-[#1D49B4]"
       >
         <ArrowLeft size={15} aria-hidden="true" />
         Back to designs
       </Link>
 
-      <div className="liquid-glass-surface rounded-3xl border p-6 sm:p-8">
+      <div className="techpack-surface rounded-[4px] border p-6 sm:p-8">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-[#4F8B92]/12 px-2.5 py-1 text-[11px] font-semibold capitalize text-[#315F66]">
+              <span className="rounded-[4px] bg-[#1D49B4]/12 px-2.5 py-1 text-[11px] font-semibold capitalize text-[#1D49B4]">
                 {design.status}
               </span>
-              <span className="rounded-full bg-black/5 px-2.5 py-1 text-[11px] font-semibold text-black/45">
+              <span className="rounded-[4px] bg-black/5 px-2.5 py-1 text-[11px] font-semibold text-black/45">
                 Current version {design.current_version}
               </span>
             </div>
@@ -167,11 +167,11 @@ export default async function AccountDesignDetailPage({
         ].map((metric) => (
           <div
             key={metric.label}
-            className="liquid-glass-panel rounded-2xl border p-5"
+            className="techpack-panel rounded-[4px] border p-5"
           >
             <metric.icon
               size={17}
-              className="text-[#4F8B92]"
+              className="text-[#1D49B4]"
               aria-hidden="true"
             />
             <p className="mt-4 text-[10px] uppercase tracking-widest text-black/35">
@@ -183,16 +183,16 @@ export default async function AccountDesignDetailPage({
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <section className="liquid-glass-surface rounded-3xl border p-6">
+        <section className="techpack-surface rounded-[4px] border p-6">
           <div className="flex items-center gap-2">
-            <FileStack size={18} className="text-[#4F8B92]" aria-hidden="true" />
+            <FileStack size={18} className="text-[#1D49B4]" aria-hidden="true" />
             <h3 className="font-semibold">Immutable version history</h3>
           </div>
           <div className="mt-5 space-y-3">
             {versions.map((entry) => (
               <div
                 key={entry.id}
-                className="flex items-center justify-between gap-4 rounded-2xl border border-black/7 bg-white/45 px-4 py-3"
+                className="flex items-center justify-between gap-4 rounded-[4px] border border-black/7 bg-white px-4 py-3"
               >
                 <div>
                   <p className="text-sm font-semibold">
@@ -203,7 +203,7 @@ export default async function AccountDesignDetailPage({
                   </p>
                 </div>
                 {entry.version_number === design.current_version ? (
-                  <span className="rounded-full bg-[#4F8B92]/12 px-2 py-1 text-[10px] font-semibold text-[#315F66]">
+                  <span className="rounded-[4px] bg-[#1D49B4]/12 px-2 py-1 text-[10px] font-semibold text-[#1D49B4]">
                     Current
                   </span>
                 ) : null}
@@ -212,9 +212,9 @@ export default async function AccountDesignDetailPage({
           </div>
         </section>
 
-        <section className="liquid-glass-surface rounded-3xl border p-6">
+        <section className="techpack-surface rounded-[4px] border p-6">
           <div className="flex items-center gap-2">
-            <ShoppingBag size={18} className="text-[#4F8B92]" aria-hidden="true" />
+            <ShoppingBag size={18} className="text-[#1D49B4]" aria-hidden="true" />
             <h3 className="font-semibold">Orders using this design</h3>
           </div>
           {orders.length ? (
@@ -222,7 +222,7 @@ export default async function AccountDesignDetailPage({
               {orders.map((order) => (
                 <div
                   key={order.id}
-                  className="rounded-2xl border border-black/7 bg-white/45 px-4 py-3"
+                  className="rounded-[4px] border border-black/7 bg-white px-4 py-3"
                 >
                   <div className="flex items-center justify-between gap-4">
                     <p className="text-sm font-semibold">
@@ -239,7 +239,7 @@ export default async function AccountDesignDetailPage({
               ))}
             </div>
           ) : (
-            <div className="mt-5 rounded-2xl border border-dashed border-black/12 bg-white/30 p-6 text-center">
+            <div className="mt-5 rounded-[4px] border border-dashed border-black/12 bg-white p-6 text-center">
               <Clock3
                 size={20}
                 className="mx-auto text-black/25"

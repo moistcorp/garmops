@@ -74,7 +74,7 @@ function statusTone(status: string) {
   if (["needs_customer_action", "action_required", "urgent"].includes(status)) {
     return "bg-amber-100 text-amber-700";
   }
-  return "bg-[#4F8B92]/12 text-[#315F66]";
+  return "bg-[#1D49B4]/12 text-[#1D49B4]";
 }
 
 export default async function StaffOrderWorkspace({
@@ -101,23 +101,23 @@ export default async function StaffOrderWorkspace({
     <div className="space-y-6">
       <Link
         href="/staff/orders"
-        className="inline-flex items-center gap-2 text-sm font-semibold text-black/50 hover:text-[#315F66]"
+        className="inline-flex items-center gap-2 text-sm font-semibold text-black/50 hover:text-[#1D49B4]"
       >
         <ArrowLeft size={15} aria-hidden="true" /> Back to work queue
       </Link>
 
-      <section className="liquid-glass-surface rounded-3xl border p-6 sm:p-8">
+      <section className="techpack-surface rounded-[4px] border p-6 sm:p-8">
         <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${statusTone(order.status)}`}>
+              <span className={`rounded-[4px] px-2.5 py-1 text-[11px] font-semibold ${statusTone(order.status)}`}>
                 {ORDER_STATUS_LABELS[order.status]}
               </span>
-              <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${statusTone(order.internal_priority)}`}>
+              <span className={`rounded-[4px] px-2.5 py-1 text-[11px] font-semibold ${statusTone(order.internal_priority)}`}>
                 {order.internal_priority} priority
               </span>
               {openActions.length ? (
-                <span className="rounded-full bg-blue-100 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
+                <span className="rounded-[4px] bg-blue-100 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
                   {openActions.length} open action{openActions.length === 1 ? "" : "s"}
                 </span>
               ) : null}
@@ -132,7 +132,7 @@ export default async function StaffOrderWorkspace({
               Submitted {formatOrderTimestamp(order.submitted_at)} · Customer sees {PUBLIC_STATUS_LABELS[order.public_status]}
             </p>
           </div>
-          <div className="rounded-2xl bg-white/45 px-4 py-3 text-sm text-black/55">
+          <div className="rounded-[4px] bg-white px-4 py-3 text-sm text-black/55">
             Customer-facing status: <span className="font-semibold text-black/75">{PUBLIC_STATUS_LABELS[order.public_status]}</span>
           </div>
         </div>
@@ -147,8 +147,8 @@ export default async function StaffOrderWorkspace({
         ].map(([label, value, Icon]) => {
           const MetricIcon = Icon as typeof Package;
           return (
-            <div key={String(label)} className="liquid-glass-panel rounded-2xl border p-5">
-              <MetricIcon size={17} className="text-[#4F8B92]" aria-hidden="true" />
+            <div key={String(label)} className="techpack-panel rounded-[4px] border p-5">
+              <MetricIcon size={17} className="text-[#1D49B4]" aria-hidden="true" />
               <p className="mt-4 text-[10px] uppercase tracking-wider text-black/35">{String(label)}</p>
               <p className="mt-2 font-semibold">{String(value)}</p>
             </div>
@@ -158,9 +158,9 @@ export default async function StaffOrderWorkspace({
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(330px,0.65fr)]">
         <div className="space-y-6">
-          <section className="liquid-glass-surface rounded-3xl border p-6">
+          <section className="techpack-surface rounded-[4px] border p-6">
             <div className="flex items-center gap-2">
-              <ClipboardCheck size={18} className="text-[#4F8B92]" aria-hidden="true" />
+              <ClipboardCheck size={18} className="text-[#1D49B4]" aria-hidden="true" />
               <h2 className="text-lg font-semibold">Immutable order specification</h2>
             </div>
             <div className="mt-5 space-y-4">
@@ -170,7 +170,7 @@ export default async function StaffOrderWorkspace({
                 const sizes = object(item.size_breakdown);
                 const decoration = object(item.decoration_snapshot);
                 return (
-                  <article key={item.id} className="rounded-2xl border border-black/8 bg-white/45 p-5">
+                  <article key={item.id} className="rounded-[4px] border border-black/8 bg-white p-5">
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div>
                         <h3 className="font-semibold">{item.product_name}</h3>
@@ -205,18 +205,18 @@ export default async function StaffOrderWorkspace({
             shipmentEvents={workspace.shipmentEvents}
           />
 
-          <section className="liquid-glass-surface rounded-3xl border p-6">
+          <section className="techpack-surface rounded-[4px] border p-6">
             <div className="flex items-center gap-2">
-              <MessageSquareText size={18} className="text-[#4F8B92]" aria-hidden="true" />
+              <MessageSquareText size={18} className="text-[#1D49B4]" aria-hidden="true" />
               <h2 className="text-lg font-semibold">Customer updates and action requests</h2>
             </div>
             <div className="mt-5 space-y-4">
               {workspace.comments.filter((comment) => comment.visibility === "customer").map((comment) => (
-                <article key={comment.id} className={`rounded-2xl border p-4 ${comment.action_required && !comment.resolved_at ? "border-blue-200 bg-blue-50/60" : "border-black/8 bg-white/45"}`}>
+                <article key={comment.id} className={`rounded-[4px] border p-4 ${comment.action_required && !comment.resolved_at ? "border-blue-200 bg-blue-50/60" : "border-black/8 bg-white"}`}>
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-semibold">Customer-visible</span>
-                      {comment.action_required ? <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">{comment.resolved_at ? "Resolved" : "Action required"}</span> : null}
+                      {comment.action_required ? <span className="rounded-[4px] bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">{comment.resolved_at ? "Resolved" : "Action required"}</span> : null}
                     </div>
                     <span className="text-[10px] uppercase tracking-wider text-black/30">{formatOrderTimestamp(comment.created_at)}</span>
                   </div>
@@ -237,7 +237,7 @@ export default async function StaffOrderWorkspace({
             ) : null}
           </section>
 
-          <section className="liquid-glass-surface rounded-3xl border p-6">
+          <section className="techpack-surface rounded-[4px] border p-6">
             <div className="flex items-center gap-2">
               <ShieldAlert size={18} className="text-amber-700" aria-hidden="true" />
               <h2 className="text-lg font-semibold">Internal notes</h2>
@@ -245,7 +245,7 @@ export default async function StaffOrderWorkspace({
             <p className="mt-2 text-xs font-semibold uppercase tracking-wider text-amber-700">Never visible to customers</p>
             <div className="mt-5 space-y-3">
               {workspace.comments.filter((comment) => comment.visibility === "staff_only").map((comment) => (
-                <article key={comment.id} className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4">
+                <article key={comment.id} className="rounded-[4px] border border-amber-200 bg-amber-50/60 p-4">
                   <p className="whitespace-pre-wrap text-sm leading-relaxed text-black/65">{comment.body}</p>
                   <p className="mt-3 text-[10px] uppercase tracking-wider text-black/30">{formatOrderTimestamp(comment.created_at)}</p>
                 </article>
@@ -259,14 +259,14 @@ export default async function StaffOrderWorkspace({
             ) : null}
           </section>
 
-          <section className="liquid-glass-surface rounded-3xl border p-6">
+          <section className="techpack-surface rounded-[4px] border p-6">
             <div className="flex items-center gap-2">
-              <FileText size={18} className="text-[#4F8B92]" aria-hidden="true" />
+              <FileText size={18} className="text-[#1D49B4]" aria-hidden="true" />
               <h2 className="text-lg font-semibold">Order files</h2>
             </div>
             <div className="mt-5 space-y-4">
               {workspace.files.map((file) => (
-                <article key={file.id} className="rounded-2xl border border-black/8 bg-white/45 p-4">
+                <article key={file.id} className="rounded-[4px] border border-black/8 bg-white p-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold">{file.original_filename}</p>
@@ -275,7 +275,7 @@ export default async function StaffOrderWorkspace({
                     {file.scan_status === "clean" || file.scan_status === "not_required" ? (
                       <PrivateFileDownloadButton fileId={file.id} />
                     ) : (
-                      <span className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+                      <span className="rounded-[4px] bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
                         Awaiting security review
                       </span>
                     )}
@@ -294,14 +294,14 @@ export default async function StaffOrderWorkspace({
             </div>
           </section>
 
-          <section className="liquid-glass-surface rounded-3xl border p-6">
+          <section className="techpack-surface rounded-[4px] border p-6">
             <div className="flex items-center gap-2">
-              <History size={18} className="text-[#4F8B92]" aria-hidden="true" />
+              <History size={18} className="text-[#1D49B4]" aria-hidden="true" />
               <h2 className="text-lg font-semibold">Status and audit history</h2>
             </div>
             <div className="mt-5 space-y-4">
               {workspace.history.map((entry) => (
-                <div key={entry.id} className="border-l-2 border-[#4F8B92]/30 pl-4">
+                <div key={entry.id} className="border-l-2 border-[#1D49B4]/30 pl-4">
                   <p className="text-sm font-semibold">{ORDER_STATUS_LABELS[entry.to_status as keyof typeof ORDER_STATUS_LABELS]}</p>
                   {entry.customer_message ? <p className="mt-1 text-xs leading-relaxed text-black/55">Customer: {entry.customer_message}</p> : null}
                   {entry.internal_note ? <p className="mt-1 text-xs leading-relaxed text-amber-700">Internal: {entry.internal_note}</p> : null}
@@ -310,7 +310,7 @@ export default async function StaffOrderWorkspace({
               ))}
             </div>
             {roleCan(role, "view_audit") && workspace.audit.length ? (
-              <details className="mt-6 rounded-2xl border border-black/8 bg-white/40 p-4">
+              <details className="mt-6 rounded-[4px] border border-black/8 bg-white/40 p-4">
                 <summary className="cursor-pointer text-sm font-semibold">Recent privileged audit records</summary>
                 <div className="mt-4 space-y-3">
                   {workspace.audit.map((entry) => (
@@ -327,29 +327,29 @@ export default async function StaffOrderWorkspace({
 
         <aside className="space-y-5 xl:sticky xl:top-6 xl:self-start">
           {roleCan(role, "change_order_status") ? (
-            <section className="liquid-glass-surface rounded-3xl border p-5">
-              <h2 className="mb-4 flex items-center gap-2 font-semibold"><Clock3 size={17} className="text-[#4F8B92]" /> Status</h2>
+            <section className="techpack-surface rounded-[4px] border p-5">
+              <h2 className="mb-4 flex items-center gap-2 font-semibold"><Clock3 size={17} className="text-[#1D49B4]" /> Status</h2>
               <StatusTransitionForm orderId={order.id} orderNumber={order.order_number} currentStatus={order.status} nextStatuses={nextStatuses} />
             </section>
           ) : null}
 
           {roleCan(role, "assign_order") ? (
-            <section className="liquid-glass-surface rounded-3xl border p-5">
-              <h2 className="mb-4 flex items-center gap-2 font-semibold"><UserRoundCog size={17} className="text-[#4F8B92]" /> Assignment</h2>
+            <section className="techpack-surface rounded-[4px] border p-5">
+              <h2 className="mb-4 flex items-center gap-2 font-semibold"><UserRoundCog size={17} className="text-[#1D49B4]" /> Assignment</h2>
               <AssignmentForm orderId={order.id} orderNumber={order.order_number} currentAssignee={order.assigned_staff_user_id} currentTeam={order.assigned_team} assignees={workspace.assignees} />
             </section>
           ) : null}
 
           {roleCan(role, "set_order_priority") ? (
-            <section className="liquid-glass-surface rounded-3xl border p-5">
+            <section className="techpack-surface rounded-[4px] border p-5">
               <h2 className="mb-4 font-semibold">Priority</h2>
               <PriorityForm orderId={order.id} orderNumber={order.order_number} priority={order.internal_priority} />
             </section>
           ) : null}
 
           {roleCan(role, "set_expected_dates") ? (
-            <section className="liquid-glass-surface rounded-3xl border p-5">
-              <h2 className="mb-4 flex items-center gap-2 font-semibold"><CalendarClock size={17} className="text-[#4F8B92]" /> Expected dates</h2>
+            <section className="techpack-surface rounded-[4px] border p-5">
+              <h2 className="mb-4 flex items-center gap-2 font-semibold"><CalendarClock size={17} className="text-[#1D49B4]" /> Expected dates</h2>
               <ExpectedDatesForm
                 orderId={order.id}
                 orderNumber={order.order_number}
@@ -363,15 +363,15 @@ export default async function StaffOrderWorkspace({
             </section>
           ) : null}
 
-          <section className="liquid-glass-surface rounded-3xl border p-5">
-            <h2 className="flex items-center gap-2 font-semibold"><CircleDollarSign size={17} className="text-[#4F8B92]" /> Payment and invoice</h2>
+          <section className="techpack-surface rounded-[4px] border p-5">
+            <h2 className="flex items-center gap-2 font-semibold"><CircleDollarSign size={17} className="text-[#1D49B4]" /> Payment and invoice</h2>
             <div className="mt-4 space-y-3 text-sm">
-              <div className="rounded-2xl bg-white/45 p-3">
+              <div className="rounded-[4px] bg-white p-3">
                 <p className="text-[10px] uppercase tracking-wider text-black/35">Payment</p>
                 <p className="mt-1 font-semibold capitalize">{workspace.payment?.status ?? "Unavailable"}</p>
                 <p className="mt-1 text-xs text-black/45">{workspace.payment ? `${formatMoneyPaise(workspace.payment.amount_paise)} · ${workspace.payment.attempt_count} attempt${workspace.payment.attempt_count === 1 ? "" : "s"}` : "Safe provider summary unavailable"}</p>
               </div>
-              <div className="rounded-2xl bg-white/45 p-3">
+              <div className="rounded-[4px] bg-white p-3">
                 <p className="text-[10px] uppercase tracking-wider text-black/35">Invoice</p>
                 <p className="mt-1 font-semibold capitalize">{invoice?.sync_status.replaceAll("_", " ") ?? "Not created"}</p>
                 {invoice?.document_number ? <p className="mt-1 text-xs text-black/45">{invoice.document_number}</p> : null}
@@ -380,8 +380,8 @@ export default async function StaffOrderWorkspace({
             </div>
           </section>
 
-          <section className="liquid-glass-surface rounded-3xl border p-5">
-            <h2 className="flex items-center gap-2 font-semibold"><Truck size={17} className="text-[#4F8B92]" /> Shipment</h2>
+          <section className="techpack-surface rounded-[4px] border p-5">
+            <h2 className="flex items-center gap-2 font-semibold"><Truck size={17} className="text-[#1D49B4]" /> Shipment</h2>
             {workspace.shipments[0] ? (
               <div className="mt-4 text-sm text-black/55">
                 <p className="font-semibold capitalize text-black/75">{workspace.shipments[0].status.replaceAll("_", " ")}</p>
@@ -391,7 +391,7 @@ export default async function StaffOrderWorkspace({
             ) : <p className="mt-4 text-sm text-black/40">No shipment record yet. Shipment creation is completed in Phase 11.</p>}
           </section>
 
-          <section className="liquid-glass-surface rounded-3xl border p-5">
+          <section className="techpack-surface rounded-[4px] border p-5">
             <h2 className="font-semibold">Customer and company</h2>
             <div className="mt-4 space-y-2 text-sm leading-relaxed text-black/55">
               <p className="font-semibold text-black/75">{String(customer.name ?? "Customer")}</p>
@@ -402,7 +402,7 @@ export default async function StaffOrderWorkspace({
               <p>PO: {order.po_number ?? "Not supplied"}</p>
               <p className="pt-2">{String(shippingAddress.city ?? "")}, {String(shippingAddress.state ?? "")} {String(shippingAddress.postalCode ?? "")}</p>
             </div>
-            <Link href={`/staff/customers/${order.organization_id}`} className="mt-4 inline-block text-xs font-semibold text-[#315F66] hover:underline">Open organisation</Link>
+            <Link href={`/staff/customers/${order.organization_id}`} className="mt-4 inline-block text-xs font-semibold text-[#1D49B4] hover:underline">Open organisation</Link>
           </section>
         </aside>
       </div>

@@ -21,9 +21,9 @@ export default async function AuthErrorPage({
       eyebrow="Access interrupted"
       title="We could not continue"
       description={messages[code] ?? "The requested authentication step could not be completed."}
-      footer={<Link href="/login" className="text-[var(--color-teal)] hover:underline">Return to sign in</Link>}
+      footer={<Link href="/login" className="text-[var(--color-accent)] hover:underline">Return to sign in</Link>}
     >
-      <div className="rounded-2xl border border-black/10 bg-white/60 p-5 text-sm text-black/55">
+      <div className="rounded-[4px] border border-black/10 bg-white p-5 text-sm text-black/55">
         If this keeps happening, contact Garmops operations without sharing your password or authenticator code.
       </div>
     </AuthShell>

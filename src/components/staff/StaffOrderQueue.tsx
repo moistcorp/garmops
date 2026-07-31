@@ -14,7 +14,7 @@ import {
 } from "@/lib/staff/statuses";
 
 const selectClass =
-  "rounded-xl border border-black/10 bg-white/75 px-3 py-2 text-xs outline-none focus:border-[#4F8B92]";
+  "rounded-[4px] border border-black/10 bg-white px-3 py-2 text-xs outline-none focus:border-[#1D49B4]";
 
 function paramsWith(
   current: Record<string, string | string[] | undefined>,
@@ -49,9 +49,9 @@ export default async function StaffOrderQueue({
 
   return (
     <div className="space-y-5">
-      <section className="liquid-glass-surface rounded-3xl border p-5 sm:p-6">
+      <section className="techpack-surface rounded-[4px] border p-5 sm:p-6">
         <div className="flex items-center gap-2">
-          <Filter size={17} className="text-[#4F8B92]" aria-hidden="true" />
+          <Filter size={17} className="text-[#1D49B4]" aria-hidden="true" />
           <h1 className="text-xl font-semibold">Order work queue</h1>
         </div>
         <form method="get" className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -60,7 +60,7 @@ export default async function StaffOrderQueue({
             <input
               name="q"
               defaultValue={filters.query ?? ""}
-              className="w-full rounded-xl border border-black/10 bg-white/75 py-2 pl-9 pr-3 text-sm outline-none focus:border-[#4F8B92]"
+              className="w-full rounded-[4px] border border-black/10 bg-white py-2 pl-9 pr-3 text-sm outline-none focus:border-[#1D49B4]"
               placeholder="Order, company, email, PO, PayU, Zoho or tracking reference"
             />
           </label>
@@ -140,7 +140,7 @@ export default async function StaffOrderQueue({
                 {String(label)}
               </label>
             ))}
-            <button className="rounded-full bg-[#16212B] px-5 py-2 text-xs font-semibold text-white" type="submit">
+            <button className="rounded-[4px] bg-[#16212B] px-5 py-2 text-xs font-semibold text-white" type="submit">
               Apply filters
             </button>
             <Link href="/staff/orders" className="text-xs font-semibold text-black/45 hover:underline">Reset</Link>
@@ -148,7 +148,7 @@ export default async function StaffOrderQueue({
         </form>
       </section>
 
-      <section className="liquid-glass-surface overflow-hidden rounded-3xl border">
+      <section className="techpack-surface overflow-hidden rounded-[4px] border">
         <div className="flex items-center justify-between border-b border-black/8 px-5 py-4">
           <div>
             <h2 className="font-semibold">{total.toLocaleString("en-IN")} orders</h2>
@@ -160,15 +160,15 @@ export default async function StaffOrderQueue({
             <Link
               key={order.order_id}
               href={`/staff/orders/${order.order_number}`}
-              className="grid gap-4 px-5 py-5 transition hover:bg-white/45 lg:grid-cols-[1.1fr_1fr_0.8fr_0.7fr_auto] lg:items-center"
+              className="grid gap-4 px-5 py-5 transition hover:bg-white lg:grid-cols-[1.1fr_1fr_0.8fr_0.7fr_auto] lg:items-center"
             >
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="font-semibold">{order.order_number}</p>
-                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${order.internal_priority === 'urgent' ? 'bg-red-100 text-red-700' : order.internal_priority === 'high' ? 'bg-amber-100 text-amber-700' : 'bg-black/5 text-black/50'}`}>
+                  <span className={`rounded-[4px] px-2 py-0.5 text-[10px] font-semibold ${order.internal_priority === 'urgent' ? 'bg-red-100 text-red-700' : order.internal_priority === 'high' ? 'bg-amber-100 text-amber-700' : 'bg-black/5 text-black/50'}`}>
                     {order.internal_priority}
                   </span>
-                  {order.open_action_count > 0 ? <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">{order.open_action_count} open action</span> : null}
+                  {order.open_action_count > 0 ? <span className="rounded-[4px] bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">{order.open_action_count} open action</span> : null}
                 </div>
                 <p className="mt-1 text-xs text-black/45">{order.organization_name} · {order.customer_name}</p>
               </div>
@@ -187,7 +187,7 @@ export default async function StaffOrderQueue({
               </div>
               <div className="flex items-center justify-between gap-3 lg:block lg:text-right">
                 <span className="inline-flex items-center gap-1 text-xs text-black/40"><CalendarDays size={13} /> {formatOrderTimestamp(order.updated_at)}</span>
-                <ArrowRight size={16} className="text-[#4F8B92] lg:ml-auto lg:mt-2" aria-hidden="true" />
+                <ArrowRight size={16} className="text-[#1D49B4] lg:ml-auto lg:mt-2" aria-hidden="true" />
               </div>
             </Link>
           )) : (
@@ -198,10 +198,10 @@ export default async function StaffOrderQueue({
 
       <div className="flex items-center justify-between">
         {filters.page > 1 ? (
-          <Link href={paramsWith(searchParams, { page: filters.page - 1 })} className="inline-flex items-center gap-2 text-sm font-semibold text-[#315F66]"><ArrowLeft size={15} /> Previous</Link>
+          <Link href={paramsWith(searchParams, { page: filters.page - 1 })} className="inline-flex items-center gap-2 text-sm font-semibold text-[#1D49B4]"><ArrowLeft size={15} /> Previous</Link>
         ) : <span />}
         {filters.page < pages ? (
-          <Link href={paramsWith(searchParams, { page: filters.page + 1 })} className="inline-flex items-center gap-2 text-sm font-semibold text-[#315F66]">Next <ArrowRight size={15} /></Link>
+          <Link href={paramsWith(searchParams, { page: filters.page + 1 })} className="inline-flex items-center gap-2 text-sm font-semibold text-[#1D49B4]">Next <ArrowRight size={15} /></Link>
         ) : null}
       </div>
     </div>

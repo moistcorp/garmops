@@ -24,13 +24,13 @@ export default function CustomerOrderReplyForm({
         name="body"
         rows={3}
         required
-        className="w-full resize-y rounded-2xl border border-black/10 bg-white/70 px-4 py-3 text-sm outline-none transition focus:border-[#4F8B92]"
+        className="w-full resize-y rounded-[4px] border border-black/10 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#1D49B4]"
         placeholder="Reply to the Garmops team or provide the requested information."
       />
       <button
         type="submit"
         disabled={pending}
-        className="rounded-full bg-[#16212B] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#315F66] disabled:opacity-50"
+        className="rounded-[4px] bg-[#16212B] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#1D49B4] disabled:opacity-50"
       >
         {pending ? "Sending…" : "Send reply"}
       </button>

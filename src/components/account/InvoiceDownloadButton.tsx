@@ -36,7 +36,7 @@ export default function InvoiceDownloadButton({ fileId }: { fileId: string }) {
         type="button"
         onClick={download}
         disabled={busy}
-        className="inline-flex items-center gap-2 rounded-xl bg-[#315F66] px-4 py-2.5 text-xs font-semibold text-white disabled:opacity-60"
+        className="inline-flex items-center gap-2 rounded-[4px] bg-[#1D49B4] px-4 py-2.5 text-xs font-semibold text-white disabled:opacity-60"
       >
         <Download size={14} aria-hidden="true" />
         {busy ? "Preparing…" : "Download PDF"}

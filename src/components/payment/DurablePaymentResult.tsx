@@ -41,11 +41,11 @@ export default function DurablePaymentResult({
             : "Not started";
 
   return (
-    <div className="app-liquid-bg flex min-h-[80vh] items-center justify-center px-4 py-10 sm:px-6">
+    <div className="techpack-canvas flex min-h-[80vh] items-center justify-center px-4 py-10 sm:px-6">
       {sampleOrder ? (
         <ClearPaidSampleCart paid={result.paymentStatus === "paid"} />
       ) : null}
-      <div className="liquid-glass-surface w-full max-w-xl rounded-[30px] border p-7 text-center sm:p-10">
+      <div className="techpack-surface w-full max-w-xl rounded-[4px] border p-7 text-center sm:p-10">
         <Icon
           size={52}
           className={`mx-auto ${
@@ -57,7 +57,7 @@ export default function DurablePaymentResult({
           }`}
           aria-hidden="true"
         />
-        <p className="mt-6 text-xs uppercase tracking-[0.2em] text-[#4F8B92]">
+        <p className="mt-6 text-xs uppercase tracking-[0.2em] text-[#1D49B4]">
           Durable PayU result
         </p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight">
@@ -81,7 +81,7 @@ export default function DurablePaymentResult({
                 : "Your order remains saved and can be retried safely from the order page."}
         </p>
 
-        <dl className="mt-7 grid gap-3 rounded-2xl border border-black/7 bg-white/45 p-5 text-left sm:grid-cols-2">
+        <dl className="mt-7 grid gap-3 rounded-[4px] border border-black/7 bg-white p-5 text-left sm:grid-cols-2">
           <div>
             <dt className="text-[10px] uppercase tracking-wider text-black/35">
               Order number
@@ -125,7 +125,7 @@ export default function DurablePaymentResult({
         <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
           <Link
             href={`/account/orders/${encodeURIComponent(result.orderNumber)}`}
-            className="rounded-xl bg-[#315F66] px-5 py-3 text-sm font-semibold text-white"
+            className="rounded-[4px] bg-[#1D49B4] px-5 py-3 text-sm font-semibold text-white"
           >
             View order
           </Link>
@@ -134,7 +134,7 @@ export default function DurablePaymentResult({
           ) : null}
           <Link
             href="/account/orders"
-            className="rounded-xl border border-black/10 px-5 py-3 text-sm font-semibold"
+            className="rounded-[4px] border border-black/10 px-5 py-3 text-sm font-semibold"
           >
             Return to orders
           </Link>

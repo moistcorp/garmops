@@ -32,27 +32,27 @@ export async function StaffCustomerList({
 
   return (
     <div className="space-y-5">
-      <section className="liquid-glass-surface rounded-3xl border p-6">
+      <section className="techpack-surface rounded-[4px] border p-6">
         <div className="flex items-center gap-2">
-          <Building2 size={18} className="text-[#4F8B92]" aria-hidden="true" />
+          <Building2 size={18} className="text-[#1D49B4]" aria-hidden="true" />
           <h1 className="text-xl font-semibold">Customer organisations</h1>
         </div>
         <form method="get" className="mt-5 flex gap-2">
-          <input name="q" defaultValue={query} className="min-w-0 flex-1 rounded-xl border border-black/10 bg-white/75 px-3 py-2 text-sm outline-none focus:border-[#4F8B92]" placeholder="Company name or billing email" />
-          <button className="rounded-full bg-[#16212B] px-5 py-2 text-xs font-semibold text-white">Search</button>
+          <input name="q" defaultValue={query} className="min-w-0 flex-1 rounded-[4px] border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-[#1D49B4]" placeholder="Company name or billing email" />
+          <button className="rounded-[4px] bg-[#16212B] px-5 py-2 text-xs font-semibold text-white">Search</button>
         </form>
       </section>
-      <section className="liquid-glass-surface overflow-hidden rounded-3xl border">
+      <section className="techpack-surface overflow-hidden rounded-[4px] border">
         {error ? <p className="p-8 text-sm text-red-700">Customer organisations could not be loaded.</p> : (
           <div className="divide-y divide-black/7">
             {data?.length ? data.map((organization) => (
-              <Link key={organization.id} href={`/staff/customers/${organization.id}`} className="flex items-center justify-between gap-4 px-5 py-5 transition hover:bg-white/45">
+              <Link key={organization.id} href={`/staff/customers/${organization.id}`} className="flex items-center justify-between gap-4 px-5 py-5 transition hover:bg-white">
                 <div className="min-w-0">
                   <p className="truncate font-semibold">{organization.display_name}</p>
                   <p className="mt-1 truncate text-xs text-black/45">{organization.legal_name} · {organization.billing_email ?? "No billing email"}</p>
                   <p className="mt-1 text-xs capitalize text-black/35">{organization.status} · {organization.industry ?? "Industry not set"}</p>
                 </div>
-                <ArrowRight size={16} className="shrink-0 text-[#4F8B92]" aria-hidden="true" />
+                <ArrowRight size={16} className="shrink-0 text-[#1D49B4]" aria-hidden="true" />
               </Link>
             )) : <p className="p-12 text-center text-sm text-black/40">No customer organisations found.</p>}
           </div>
@@ -84,17 +84,17 @@ export async function StaffCustomerDetail({ organizationId }: { organizationId: 
 
   return (
     <div className="space-y-6">
-      <section className="liquid-glass-surface rounded-3xl border p-6 sm:p-8">
+      <section className="techpack-surface rounded-[4px] border p-6 sm:p-8">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#315F66]">Customer organisation</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#1D49B4]">Customer organisation</p>
             <h1 className="mt-3 text-2xl font-semibold">{organization.data.display_name}</h1>
             <p className="mt-2 text-sm text-black/50">{organization.data.legal_name}</p>
           </div>
-          <span className="rounded-full bg-black/5 px-3 py-1 text-xs font-semibold capitalize text-black/55">{organization.data.status}</span>
+          <span className="rounded-[4px] bg-black/5 px-3 py-1 text-xs font-semibold capitalize text-black/55">{organization.data.status}</span>
         </div>
         <div className="mt-6 grid gap-3 text-sm text-black/55 sm:grid-cols-2 xl:grid-cols-4">
-          <p className="inline-flex items-center gap-2"><Mail size={15} className="text-[#4F8B92]" /> {organization.data.billing_email ?? "No billing email"}</p>
+          <p className="inline-flex items-center gap-2"><Mail size={15} className="text-[#1D49B4]" /> {organization.data.billing_email ?? "No billing email"}</p>
           <p>{organization.data.phone ?? "No phone"}</p>
           <p>GSTIN: {organization.data.gstin ?? "Not set"}</p>
           <p>Zoho: {organization.data.zoho_contact_id ?? "Not linked"}</p>
@@ -109,36 +109,36 @@ export async function StaffCustomerDetail({ organizationId }: { organizationId: 
           ["Open actions", actions.data?.length ?? 0, MapPin],
         ].map(([label, value, Icon]) => {
           const MetricIcon = Icon as typeof Users;
-          return <div key={String(label)} className="liquid-glass-panel rounded-2xl border p-5"><MetricIcon size={17} className="text-[#4F8B92]" /><p className="mt-4 text-[10px] uppercase tracking-wider text-black/35">{String(label)}</p><p className="mt-2 text-xl font-semibold">{String(value)}</p></div>;
+          return <div key={String(label)} className="techpack-panel rounded-[4px] border p-5"><MetricIcon size={17} className="text-[#1D49B4]" /><p className="mt-4 text-[10px] uppercase tracking-wider text-black/35">{String(label)}</p><p className="mt-2 text-xl font-semibold">{String(value)}</p></div>;
         })}
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <section className="liquid-glass-surface rounded-3xl border p-6">
+        <section className="techpack-surface rounded-[4px] border p-6">
           <h2 className="font-semibold">Members</h2>
           <div className="mt-4 space-y-3">
             {members.data?.map((member) => {
               const profile = Array.isArray(member.profiles) ? member.profiles[0] : member.profiles;
-              return <div key={member.user_id} className="rounded-2xl border border-black/8 bg-white/45 p-4"><p className="text-sm font-semibold">{profile?.first_name} {profile?.last_name}</p><p className="mt-1 text-xs capitalize text-black/45">{member.role} · {member.status}</p><p className="mt-1 text-xs text-black/35">{profile?.job_title ?? "Role not set"} · {profile?.department ?? "Department not set"}</p></div>;
+              return <div key={member.user_id} className="rounded-[4px] border border-black/8 bg-white p-4"><p className="text-sm font-semibold">{profile?.first_name} {profile?.last_name}</p><p className="mt-1 text-xs capitalize text-black/45">{member.role} · {member.status}</p><p className="mt-1 text-xs text-black/35">{profile?.job_title ?? "Role not set"} · {profile?.department ?? "Department not set"}</p></div>;
             })}
           </div>
         </section>
-        <section className="liquid-glass-surface rounded-3xl border p-6">
+        <section className="techpack-surface rounded-[4px] border p-6">
           <h2 className="font-semibold">Addresses</h2>
           <div className="mt-4 space-y-3">
-            {addresses.data?.map((address) => <div key={address.id} className="rounded-2xl border border-black/8 bg-white/45 p-4 text-sm leading-relaxed text-black/55"><p className="font-semibold text-black/75">{address.label ?? address.contact_name ?? "Address"}</p><p className="mt-2">{address.line1}{address.line2 ? `, ${address.line2}` : ""}</p><p>{address.city}, {address.state} {address.postal_code}</p><p className="mt-1 text-xs">{address.is_default_billing ? "Default billing" : ""}{address.is_default_billing && address.is_default_shipping ? " · " : ""}{address.is_default_shipping ? "Default shipping" : ""}</p></div>)}
+            {addresses.data?.map((address) => <div key={address.id} className="rounded-[4px] border border-black/8 bg-white p-4 text-sm leading-relaxed text-black/55"><p className="font-semibold text-black/75">{address.label ?? address.contact_name ?? "Address"}</p><p className="mt-2">{address.line1}{address.line2 ? `, ${address.line2}` : ""}</p><p>{address.city}, {address.state} {address.postal_code}</p><p className="mt-1 text-xs">{address.is_default_billing ? "Default billing" : ""}{address.is_default_billing && address.is_default_shipping ? " · " : ""}{address.is_default_shipping ? "Default shipping" : ""}</p></div>)}
           </div>
         </section>
       </div>
 
-      <section className="liquid-glass-surface rounded-3xl border p-6">
+      <section className="techpack-surface rounded-[4px] border p-6">
         <h2 className="font-semibold">Orders</h2>
         <div className="mt-4 divide-y divide-black/7">
           {orders.data?.map((order) => <Link key={order.id} href={`/staff/orders/${order.order_number}`} className="flex items-center justify-between gap-4 py-4"><div><p className="text-sm font-semibold">{order.order_number}</p><p className="mt-1 text-xs text-black/45">{ORDER_STATUS_LABELS[order.status as keyof typeof ORDER_STATUS_LABELS]} · {formatOrderTimestamp(order.submitted_at)}</p></div><div className="text-right"><p className="text-sm font-semibold">{formatMoneyPaise(order.estimated_total_paise)}</p><p className="mt-1 text-xs capitalize text-black/40">{order.internal_priority}</p></div></Link>)}
         </div>
       </section>
 
-      {actions.data?.length ? <section className="liquid-glass-surface rounded-3xl border p-6"><h2 className="font-semibold">Open action requests</h2><div className="mt-4 space-y-3">{actions.data.map((action) => { const order = action.orders as unknown as { order_number: string }; return <Link key={action.id} href={`/staff/orders/${order.order_number}`} className="block rounded-2xl border border-blue-200 bg-blue-50/60 p-4"><p className="text-sm font-semibold">{order.order_number} · {action.action_type?.replaceAll("_", " ") ?? "General"}</p><p className="mt-2 text-sm text-black/60">{action.body}</p><p className="mt-2 text-[10px] uppercase tracking-wider text-black/30">{formatOrderTimestamp(action.created_at)}</p></Link>; })}</div></section> : null}
+      {actions.data?.length ? <section className="techpack-surface rounded-[4px] border p-6"><h2 className="font-semibold">Open action requests</h2><div className="mt-4 space-y-3">{actions.data.map((action) => { const order = action.orders as unknown as { order_number: string }; return <Link key={action.id} href={`/staff/orders/${order.order_number}`} className="block rounded-[4px] border border-blue-200 bg-blue-50/60 p-4"><p className="text-sm font-semibold">{order.order_number} · {action.action_type?.replaceAll("_", " ") ?? "General"}</p><p className="mt-2 text-sm text-black/60">{action.body}</p><p className="mt-2 text-[10px] uppercase tracking-wider text-black/30">{formatOrderTimestamp(action.created_at)}</p></Link>; })}</div></section> : null}
     </div>
   );
 }
