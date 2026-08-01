@@ -23,7 +23,8 @@
     "r2:migrate-public": "tsx scripts/migrate-public-downloads-to-r2.ts",
     "r2:verify-private": "tsx scripts/verify-private-r2.ts",
     "seo:check": "node scripts/check-seo.mjs",
-    "agent:check": "node scripts/check-agent-readiness.mjs"
+    "agent:check": "node scripts/check-agent-readiness.mjs",
+    "phase13:check": "node scripts/check-phase13.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1097.0",

@@ -159,10 +159,12 @@ export default function AuthActionForm({
   variant,
   next,
   defaults = {},
+  portal = "customer",
 }: {
   variant: Variant;
   next?: string;
   defaults?: Defaults;
+  portal?: "customer" | "staff";
 }) {
   const [state, formAction, pending] = useActionState(
     actions[variant],
@@ -190,6 +192,7 @@ export default function AuthActionForm({
   return (
     <form action={formAction} className="flex flex-col gap-4" aria-busy={pending}>
       {next ? <input type="hidden" name="next" value={next} /> : null}
+      {variant === "login" ? <input type="hidden" name="portal" value={portal} /> : null}
       {variant === "login" ? (
         <>
           <Field label="Email" name="email" type="email" required autoComplete="email" error={errors?.email} />

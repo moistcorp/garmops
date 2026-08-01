@@ -62,6 +62,12 @@ export async function proxy(request: NextRequest) {
   }
 
   if (
+    (pathname === '/staff/login')
+  ) {
+    return session.response
+  }
+
+  if (
     (pathname === '/staff' || pathname.startsWith('/staff/')) &&
     !session.authenticated
   ) {

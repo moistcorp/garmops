@@ -32,6 +32,7 @@ const loginSchema = z.object({
   email,
   password,
   next: z.string().optional(),
+  portal: z.enum(["customer", "staff"]).default("customer"),
 });
 
 const customerIdentitySchema = {
@@ -131,6 +132,7 @@ async function destinationAfterLogin(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
   requestedNext: string,
+  portal: "customer" | "staff",
 ) {
   const { data: staff } = await supabase
     .from("staff_members")
@@ -139,6 +141,19 @@ async function destinationAfterLogin(
     .maybeSingle();
 
   if (staff) {
+    if (portal === "customer") {
+      const { data: customerMembership } = await supabase
+        .from("organization_members")
+        .select("organization_id")
+        .eq("user_id", userId)
+        .eq("status", "active")
+        .limit(1)
+        .maybeSingle();
+
+      if (customerMembership) return safeInternalPath(requestedNext, "/account");
+      await supabase.auth.signOut();
+      return "/auth/error?code=STAFF_LOGIN_REQUIRED";
+    }
     if (staff.deactivated_at) {
       await supabase.auth.signOut();
       return "/auth/error?code=STAFF_ACCESS_DENIED";
@@ -197,6 +212,7 @@ export async function loginAction(
     supabase,
     data.user.id,
     parsed.data.next ?? "/account",
+    parsed.data.portal,
   );
   redirect(destination);
 }
@@ -331,6 +347,7 @@ export async function resetPasswordAction(
     supabase,
     userData.user.id,
     "/account",
+    "customer",
   );
   redirect(destination);
 }

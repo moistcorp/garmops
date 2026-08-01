@@ -12,6 +12,9 @@ function configuredOrigin(value: string | undefined) {
 const supabaseOrigin = configuredOrigin(process.env.NEXT_PUBLIC_SUPABASE_URL)
 const r2Origin = configuredOrigin(process.env.R2_S3_ENDPOINT)
 const downloadsOrigin = configuredOrigin(process.env.NEXT_PUBLIC_DOWNLOADS_BASE_URL)
+const productionHeaders = process.env.APP_ENV === 'production'
+  ? [{ key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' }]
+  : []
 
 const nextConfig: NextConfig = {
   async redirects() {
@@ -71,8 +74,10 @@ const nextConfig: NextConfig = {
         headers: [
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-DNS-Prefetch-Control', value: 'off' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          ...productionHeaders,
           {
             key: 'Content-Security-Policy',
             value: [
