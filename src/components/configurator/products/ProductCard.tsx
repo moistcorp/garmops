@@ -103,7 +103,7 @@ export default function ProductCard({
         />
         <Image
           src={product.hoverImage}
-          alt={`${product.name} on model`}
+          alt=""
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
           className="object-cover opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100"

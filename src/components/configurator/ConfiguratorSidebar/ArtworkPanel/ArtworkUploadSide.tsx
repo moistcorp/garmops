@@ -441,17 +441,28 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
     }
     const persistedFile = persistUploadedFile(file);
     runFakeProgress(token, () => {
-      void persistedFile.then((fileKey) => {
-        if (token !== importTokenRef.current) return;
-        if (!fileKey) {
-          setPersistenceWarning(
-            "This browser could not save the upload for reload recovery. Keep this tab open or try a different browser."
-          );
-        }
-        void importArtwork(fileUrl, fileType, token, fileKey, file.name).then(() => {
-          trackConfiguratorEvent("artwork_upload_succeeded", { side, file_type: fileType });
+      void persistedFile
+        .then(async (fileKey) => {
+          if (token !== importTokenRef.current) return;
+          if (!fileKey) {
+            setPersistenceWarning(
+              "This browser could not save the upload for reload recovery. Keep this tab open or try a different browser."
+            );
+          }
+          await importArtwork(fileUrl, fileType, token, fileKey, file.name);
+          if (token === importTokenRef.current) {
+            trackConfiguratorEvent("artwork_upload_succeeded", { side, file_type: fileType });
+          }
+        })
+        .catch(() => {
+          if (token !== importTokenRef.current) return;
+          revokeObjectUrl(fileUrl);
+          if (pendingObjectUrlRef.current === fileUrl) {
+            pendingObjectUrlRef.current = null;
+          }
+          setError("This artwork could not be imported. Try exporting it again or upload another file.");
+          trackConfiguratorEvent("artwork_upload_failed", { side, reason: "import_failed" });
         });
-      });
     });
   }
 
@@ -474,7 +485,11 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
     pendingObjectUrlRef.current = null;
     const token = importTokenRef.current;
     runFakeProgress(token, () => {
-      void importArtwork(SAMPLE_ARTWORK_HREF, "svg", token);
+      void importArtwork(SAMPLE_ARTWORK_HREF, "svg", token).catch(() => {
+        if (token !== importTokenRef.current) return;
+        setError("The sample artwork could not be loaded. Upload your own file or try again.");
+        trackConfiguratorEvent("artwork_upload_failed", { side, reason: "sample_import_failed" });
+      });
     });
   }
 

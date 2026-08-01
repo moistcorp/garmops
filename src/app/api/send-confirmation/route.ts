@@ -12,6 +12,8 @@ import {
 import { consumeAuthRateLimit, requestIpAddress } from '@/lib/auth/rateLimit'
 import { verifyTurnstile } from '@/lib/auth/turnstile'
 import { isFeatureEnabled } from '@/lib/config/featureFlags'
+import { getServerEnvironment } from '@/lib/config/env'
+import { readBoundedBody, RequestBodyError } from '@/lib/http/requestBody'
 
 type EmailType = 'contact' | 'configure' | 'sample'
 type PaymentStatus = 'success' | 'failure'
@@ -21,6 +23,8 @@ export const runtime = 'nodejs'
 
 const MAX_ATTACHMENT_BYTES = 3 * 1024 * 1024
 const ALLOWED_ATTACHMENT_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/png'])
+const MAX_JSON_BYTES = 64 * 1024
+const MAX_MULTIPART_BYTES = MAX_ATTACHMENT_BYTES + 256 * 1024
 
 type EmailAttachment = {
   filename: string
@@ -34,11 +38,26 @@ type ParsedRequest =
 // Rollout fallback for the public contact form while accounts remain disabled.
 // The Phase 4 path uses the durable PostgreSQL limiter below.
 const fallbackRateLimits = new Map<string, { count: number; resetAt: number }>()
+const MAX_FALLBACK_RATE_LIMIT_ENTRIES = 10_000
+
+function pruneFallbackRateLimits(now: number) {
+  for (const [key, value] of fallbackRateLimits) {
+    if (value.resetAt <= now) fallbackRateLimits.delete(key)
+  }
+  while (fallbackRateLimits.size >= MAX_FALLBACK_RATE_LIMIT_ENTRIES) {
+    const oldest = fallbackRateLimits.keys().next().value
+    if (oldest === undefined) break
+    fallbackRateLimits.delete(oldest)
+  }
+}
 
 function exceedsFallbackLimit(ip: string) {
   const now = Date.now()
   const existing = fallbackRateLimits.get(ip)
   if (!existing || existing.resetAt <= now) {
+    if (!existing && fallbackRateLimits.size >= MAX_FALLBACK_RATE_LIMIT_ENTRIES) {
+      pruneFallbackRateLimits(now)
+    }
     fallbackRateLimits.set(ip, { count: 1, resetAt: now + 60_000 })
     return false
   }
@@ -117,7 +136,14 @@ async function parseRequest(req: NextRequest): Promise<ParsedRequest> {
 
   try {
     if (contentType.includes('multipart/form-data')) {
-      const formData = await req.formData()
+      const multipartBytes = await readBoundedBody(req, MAX_MULTIPART_BYTES)
+      const multipartBody = new ArrayBuffer(multipartBytes.byteLength)
+      new Uint8Array(multipartBody).set(multipartBytes)
+      const formData = await new Request(req.url, {
+        method: 'POST',
+        headers: { 'content-type': contentType },
+        body: multipartBody,
+      }).formData()
       const payload = formData.get('payload')
       if (typeof payload !== 'string') {
         return { ok: false, error: 'Missing request payload', status: 400 }
@@ -145,17 +171,38 @@ async function parseRequest(req: NextRequest): Promise<ParsedRequest> {
       return { ok: true, body: parsed, attachment: { filename, content } }
     }
 
-    const parsed: unknown = await req.json()
+    if (!contentType.toLowerCase().startsWith('application/json')) {
+      return { ok: false, error: 'JSON request required', status: 415 }
+    }
+    const parsed: unknown = JSON.parse(
+      (await readBoundedBody(req, MAX_JSON_BYTES)).toString('utf8')
+    )
     return isObject(parsed)
       ? { ok: true, body: parsed }
       : { ok: false, error: 'Invalid request body', status: 400 }
-  } catch {
+  } catch (error) {
+    if (error instanceof RequestBodyError && error.code === 'too_large') {
+      return { ok: false, error: 'Request is too large', status: 413 }
+    }
     return { ok: false, error: 'Invalid request body', status: 400 }
+  }
+}
+
+function hasExpectedOrigin(req: NextRequest): boolean {
+  const origin = req.headers.get('origin')
+  if (!origin) return false
+  try {
+    return new URL(origin).origin === new URL(getServerEnvironment().NEXT_PUBLIC_APP_URL).origin
+  } catch {
+    return false
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
+    if (!hasExpectedOrigin(req)) {
+      return NextResponse.json({ error: 'Invalid request origin' }, { status: 403 })
+    }
     const apiKey = process.env.RESEND_API_KEY
     const fromEmail = process.env.RESEND_FROM_EMAIL
     const contactToEmail = process.env.CONTACT_TO_EMAIL
@@ -213,7 +260,7 @@ export async function POST(req: NextRequest) {
       }
     } else if (type === 'contact') {
       const ip =
-        req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+        req.headers.get('x-forwarded-for')?.split(',')[0]?.trim().slice(0, 128) || 'unknown'
       if (exceedsFallbackLimit(ip)) {
         return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
       }
@@ -248,6 +295,12 @@ export async function POST(req: NextRequest) {
         { status: 410 }
       )
     }
+    if (type === 'configure' && isFeatureEnabled('DURABLE_CUSTOM_CHECKOUT_ENABLED')) {
+      return NextResponse.json(
+        { error: 'Legacy configurator confirmation is disabled. Durable order notifications are sent from verified database records.' },
+        { status: 410 }
+      )
+    }
 
     const paymentKind: PaymentKind | null =
       type === 'contact'
@@ -265,7 +318,10 @@ export async function POST(req: NextRequest) {
         payment?.status === paymentStatus &&
         payment.mock === false &&
         payment.txnid === txnid &&
-        payment.kind === paymentKind
+        payment.kind === paymentKind &&
+        payment.email === email.toLowerCase() &&
+        payment.firstname.toLocaleLowerCase('en') ===
+          name.split(/\s+/)[0]?.toLocaleLowerCase('en')
 
       if (!authorized) {
         return NextResponse.json(

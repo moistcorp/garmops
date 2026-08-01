@@ -8,6 +8,7 @@ import {
   jsonPrivate,
   privateUploadsAvailable,
 } from "@/lib/r2/api";
+import { readBoundedJson, RequestBodyError } from "@/lib/http/requestBody";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,6 +23,7 @@ const reviewSchema = z
     note: z.string().trim().min(1).max(500).nullable().optional(),
   })
   .strict();
+const maximumRequestBytes = 4 * 1024;
 
 export async function POST(request: NextRequest, context: RouteContext) {
   if (!privateUploadsAvailable()) {
@@ -36,8 +38,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
   let rawBody: unknown;
   try {
-    rawBody = await request.json();
-  } catch {
+    rawBody = await readBoundedJson(request, maximumRequestBytes);
+  } catch (error) {
+    if (error instanceof RequestBodyError) {
+      if (error.code === "too_large") return jsonError("Request is too large", 413);
+      if (error.code === "unsupported_media_type") return jsonError("JSON request required", 415);
+    }
     return jsonError("Invalid review request", 400);
   }
   const review = reviewSchema.safeParse(rawBody);

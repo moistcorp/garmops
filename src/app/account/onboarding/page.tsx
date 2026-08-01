@@ -30,6 +30,7 @@ export default async function AccountOnboardingPage() {
         defaults={{
           firstName: String(metadata.first_name ?? ""),
           lastName: String(metadata.last_name ?? ""),
+          accountType: String(metadata.account_type ?? "business"),
           companyName: String(metadata.company_name ?? ""),
           phone: String(metadata.phone ?? ""),
           department: String(metadata.department ?? ""),

@@ -20,17 +20,20 @@ import { createClient } from "@/lib/supabase/server";
 
 const email = z.string().trim().email().max(320).transform((value) => value.toLowerCase());
 const password = z.string().min(8).max(128);
+const optionalPassword = z.preprocess(
+  (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
+  password.optional(),
+);
 const name = z.string().trim().min(1).max(80);
 const optionalText = (maximum: number) =>
-  z
-    .string()
-    .trim()
-    .max(maximum)
-    .transform((value) => value || null);
+  z.preprocess(
+    (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
+    z.string().trim().max(maximum).optional().transform((value) => value || null),
+  );
 
 const loginSchema = z.object({
   email,
-  password,
+  password: optionalPassword,
   next: z.string().optional(),
   portal: z.enum(["customer", "staff"]).default("customer"),
 });
@@ -38,14 +41,23 @@ const loginSchema = z.object({
 const customerIdentitySchema = {
   firstName: name,
   lastName: name,
-  companyName: z.string().trim().min(2).max(200),
 };
+
+const accountType = z.enum(["personal", "business"]).default("business");
+const optionalCompanyField = z.preprocess(
+  (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
+  z.string().trim().max(200).optional(),
+);
+const optionalBusinessField = z.preprocess(
+  (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
+  z.string().trim().max(120).optional(),
+);
 
 const registrationPhone = z
   .string()
   .trim()
-  .regex(/^[0-9]{10}$/, "Enter a 10-digit Indian mobile number")
-  .transform((value) => `+91${value}`);
+  .regex(/^\+?[0-9]{10,15}$/, "Enter a valid mobile number")
+  .transform((value) => value.startsWith("+") ? value : `+91${value}`);
 
 const onboardingPhone = z
   .string()
@@ -54,28 +66,48 @@ const onboardingPhone = z
 
 const registerSchema = z.object({
   ...customerIdentitySchema,
+  accountType,
   email,
-  password,
-  phone: registrationPhone,
+  password: optionalPassword,
+  phone: z.preprocess(
+    (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
+    registrationPhone.optional(),
+  ),
+  companyName: optionalCompanyField,
+  industry: optionalBusinessField,
+  department: optionalBusinessField,
+  gstin: optionalBusinessField,
   terms: z.literal("on"),
   privacy: z.literal("on"),
+}).superRefine((value, context) => {
+  if (value.accountType !== "business") return;
+  for (const field of ["companyName", "industry", "department", "gstin"] as const) {
+    if (!value[field]) context.addIssue({ code: "custom", path: [field], message: "Required for business registration" });
+  }
 });
 
 const onboardingSchema = z.object({
   ...customerIdentitySchema,
-  phone: onboardingPhone,
+  accountType,
+  phone: z.preprocess(
+    (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
+    onboardingPhone.optional(),
+  ),
+  companyName: optionalCompanyField,
   department: optionalText(120),
   jobTitle: optionalText(120),
   website: z
-    .string()
-    .trim()
-    .max(500)
+    .preprocess(
+      (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
+      z.string().trim().max(500).optional(),
+    )
     .refine((value) => !value || z.url().safeParse(value).success, "Enter a valid URL")
     .transform((value) => value || null),
   gstin: z
-    .string()
-    .trim()
-    .toUpperCase()
+    .preprocess(
+      (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
+      z.string().trim().toUpperCase().optional(),
+    )
     .refine(
       (value) =>
         !value || /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(value),
@@ -85,8 +117,19 @@ const onboardingSchema = z.object({
     industry: optionalText(120),
     terms: z.literal("on"),
     privacy: z.literal("on"),
+  }).superRefine((value, context) => {
+    if (value.accountType !== "business") return;
+    for (const field of ["companyName", "industry", "department", "gstin"] as const) {
+      if (!value[field]) context.addIssue({ code: "custom", path: [field], message: "Required for business account" });
+    }
   });
 const emailSchema = z.object({ email });
+const emailOtpSchema = z.object({
+  email,
+  token: z.string().trim().regex(/^\d{6}$/, "Enter the 6-digit code"),
+  next: z.string().optional(),
+  portal: z.enum(["customer", "staff"]).default("customer"),
+});
 const resetSchema = z
   .object({
     password,
@@ -200,6 +243,23 @@ export async function loginAction(
   }
 
   const supabase = await createClient();
+  if (!parsed.data.password && parsed.data.portal === "staff") {
+    return actionError("Staff sign-in requires a password and authenticator MFA.");
+  }
+  if (!parsed.data.password) {
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+      email: parsed.data.email,
+      options: {
+        shouldCreateUser: false,
+        emailRedirectTo: authCallbackUrl(parsed.data.next ?? "/account"),
+      },
+    });
+    if (otpError) return actionError("We could not send a sign-in code. Please try again.");
+    return actionSuccess(
+      "We sent a one-time sign-in code to your email. Enter it to continue.",
+      { verificationEmail: parsed.data.email },
+    );
+  }
   const { data, error } = await supabase.auth.signInWithPassword({
     email: parsed.data.email,
     password: parsed.data.password,
@@ -207,6 +267,40 @@ export async function loginAction(
   if (error || !data.user) {
     return actionError("Unable to sign in with those credentials.");
   }
+
+  const destination = await destinationAfterLogin(
+    supabase,
+    data.user.id,
+    parsed.data.next ?? "/account",
+    parsed.data.portal,
+  );
+  redirect(destination);
+}
+
+export async function verifyEmailOtpAction(
+  _state: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  if (!authEnabled()) return actionError("Account access is not enabled yet.");
+  const parsed = emailOtpSchema.safeParse(fields(formData));
+  if (!parsed.success) return validationError(parsed.error);
+
+  try {
+    const rate = await consumeAuthRateLimit("login", parsed.data.email);
+    if (!rate.allowed) {
+      return actionError("Too many code attempts. Please wait before trying again.");
+    }
+  } catch {
+    return actionError("Code verification is temporarily unavailable.");
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.verifyOtp({
+    email: parsed.data.email,
+    token: parsed.data.token,
+    type: "email",
+  });
+  if (error || !data.user) return actionError("That sign-in code is invalid or expired.");
 
   const destination = await destinationAfterLogin(
     supabase,
@@ -240,25 +334,35 @@ export async function registerAction(
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({
-    email: parsed.data.email,
-    password: parsed.data.password,
-    options: {
-      emailRedirectTo: authCallbackUrl("/account/onboarding"),
-      data: {
-        first_name: parsed.data.firstName,
-        last_name: parsed.data.lastName,
-        company_name: parsed.data.companyName,
-        phone: parsed.data.phone,
-      },
-    },
-  });
+  const metadata = {
+    first_name: parsed.data.firstName,
+    last_name: parsed.data.lastName,
+    account_type: parsed.data.accountType,
+    company_name: parsed.data.companyName ?? "",
+    phone: parsed.data.phone ?? "",
+    industry: parsed.data.industry ?? "",
+    department: parsed.data.department ?? "",
+    gstin: parsed.data.gstin ?? "",
+  };
+  const result = parsed.data.password
+    ? await supabase.auth.signUp({
+        email: parsed.data.email,
+        password: parsed.data.password,
+        options: { emailRedirectTo: authCallbackUrl("/account/onboarding"), data: metadata },
+      })
+    : await supabase.auth.signInWithOtp({
+        email: parsed.data.email,
+        options: { shouldCreateUser: true, emailRedirectTo: authCallbackUrl("/account/onboarding"), data: metadata },
+      });
 
-  if (error) {
+  if (result.error) {
     return actionError("We could not complete registration. Please try again.");
   }
   return actionSuccess(
-    "Check your email for the verification link, then finish setting up your account.",
+    parsed.data.password
+      ? "We sent a verification link. Open it to verify your email, then sign in to finish setting up your workspace."
+      : "We sent a one-time code to your email. Enter it to verify your email and continue setting up your workspace.",
+    { verificationEmail: parsed.data.email },
   );
 }
 
@@ -371,10 +475,10 @@ export async function completeOnboardingAction(
   const { error } = await supabase.rpc("complete_customer_onboarding", {
     p_first_name: parsed.data.firstName,
     p_last_name: parsed.data.lastName,
-    p_phone: parsed.data.phone,
+    p_phone: parsed.data.phone ?? "",
     p_job_title: parsed.data.jobTitle ?? "",
     p_department: parsed.data.department ?? "",
-    p_company_name: parsed.data.companyName,
+    p_company_name: parsed.data.companyName ?? "Personal workspace",
     p_website: parsed.data.website ?? "",
     p_gstin: parsed.data.gstin ?? "",
     p_industry: parsed.data.industry ?? "",

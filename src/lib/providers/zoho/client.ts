@@ -4,6 +4,10 @@ import { getServerEnvironment } from "@/lib/config/env";
 import { clearZohoAccessTokenCache, exchangeZohoRefreshToken } from "@/lib/providers/zoho/auth";
 import { ZohoProviderError } from "@/lib/providers/zoho/errors";
 import type { ZohoApiEnvelope } from "@/lib/providers/zoho/types";
+import { readBoundedBody, RequestBodyError } from "@/lib/http/requestBody";
+
+const maximumJsonBytes = 2 * 1024 * 1024;
+const maximumPdfBytes = 20 * 1024 * 1024;
 
 export class ZohoClient {
   constructor(
@@ -66,7 +70,27 @@ export class ZohoClient {
       },
       options.query,
     );
-    const payload = (await response.json().catch(() => ({}))) as T;
+    let payload = {} as T;
+    let parseError: unknown;
+    try {
+      const bytes = await readBoundedBody(response, maximumJsonBytes);
+      payload = JSON.parse(bytes.toString("utf8")) as T;
+    } catch (error) {
+      parseError = error;
+    }
+    if (response.ok && parseError) {
+      throw new ZohoProviderError({
+        code:
+          parseError instanceof RequestBodyError && parseError.code === "too_large"
+            ? "ZOHO_JSON_TOO_LARGE"
+            : "ZOHO_INVALID_JSON_RESPONSE",
+        message: `Zoho returned an invalid JSON response (${path})`,
+        safeMessage: "Zoho returned an invalid accounting response.",
+        retryable: true,
+        status: response.status,
+        cause: parseError,
+      });
+    }
     const providerCode = typeof payload.code === "number" ? payload.code : null;
     if (!response.ok || (providerCode !== null && providerCode !== 0)) {
       const retryable = response.status === 408 || response.status === 429 || response.status >= 500;
@@ -97,7 +121,21 @@ export class ZohoClient {
         status: response.status,
       });
     }
-    const bytes = new Uint8Array(await response.arrayBuffer());
+    let bytes: Uint8Array;
+    try {
+      bytes = await readBoundedBody(response, maximumPdfBytes);
+    } catch (error) {
+      throw new ZohoProviderError({
+        code:
+          error instanceof RequestBodyError && error.code === "too_large"
+            ? "ZOHO_PDF_TOO_LARGE"
+            : "ZOHO_PDF_READ_FAILED",
+        message: "Zoho PDF response could not be read safely",
+        safeMessage: "Zoho returned an invalid accounting document.",
+        retryable: true,
+        cause: error,
+      });
+    }
     if (bytes.length < 5 || new TextDecoder().decode(bytes.slice(0, 5)) !== "%PDF-") {
       throw new ZohoProviderError({
         code: "ZOHO_INVALID_PDF",

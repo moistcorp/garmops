@@ -793,31 +793,32 @@ end; $$;
 
 create or replace function public.phase11_order_transition_guards()
 returns trigger language plpgsql set search_path='' as $$
-declare v_latest_approval public.approvals%rowtype;
 begin
   if new.source_order_id is distinct from old.source_order_id and old.source_order_id is not null then
     raise exception using errcode='23514', message='SOURCE_ORDER_IMMUTABLE';
   end if;
 
   if new.status is distinct from old.status then
-    if new.status in ('awaiting_artwork_approval','approved_for_production') then
-      select * into v_latest_approval
-      from public.approvals
-      where order_id=new.id and revoked_at is null
-      order by created_at desc
-      limit 1;
+    if new.status='awaiting_artwork_approval' and not exists (
+      select 1
+      from public.approvals approval
+      where approval.order_id=new.id
+        and approval.revoked_at is null
+        and approval.status in ('requested','viewed')
+        and approval.expires_at > now()
+    ) then
+      raise exception using errcode='23514', message='ACTIVE_APPROVAL_REQUIRED';
+    end if;
 
-      if new.status='awaiting_artwork_approval' and (
-        not found or v_latest_approval.status not in ('requested','viewed') or v_latest_approval.expires_at <= now()
-      ) then
-        raise exception using errcode='23514', message='ACTIVE_APPROVAL_REQUIRED';
-      end if;
-
-      if new.status='approved_for_production' and (
-        not found or v_latest_approval.status <> 'approved' or v_latest_approval.responded_at is null
-      ) then
-        raise exception using errcode='23514', message='LATEST_APPROVAL_REQUIRED';
-      end if;
+    if new.status='approved_for_production' and not exists (
+      select 1
+      from public.approvals approval
+      where approval.order_id=new.id
+        and approval.revoked_at is null
+        and approval.status='approved'
+        and approval.responded_at is not null
+    ) then
+      raise exception using errcode='23514', message='LATEST_APPROVAL_REQUIRED';
     end if;
 
     if new.status='dispatched' and not exists(

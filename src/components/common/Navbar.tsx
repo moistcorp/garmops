@@ -110,7 +110,7 @@ export default function Navbar() {
               width={908}
               height={114}
               className="h-4 w-auto max-w-[132px] object-contain min-[360px]:h-[18px] min-[360px]:max-w-[160px] sm:h-5 sm:max-w-[180px]"
-              priority
+              preload
             />
           </Link>
 
@@ -141,7 +141,7 @@ export default function Navbar() {
                 prefetch={false}
                 className="font-mono text-[11px] uppercase tracking-[0.06em] text-[#444444] transition-colors hover:text-[var(--color-accent)]"
               >
-                Account
+                Login/Register
               </Link>
             )}
             <Link
@@ -275,7 +275,7 @@ export default function Navbar() {
               onClick={closeMenu}
               className="mt-2 block rounded-[4px] border border-[var(--color-rule)] px-5 py-3 text-center font-mono text-[11px] uppercase tracking-[0.06em] text-[#111111]/70"
             >
-              Customer account
+              Login/Register
             </Link>
           )}
           <a

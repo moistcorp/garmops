@@ -753,14 +753,14 @@ as $$
     else jsonb_build_object(
       'newPaidReservations', (
         select count(*) from public.orders
-        where order_type in ('custom', 'reorder')
+        where order_type in ('custom_bulk', 'reorder')
           and status = 'reservation_paid'
       ),
       'newPaidSampleOrders', (
         select count(*) from public.orders
         where order_type = 'sample_purchase'
           and status = 'submitted_for_review'
-          and amount_paid_paise >= grand_total_paise
+          and amount_paid_paise >= estimated_total_paise
       ),
       'actionRequired', (
         select count(distinct customer_order.id)
@@ -774,7 +774,7 @@ as $$
       ),
       'artworkOverdue', (
         select count(*) from public.orders
-        where order_type in ('custom', 'reorder')
+        where order_type in ('custom_bulk', 'reorder')
           and status in ('artwork_review', 'awaiting_artwork_approval')
           and expected_approval_at < now()
       ),

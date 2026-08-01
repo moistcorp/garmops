@@ -12,7 +12,8 @@ function configuredOrigin(value: string | undefined) {
 const supabaseOrigin = configuredOrigin(process.env.NEXT_PUBLIC_SUPABASE_URL)
 const r2Origin = configuredOrigin(process.env.R2_S3_ENDPOINT)
 const downloadsOrigin = configuredOrigin(process.env.NEXT_PUBLIC_DOWNLOADS_BASE_URL)
-const productionHeaders = process.env.APP_ENV === 'production'
+const isDevelopment = process.env.NODE_ENV === 'development'
+const productionHeaders = process.env.NODE_ENV === 'production'
   ? [{ key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' }]
   : []
 
@@ -82,9 +83,9 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com",
-              "style-src 'self' 'unsafe-inline' https://api.fontshare.com",
-              "font-src 'self' https://cdn.fontshare.com",
+              `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ''} https://challenges.cloudflare.com`,
+              "style-src 'self' 'unsafe-inline' https://api.fontshare.com https://fonts.googleapis.com",
+              "font-src 'self' https://cdn.fontshare.com https://fonts.gstatic.com",
               "img-src 'self' data: blob: https:",
               `connect-src 'self' https://api.resend.com https://formspree.io https://secure.payu.in https://test.payu.in https://challenges.cloudflare.com${supabaseOrigin ? ` ${supabaseOrigin}` : ''}${r2Origin ? ` ${r2Origin}` : ''}`,
               "frame-src https://secure.payu.in https://test.payu.in https://challenges.cloudflare.com",

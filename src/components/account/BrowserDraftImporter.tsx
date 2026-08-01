@@ -172,7 +172,11 @@ export default function BrowserDraftImporter() {
     }
 
     setImporting(false);
-    setCandidates(scanBrowserDrafts());
+    try {
+      setCandidates(scanBrowserDrafts());
+    } catch {
+      setCandidates([]);
+    }
     setMessage(
       imported
         ? `${imported} browser design${imported === 1 ? "" : "s"} imported. Local copies were retained as a fallback.`

@@ -47,7 +47,7 @@ export default function LandingHero({ content }: { content: SeoLandingPageConten
             src={content.heroImage}
             alt={content.heroImageAlt ?? content.title}
             fill
-            priority
+            preload
             sizes="(max-width: 1024px) 100vw, 42vw"
             className="object-cover"
           />

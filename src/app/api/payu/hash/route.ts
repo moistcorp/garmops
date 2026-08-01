@@ -4,10 +4,23 @@ import { products } from '@/lib/products'
 import { createPaymentToken, type PaymentKind } from '@/lib/payu'
 import { RESERVATION_PRODUCT_INFO } from '@/lib/configurator/reservation'
 import { isFeatureEnabled } from '@/lib/config/featureFlags'
+import { getServerEnvironment } from '@/lib/config/env'
+import { readBoundedJson, RequestBodyError } from '@/lib/http/requestBody'
 
 const RESERVATION_AMOUNT = '499.00'
 const MAX_ITEM_QUANTITY = 100
 const MAX_CHECKOUT_ITEMS = 50
+const MAX_REQUEST_BYTES = 32 * 1024
+
+function hasExpectedOrigin(request: NextRequest): boolean {
+  const origin = request.headers.get('origin')
+  if (!origin) return false
+  try {
+    return new URL(origin).origin === new URL(getServerEnvironment().NEXT_PUBLIC_APP_URL).origin
+  } catch {
+    return false
+  }
+}
 
 type CheckoutItem = {
   id?: unknown
@@ -49,13 +62,27 @@ function getCheckoutDetails(
 }
 
 export async function POST(req: NextRequest) {
+  if (!hasExpectedOrigin(req)) {
+    return NextResponse.json({ error: 'Invalid request origin' }, { status: 403 })
+  }
+
   try {
-    const body = await req.json()
+    const rawBody = await readBoundedJson(req, MAX_REQUEST_BYTES)
+    if (!rawBody || typeof rawBody !== 'object' || Array.isArray(rawBody)) {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+    }
+    const body = rawBody as Record<string, unknown>
     const { txnid, amount, productinfo, firstname, email, items } = body
 
     if (Array.isArray(items) && isFeatureEnabled('DURABLE_SAMPLE_CHECKOUT_ENABLED')) {
       return NextResponse.json(
         { error: 'Legacy sample checkout is disabled. Submit a durable sample order instead.' },
+        { status: 410 },
+      )
+    }
+    if (!Array.isArray(items) && isFeatureEnabled('DURABLE_CUSTOM_CHECKOUT_ENABLED')) {
+      return NextResponse.json(
+        { error: 'Legacy configurator checkout is disabled. Submit a durable custom order instead.' },
         { status: 410 },
       )
     }
@@ -108,7 +135,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid transaction ID' }, { status: 400 })
     }
 
-    const udf1 = createPaymentToken(txnid, verifiedAmount, kind)
+    const normalizedFirstName = firstname.trim()
+    const normalizedEmail = email.trim().toLowerCase()
+    const udf1 = createPaymentToken(
+      txnid,
+      verifiedAmount,
+      kind,
+      normalizedFirstName,
+      normalizedEmail,
+    )
     if (!udf1) {
       return NextResponse.json(
         { error: 'Payment signing is not configured' },
@@ -140,8 +175,8 @@ export async function POST(req: NextRequest) {
       txnid,
       verifiedAmount,
       verifiedProductInfo,
-      firstname.trim(),
-      email.trim(),
+      normalizedFirstName,
+      normalizedEmail,
       udf1,
       '',
       '',
@@ -163,7 +198,16 @@ export async function POST(req: NextRequest) {
       productinfo: verifiedProductInfo,
       udf1,
     })
-  } catch {
+  } catch (error) {
+    if (error instanceof RequestBodyError) {
+      if (error.code === 'too_large') {
+        return NextResponse.json({ error: 'Request is too large' }, { status: 413 })
+      }
+      if (error.code === 'unsupported_media_type') {
+        return NextResponse.json({ error: 'JSON request required' }, { status: 415 })
+      }
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+    }
     return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }
 }

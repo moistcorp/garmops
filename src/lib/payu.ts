@@ -5,10 +5,12 @@ export const PAYMENT_RESULT_COOKIE = "mf_payment_result";
 export type PaymentKind = "configurator" | "sample-cart";
 
 export type PaymentTokenPayload = {
-  version: 1;
+  version: 2;
   txnid: string;
   amount: string;
   kind: PaymentKind;
+  firstname: string;
+  email: string;
   issuedAt: number;
 };
 
@@ -84,13 +86,17 @@ function isPaymentKind(value: unknown): value is PaymentKind {
 export function createPaymentToken(
   txnid: string,
   amount: string,
-  kind: PaymentKind
+  kind: PaymentKind,
+  firstname: string,
+  email: string,
 ): string | null {
   return encodeSignedPayload({
-    version: 1,
+    version: 2,
     txnid,
     amount,
     kind,
+    firstname,
+    email: email.toLowerCase(),
     issuedAt: Date.now(),
   } satisfies PaymentTokenPayload);
 }
@@ -99,10 +105,16 @@ export function decodePaymentToken(token: string): PaymentTokenPayload | null {
   const payload = decodeSignedPayload<Partial<PaymentTokenPayload>>(token);
   if (
     !payload ||
-    payload.version !== 1 ||
+    payload.version !== 2 ||
     typeof payload.txnid !== "string" ||
     typeof payload.amount !== "string" ||
     !isPaymentKind(payload.kind) ||
+    typeof payload.firstname !== "string" ||
+    payload.firstname.length < 1 ||
+    payload.firstname.length > 60 ||
+    typeof payload.email !== "string" ||
+    payload.email.length < 3 ||
+    payload.email.length > 254 ||
     !isCurrentToken(payload)
   ) {
     return null;
@@ -125,10 +137,16 @@ export function decodePaymentResultCookie(value?: string): PaymentResultPayload 
   const payload = decodeSignedPayload<Partial<PaymentResultPayload>>(value);
   if (
     !payload ||
-    payload.version !== 1 ||
+    payload.version !== 2 ||
     typeof payload.txnid !== "string" ||
     typeof payload.amount !== "string" ||
     !isPaymentKind(payload.kind) ||
+    typeof payload.firstname !== "string" ||
+    payload.firstname.length < 1 ||
+    payload.firstname.length > 60 ||
+    typeof payload.email !== "string" ||
+    payload.email.length < 3 ||
+    payload.email.length > 254 ||
     (payload.status !== "success" && payload.status !== "failure") ||
     typeof payload.mock !== "boolean" ||
     !isCurrentToken(payload)

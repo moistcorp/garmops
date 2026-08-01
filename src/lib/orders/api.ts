@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerEnvironment } from "@/lib/config/env";
 import { isFeatureEnabled } from "@/lib/config/featureFlags";
 import { createClient } from "@/lib/supabase/server";
+import { readBoundedJson, RequestBodyError } from "@/lib/http/requestBody";
 
 const noStoreHeaders = {
   "Cache-Control": "private, no-store, max-age=0",
@@ -72,39 +73,23 @@ export async function readOrderJson(
   request: NextRequest,
   maximumBytes = 64 * 1024,
 ): Promise<{ ok: true; value: unknown } | { ok: false; response: NextResponse }> {
-  const contentType = request.headers.get("content-type")?.split(";", 1)[0];
-  if (contentType !== "application/json") {
-    return {
-      ok: false,
-      response: orderJsonError("JSON request required", 415),
-    };
-  }
-
-  const declaredLength = request.headers.get("content-length");
-  if (declaredLength) {
-    const contentLength = Number(declaredLength);
-    if (
-      !Number.isFinite(contentLength) ||
-      contentLength < 0 ||
-      contentLength > maximumBytes
-    ) {
-      return {
-        ok: false,
-        response: orderJsonError("Request is too large", 413),
-      };
-    }
-  }
-
   try {
-    const bytes = Buffer.from(await request.arrayBuffer());
-    if (bytes.byteLength > maximumBytes) {
-      return {
-        ok: false,
-        response: orderJsonError("Request is too large", 413),
-      };
+    return { ok: true, value: await readBoundedJson(request, maximumBytes) };
+  } catch (error) {
+    if (error instanceof RequestBodyError) {
+      if (error.code === "too_large") {
+        return {
+          ok: false,
+          response: orderJsonError("Request is too large", 413),
+        };
+      }
+      if (error.code === "unsupported_media_type") {
+        return {
+          ok: false,
+          response: orderJsonError("JSON request required", 415),
+        };
+      }
     }
-    return { ok: true, value: JSON.parse(bytes.toString("utf8")) as unknown };
-  } catch {
     return {
       ok: false,
       response: orderJsonError("Invalid order request", 400),

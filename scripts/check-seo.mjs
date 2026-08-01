@@ -35,9 +35,29 @@ function check(condition, message) {
   if (!condition) failures.push(message)
 }
 
+function exitOnFailures() {
+  if (failures.length === 0) return
+
+  console.error(`SEO check failed with ${failures.length} issue${failures.length === 1 ? '' : 's'}:`)
+  for (const failure of failures) console.error(`- ${failure}`)
+  process.exit(1)
+}
+
 function readRequired(path) {
   check(existsSync(path), `Missing build artifact: ${path}`)
   return existsSync(path) ? readFileSync(path, 'utf8') : ''
+}
+
+function readJsonRequired(path, fallback) {
+  const source = readRequired(path)
+  if (!source) return fallback
+
+  try {
+    return JSON.parse(source)
+  } catch {
+    failures.push(`Invalid JSON build artifact: ${path}`)
+    return fallback
+  }
 }
 
 function htmlPathFor(url) {
@@ -80,10 +100,13 @@ function publicFiles(directory = publicRoot) {
 }
 
 check(existsSync(appOutput), 'Run `npm run build` before `npm run seo:check`.')
+exitOnFailures()
 
-const routesManifest = JSON.parse(
-  readRequired(join(projectRoot, '.next', 'routes-manifest.json')),
+const routesManifest = readJsonRequired(
+  join(projectRoot, '.next', 'routes-manifest.json'),
+  { redirects: [], headers: [] },
 )
+exitOnFailures()
 const canonicalHostRedirect = routesManifest.redirects.find((redirect) =>
   redirect.has?.some((condition) =>
     condition.type === 'host' && condition.value === 'garmops.com'
@@ -252,11 +275,7 @@ for (const { route, metadataSource } of privatePages) {
   )
 }
 
-if (failures.length > 0) {
-  console.error(`SEO check failed with ${failures.length} issue${failures.length === 1 ? '' : 's'}:`)
-  for (const failure of failures) console.error(`- ${failure}`)
-  process.exit(1)
-}
+exitOnFailures()
 
 console.log(
   `SEO check passed: ${urls.length} canonical pages, ${requiredCommercialPages.length} required commercial pages, `

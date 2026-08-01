@@ -6,6 +6,8 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getPrivateBucketName, getR2Client } from "@/lib/r2/client";
 import { attachmentContentDisposition } from "@/lib/r2/downloadSafety";
 
+const maximumAccountingPdfBytes = 20 * 1024 * 1024;
+
 export type StoredPrivateObject = Readonly<{
   bucket: "garmops-private-orders";
   objectKey: string;
@@ -23,7 +25,11 @@ export async function putPrivatePdf(input: {
   if (!input.objectKey || input.objectKey.startsWith("/") || input.objectKey.includes("..")) {
     throw new Error("Invalid private object key");
   }
-  if (input.bytes.length < 5 || Buffer.from(input.bytes.subarray(0, 5)).toString("ascii") !== "%PDF-") {
+  if (
+    input.bytes.length < 5 ||
+    input.bytes.length > maximumAccountingPdfBytes ||
+    Buffer.from(input.bytes.subarray(0, 5)).toString("ascii") !== "%PDF-"
+  ) {
     throw new Error("Only validated PDF bytes may be stored as an accounting document");
   }
 

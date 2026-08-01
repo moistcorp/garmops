@@ -3,27 +3,26 @@ import { NextRequest, NextResponse } from "next/server";
 import { durableOrdersAvailable } from "@/lib/orders/api";
 import { processPayuEvent } from "@/lib/domain/payments/processPayuEvent";
 import type { PayuIncomingFields } from "@/lib/providers/payu/types";
+import {
+  readBoundedJson,
+  readBoundedUrlEncoded,
+} from "@/lib/http/requestBody";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 async function readPayload(request: NextRequest): Promise<PayuIncomingFields> {
-  const bytes = Buffer.from(await request.arrayBuffer());
-  if (bytes.byteLength > 64 * 1024) {
-    throw new Error("Webhook is too large");
-  }
-
   const contentType = request.headers.get("content-type")?.split(";", 1)[0];
   let source: Record<string, unknown>;
   if (contentType === "application/json") {
-    const parsed = JSON.parse(bytes.toString("utf8")) as unknown;
+    const parsed = await readBoundedJson(request, 64 * 1024);
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
       throw new Error("Invalid webhook JSON payload");
     }
     source = parsed as Record<string, unknown>;
   } else if (contentType === "application/x-www-form-urlencoded") {
     source = Object.fromEntries(
-      new URLSearchParams(bytes.toString("utf8")),
+      await readBoundedUrlEncoded(request, 64 * 1024),
     );
   } else {
     throw new Error("Unsupported webhook content type");

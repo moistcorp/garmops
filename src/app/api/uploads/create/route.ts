@@ -9,6 +9,7 @@ import {
 } from "@/lib/r2/api";
 import { validateUploadRequest } from "@/lib/r2/filePolicy";
 import { createPresignedUpload } from "@/lib/r2/presign";
+import { readBoundedJson, RequestBodyError } from "@/lib/http/requestBody";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,22 +24,17 @@ export async function POST(request: NextRequest) {
     return jsonError("Invalid request origin", 403);
   }
 
-  const contentLength = Number(request.headers.get("content-length") ?? "0");
-  if (
-    !Number.isFinite(contentLength) ||
-    contentLength < 0 ||
-    contentLength > maximumRequestBytes
-  ) {
-    return jsonError("Request is too large", 413);
-  }
-
   const auth = await authenticateFileApi();
   if (!auth.ok) return auth.response;
 
   let rawBody: unknown;
   try {
-    rawBody = await request.json();
-  } catch {
+    rawBody = await readBoundedJson(request, maximumRequestBytes);
+  } catch (error) {
+    if (error instanceof RequestBodyError) {
+      if (error.code === "too_large") return jsonError("Request is too large", 413);
+      if (error.code === "unsupported_media_type") return jsonError("JSON request required", 415);
+    }
     return jsonError("Invalid upload request", 400);
   }
 

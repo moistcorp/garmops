@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerEnvironment } from "@/lib/config/env";
 import { isFeatureEnabled } from "@/lib/config/featureFlags";
 import { createClient } from "@/lib/supabase/server";
+import { readBoundedJson, RequestBodyError } from "@/lib/http/requestBody";
 
 const noStoreHeaders = {
   "Cache-Control": "private, no-store, max-age=0",
@@ -63,21 +64,23 @@ export async function readDesignJson(
   request: NextRequest,
   maximumBytes = 2_300_000,
 ): Promise<{ ok: true; value: unknown } | { ok: false; response: NextResponse }> {
-  const contentLength = Number(request.headers.get("content-length") ?? "0");
-  if (
-    !Number.isFinite(contentLength) ||
-    contentLength < 0 ||
-    contentLength > maximumBytes
-  ) {
-    return {
-      ok: false,
-      response: designJsonError("Request is too large", 413),
-    };
-  }
-
   try {
-    return { ok: true, value: await request.json() };
-  } catch {
+    return { ok: true, value: await readBoundedJson(request, maximumBytes) };
+  } catch (error) {
+    if (error instanceof RequestBodyError) {
+      if (error.code === "too_large") {
+        return {
+          ok: false,
+          response: designJsonError("Request is too large", 413),
+        };
+      }
+      if (error.code === "unsupported_media_type") {
+        return {
+          ok: false,
+          response: designJsonError("JSON request required", 415),
+        };
+      }
+    }
     return {
       ok: false,
       response: designJsonError("Invalid design request", 400),

@@ -20,6 +20,7 @@ export type AuthActionState = {
   status: "idle" | "error" | "success";
   message: string;
   fieldErrors?: Record<string, string[]>;
+  verificationEmail?: string;
   resetToken: number;
 };
 
@@ -41,10 +42,14 @@ export function actionError(
   };
 }
 
-export function actionSuccess(message: string): AuthActionState {
+export function actionSuccess(
+  message: string,
+  options?: { verificationEmail?: string },
+): AuthActionState {
   return {
     status: "success",
     message,
+    verificationEmail: options?.verificationEmail,
     resetToken: Date.now(),
   };
 }

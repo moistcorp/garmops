@@ -5,6 +5,7 @@ import { Bell, FileText } from "lucide-react";
 import InvoiceDownloadButton from "@/components/account/InvoiceDownloadButton";
 import PortalPlaceholder from "@/components/portal/PortalPlaceholder";
 import { requireOrganizationMember } from "@/lib/auth/guards";
+import { safeInternalPath } from "@/lib/auth/redirects";
 import { markAllNotificationsReadAction, markNotificationReadAction } from "@/app/account/order-lifecycle-actions";
 import {
   formatMoneyPaise,
@@ -95,7 +96,76 @@ async function NotificationsPage() {
     .limit(100);
   if (error) return <PortalPlaceholder title="Notifications unavailable" description="Your account notifications could not be loaded." />;
   const unread = notifications?.filter((n) => !n.read_at).length ?? 0;
-  return <div className="space-y-5"><section className="techpack-surface rounded-[4px] border p-6 sm:p-8"><div className="flex flex-wrap items-start justify-between gap-4"><div><div className="flex items-center gap-2"><Bell size={18} className="text-[#1D49B4]" /><h2 className="text-xl font-semibold">Notifications</h2></div><p className="mt-2 text-sm text-black/50">Approval requests, customer actions, status updates, and shipment events appear here.</p></div>{unread ? <form action={markAllNotificationsReadAction}><button className="rounded-[4px] border border-black/10 bg-white px-4 py-2 text-xs font-semibold">Mark all read</button></form> : null}</div></section><div className="space-y-3">{notifications?.map((notification) => <article key={notification.id} className={`rounded-[4px] border p-5 ${notification.read_at ? "border-black/8 bg-white" : "border-[#1D49B4]/35 bg-[#1D49B4]/8"}`}><div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-sm font-semibold">{notification.title}</p><p className="mt-2 text-sm leading-relaxed text-black/55">{notification.body}</p><p className="mt-2 text-[10px] uppercase tracking-wider text-black/30">{formatOrderDate(notification.created_at)}</p></div><div className="flex gap-2">{notification.action_url ? <Link href={notification.action_url} className="rounded-[4px] bg-[#16212B] px-4 py-2 text-xs font-semibold text-white">Open</Link> : null}{!notification.read_at ? <form action={markNotificationReadAction}><input type="hidden" name="notificationId" value={notification.id} /><button className="rounded-[4px] border border-black/10 bg-white px-4 py-2 text-xs font-semibold">Mark read</button></form> : null}</div></div></article>)}{!notifications?.length ? <PortalPlaceholder title="No notifications" description="New approval, order, and shipment updates will appear here." /> : null}</div></div>;
+  return (
+    <div className="space-y-5">
+      <section className="techpack-surface rounded-[4px] border p-6 sm:p-8">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <Bell size={18} className="text-[#1D49B4]" />
+              <h2 className="text-xl font-semibold">Notifications</h2>
+            </div>
+            <p className="mt-2 text-sm text-black/50">
+              Approval requests, customer actions, status updates, and shipment events appear here.
+            </p>
+          </div>
+          {unread ? (
+            <form action={markAllNotificationsReadAction}>
+              <button className="rounded-[4px] border border-black/10 bg-white px-4 py-2 text-xs font-semibold">
+                Mark all read
+              </button>
+            </form>
+          ) : null}
+        </div>
+      </section>
+      <div className="space-y-3">
+        {notifications?.map((notification) => {
+          const actionHref = safeInternalPath(notification.action_url, "");
+          return (
+            <article
+              key={notification.id}
+              className={`rounded-[4px] border p-5 ${
+                notification.read_at
+                  ? "border-black/8 bg-white"
+                  : "border-[#1D49B4]/35 bg-[#1D49B4]/8"
+              }`}
+            >
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-sm font-semibold">{notification.title}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-black/55">{notification.body}</p>
+                  <p className="mt-2 text-[10px] uppercase tracking-wider text-black/30">
+                    {formatOrderDate(notification.created_at)}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  {actionHref ? (
+                    <Link href={actionHref} className="rounded-[4px] bg-[#16212B] px-4 py-2 text-xs font-semibold text-white">
+                      Open
+                    </Link>
+                  ) : null}
+                  {!notification.read_at ? (
+                    <form action={markNotificationReadAction}>
+                      <input type="hidden" name="notificationId" value={notification.id} />
+                      <button className="rounded-[4px] border border-black/10 bg-white px-4 py-2 text-xs font-semibold">
+                        Mark read
+                      </button>
+                    </form>
+                  ) : null}
+                </div>
+              </div>
+            </article>
+          );
+        })}
+        {!notifications?.length ? (
+          <PortalPlaceholder
+            title="No notifications"
+            description="New approval, order, and shipment updates will appear here."
+          />
+        ) : null}
+      </div>
+    </div>
+  );
 }
 
 async function AccountOverview() {

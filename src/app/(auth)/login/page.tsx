@@ -1,5 +1,5 @@
 import Link from "next/link";
-import AuthActionForm from "@/components/auth/AuthActionForm";
+import CustomerLoginForm from "@/components/auth/CustomerLoginForm";
 import CustomerAuthShell from "@/components/auth/CustomerAuthShell";
 import { safeInternalPath } from "@/lib/auth/redirects";
 
@@ -11,8 +11,8 @@ export default async function LoginPage({
   const { next } = await searchParams;
   return (
     <CustomerAuthShell
-      title="Welcome back"
-      description="Sign in to manage your orders and quotes."
+      title="Login or sign up"
+      description="Use your email or mobile number to access your orders and quotes."
       footer={
         <>
           New customer?{" "}
@@ -26,7 +26,7 @@ export default async function LoginPage({
         </>
       }
     >
-      <AuthActionForm variant="login" next={safeInternalPath(next)} />
+      <CustomerLoginForm next={safeInternalPath(next)} />
     </CustomerAuthShell>
   );
 }

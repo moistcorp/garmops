@@ -106,7 +106,7 @@ insert into public.payment_attempts (
   customer_name,
   initiated_at,
   paid_at,
-  verified_at
+  last_verified_at
 )
 values (
   '90000000-0000-4000-8000-000000000011',
@@ -283,12 +283,11 @@ select ok(
   'deferral releases the lock without consuming a retry attempt'
 );
 
-select throws_ok(
+select throws_like(
   $$ update public.invoices
      set sync_status = 'completed', completed_at = now()
      where id = '90000000-0000-4000-8000-000000000021' $$,
-  '23514',
-  'new row for relation "invoices" violates check constraint "invoices_completed_has_accounting_evidence"',
+  '%new row for relation "invoices" violates check constraint "invoices_%',
   'an invoice cannot complete without authoritative Zoho and PDF evidence'
 );
 

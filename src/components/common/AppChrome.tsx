@@ -9,11 +9,13 @@ import { useCartStore } from "@/lib/store";
 
 export default function AppChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const isWithin = (route: string) =>
+    pathname === route || pathname.startsWith(`${route}/`);
   const hasDedicatedChrome =
-    pathname.startsWith("/configurator") ||
-    pathname.startsWith("/account") ||
-    pathname.startsWith("/staff") ||
-    pathname.startsWith("/auth") ||
+    isWithin("/configurator") ||
+    isWithin("/account") ||
+    isWithin("/staff") ||
+    isWithin("/auth") ||
     [
       "/verify-email",
       "/forgot-password",
@@ -21,7 +23,15 @@ export default function AppChrome({ children }: { children: React.ReactNode }) {
     ].includes(pathname);
 
   useEffect(() => {
-    void useCartStore.persist.rehydrate();
+    const markHydrated = () => useCartStore.getState().setHasHydrated(true);
+    try {
+      void Promise.resolve(useCartStore.persist.rehydrate()).then(
+        markHydrated,
+        markHydrated,
+      );
+    } catch {
+      markHydrated();
+    }
   }, []);
 
   if (hasDedicatedChrome) {

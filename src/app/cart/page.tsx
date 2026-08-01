@@ -73,6 +73,7 @@ export default function Cart() {
                 <div className="flex items-center gap-2">
                   <button type="button"
                     onClick={() => updateQuantity(item.id, item.size, item.quantity - 1)}
+                    aria-label={`Decrease ${item.name} quantity`}
                     className="techpack-control flex h-10 w-10 items-center justify-center rounded-[4px] border text-base transition-colors hover:text-[var(--color-accent)] sm:h-8 sm:w-8 sm:text-sm">
                     -
                   </button>
@@ -80,6 +81,7 @@ export default function Cart() {
                   <button type="button"
                     onClick={() => updateQuantity(item.id, item.size, item.quantity + 1)}
                     disabled={item.quantity >= MAX_SAMPLE_ITEM_QUANTITY}
+                    aria-label={`Increase ${item.name} quantity`}
                     className="techpack-control flex h-10 w-10 items-center justify-center rounded-[4px] border text-base transition-colors hover:text-[var(--color-accent)] disabled:cursor-not-allowed disabled:opacity-40 sm:h-8 sm:w-8 sm:text-sm">
                     +
                   </button>

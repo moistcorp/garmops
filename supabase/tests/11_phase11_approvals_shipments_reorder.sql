@@ -3,7 +3,7 @@ create extension if not exists pgtap with schema extensions;
 begin;
 set local search_path = public, extensions;
 
-select plan(51);
+select plan(52);
 
 select ok(to_regprocedure('public.staff_create_approval_request(uuid,uuid,uuid,uuid,text,text,timestamp with time zone)') is not null, 'versioned approval request RPC exists');
 select ok(to_regprocedure('public.respond_order_approval(uuid,text,text)') is not null, 'company approval response RPC exists');
@@ -41,6 +41,13 @@ insert into public.orders(
 );
 insert into public.order_items(id,order_id,line_number,product_name,product_snapshot,size_breakdown,quantity,unit_price_paise,line_total_paise)
 values ('b1000000-0000-4000-8000-000000000011','b1000000-0000-4000-8000-000000000010',1,'Regular Fit T-Shirt','{"pricingVersion":"phase11-test-v1"}','{"S":10,"M":20,"L":20}',50,2000,100000);
+insert into public.payment_attempts(
+ id,payment_number,order_id,provider_merchant_txn_id,attempt_number,purpose,amount_paise,status,
+ expected_product_info,customer_email,customer_name,initiated_at,paid_at,last_verified_at
+) values (
+ 'b1000000-0000-4000-8000-000000000014','PAY-GAR-2026-001110-01','b1000000-0000-4000-8000-000000000010','PHASE11TXN1110',1,'reservation',49900,'paid',
+ 'Order GAR-2026-001110 reservation','asha@example.com','Asha Mehta',now(),now(),now()
+);
 insert into public.order_files(
  id,order_id,uploaded_by,kind,visibility,bucket_name,object_key,original_filename,safe_filename,content_type,byte_size,sha256,scan_status,upload_status,finalized_at
 ) values (
@@ -88,6 +95,7 @@ select public.staff_create_approval_request(
  'b1000000-0000-4000-8000-000000000010','b1000000-0000-4000-8000-000000000003','b1000000-0000-4000-8000-000000000013',
  '11111111-1111-4111-8111-111111111111',null,null,now()+interval '7 days'
 ) as id;
+select lives_ok($$select public.staff_transition_order('b1000000-0000-4000-8000-000000000010','awaiting_artwork_approval',null,null,null)$$,'replacement request returns the order to awaiting approval');
 select set_config('request.jwt.claims','{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated","aal":"aal1"}',true);
 select lives_ok($$select public.respond_order_approval((select id from phase11_approval_three),'approved','Revised placement approved')$$,'replacement approval can approve the later exact version');
 select set_config('request.jwt.claims','{"sub":"44444444-4444-4444-8444-444444444444","role":"authenticated","aal":"aal2"}',true);

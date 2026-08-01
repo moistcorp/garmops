@@ -412,7 +412,7 @@ export default function HowItWorks() {
                   fill
                   style={{ objectFit: 'cover' }}
                   sizes="85vw"
-                  priority={index === 0}
+                  preload={index === 0}
                 />
               </div>
             </div>
@@ -557,7 +557,7 @@ export default function HowItWorks() {
                     fill
                     style={{ objectFit: 'cover' }}
                     sizes="50vw"
-                    priority={index === 0}
+                    preload={index === 0}
                   />
                 </div>
               ))}

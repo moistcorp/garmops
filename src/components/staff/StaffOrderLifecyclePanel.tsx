@@ -23,6 +23,9 @@ export default function StaffOrderLifecyclePanel({ order, role, files, approvals
 }) {
   const sampleOrder = order.order_type === "sample_purchase";
   const nowIso = new Date().toISOString();
+  const defaultApprovalExpiry = new Date(
+    new Date(nowIso).getTime() + 7 * 24 * 60 * 60 * 1000,
+  ).toISOString();
   const approvalFiles = files.filter((f) => f.kind === "approval_pdf");
   const clearedApprovalFiles = approvalFiles.filter((f) => ["clean", "not_required"].includes(f.scan_status) && f.visibility === "customer");
   const evidenceFiles = files.filter((f) => ["approval_pdf", "qc_photo", "packing_list", "shipping_label", "shipment_document"].includes(f.kind));
@@ -36,7 +39,7 @@ export default function StaffOrderLifecyclePanel({ order, role, files, approvals
     {!sampleOrder ? <section className="techpack-surface rounded-[4px] border p-6">
       <div className="flex items-center gap-2"><ClipboardCheck size={18} className="text-[#1D49B4]" /><h2 className="text-lg font-semibold">Versioned artwork approval</h2></div>
       <p className="mt-2 text-sm text-black/50">Every request is bound to the order’s immutable design version and the PDF SHA-256 evidence.</p>
-      {roleCan(role, "manage_approvals") ? <div className="mt-5 grid gap-4 xl:grid-cols-2"><StaffEvidenceUploader orderId={order.id} kind="approval_pdf" visibility="customer" /><ApprovalRequestForm orderId={order.id} orderNumber={order.order_number} files={clearedApprovalFiles} approvers={approvers} designVersions={designVersions} /></div> : null}
+      {roleCan(role, "manage_approvals") ? <div className="mt-5 grid gap-4 xl:grid-cols-2"><StaffEvidenceUploader orderId={order.id} kind="approval_pdf" visibility="customer" /><ApprovalRequestForm orderId={order.id} orderNumber={order.order_number} files={clearedApprovalFiles} approvers={approvers} designVersions={designVersions} defaultExpiresAt={defaultApprovalExpiry} /></div> : null}
       <div className="mt-5 space-y-3">{approvals.map((a) => <article key={a.id} className="rounded-[4px] border border-black/8 bg-white p-4"><div className="flex flex-wrap justify-between gap-3"><div><p className="text-sm font-semibold capitalize">{approvalDisplayStatus(a, nowIso).replaceAll("_", " ")}</p><p className="mt-1 text-xs text-black/45">{a.requested_from_email ?? (a.requested_from_user_id ? "Company approver" : "Approver")} · requested {formatOrderTimestamp(a.created_at)}</p>{a.response_note ? <p className="mt-2 text-sm text-black/60">{a.response_note}</p> : null}</div>{a.approval_pdf_file_id ? <PrivateFileDownloadButton fileId={a.approval_pdf_file_id} /> : null}</div>{roleCan(role, "manage_approvals") && ["requested","viewed"].includes(a.status) && (!a.expires_at || a.expires_at > nowIso) ? <RevokeApprovalForm approvalId={a.id} orderNumber={order.order_number} /> : null}</article>)}{!approvals.length ? <p className="py-5 text-center text-sm text-black/40">No approval request yet.</p> : null}</div>
     </section> : null}
 

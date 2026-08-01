@@ -8,22 +8,13 @@ import { processPayuEvent } from "@/lib/domain/payments/processPayuEvent";
 import { getServerEnvironment } from "@/lib/config/env";
 import { durableOrdersAvailable } from "@/lib/orders/api";
 import type { PayuIncomingFields } from "@/lib/providers/payu/types";
+import { readBoundedUrlEncoded } from "@/lib/http/requestBody";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 async function readForm(request: NextRequest): Promise<PayuIncomingFields> {
-  const contentType = request.headers.get("content-type")?.split(";", 1)[0];
-  if (contentType !== "application/x-www-form-urlencoded") {
-    throw new Error("Unsupported PayU callback content type");
-  }
-
-  const bytes = Buffer.from(await request.arrayBuffer());
-  if (bytes.byteLength > 64 * 1024) {
-    throw new Error("PayU callback is too large");
-  }
-
-  const params = new URLSearchParams(bytes.toString("utf8"));
+  const params = await readBoundedUrlEncoded(request, 64 * 1024);
   const read = (key: string) => params.get(key) ?? "";
   return {
     key: read("key"),

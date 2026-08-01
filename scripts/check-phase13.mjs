@@ -18,6 +18,15 @@ const nextConfig = readFileSync(resolve(root, "next.config.ts"), "utf8");
 for (const marker of ["Content-Security-Policy", "Strict-Transport-Security", "X-Content-Type-Options"]) {
   if (!nextConfig.includes(marker)) failures.push(`security header missing: ${marker}`);
 }
+if (!nextConfig.includes("const isDevelopment = process.env.NODE_ENV === 'development'")) {
+  failures.push("CSP development mode is not derived from NODE_ENV");
+}
+if (!nextConfig.includes("const productionHeaders = process.env.NODE_ENV === 'production'")) {
+  failures.push("production-only headers are not derived from NODE_ENV");
+}
+if (!nextConfig.includes("isDevelopment ? \" 'unsafe-eval'\" : ''")) {
+  failures.push("CSP unsafe-eval is not restricted to development");
+}
 
 const envExample = readFileSync(resolve(root, ".env.example"), "utf8");
 for (const name of ["APP_ENV", "CRON_SECRET", "DURABLE_SAMPLE_CHECKOUT_ENABLED", "JOB_PROCESSING_BACKEND"]) {

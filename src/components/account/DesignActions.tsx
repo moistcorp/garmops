@@ -52,40 +52,50 @@ export default function DesignActions({
   async function createVersion() {
     setPending("version");
     setMessage(null);
-    const response = await fetch(
-      `/api/designs/${encodeURIComponent(designId)}/versions`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ expectedRevision: revision }),
-      },
-    );
-    if (response.ok) {
-      const body = (await response.json()) as {
-        version: { number: number; draftRevision: number };
-      };
-      setVersion(body.version.number);
-      setRevision(body.version.draftRevision);
-      setMessage(`Version ${body.version.number} created.`);
-      router.refresh();
-    } else if (response.status === 409) {
-      setMessage("The design changed elsewhere. Refresh before creating a version.");
-    } else {
+    try {
+      const response = await fetch(
+        `/api/designs/${encodeURIComponent(designId)}/versions`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ expectedRevision: revision }),
+        },
+      );
+      if (response.ok) {
+        const body = (await response.json()) as {
+          version: { number: number; draftRevision: number };
+        };
+        setVersion(body.version.number);
+        setRevision(body.version.draftRevision);
+        setMessage(`Version ${body.version.number} created.`);
+        router.refresh();
+      } else if (response.status === 409) {
+        setMessage("The design changed elsewhere. Refresh before creating a version.");
+      } else {
+        setMessage("A new version could not be created.");
+      }
+    } catch {
       setMessage("A new version could not be created.");
+    } finally {
+      setPending(null);
     }
-    setPending(null);
   }
 
   async function createDuplicate() {
     setPending("duplicate");
     setMessage(null);
-    const result = await duplicateDesign(designId, `${title} copy`);
-    if (result.ok) {
-      router.push(`/account/designs/${encodeURIComponent(result.designId)}`);
-      return;
+    try {
+      const result = await duplicateDesign(designId, `${title} copy`);
+      if (result.ok) {
+        router.push(`/account/designs/${encodeURIComponent(result.designId)}`);
+        return;
+      }
+      setMessage("The design could not be duplicated.");
+    } catch {
+      setMessage("The design could not be duplicated.");
+    } finally {
+      setPending(null);
     }
-    setMessage("The design could not be duplicated.");
-    setPending(null);
   }
 
   async function archiveDesign() {
@@ -94,25 +104,30 @@ export default function DesignActions({
     }
     setPending("archive");
     setMessage(null);
-    const response = await fetch(
-      `/api/designs/${encodeURIComponent(designId)}`,
-      {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ expectedRevision: revision }),
-      },
-    );
-    if (response.ok) {
-      router.push("/account/designs");
-      router.refresh();
-      return;
+    try {
+      const response = await fetch(
+        `/api/designs/${encodeURIComponent(designId)}`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ expectedRevision: revision }),
+        },
+      );
+      if (response.ok) {
+        router.push("/account/designs");
+        router.refresh();
+        return;
+      }
+      setMessage(
+        response.status === 409
+          ? "The design changed elsewhere. Refresh before archiving."
+          : "The design could not be archived.",
+      );
+    } catch {
+      setMessage("The design could not be archived.");
+    } finally {
+      setPending(null);
     }
-    setMessage(
-      response.status === 409
-        ? "The design changed elsewhere. Refresh before archiving."
-        : "The design could not be archived.",
-    );
-    setPending(null);
   }
 
   async function downloadPdf() {

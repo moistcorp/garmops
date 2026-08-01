@@ -3,7 +3,7 @@ create extension if not exists pgtap with schema extensions;
 begin;
 set local search_path = public, extensions;
 
-select plan(43);
+select plan(44);
 
 select ok(
   to_regprocedure('public.retry_order_payment(uuid,uuid,text,text)') is not null,
@@ -337,6 +337,11 @@ select is(
   1,
   'staff dashboard surfaces a newly paid sample order'
 );
+select is(
+  (public.staff_dashboard_metrics()->>'newPaidReservations')::integer,
+  1,
+  'staff dashboard still counts paid custom-bulk reservations'
+);
 reset role;
 
 -- A second unpaid order proves staff cannot bypass verified full payment.
@@ -366,6 +371,21 @@ select lives_ok(
   'second unpaid sample fixture is created'
 );
 
+-- Capture service-only idempotency results before assuming the browser role.
+-- Authenticated sessions must not receive SELECT on idempotency_keys.
+select set_config(
+  'test.phase12_paid_order_id',
+  (select resource_id::text from public.idempotency_keys
+   where scope = 'submit_order' and key = 'phase12-durable-sample-order-1'),
+  true
+);
+select set_config(
+  'test.phase12_unpaid_order_id',
+  (select resource_id::text from public.idempotency_keys
+   where scope = 'submit_order' and key = 'phase12-unpaid-sample-order-2'),
+  true
+);
+
 set local role authenticated;
 select set_config(
   'request.jwt.claims',
@@ -374,7 +394,7 @@ select set_config(
 );
 select throws_ok(
   $$select public.staff_transition_order(
-    (select resource_id from public.idempotency_keys where scope = 'submit_order' and key = 'phase12-unpaid-sample-order-2'),
+    current_setting('test.phase12_unpaid_order_id')::uuid,
     'packing', null, null, null
   )$$,
   'P0001',
@@ -383,7 +403,7 @@ select throws_ok(
 );
 select lives_ok(
   $$select public.staff_transition_order(
-    (select resource_id from public.idempotency_keys where scope = 'submit_order' and key = 'phase12-durable-sample-order-1'),
+    current_setting('test.phase12_paid_order_id')::uuid,
     'packing',
     'Your samples are being packed.',
     'Stock confirmed for sample fulfilment.',
@@ -392,22 +412,20 @@ select lives_ok(
   'paid sample order can enter packing without artwork approval'
 );
 select is(
-  (select status::text from public.orders where id = (
-    select resource_id from public.idempotency_keys where scope = 'submit_order' and key = 'phase12-durable-sample-order-1'
-  )),
+  (select status::text from public.orders
+   where id = current_setting('test.phase12_paid_order_id')::uuid),
   'packing',
   'sample fulfilment status is persisted'
 );
 select is(
-  (select public_status::text from public.orders where id = (
-    select resource_id from public.idempotency_keys where scope = 'submit_order' and key = 'phase12-durable-sample-order-1'
-  )),
+  (select public_status::text from public.orders
+   where id = current_setting('test.phase12_paid_order_id')::uuid),
   'quality_check',
   'sample fulfilment maps to a safe customer-visible status'
 );
 select throws_ok(
   $$select public.staff_transition_order(
-    (select resource_id from public.idempotency_keys where scope = 'submit_order' and key = 'phase12-durable-sample-order-1'),
+    current_setting('test.phase12_paid_order_id')::uuid,
     'artwork_review', null, null, null
   )$$,
   'P0001',
@@ -415,16 +433,15 @@ select throws_ok(
   'sample order cannot enter custom artwork workflow'
 );
 select is(
-  (select count(*) from public.approvals where order_id = (
-    select resource_id from public.idempotency_keys where scope = 'submit_order' and key = 'phase12-durable-sample-order-1'
-  )),
+  (select count(*) from public.approvals
+   where order_id = current_setting('test.phase12_paid_order_id')::uuid),
   0::bigint,
   'sample fulfilment requires no artwork approval record'
 );
 select is(
-  (select count(*) from public.order_status_history where order_id = (
-    select resource_id from public.idempotency_keys where scope = 'submit_order' and key = 'phase12-durable-sample-order-1'
-  ) and to_status = 'packing'),
+  (select count(*) from public.order_status_history
+   where order_id = current_setting('test.phase12_paid_order_id')::uuid
+     and to_status = 'packing'),
   1::bigint,
   'sample fulfilment transition is recorded in history'
 );

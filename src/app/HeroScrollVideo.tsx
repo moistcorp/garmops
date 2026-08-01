@@ -107,7 +107,7 @@ export default function HeroScrollVideo() {
             fill
             className="object-cover"
             sizes="(max-width: 1023px) 100vw, 50vw"
-            priority
+            preload
           />
           <div className="techpack-surface absolute bottom-4 left-4 z-10 rounded-[4px] border px-4 py-3 sm:bottom-8 sm:left-8 sm:px-5 sm:py-4">
             <p className="text-xs text-[#595959] uppercase tracking-widest mb-1">Starting from</p>

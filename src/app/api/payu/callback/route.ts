@@ -8,8 +8,10 @@ import {
   type PaymentResultPayload,
   type PayuResponseFields,
 } from "@/lib/payu";
+import { readBoundedUrlEncoded, RequestBodyError } from "@/lib/http/requestBody";
 
 export const runtime = "nodejs";
+const MAX_CALLBACK_BYTES = 64 * 1024;
 
 function redirectUrl(
   request: NextRequest,
@@ -50,14 +52,14 @@ function redirectWithResult(
   return response;
 }
 
-function readString(formData: FormData, key: string): string {
+function readString(formData: URLSearchParams, key: string): string {
   const value = formData.get(key);
-  return typeof value === "string" ? value : "";
+  return value ?? "";
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const formData = await request.formData();
+    const formData = await readBoundedUrlEncoded(request, MAX_CALLBACK_BYTES);
     const fields: PayuResponseFields = {
       key: readString(formData, "key"),
       txnid: readString(formData, "txnid"),
@@ -87,11 +89,22 @@ export async function POST(request: NextRequest) {
         303,
       );
     }
+    if (payment?.kind === "configurator" && isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED")) {
+      return NextResponse.redirect(
+        redirectUrl(request, "/payment/failure", {
+          txnid: fields.txnid,
+          error: "Legacy configurator payment is disabled. Open the saved order from your account.",
+        }),
+        303,
+      );
+    }
 
     const authentic =
       payment !== null &&
       payment.txnid === fields.txnid &&
       payment.amount === fields.amount &&
+      payment.firstname === fields.firstname &&
+      payment.email === fields.email.toLowerCase() &&
       verifyPayuResponse(fields);
 
     if (!authentic) {
@@ -118,7 +131,18 @@ export async function POST(request: NextRequest) {
     }
 
     return redirectWithResult(request, result, cookieValue);
-  } catch {
+  } catch (error) {
+    if (error instanceof RequestBodyError) {
+      return NextResponse.redirect(
+        redirectUrl(request, "/payment/failure", {
+          error:
+            error.code === "too_large"
+              ? "Payment response was too large"
+              : "Invalid payment response",
+        }),
+        303,
+      );
+    }
     return NextResponse.redirect(
       redirectUrl(request, "/payment/failure", {
         error: "Invalid payment response",
@@ -149,6 +173,15 @@ export async function GET(request: NextRequest) {
       redirectUrl(request, "/payment/failure", {
         txnid: payment.txnid,
         error: "Legacy sample payment is disabled. Open the saved order from your account.",
+      }),
+      303,
+    );
+  }
+  if (payment.kind === "configurator" && isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED")) {
+    return NextResponse.redirect(
+      redirectUrl(request, "/payment/failure", {
+        txnid: payment.txnid,
+        error: "Legacy configurator payment is disabled. Open the saved order from your account.",
       }),
       303,
     );

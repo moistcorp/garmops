@@ -121,7 +121,7 @@ insert into public.payment_attempts (
   id, payment_number, order_id, provider_merchant_txn_id,
   attempt_number, purpose, amount_paise, status,
   expected_product_info, customer_email, customer_name,
-  initiated_at, paid_at, verified_at
+  initiated_at, paid_at, last_verified_at
 ) values (
   'a0000000-0000-4000-8000-000000000012',
   'PAY-GAR-2026-001010-01',
@@ -303,11 +303,15 @@ select is(
   1::bigint,
   'status history is inserted once'
 );
+-- Notification RLS intentionally exposes rows only to their recipient. Assert
+-- fan-out as the test owner, then restore the MFA staff role for later RPCs.
+reset role;
 select is(
   (select count(*) from public.notifications where order_id = 'a0000000-0000-4000-8000-000000000010' and type = 'order_status_update'),
   2::bigint,
   'active organisation members receive portal notifications'
 );
+set local role authenticated;
 select throws_ok(
   $$ select public.staff_transition_order(
     'a0000000-0000-4000-8000-000000000010',
