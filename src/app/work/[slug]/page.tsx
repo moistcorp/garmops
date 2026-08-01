@@ -46,7 +46,7 @@ export default async function WorkDetailPage({
     <>
       <JsonLd data={breadcrumbSchema([
         { name: 'Home', path: '/' },
-        { name: 'Work', path: '/work' },
+        { name: 'Case Studies', path: '/work' },
         { name: cs.client, path: `/work/${cs.slug}` },
       ])} />
       <WorkDetailClient cs={cs} related={related} />

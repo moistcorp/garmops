@@ -45,14 +45,14 @@ export default async function JournalPostPage({ params }: { params: Promise<{ sl
     <JsonLd data={articleSchema(post)} />
     <JsonLd data={breadcrumbSchema([
       { name: 'Home', path: '/' },
-      { name: 'Journal', path: '/journal' },
+      { name: 'Guides', path: '/journal' },
       { name: post.title, path: `/journal/${post.slug}` },
     ])} />
     {post.faq && <JsonLd data={faqSchema(post.faq)} />}
     <article className="mx-auto max-w-3xl px-4 pb-16 pt-10 sm:px-6 sm:pb-24 sm:pt-20">
       <Breadcrumbs crumbs={[
         { label: 'Home', href: '/' },
-        { label: 'Journal', href: '/journal' },
+        { label: 'Guides', href: '/journal' },
         { label: post.title },
       ]} />
       <div className="mb-8 border-b border-[#ECE7DF] pb-8 sm:mb-10 sm:pb-10">

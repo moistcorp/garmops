@@ -1,6 +1,5 @@
 'use client'
 import HomepageCaseStudies from '@/components/home/HomepageCaseStudies'
-import HowItWorks from '@/app/_components/HowItWorks'
 import HeroScrollVideo from '@/app/HeroScrollVideo'
 import WhyGarmops from '@/app/_components/WhyGarmops'
 import EmailCapture from '@/app/_components/EmailCapture'
@@ -194,8 +193,6 @@ export default function HomeClient() {
       </section>
 
      <WhyGarmops />
-
-     <HowItWorks />
 
 <HomepageCaseStudies />
 

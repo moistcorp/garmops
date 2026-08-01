@@ -143,7 +143,7 @@ export const journalPosts: JournalPost[] = [
           'Inspect, count, pack and dispatch with tracking',
         ],
         links: [
-          { label: 'See the Garmops order process', href: '/how-it-works' },
+          { label: 'Build a custom order online', href: '/configurator' },
           { label: 'Build a custom order online', href: '/configurator' },
         ],
       },
@@ -428,7 +428,7 @@ export const journalPosts: JournalPost[] = [
           'Low MOQ gives a brand room to learn. Track sell-through or usage by size, colour and design, then improve the second order using real data. A supplier that can repeat the approved result and scale a proven product is more valuable than one that simply accepts a small first payment.',
         ],
         links: [
-          { label: 'See how Garmops moves from brief to delivery', href: '/how-it-works' },
+          { label: 'Build a custom order online', href: '/configurator' },
           { label: 'Review custom merchandise case studies', href: '/work' },
         ],
       },
@@ -678,7 +678,7 @@ export const journalPosts: JournalPost[] = [
     category: 'Guide',
     readTime: '8 min read',
     author: 'Garmops Production Team',
-    image: '/images/how-it-works-1.webp',
+    image: '/images/manufacturing-facility.webp',
     keywords: ['custom apparel manufacturing brief', 'T-shirt production specification', 'apparel artwork requirements'],
     takeaways: [
       'Name the exact garment, fit, material and GSM so the quote has a defined base.',
@@ -726,7 +726,7 @@ export const journalPosts: JournalPost[] = [
           'Changes after approval should be documented with a new version. One controlled reference reduces the chance that production follows an old artwork file or an earlier size list.',
         ],
         links: [
-          { label: 'See the Garmops order process', href: '/how-it-works' },
+          { label: 'Build a custom order online', href: '/configurator' },
           { label: 'Configure an order specification', href: '/configurator' },
         ],
       },
@@ -945,7 +945,7 @@ export const journalPosts: JournalPost[] = [
         ],
         links: [
           { label: 'Learn how to brief a manufacturer', href: '/journal/how-to-brief-a-manufacturer' },
-          { label: 'See the Garmops order process', href: '/how-it-works' },
+          { label: 'Build a custom order online', href: '/configurator' },
         ],
       },
     ],

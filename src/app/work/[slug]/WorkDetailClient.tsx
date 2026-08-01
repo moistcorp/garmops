@@ -16,7 +16,7 @@ export default function WorkDetailClient({
       <div className="max-w-7xl mx-auto px-4 py-10 sm:px-6 sm:py-16">
         <Breadcrumbs crumbs={[
           { label: 'Home', href: '/' },
-          { label: 'Work', href: '/work' },
+          { label: 'Case Studies', href: '/work' },
           { label: cs.client },
         ]} />
 
@@ -173,7 +173,7 @@ export default function WorkDetailClient({
         <section className="py-12 sm:py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-8">
-              More work
+              More case studies
             </p>
             <div className="grid md:grid-cols-2 gap-6">
               {related.map(cs => (

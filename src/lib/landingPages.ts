@@ -320,7 +320,7 @@ export const landingPages = {
         ],
         links: [
           { label: 'Estimate company polo pricing', href: '/pricing' },
-          { label: 'See the custom apparel order process', href: '/how-it-works' },
+          { label: 'Start designing a custom polo order', href: '/configurator' },
         ],
       },
     ],
@@ -415,7 +415,7 @@ export const landingPages = {
         ],
         links: [
           { label: 'Estimate a custom hoodie order', href: '/pricing' },
-          { label: 'Review the production process', href: '/how-it-works' },
+          { label: 'Start designing a custom hoodie order', href: '/configurator' },
         ],
       },
     ],
@@ -508,7 +508,7 @@ export const landingPages = {
         ],
         links: [
           { label: 'Estimate a branded tote order', href: '/pricing' },
-          { label: 'See how custom orders are approved', href: '/how-it-works' },
+          { label: 'Start designing a custom tote order', href: '/configurator' },
         ],
       },
     ],

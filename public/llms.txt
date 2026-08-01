@@ -17,9 +17,8 @@ Garmops helps brands, startups, companies, hospitality teams, creative studios, 
 - [Products](https://www.garmops.com/products/index.md): Samples and specifications for T-shirts, polos, hoodies, sweatshirts, long-sleeve tees and canvas totes.
 - [Online configurator guide](https://www.garmops.com/configurator/index.md): Select a garment, colour, artwork position, decoration and neck-label options.
 - [Pricing](https://www.garmops.com/pricing/index.md): Current product pricing, inclusions, quantity discounts, GST and rush options.
-- [How it works](https://www.garmops.com/how-it-works/index.md): Order, approval, production, quality-control and delivery process.
-- [Work](https://www.garmops.com/work/index.md): Custom merchandise case studies.
-- [Journal](https://www.garmops.com/journal/index.md): Production-led custom apparel and merchandise guides.
+- [Case studies](https://www.garmops.com/work/index.md): Custom merchandise case studies.
+- [Guides](https://www.garmops.com/journal/index.md): Production-led custom apparel and merchandise guides.
 - [About](https://www.garmops.com/about/index.md): Garmops identity, location, products and operating facts.
 - [Contact](https://www.garmops.com/contact/index.md): Request a production-ready custom apparel quote.
 

@@ -14,12 +14,32 @@ const solutionLinks = [
   { label: 'Corporate Merchandise', href: '/corporate-merchandise' },
   { label: 'Hospitality Apparel', href: '/industries/hospitality' },
   { label: 'Event Merchandise', href: '/industries/events' },
-  { label: 'How It Works', href: '/how-it-works' },
   { label: 'Case Studies', href: '/work' },
-  { label: 'Journal', href: '/journal' },
+  { label: 'Guides', href: '/journal' },
 ]
 
 const linkClass = 'py-1 transition-colors hover:text-[var(--color-accent)]'
+
+function PaymentMarks() {
+  return (
+    <section aria-label="Accepted payment methods" className="mx-auto mt-8 max-w-7xl border-t border-[#ECE7DF] pt-6 sm:mt-10 sm:pt-8">
+      <p className="text-center font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-[#111111]/40">Secure payments accepted</p>
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-x-10 gap-y-5 sm:gap-x-14" aria-hidden="true">
+        <span className="-skew-x-6 font-sans text-[2.2rem] font-black italic leading-none tracking-[-0.1em] text-[#1434CB]">VISA</span>
+        <span className="relative block h-8 w-[52px]" title="Mastercard">
+          <span className="absolute left-0 top-0 size-8 rounded-full bg-[#EB001B]" />
+          <span className="absolute right-0 top-0 size-8 rounded-full bg-[#F79E1B]" />
+          <span className="absolute left-[13px] top-0 h-8 w-6 bg-[#FF5F00]" />
+        </span>
+        <span className="flex items-end gap-1 font-sans text-2xl font-black italic tracking-[-0.12em] text-[#5A5A5A]">
+          UPI
+          <span className="mb-0.5 flex gap-0.5" aria-hidden="true"><i className="block h-4 w-1 -skew-x-[28deg] bg-[#E07A23]" /><i className="block h-4 w-1 -skew-x-[28deg] bg-[#2B9C64]" /></span>
+        </span>
+      </div>
+      <span className="sr-only">Visa, Mastercard, and UPI</span>
+    </section>
+  )
+}
 
 export default function Footer() {
   return (
@@ -47,16 +67,16 @@ export default function Footer() {
         </nav>
 
         <nav aria-label="Solution links" className="flex flex-col gap-1">
-          <span className="mb-1 text-xs font-medium uppercase tracking-widest text-[#111111]/40">Solutions</span>
+          <span className="mb-1 text-xs font-medium uppercase tracking-widest text-[#111111]/40">Industries</span>
           {solutionLinks.map(link => (
             <Link key={link.href} href={link.href} className={linkClass}>{link.label}</Link>
           ))}
         </nav>
 
         <div className="col-span-2 flex min-w-0 flex-col gap-1 md:col-span-1">
-          <span className="mb-1 text-xs font-medium uppercase tracking-widest text-[#111111]/40">Company & contact</span>
+          <span className="mb-1 text-xs font-medium uppercase tracking-widest text-[#111111]/40">Company & help</span>
           <Link href="/about" className={linkClass}>About Garmops</Link>
-          <Link href="/contact" className={linkClass}>Contact</Link>
+          <Link href="/contact" className={linkClass}>Help</Link>
           <Link href="/terms" className={linkClass}>Terms of Service</Link>
           <Link href="/privacy" className={linkClass}>Privacy Policy</Link>
           <Link href="/staff/login" className={linkClass}>Staff sign in</Link>
@@ -100,7 +120,9 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="mx-auto mt-8 max-w-7xl border-t border-[#ECE7DF] pt-6 text-xs text-[#111111]/40 sm:mt-10">
+      <PaymentMarks />
+
+      <div className="mx-auto mt-6 max-w-7xl border-t border-[#ECE7DF] pt-6 text-xs text-[#111111]/40 sm:mt-8">
         © {new Date().getFullYear()} Garmops. All rights reserved.
       </div>
     </footer>

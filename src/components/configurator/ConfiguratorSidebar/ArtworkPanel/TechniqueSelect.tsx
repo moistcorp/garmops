@@ -189,14 +189,6 @@ export function TechniqueSelect({
         >
           {sideLabel} Artwork Technique<span aria-hidden="true">*</span>
         </span>
-        <a
-          href="/how-it-works"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs font-medium leading-none tracking-normal text-[#111111]/55 underline underline-offset-2 hover:text-[#111111]"
-        >
-          Techniques guide
-        </a>
       </div>
 
       <button
@@ -249,34 +241,7 @@ export function TechniqueSelect({
           aria-labelledby={labelId}
           className="z-40 overflow-hidden rounded-[4px] border border-[#111111]/15 bg-white/82  ring-1 ring-white/75 "
         >
-          <div className="relative m-2.5 overflow-hidden rounded-[4px] bg-[#18283B] px-4 py-4 text-white">
-            <span
-              aria-hidden="true"
-              className="absolute inset-0 bg-[url('/images/print-techniques.webp')] bg-[length:420%] bg-[position:96%_86%] opacity-50"
-            />
-            <span
-              aria-hidden="true"
-              className="absolute inset-0 bg-[#172A43]/85"
-            />
-            <div className="relative flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold">Techniques guide</p>
-                <p className="mt-1 max-w-[210px] text-[11px] leading-relaxed text-white/75">
-                  See each finish in action and learn how to prepare your artwork.
-                </p>
-              </div>
-              <a
-                href="/how-it-works"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="shrink-0 rounded-[4px] border border-white/70 px-3 py-1.5 text-[11px] font-semibold text-white transition-colors hover:bg-white/10"
-              >
-                Learn more
-              </a>
-            </div>
-          </div>
-
-          <div className="max-h-[420px] overflow-y-auto p-1.5 pt-0">
+          <div className="max-h-[420px] overflow-y-auto p-1.5">
             {TECHNIQUE_ORDER.map((technique, index) => {
               const selected = value === technique;
               const highlighted = highlightedIndex === index;

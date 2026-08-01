@@ -35,7 +35,6 @@ This is an intent and SERP analysis, not a claim of exact monthly search volume.
 | 1 | `/journal/low-moq-custom-apparel-manufacturer-india` | low-MOQ custom apparel manufacturer India | small-batch clothing manufacturer; manufacturer checklist |
 | 2 | `/journal/screen-printing-vs-dtg-vs-dtf-embroidery` | screen printing vs DTG vs DTF | best T-shirt printing method; custom embroidery |
 | 2 | `/journal/corporate-merchandise-india-planning-guide` | corporate merchandise India | company T-shirts; branded employee apparel; event merch |
-| 2 | `/how-it-works` | custom apparel manufacturing process | bulk order process; apparel quality control |
 | 2 | `/work` | custom merchandise case studies | restaurant uniforms; event and corporate apparel examples |
 | 3 | `/about` | Garmops; Garmops manufacturer | custom apparel manufacturer Greater Noida |
 

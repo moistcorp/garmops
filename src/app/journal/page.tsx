@@ -19,7 +19,7 @@ export default function Journal() {
   return (
     <div className="techpack-canvas">
       <section className="max-w-7xl mx-auto px-4 pb-10 pt-10 sm:px-6 sm:pb-16 sm:pt-20">
-        <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Journal</p>
+        <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Guides</p>
         <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] max-w-2xl leading-tight mb-6 tracking-tight">Custom apparel &amp; merchandise guides</h1>
         <p className="max-w-2xl text-base leading-relaxed text-[#111111]/50 sm:text-lg">Clear, production-led answers about bulk T-shirt printing, garment specifications, decoration methods, pricing, MOQs and planning branded merchandise in India.</p>
       </section>

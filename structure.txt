@@ -42,9 +42,6 @@ public
 │   ├── tee.webp
 │   └── totebag.webp
 ├── images
-│   ├── how-it-works-1.jpg
-│   ├── how-it-works-2.jpg
-│   ├── how-it-works-3.jpg
 │   └── print-techniques.jpg
 ├── industries
 │   ├── arts-culture.webp
@@ -82,7 +79,6 @@ src
 │   ├── HeroScrollVideo.tsx
 │   ├── _components
 │   │   ├── HomeClient.tsx
-│   │   ├── HowItWorks.tsx
 │   │   └── WhyGarmops.tsx
 │   ├── api
 │   │   ├── payu
@@ -104,7 +100,6 @@ src
 │   │   └── page.tsx
 │   ├── favicon.ico
 │   ├── globals.css
-│   ├── how-it-works
 │   │   └── page.tsx
 │   ├── journal
 │   │   └── page.tsx

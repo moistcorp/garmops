@@ -95,7 +95,6 @@ ${products.map((product) => `- [${product.name}, ${product.gsm} GSM](${absolute(
 ${links([
   { label: 'Browse products and sample specifications', href: '/products' },
   { label: 'Estimate current pricing', href: '/pricing' },
-  { label: 'Understand the order process', href: '/how-it-works' },
   { label: 'Configure an order', href: '/configurator' },
   { label: 'Read buyer guides', href: '/journal' },
   { label: 'Review case studies', href: '/work' },
@@ -305,46 +304,9 @@ ${table(
   })
 }
 
-function processMarkdown() {
-  return document({
-    title: 'How a Garmops Custom Apparel Order Works',
-    description: 'The specification, approval, production, quality-control, and delivery process for a Garmops bulk custom-apparel order.',
-    path: '/how-it-works',
-    body: `
-## Process
-
-1. Choose a garment from the catalogue.
-2. Define garment colour, artwork, placement, decoration, and neck-label options.
-3. Confirm total quantity, size split, destination, and required-in-hand date.
-4. Garmops reviews the specification and issues or confirms the quote.
-5. Approve the digital mock-up and, when required, a physical pre-production sample.
-6. Bulk production begins after the commercial and artwork approvals are complete.
-7. Finished pieces are quality checked, counted, packed, and dispatched with tracking.
-
-## Lead times
-
-- Standard delivery target: ${DELIVERY_DAYS} days from order confirmation.
-- Rush delivery target: ${RUSH_DELIVERY_DAYS} days where quantity, artwork, production method, and destination are feasible.
-- Approval delays, specification changes, custom development, and transit constraints can change the schedule.
-
-## Prepare before requesting a quote
-
-${list([
-  'Organisation name and intended use',
-  'Product, fit, GSM, garment colours, and quantity per style',
-  'Size split across the available range',
-  'Original artwork files, print positions, and physical dimensions',
-  'Preferred decoration technique or permission for Garmops to recommend one',
-  'Neck-label, packaging, sampling, and colour-matching requirements',
-  'Delivery postcode and required-in-hand date',
-])}
-`,
-  })
-}
-
 function journalIndexMarkdown() {
   return document({
-    title: 'Garmops Journal',
+    title: 'Garmops Guides',
     description: 'Production-led buyer guides for custom apparel, bulk merchandise, fabric, printing, pricing, and manufacturer selection.',
     path: '/journal',
     body: `
@@ -394,7 +356,7 @@ ${post.relatedLinks?.length ? `## Related Garmops resources\n\n${links(post.rela
 
 function workIndexMarkdown() {
   return document({
-    title: 'Garmops Custom Apparel Work',
+    title: 'Garmops Custom Apparel Case Studies',
     description: 'Case studies covering custom uniforms, festival merchandise, team kits, and studio apparel produced by Garmops.',
     path: '/work',
     body: `
@@ -479,7 +441,6 @@ Garmops produces bulk custom T-shirts, polos, hoodies, sweatshirts, long-sleeve 
 ${links([
   { label: 'Product catalogue', href: '/products' },
   { label: 'Current pricing', href: '/pricing' },
-  { label: 'Order process', href: '/how-it-works' },
   { label: 'Case studies', href: '/work' },
 ])}
 `,
@@ -547,7 +508,6 @@ export function renderAgentMarkdown(pathname: string) {
   if (normalized === '/') return homeMarkdown()
   if (normalized === '/products') return productsMarkdown()
   if (normalized === '/pricing') return pricingMarkdown()
-  if (normalized === '/how-it-works') return processMarkdown()
   if (normalized === '/journal') return journalIndexMarkdown()
   if (normalized === '/work') return workIndexMarkdown()
   if (normalized === '/about') return aboutMarkdown()

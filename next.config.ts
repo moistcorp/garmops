@@ -58,7 +58,6 @@ const nextConfig: NextConfig = {
       '/custom-polo-t-shirts',
       '/custom-t-shirt-printing',
       '/custom-tote-bags',
-      '/how-it-works',
       '/industries/:path*',
       '/journal/:path*',
       '/pricing',

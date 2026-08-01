@@ -278,9 +278,6 @@ export default function PricingClient() {
                 </div>
               </div>
 
-              <p className="text-xs text-white/20 mt-5 leading-relaxed">
-                Includes single-color screen print. Multi-color, embroidery, or DTG quoted separately.
-              </p>
             </div>
 
             <Link
@@ -318,16 +315,6 @@ export default function PricingClient() {
             ))}
           </div>
 
-          <div className="techpack-panel mt-6 rounded-[4px] border p-5">
-            <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-3">Not included — quoted separately</p>
-            <div className="grid md:grid-cols-3 gap-4 text-xs text-[#111111]/60">
-              <p>Multi-color screen print (additional per color)</p>
-              <p>DTG printing (quoted per design)</p>
-              <p>Embroidery (quoted per stitch count)</p>
-              <p>Custom woven / printed neck labels</p>
-              <p>Shipping (paid by client, quoted by email)</p>
-            </div>
-          </div>
         </div>
       </section>
     </div>
