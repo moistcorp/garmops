@@ -46,7 +46,34 @@ import { formatSpecCode } from "@/lib/orders/format";
 
 export interface BillingShippingStepProps {
   cartId: string;
+  accountDefaults?: CheckoutAccountDefaults;
 }
+
+export type CheckoutAccountDefaults = Readonly<{
+  companyName: string;
+  gstin: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  billingEmail: string;
+  billingAddress: Readonly<{
+    country: string;
+    addressLine1: string;
+    addressLine2?: string;
+    zip: string;
+    city: string;
+    state?: string;
+  }>;
+  shippingAddress: Readonly<{
+    country: string;
+    addressLine1: string;
+    addressLine2?: string;
+    zip: string;
+    city: string;
+    state?: string;
+  }>;
+}>;
 
 const INPUT_CLASS =
   "techpack-control w-full rounded-[4px] border px-3 py-2 text-sm text-[#111111] placeholder:text-[#111111]/40 focus:!border-[var(--color-accent)] focus:outline-none";
@@ -91,22 +118,31 @@ function sectionHeading(
   );
 }
 
-function withInferredCheckoutDetails(draft: CartDraft): CartDraft {
+function withInferredCheckoutDetails(
+  draft: CartDraft,
+  accountDefaults?: CheckoutAccountDefaults,
+): CartDraft {
   const contactName =
     `${draft.projectContact.firstName} ${draft.projectContact.lastName}`.trim();
   const shippingInformation = {
     ...draft.shippingInformation,
     recipientName: contactName,
   };
+  const savedBillingAddress = accountDefaults?.billingAddress;
+  const billingAddress = savedBillingAddress?.addressLine1.trim()
+    ? savedBillingAddress
+    : shippingInformation.address;
   const companyInformation = {
     ...draft.companyInformation,
-    address: shippingInformation.address,
+    address: billingAddress,
   };
   const billingInformation = {
     ...draft.billingInformation,
     sameAsCompanyAddress: true,
     entity: companyInformation.name,
-    accountsPayableEmail: draft.projectContact.email,
+    address: billingAddress,
+    accountsPayableEmail:
+      accountDefaults?.billingEmail || draft.projectContact.email,
     gstin: companyInformation.gstin,
   };
 
@@ -118,7 +154,56 @@ function withInferredCheckoutDetails(draft: CartDraft): CartDraft {
   };
 }
 
-export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
+function withAccountDefaults(
+  draft: CartDraft,
+  defaults?: CheckoutAccountDefaults,
+): CartDraft {
+  if (!defaults) return draft;
+  const value = (current: string, fallback: string) =>
+    current.trim() ? current : fallback;
+  const shippingAddress = draft.shippingInformation.address;
+
+  return {
+    ...draft,
+    companyInformation: {
+      ...draft.companyInformation,
+      name: value(draft.companyInformation.name, defaults.companyName),
+      gstin: value(draft.companyInformation.gstin, defaults.gstin),
+    },
+    projectContact: {
+      ...draft.projectContact,
+      firstName: value(draft.projectContact.firstName, defaults.firstName),
+      lastName: value(draft.projectContact.lastName, defaults.lastName),
+      email: value(draft.projectContact.email, defaults.email),
+      phone: value(draft.projectContact.phone, defaults.phone),
+    },
+    shippingInformation: {
+      ...draft.shippingInformation,
+      address: {
+        country: value(shippingAddress.country, defaults.shippingAddress.country),
+        addressLine1: value(
+          shippingAddress.addressLine1,
+          defaults.shippingAddress.addressLine1,
+        ),
+        addressLine2: value(
+          shippingAddress.addressLine2 ?? "",
+          defaults.shippingAddress.addressLine2 ?? "",
+        ),
+        zip: value(shippingAddress.zip, defaults.shippingAddress.zip),
+        city: value(shippingAddress.city, defaults.shippingAddress.city),
+        state: value(
+          shippingAddress.state ?? "",
+          defaults.shippingAddress.state ?? "",
+        ),
+      },
+    },
+  };
+}
+
+export function BillingShippingStep({
+  cartId,
+  accountDefaults,
+}: BillingShippingStepProps) {
   const router = useRouter();
   const [draft, setDraft] = useState<CartDraft>(() => createDraft(cartId));
   const [isDraftReady, setIsDraftReady] = useState(false);
@@ -138,14 +223,17 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
         return;
       }
 
-      const preparedDraft = withInferredCheckoutDetails(savedDraft);
+      const preparedDraft = withInferredCheckoutDetails(
+        withAccountDefaults(savedDraft, accountDefaults),
+        accountDefaults,
+      );
       setDraft(preparedDraft);
       writeDraft(cartId, preparedDraft);
       setIsDraftReady(true);
     }, 0);
 
     return () => window.clearTimeout(loadDraft);
-  }, [cartId, router]);
+  }, [accountDefaults, cartId, router]);
 
   const selectedDeliveryDate = useMemo(
     () =>
@@ -193,12 +281,15 @@ export function BillingShippingStep({ cartId }: BillingShippingStepProps) {
       markFormStarted();
       setValidationFeedback(null);
       setDraft((previous) => {
-        const next = withInferredCheckoutDetails({ ...previous, ...patch });
+        const next = withInferredCheckoutDetails(
+          { ...previous, ...patch },
+          accountDefaults,
+        );
         persistCartDraft(next);
         return next;
       });
     },
-    [markFormStarted, persistCartDraft]
+    [accountDefaults, markFormStarted, persistCartDraft]
   );
 
   const updateCompany = useCallback(

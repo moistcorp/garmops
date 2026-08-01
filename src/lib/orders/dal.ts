@@ -131,7 +131,7 @@ export async function getCustomerOrder(
       .eq("order_id", orderResult.data.id)
       .eq("visibility", "customer")
       .order("created_at"),
-    getSafePaymentAttempts(orderResult.data.id),
+    getSafePaymentAttempts(orderResult.data.id).catch(() => []),
     customerApprovals
       .select("id, design_version_id, approval_pdf_file_id, status, expires_at, viewed_at, responded_at, response_note, snapshot_sha256, revoked_at, created_at")
       .eq("order_id", orderResult.data.id)
@@ -168,11 +168,17 @@ export async function getCustomerOrder(
     }>
   )("customer_shipment_events", { p_order_id: orderResult.data.id });
 
-  const phase11Error =
-    approvals.error ?? shipments.error ?? files.error ?? shipmentEventsError;
-  if (phase11Error) throw new Error("Order history could not be loaded");
-
-  return { order: orderResult, items, history, comments, payments, approvals: approvals.data ?? [], shipments: shipments.data ?? [], shipmentEvents: shipmentEvents ?? [], files: files.data ?? [] };
+  return {
+    order: orderResult,
+    items,
+    history,
+    comments,
+    payments,
+    approvals: approvals.error ? [] : (approvals.data ?? []),
+    shipments: shipments.error ? [] : (shipments.data ?? []),
+    shipmentEvents: shipmentEventsError ? [] : (shipmentEvents ?? []),
+    files: files.error ? [] : (files.data ?? []),
+  };
 }
 
 export async function getSafePaymentAttempts(orderId: string) {

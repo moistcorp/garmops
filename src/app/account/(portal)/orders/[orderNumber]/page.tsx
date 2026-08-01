@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import {
   ArrowLeft,
   CalendarDays,
+  Check,
   Clock3,
   MapPin,
   Package,
@@ -19,6 +20,7 @@ import CustomerOrderLifecyclePanel from "@/components/account/CustomerOrderLifec
 import { requireOrganizationMember } from "@/lib/auth/guards";
 import { isFeatureEnabled } from "@/lib/config/featureFlags";
 import { getCustomerOrder } from "@/lib/orders/dal";
+import { customerProductionTimeline } from "@/lib/orders/productionTimeline";
 import { assessReorder } from "@/lib/domain/orders/reorder";
 import {
   formatOrderCode,
@@ -85,6 +87,11 @@ export default async function AccountOrderDetailPage({
   const comments = result.comments.data ?? [];
   const payments = result.payments;
   const latestPayment = payments[0];
+  const latestHistory = history[history.length - 1];
+  const productionTimeline = customerProductionTimeline(
+    order.status,
+    history.map((entry) => entry.to_status),
+  );
   const retryable =
     orderFlowEnabled &&
     ["awaiting_payment", "payment_failed"].includes(order.status) &&
@@ -153,6 +160,95 @@ export default async function AccountOrderDetailPage({
             />
           ) : null}
         </div>
+      </section>
+
+      <section
+        className="techpack-panel rounded-[4px] border border-[#1D49B4]/20 p-5 sm:p-6"
+        aria-labelledby="order-progress-title"
+      >
+        <div className="flex items-start gap-3">
+          <Clock3
+            size={19}
+            className="mt-0.5 shrink-0 text-[#1D49B4]"
+            aria-hidden="true"
+          />
+          <div>
+            <p className="text-[10px] uppercase tracking-widest text-black/35">
+              Current stage
+            </p>
+            <h3 id="order-progress-title" className="mt-1 text-lg font-semibold">
+              {publicOrderStatusLabel(order.public_status)}
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-black/50">
+              {latestHistory?.customer_message ??
+                "Your order is recorded. Updates will appear here as it progresses."}
+            </p>
+            {latestHistory ? (
+              <p className="mt-2 text-[10px] uppercase tracking-wider text-black/30">
+                Updated {formatOrderTimestamp(latestHistory.created_at)}
+              </p>
+            ) : null}
+          </div>
+        </div>
+
+        {!sampleOrder ? (
+          <div className="mt-6 border-t border-black/8 pt-6">
+            <h4 className="text-sm font-semibold">Production timeline</h4>
+            <ol className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              {productionTimeline.map((stage, index) => (
+                <li
+                  key={stage.label}
+                  aria-current={stage.state === "current" ? "step" : undefined}
+                  className={`rounded-[4px] border p-3 ${
+                    stage.state === "current"
+                      ? "border-[#1D49B4] bg-[#1D49B4]/8"
+                      : stage.state === "completed"
+                        ? "border-[#1D49B4]/20 bg-white"
+                        : "border-black/7 bg-white/50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${
+                        stage.state === "completed"
+                          ? "bg-[#1D49B4] text-white"
+                          : stage.state === "current"
+                            ? "border border-[#1D49B4] text-[#1D49B4]"
+                            : "border border-black/10 text-black/30"
+                      }`}
+                    >
+                      {stage.state === "completed" ? (
+                        <Check size={13} aria-hidden="true" />
+                      ) : (
+                        index + 1
+                      )}
+                    </span>
+                    <span
+                      className={`text-[10px] font-semibold uppercase tracking-wider ${
+                        stage.state === "current"
+                          ? "text-[#1D49B4]"
+                          : "text-black/35"
+                      }`}
+                    >
+                      {stage.state === "completed"
+                        ? "Complete"
+                        : stage.state === "current"
+                          ? "In progress"
+                          : "Upcoming"}
+                    </span>
+                  </div>
+                  <p
+                    className={`mt-3 text-sm font-semibold leading-snug ${
+                      stage.state === "upcoming" ? "text-black/35" : "text-black/75"
+                    }`}
+                  >
+                    {stage.label}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        ) : null}
       </section>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
