@@ -13,7 +13,6 @@ export default function AppChrome({ children }: { children: React.ReactNode }) {
     pathname === route || pathname.startsWith(`${route}/`);
   const hasDedicatedChrome =
     isWithin("/configurator") ||
-    isWithin("/account") ||
     isWithin("/staff") ||
     isWithin("/auth") ||
     [

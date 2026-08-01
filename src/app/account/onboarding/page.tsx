@@ -1,6 +1,7 @@
-import AuthActionForm from "@/components/auth/AuthActionForm";
-import AuthShell from "@/components/auth/AuthShell";
+import CustomerAuthFlow from "@/components/auth/CustomerAuthFlow";
+import CustomerAuthShell from "@/components/auth/CustomerAuthShell";
 import { requireVerifiedUser } from "@/lib/auth/guards";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -14,32 +15,15 @@ export default async function AccountOnboardingPage() {
     .limit(1)
     .maybeSingle();
   if (existing) {
-    const { redirect } = await import("next/navigation");
-    redirect("/account");
+    redirect("/account/orders");
   }
 
-  const metadata = user.user_metadata ?? {};
   return (
-    <AuthShell
-      eyebrow="Verified account"
-      title="Finish company setup"
-      description="This creates the organization and makes you its owner in one atomic operation."
+    <CustomerAuthShell
+      title="Finish setting up your account"
+      description="Add a few details to view and track your Garmops orders."
     >
-      <AuthActionForm
-        variant="onboarding"
-        defaults={{
-          firstName: String(metadata.first_name ?? ""),
-          lastName: String(metadata.last_name ?? ""),
-          accountType: String(metadata.account_type ?? "business"),
-          companyName: String(metadata.company_name ?? ""),
-          phone: String(metadata.phone ?? ""),
-          department: String(metadata.department ?? ""),
-          jobTitle: String(metadata.job_title ?? ""),
-          website: String(metadata.website ?? ""),
-          gstin: String(metadata.gstin ?? ""),
-          industry: String(metadata.industry ?? ""),
-        }}
-      />
-    </AuthShell>
+      <CustomerAuthFlow next="/account/orders" />
+    </CustomerAuthShell>
   );
 }

@@ -130,6 +130,13 @@ const emailOtpSchema = z.object({
   next: z.string().optional(),
   portal: z.enum(["customer", "staff"]).default("customer"),
 });
+const minimalOnboardingSchema = z.object({
+  firstName: name,
+  lastName: name,
+  companyName: optionalCompanyField,
+  consent: z.literal("on"),
+  next: z.string().optional(),
+});
 const resetSchema = z
   .object({
     password,
@@ -274,7 +281,89 @@ export async function loginAction(
     parsed.data.next ?? "/account",
     parsed.data.portal,
   );
+  if (parsed.data.portal === "customer") {
+    if (destination.startsWith("/auth/error")) {
+      return actionError("Use the staff sign-in page to access a staff account.");
+    }
+    return actionSuccess("Signed in.", {
+      destination: safeInternalPath(destination, "/account/orders"),
+      requiresOnboarding: destination === "/account/onboarding",
+    });
+  }
   redirect(destination);
+}
+
+/** Customer-only email OTP request. Staff continues to use password + MFA. */
+export async function requestCustomerOtpAction(
+  _state: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  if (!isFeatureEnabled("NEXT_PUBLIC_ACCOUNTS_ENABLED")) {
+    return actionError("Account access is not enabled yet.");
+  }
+  const parsed = emailSchema.safeParse(fields(formData));
+  if (!parsed.success) return validationError(parsed.error);
+
+  try {
+    if (!(await passPublicProtection("login", parsed.data.email, formData))) {
+      return actionError("Security verification failed. Please try again.");
+    }
+  } catch {
+    return actionError("Sign in is temporarily unavailable. Please try again.");
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithOtp({
+    email: parsed.data.email,
+    options: {
+      shouldCreateUser: true,
+      emailRedirectTo: authCallbackUrl(safeInternalPath(formData.get("next"), "/account/orders")),
+    },
+  });
+  if (error) return actionError("We could not send a sign-in code. Please try again.");
+  return actionSuccess("If that email can receive sign-in codes, one is on its way.", {
+    verificationEmail: parsed.data.email,
+  });
+}
+
+export async function verifyCustomerOtpAction(
+  _state: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  if (!isFeatureEnabled("NEXT_PUBLIC_ACCOUNTS_ENABLED")) {
+    return actionError("Account access is not enabled yet.");
+  }
+  const parsed = emailOtpSchema.safeParse({ ...fields(formData), portal: "customer" });
+  if (!parsed.success) return validationError(parsed.error);
+
+  try {
+    const rate = await consumeAuthRateLimit("login", parsed.data.email);
+    if (!rate.allowed) return actionError("Too many code attempts. Please wait before trying again.");
+  } catch {
+    return actionError("Code verification is temporarily unavailable.");
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.verifyOtp({
+    email: parsed.data.email,
+    token: parsed.data.token,
+    type: "email",
+  });
+  if (error || !data.user) return actionError("That sign-in code is invalid or expired.");
+
+  const destination = await destinationAfterLogin(
+    supabase,
+    data.user.id,
+    parsed.data.next ?? "/account/orders",
+    "customer",
+  );
+  if (destination.startsWith("/auth/error")) {
+    return actionError("Use the staff sign-in page to access a staff account.");
+  }
+  return actionSuccess("Signed in.", {
+    destination: safeInternalPath(destination, "/account/orders"),
+    requiresOnboarding: destination === "/account/onboarding",
+  });
 }
 
 export async function verifyEmailOtpAction(
@@ -489,6 +578,41 @@ export async function completeOnboardingAction(
     return actionError("We could not create the company workspace. Please try again.");
   }
   redirect("/account");
+}
+
+export async function completeMinimalCustomerOnboardingAction(
+  _state: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  if (!isFeatureEnabled("NEXT_PUBLIC_ACCOUNTS_ENABLED")) {
+    return actionError("Customer accounts are not enabled yet.");
+  }
+  const parsed = minimalOnboardingSchema.safeParse(fields(formData));
+  if (!parsed.success) return validationError(parsed.error);
+
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user?.email_confirmed_at) {
+    return actionError("Verify your email before continuing.");
+  }
+  const generatedCompanyName = `${parsed.data.firstName} ${parsed.data.lastName}`.trim() + " customer";
+  const { error } = await supabase.rpc("complete_customer_onboarding", {
+    p_first_name: parsed.data.firstName,
+    p_last_name: parsed.data.lastName,
+    p_phone: "",
+    p_job_title: "",
+    p_department: "",
+    p_company_name: parsed.data.companyName ?? generatedCompanyName,
+    p_website: "",
+    p_gstin: "",
+    p_industry: "",
+    p_terms_version: TERMS_VERSION,
+    p_privacy_version: PRIVACY_VERSION,
+  });
+  if (error) return actionError("We could not finish setting up your account. Please try again.");
+  return actionSuccess("Your account is ready.", {
+    destination: safeInternalPath(parsed.data.next, "/account/orders"),
+  });
 }
 
 export async function logoutAction() {

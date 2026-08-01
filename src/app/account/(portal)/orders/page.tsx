@@ -17,20 +17,13 @@ import {
   formatOrderDate,
   publicOrderStatusLabel,
 } from "@/lib/orders/format";
-import {
-  orderListFilterSchema,
-  type OrderListFilter,
-} from "@/lib/orders/schema";
+import { orderListFilterSchema, type OrderListFilter } from "@/lib/orders/schema";
 
 export const dynamic = "force-dynamic";
 
 const filters: Array<{ value: OrderListFilter; label: string }> = [
   { value: "all", label: "All" },
-  { value: "action_required", label: "Action required" },
-  { value: "awaiting_payment", label: "Awaiting payment" },
-  { value: "under_review", label: "Under review" },
-  { value: "in_production", label: "In production" },
-  { value: "dispatched", label: "Dispatched" },
+  { value: "active", label: "Active" },
   { value: "completed", label: "Completed" },
   { value: "cancelled", label: "Cancelled" },
 ];
@@ -56,12 +49,13 @@ export default async function AccountOrdersPage({
     (await searchParams).filter ?? "all",
   );
   const filter = filterResult.success ? filterResult.data : "all";
-  const { supabase, membership } = await requireOrganizationMember(
+  const { supabase, membership, user } = await requireOrganizationMember(
     "/account/orders",
   );
   const { data, error } = await listCustomerOrders(
     supabase,
     membership.organization_id,
+    user.id,
     filter,
   );
 
@@ -80,14 +74,13 @@ export default async function AccountOrdersPage({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.18em] text-[#1D49B4]">
-            Durable history
+            Account
           </p>
           <h2 className="mt-2 text-2xl font-semibold tracking-tight">
-            Your orders
+            My orders
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-black/50">
-            Every order number, date, specification, and payment attempt is
-            retained independently from later design edits.
+            View the status and details of orders placed with Garmops.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -105,7 +98,7 @@ export default async function AccountOrdersPage({
               className="inline-flex items-center justify-center gap-2 rounded-[4px] bg-[#1D49B4] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#173A91]"
             >
               <ShoppingBag size={16} aria-hidden="true" />
-              Configure a new order
+              Start designing
             </Link>
           ) : null}
         </div>
@@ -137,11 +130,15 @@ export default async function AccountOrdersPage({
             const item = order.order_items?.[0];
             const paymentIncomplete =
               order.public_status === "payment_incomplete";
+            const totalQuantity = order.order_items?.reduce(
+              (total, orderItem) => total + orderItem.quantity,
+              0,
+            ) ?? 0;
             return (
               <Link
                 key={order.id}
                 href={`/account/orders/${encodeURIComponent(order.order_number)}`}
-                className="group techpack-surface grid gap-5 rounded-[4px] border p-5 transition hover:-translate-y-0.5 hover:border-[#1D49B4]/30 hover:bg-black/[0.03] lg:grid-cols-[1.2fr_1fr_1fr_auto] lg:items-center"
+                className="group techpack-surface grid gap-5 rounded-[4px] border p-5 transition hover:-translate-y-0.5 hover:border-[#1D49B4]/30 hover:bg-black/[0.03] lg:grid-cols-[1.2fr_0.9fr_1fr_0.9fr_auto] lg:items-center"
               >
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -158,8 +155,11 @@ export default async function AccountOrdersPage({
                       (order.order_type === "sample_purchase"
                         ? "Catalogue samples"
                         : "Custom merchandise")}
-                    {item ? ` · ${item.quantity.toLocaleString("en-IN")} units` : ""}
+                    {totalQuantity ? ` · ${totalQuantity.toLocaleString("en-IN")} units` : ""}
                     {order.order_type === "sample_purchase" ? " · Sample order" : ""}
+                  </p>
+                  <p className="mt-1 text-xs text-black/45">
+                    Estimated total {formatMoneyPaise(order.estimated_total_paise)}
                   </p>
                 </div>
                 <div className="flex items-start gap-2">
@@ -175,6 +175,13 @@ export default async function AccountOrdersPage({
                     <p className="mt-1 text-sm text-black/65">
                       {formatOrderDate(order.submitted_at)}
                     </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <CalendarDays size={16} className="mt-0.5 text-[#1D49B4]" aria-hidden="true" />
+                  <div>
+                    <p className="text-[10px] uppercase tracking-widest text-black/30">{order.requested_delivery_date ? "Requested delivery" : "Estimated total"}</p>
+                    <p className="mt-1 text-sm text-black/65">{order.requested_delivery_date ? formatOrderDate(`${order.requested_delivery_date}T00:00:00Z`) : formatMoneyPaise(order.estimated_total_paise)}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
@@ -224,7 +231,7 @@ export default async function AccountOrdersPage({
           />
           <h3 className="mt-4 font-semibold">No matching orders</h3>
           <p className="mx-auto mt-2 max-w-md text-sm text-black/45">
-            Submitted custom and catalogue sample orders appear here immediately, before payment begins.
+            You have not placed any orders yet. Start designing when you are ready.
           </p>
         </div>
       )}

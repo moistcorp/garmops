@@ -17,26 +17,32 @@ const listSelect =
 export function listCustomerOrders(
   supabase: OrderClient,
   organizationId: string,
+  customerUserId: string,
   filter: OrderListFilter,
 ) {
   let query = supabase
     .from("orders")
     .select(listSelect)
     .eq("organization_id", organizationId)
+    .eq("customer_user_id", customerUserId)
     .order("submitted_at", { ascending: false })
     .limit(50);
 
   const statuses: Partial<Record<OrderListFilter, PublicOrderStatus[]>> = {
-    action_required: ["action_required"],
-    awaiting_payment: ["payment_incomplete"],
-    under_review: ["order_submitted", "under_review", "awaiting_approval"],
-    in_production: [
+    active: [
+      "action_required",
+      "payment_incomplete",
+      "payment_due",
+      "order_submitted",
+      "under_review",
+      "awaiting_approval",
       "approved",
       "in_production",
       "quality_check",
       "ready_to_dispatch",
+      "dispatched",
+      "on_hold",
     ],
-    dispatched: ["dispatched"],
     completed: ["delivered"],
     cancelled: ["cancelled"],
   };
@@ -48,6 +54,7 @@ export function listCustomerOrders(
 export async function getCustomerOrder(
   supabase: OrderClient,
   organizationId: string,
+  customerUserId: string,
   orderNumber: string,
 ) {
   const orderResult = await supabase
@@ -56,6 +63,7 @@ export async function getCustomerOrder(
       "id, order_number, order_type, organization_id, customer_user_id, design_project_id, design_version_id, status, public_status, currency, subtotal_paise, shipping_paise, tax_estimate_paise, estimated_total_paise, reservation_amount_paise, amount_paid_paise, pricing_version, configuration_schema_version, customer_reference, po_number, requested_delivery_date, estimated_dispatch_at, billing_snapshot, shipping_snapshot, customer_snapshot, company_snapshot, terms_snapshot, submitted_at, reservation_paid_at, expires_at",
     )
     .eq("organization_id", organizationId)
+    .eq("customer_user_id", customerUserId)
     .eq("order_number", orderNumber)
     .maybeSingle();
 

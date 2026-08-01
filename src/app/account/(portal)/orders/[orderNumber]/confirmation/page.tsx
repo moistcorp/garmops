@@ -40,7 +40,7 @@ export default async function OrderConfirmationPage({
 
   const number = orderNumberSchema.safeParse((await params).orderNumber);
   if (!number.success) notFound();
-  const { supabase, membership } = await requireOrganizationMember(
+  const { supabase, membership, user } = await requireOrganizationMember(
     `/account/orders/${number.data}/confirmation`,
   );
 
@@ -49,6 +49,7 @@ export default async function OrderConfirmationPage({
     result = await getCustomerOrder(
       supabase,
       membership.organization_id,
+      user.id,
       number.data,
     );
   } catch {
@@ -81,15 +82,14 @@ export default async function OrderConfirmationPage({
         <div className="bg-[#1D49B4] px-6 py-8 text-white sm:px-8">
           <CheckCircle2 size={30} aria-hidden="true" />
           <p className="mt-5 text-xs uppercase tracking-[0.2em] text-white/55">
-            Order saved before payment
+            Your order has been saved
           </p>
           <h2 className="mt-2 text-3xl font-semibold tracking-tight">
             {formatOrderCode(order.order_number)}
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-white/70">
-            You can refresh this page or continue on another device. The order
-            number, date, specification, addresses, totals, and first payment
-            attempt are already durable.
+            Complete the payment below. You can return to this order from My
+            orders at any time.
           </p>
         </div>
 
@@ -138,8 +138,7 @@ export default async function OrderConfirmationPage({
           {sampleOrder ? "Continue with the full sample payment" : "Continue with the reservation payment"}
         </h3>
         <p className="mt-2 text-sm leading-relaxed text-black/50">
-          Payment attempts belong to this order. Retrying never changes the
-          order number or overwrites an earlier attempt.
+          Your payment history is saved with this order.
         </p>
         <div className="mt-6">
           {latestPayment &&
@@ -174,7 +173,7 @@ export default async function OrderConfirmationPage({
             href={`/account/orders/${encodeURIComponent(order.order_number)}`}
             className="text-sm font-semibold text-[#1D49B4] hover:underline"
           >
-            Review the full immutable order
+            View order details
           </Link>
         </div>
       </section>

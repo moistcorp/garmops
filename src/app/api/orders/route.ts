@@ -40,6 +40,7 @@ export async function GET(request: NextRequest) {
   const { data, error } = await listCustomerOrders(
     auth.supabase,
     membership.organization_id,
+    auth.user.id,
     filter.data,
   );
   if (error) return orderJsonError("Orders could not be loaded", 500);

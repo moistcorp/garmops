@@ -2,9 +2,12 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { useCartStore } from '@/lib/store'
+import CustomerAccountControl from '@/components/auth/CustomerAccountControl'
+import CustomerAuthDialog from '@/components/auth/CustomerAuthDialog'
+import { useCustomerSession } from '@/components/auth/useCustomerSession'
 
 const links = [
   { label: 'Products', href: '/products' },
@@ -38,6 +41,7 @@ const mobileGroups = [
 
 export default function Navbar() {
   const pathname = usePathname()
+  const router = useRouter()
   const [openPathname, setOpenPathname] = useState<string | null>(null)
   const [scrolled, setScrolled] = useState(false)
   const open = openPathname === pathname
@@ -47,6 +51,8 @@ export default function Navbar() {
   const itemCount = useCartStore(state => state.items.reduce((total, item) => total + item.quantity, 0))
   const accountsEnabled =
     process.env.NEXT_PUBLIC_ACCOUNTS_ENABLED === 'true'
+  const customerSession = useCustomerSession(accountsEnabled)
+  const [authOpen, setAuthOpen] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 12)
@@ -135,15 +141,7 @@ export default function Navbar() {
           </nav>
 
           <div className="hidden shrink-0 items-center gap-4 lg:flex">
-            {accountsEnabled && (
-              <Link
-                href="/login"
-                prefetch={false}
-                className="font-mono text-[11px] uppercase tracking-[0.06em] text-[#444444] transition-colors hover:text-[var(--color-accent)]"
-              >
-                Login/Register
-              </Link>
-            )}
+            {accountsEnabled && <CustomerAccountControl session={customerSession} onOpenAuth={() => setAuthOpen(true)} />}
             <Link
               href="/cart"
                 className="font-mono text-[11px] uppercase tracking-[0.06em] text-[#444444] transition-colors hover:text-[var(--color-accent)]"
@@ -267,17 +265,7 @@ export default function Navbar() {
           >
             START DESIGNING
           </Link>
-          {accountsEnabled && (
-            <Link
-              href="/login"
-              prefetch={false}
-              tabIndex={open ? 0 : -1}
-              onClick={closeMenu}
-              className="mt-2 block rounded-[4px] border border-[var(--color-rule)] px-5 py-3 text-center font-mono text-[11px] uppercase tracking-[0.06em] text-[#111111]/70"
-            >
-              Login/Register
-            </Link>
-          )}
+          {accountsEnabled && <CustomerAccountControl session={customerSession} mobile onOpenAuth={() => setAuthOpen(true)} onNavigate={closeMenu} />}
           <a
             href="https://wa.me/918800711169?text=Hi%2C%20I%20found%20Garmops%20and%20would%20like%20to%20know%20more%20about%20custom%20apparel."
             target="_blank"
@@ -300,6 +288,7 @@ export default function Navbar() {
           </a>
         </nav>
       </div>
+      {accountsEnabled ? <CustomerAuthDialog open={authOpen} onClose={() => setAuthOpen(false)} next={pathname} onAuthenticated={(destination) => { setAuthOpen(false); void customerSession.refresh(); router.refresh(); if (destination !== pathname) router.push(destination); }} /> : null}
     </header>
   )
 }

@@ -122,11 +122,7 @@ export const orderNumberSchema = z
 
 export const orderListFilterSchema = z.enum([
   "all",
-  "action_required",
-  "awaiting_payment",
-  "under_review",
-  "in_production",
-  "dispatched",
+  "active",
   "completed",
   "cancelled",
 ]);

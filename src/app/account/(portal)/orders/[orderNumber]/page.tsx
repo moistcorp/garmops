@@ -56,7 +56,7 @@ export default async function AccountOrderDetailPage({
 
   const number = orderNumberSchema.safeParse((await params).orderNumber);
   if (!number.success) notFound();
-  const { supabase, membership } = await requireOrganizationMember(
+  const { supabase, membership, user } = await requireOrganizationMember(
     `/account/orders/${number.data}`,
   );
 
@@ -65,6 +65,7 @@ export default async function AccountOrderDetailPage({
     result = await getCustomerOrder(
       supabase,
       membership.organization_id,
+      user.id,
       number.data,
     );
   } catch {
@@ -80,7 +81,7 @@ export default async function AccountOrderDetailPage({
     return (
       <PortalPlaceholder
         title="Order unavailable"
-        description="The durable order specification could not be loaded."
+        description="The order details could not be loaded."
       />
     );
   }
@@ -135,7 +136,7 @@ export default async function AccountOrderDetailPage({
         className="inline-flex items-center gap-2 text-sm font-medium text-black/50 hover:text-[#1D49B4]"
       >
         <ArrowLeft size={15} aria-hidden="true" />
-        Back to orders
+        Back to my orders
       </Link>
 
       <section className="techpack-surface rounded-[4px] border p-6 sm:p-8">
@@ -235,7 +236,7 @@ export default async function AccountOrderDetailPage({
                 className="text-[#1D49B4]"
                 aria-hidden="true"
               />
-              <h3 className="font-semibold">Immutable order specification</h3>
+              <h3 className="font-semibold">Order items</h3>
             </div>
             <div className="mt-5 space-y-4">
               {items.map((item) => {
@@ -283,7 +284,7 @@ export default async function AccountOrderDetailPage({
           <section className="techpack-surface rounded-[4px] border p-6">
             <div className="flex items-center gap-2">
               <Clock3 size={18} className="text-[#1D49B4]" aria-hidden="true" />
-              <h3 className="font-semibold">Messages and action requests</h3>
+              <h3 className="font-semibold">Updates and messages</h3>
             </div>
             <div className="mt-5 space-y-3">
               {comments.map((comment) => (
@@ -365,7 +366,7 @@ export default async function AccountOrderDetailPage({
                 >
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-sm font-semibold">
-                      Attempt {payment.attempt_number}
+                      Payment {formatOrderDate(payment.created_at)}
                     </p>
                     <span className="rounded-[4px] bg-black/5 px-2 py-1 text-[10px] font-semibold capitalize text-black/55">
                       {payment.status}
@@ -389,12 +390,12 @@ export default async function AccountOrderDetailPage({
             <section className="techpack-surface rounded-[4px] border p-6">
               <div className="flex items-center gap-2">
                 <ReceiptIndianRupee size={18} className="text-[#1D49B4]" aria-hidden="true" />
-                <h3 className="font-semibold">{sampleOrder ? "Sample tax document" : "Reservation invoice"}</h3>
+                <h3 className="font-semibold">{sampleOrder ? "Sample invoice" : "Invoice"}</h3>
               </div>
               <p className="mt-4 font-semibold">
                 {invoice.document_number ??
                   (sampleOrder && invoice.sync_status === "not_required"
-                    ? "Automation not enabled"
+                    ? "Invoice is being prepared"
                     : "Being generated")}
               </p>
               <p className="mt-2 text-sm capitalize text-black/50">
@@ -408,11 +409,11 @@ export default async function AccountOrderDetailPage({
                 <div className="mt-4"><InvoiceDownloadButton fileId={invoice.pdf_file_id} /></div>
               ) : sampleOrder && invoice.sync_status === "not_required" ? (
                 <p className="mt-3 text-xs leading-relaxed text-black/40">
-                  Your verified sample payment is recorded. Automatic sample tax invoicing remains disabled until finance supplies the required Zoho item and tax configuration.
+                  Your payment is recorded. The invoice will appear here when it is ready.
                 </p>
               ) : (
                 <p className="mt-3 text-xs leading-relaxed text-black/40">
-                  Your verified payment is safe. The official PDF will appear here after Zoho and private storage finish processing.
+                  Your payment is recorded. The PDF will appear here when it is ready.
                 </p>
               )}
             </section>
@@ -425,7 +426,7 @@ export default async function AccountOrderDetailPage({
                 className="text-[#1D49B4]"
                 aria-hidden="true"
               />
-              <h3 className="font-semibold">Delivery snapshot</h3>
+              <h3 className="font-semibold">Delivery</h3>
             </div>
             <div className="mt-4 text-sm leading-relaxed text-black/55">
               <p className="font-semibold text-black/75">

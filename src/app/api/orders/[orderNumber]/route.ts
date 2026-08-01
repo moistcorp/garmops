@@ -47,6 +47,7 @@ export async function GET(
     const result = await getCustomerOrder(
       auth.supabase,
       membership.organization_id,
+      auth.user.id,
       number.data,
     );
     if (result.order.error || !result.order.data) {

@@ -21,6 +21,8 @@ export type AuthActionState = {
   message: string;
   fieldErrors?: Record<string, string[]>;
   verificationEmail?: string;
+  destination?: string;
+  requiresOnboarding?: boolean;
   resetToken: number;
 };
 
@@ -44,12 +46,18 @@ export function actionError(
 
 export function actionSuccess(
   message: string,
-  options?: { verificationEmail?: string },
+  options?: {
+    verificationEmail?: string;
+    destination?: string;
+    requiresOnboarding?: boolean;
+  },
 ): AuthActionState {
   return {
     status: "success",
     message,
     verificationEmail: options?.verificationEmail,
+    destination: options?.destination,
+    requiresOnboarding: options?.requiresOnboarding,
     resetToken: Date.now(),
   };
 }
