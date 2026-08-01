@@ -5,18 +5,16 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { useCartStore } from '@/lib/store'
+import { CircleHelp, ShoppingCart } from 'lucide-react'
 import CustomerAccountControl from '@/components/auth/CustomerAccountControl'
 import CustomerAuthDialog from '@/components/auth/CustomerAuthDialog'
 import { useCustomerSession } from '@/components/auth/useCustomerSession'
 
 const links = [
   { label: 'Products', href: '/products' },
-  { label: 'Solutions', href: '/corporate-merchandise' },
-  { label: 'How it works', href: '/how-it-works' },
-  { label: 'Work', href: '/work' },
+  { label: 'Industries', href: '/corporate-merchandise' },
+  { label: 'Case Studies', href: '/work' },
   { label: 'Pricing', href: '/pricing' },
-  { label: 'Journal', href: '/journal' },
-  { label: 'Contact', href: '/contact' },
 ]
 
 const mobileGroups = [
@@ -30,7 +28,7 @@ const mobileGroups = [
     ],
   },
   {
-    label: 'Solutions',
+    label: 'Industries',
     links: [
       { label: 'Corporate Merchandise', href: '/corporate-merchandise' },
       { label: 'Hospitality Apparel', href: '/industries/hospitality' },
@@ -107,9 +105,9 @@ export default function Navbar() {
         scrolled ? 'border-[rgba(22,33,43,0.36)]' : 'border-[var(--color-rule)]'
       }`}
     >
-      <div className="relative z-50 mx-auto max-w-7xl">
-        <div className="flex min-h-14 items-center justify-between gap-3 px-4 py-2 sm:gap-4 sm:px-6 sm:py-3">
-          <Link href="/" className="flex min-w-0 shrink items-center" aria-label="Garmops home">
+      <div className="relative z-50 mx-auto w-full">
+        <div className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-2 sm:gap-4 sm:px-6 sm:py-3 xl:grid-cols-[auto_auto_minmax(24px,1fr)_auto] xl:gap-8 xl:px-16">
+          <Link href="/" className="flex min-w-0 shrink items-center xl:justify-self-start" aria-label="Garmops home">
             <Image
               src="/logo3.png"
               alt="Garmops"
@@ -120,7 +118,7 @@ export default function Navbar() {
             />
           </Link>
 
-          <nav className="hidden flex-1 items-center justify-center gap-4 text-sm lg:flex xl:gap-6" aria-label="Primary navigation">
+          <nav className="hidden items-center justify-center gap-6 text-sm xl:justify-self-start xl:flex" aria-label="Primary navigation">
             {links.map(link => {
               const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`)
               return (
@@ -140,24 +138,33 @@ export default function Navbar() {
             })}
           </nav>
 
-          <div className="hidden shrink-0 items-center gap-4 lg:flex">
+          <div className="hidden shrink-0 items-center gap-5 xl:justify-self-end xl:flex">
+            <Link
+              href="/contact"
+              className="inline-flex min-h-11 items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.06em] text-[#444444] transition-colors hover:text-[var(--color-accent)]"
+            >
+              <CircleHelp size={15} aria-hidden="true" />
+              Help
+            </Link>
             {accountsEnabled && <CustomerAccountControl session={customerSession} onOpenAuth={() => setAuthOpen(true)} />}
             <Link
               href="/cart"
-                className="font-mono text-[11px] uppercase tracking-[0.06em] text-[#444444] transition-colors hover:text-[var(--color-accent)]"
+                className="inline-flex min-h-11 items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.06em] text-[#444444] transition-colors hover:text-[var(--color-accent)]"
               >
+              <ShoppingCart size={15} aria-hidden="true" />
               CART{itemCount > 0 ? ` · ${itemCount > 99 ? '99+' : itemCount}` : ''}
             </Link>
             <Link
               href="/configurator"
-              className="rounded-[4px] bg-[var(--color-accent)] px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.06em] text-[var(--color-cream)] transition-colors hover:bg-[var(--color-accent-dark)]"
+              className="inline-flex min-h-11 items-center justify-center rounded-[4px] bg-[var(--color-accent)] px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.06em] text-[var(--color-cream)] transition-colors hover:bg-[var(--color-accent-dark)]"
             >
               START DESIGNING
             </Link>
           </div>
 
-          <div className="flex shrink-0 items-center gap-2.5 min-[360px]:gap-4 lg:hidden">
-            <Link href="/cart" className="flex min-h-11 items-center font-mono text-[11px] uppercase tracking-[0.06em] text-[#111111]/60">
+          <div className="flex shrink-0 items-center gap-2.5 min-[360px]:gap-4 xl:hidden">
+            <Link href="/cart" className="flex min-h-11 items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.06em] text-[#111111]/60">
+              <ShoppingCart size={15} aria-hidden="true" />
               CART{itemCount > 0 ? ` · ${itemCount > 99 ? '99+' : itemCount}` : ''}
             </Link>
             <button
@@ -192,7 +199,7 @@ export default function Navbar() {
       </div>
 
       <div
-        className={`fixed inset-0 z-40 lg:hidden ${open ? 'pointer-events-auto' : 'pointer-events-none'}`}
+        className={`fixed inset-0 z-40 xl:hidden ${open ? 'pointer-events-auto' : 'pointer-events-none'}`}
         aria-hidden={!open}
       >
         <button
