@@ -33,18 +33,6 @@ export default async function AccountOrdersPage({
 }: {
   searchParams: Promise<{ filter?: string }>;
 }) {
-  if (
-    !isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED") &&
-    !isFeatureEnabled("DURABLE_SAMPLE_CHECKOUT_ENABLED")
-  ) {
-    return (
-      <PortalPlaceholder
-        title="Orders"
-        description="Durable ordering is disabled for this environment."
-      />
-    );
-  }
-
   const filterResult = orderListFilterSchema.safeParse(
     (await searchParams).filter ?? "all",
   );
@@ -231,7 +219,7 @@ export default async function AccountOrdersPage({
           />
           <h3 className="mt-4 font-semibold">No matching orders</h3>
           <p className="mx-auto mt-2 max-w-md text-sm text-black/45">
-            You have not placed any orders yet. Start designing when you are ready.
+            Orders placed with Garmops will appear here.
           </p>
         </div>
       )}

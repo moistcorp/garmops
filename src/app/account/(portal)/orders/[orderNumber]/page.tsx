@@ -42,18 +42,6 @@ export default async function AccountOrderDetailPage({
 }: {
   params: Promise<{ orderNumber: string }>;
 }) {
-  if (
-    !isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED") &&
-    !isFeatureEnabled("DURABLE_SAMPLE_CHECKOUT_ENABLED")
-  ) {
-    return (
-      <PortalPlaceholder
-        title="Order unavailable"
-        description="Durable ordering is disabled for this environment."
-      />
-    );
-  }
-
   const number = orderNumberSchema.safeParse((await params).orderNumber);
   if (!number.success) notFound();
   const { supabase, membership, user } = await requireOrganizationMember(
@@ -91,14 +79,6 @@ export default async function AccountOrderDetailPage({
     order.order_type === "sample_purchase"
       ? isFeatureEnabled("DURABLE_SAMPLE_CHECKOUT_ENABLED")
       : isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED");
-  if (!orderFlowEnabled) {
-    return (
-      <PortalPlaceholder
-        title="Order unavailable"
-        description="This order type is disabled for this environment."
-      />
-    );
-  }
   const sampleOrder = order.order_type === "sample_purchase";
   const items = result.items.data ?? [];
   const history = result.history.data ?? [];
@@ -106,6 +86,7 @@ export default async function AccountOrderDetailPage({
   const payments = result.payments;
   const latestPayment = payments[0];
   const retryable =
+    orderFlowEnabled &&
     ["awaiting_payment", "payment_failed"].includes(order.status) &&
     Boolean(latestPayment) &&
     ["created", "initiated", "failed"].includes(latestPayment.status) &&
@@ -113,7 +94,10 @@ export default async function AccountOrderDetailPage({
   const shipping = record(order.shipping_snapshot);
   const shippingAddress = record(shipping.address);
   const reorderAssessment =
-    !sampleOrder && order.status === "delivered" && ["owner", "buyer"].includes(membership.role)
+    orderFlowEnabled &&
+    !sampleOrder &&
+    order.status === "delivered" &&
+    ["owner", "buyer"].includes(membership.role)
       ? await assessReorder({
           supabase,
           organizationId: membership.organization_id,

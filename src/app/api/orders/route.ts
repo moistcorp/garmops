@@ -2,7 +2,6 @@ import { NextRequest } from "next/server";
 
 import {
   authenticateOrderApi,
-  durableOrdersAvailable,
   orderJson,
   orderJsonError,
 } from "@/lib/orders/api";
@@ -13,10 +12,6 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
-  if (!durableOrdersAvailable()) {
-    return orderJsonError("Durable ordering is unavailable", 503);
-  }
-
   const auth = await authenticateOrderApi();
   if (!auth.ok) return auth.response;
 

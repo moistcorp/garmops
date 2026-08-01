@@ -26,18 +26,6 @@ export default async function OrderConfirmationPage({
 }: {
   params: Promise<{ orderNumber: string }>;
 }) {
-  if (
-    !isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED") &&
-    !isFeatureEnabled("DURABLE_SAMPLE_CHECKOUT_ENABLED")
-  ) {
-    return (
-      <PortalPlaceholder
-        title="Confirmation unavailable"
-        description="Durable ordering is disabled for this environment."
-      />
-    );
-  }
-
   const number = orderNumberSchema.safeParse((await params).orderNumber);
   if (!number.success) notFound();
   const { supabase, membership, user } = await requireOrganizationMember(
@@ -66,14 +54,6 @@ export default async function OrderConfirmationPage({
   const orderFlowEnabled = sampleOrder
     ? isFeatureEnabled("DURABLE_SAMPLE_CHECKOUT_ENABLED")
     : isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED");
-  if (!orderFlowEnabled) {
-    return (
-      <PortalPlaceholder
-        title="Confirmation unavailable"
-        description="This order type is disabled for this environment."
-      />
-    );
-  }
   const latestPayment = result.payments[0];
 
   return (
@@ -141,7 +121,12 @@ export default async function OrderConfirmationPage({
           Your payment history is saved with this order.
         </p>
         <div className="mt-6">
-          {latestPayment &&
+          {!orderFlowEnabled ? (
+            <p className="text-sm leading-relaxed text-amber-800">
+              Online payment is currently unavailable. Your order remains saved,
+              and you can view its status from My orders.
+            </p>
+          ) : latestPayment &&
           ["created", "initiated", "failed"].includes(latestPayment.status) ? (
             <PaymentRetryButton
               orderNumber={order.order_number}

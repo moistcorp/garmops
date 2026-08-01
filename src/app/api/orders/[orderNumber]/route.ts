@@ -2,7 +2,6 @@ import { NextRequest } from "next/server";
 
 import {
   authenticateOrderApi,
-  durableOrdersAvailable,
   orderJson,
   orderJsonError,
 } from "@/lib/orders/api";
@@ -20,10 +19,6 @@ export async function GET(
   _request: NextRequest,
   context: OrderRouteContext,
 ) {
-  if (!durableOrdersAvailable()) {
-    return orderJsonError("Durable ordering is unavailable", 503);
-  }
-
   const { orderNumber } = await context.params;
   const number = orderNumberSchema.safeParse(orderNumber);
   if (!number.success) return orderJsonError("Order not found", 404);
