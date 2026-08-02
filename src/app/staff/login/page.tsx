@@ -19,7 +19,7 @@ export default async function StaffLoginPage({
     <AuthShell
       eyebrow="Garmops operations"
       title="Staff sign in"
-      description="Invite-only access to order management, finance, production, and fulfilment. Authenticator MFA is required after password sign-in."
+      description="Staff access to the order queue and order details. Sign in with your email and password."
       footer={
         <>
           Customer? <Link href="/login" className="text-[var(--color-accent)] hover:underline">Sign in to your account</Link>

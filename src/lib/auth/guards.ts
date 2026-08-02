@@ -82,19 +82,8 @@ export async function requireStaff() {
   return requireStaffRecord();
 }
 
-export async function requireStaffMfa() {
-  const context = await requireStaff();
-  const { data, error } =
-    await context.supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (error) redirect("/auth/error?code=MFA_CHECK_FAILED");
-  if (data.currentLevel !== "aal2") {
-    redirect(data.nextLevel === "aal2" ? "/staff/mfa/challenge" : "/staff/mfa/enrol");
-  }
-  return context;
-}
-
 export async function requireStaffPermission(permission: StaffPermission) {
-  const context = await requireStaffMfa();
+  const context = await requireStaff();
   const { data, error } = await context.supabase.rpc("staff_has_permission", {
     p_permission_name: permission,
   });

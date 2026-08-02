@@ -126,16 +126,15 @@ export default async function OrderConfirmationPage({
               Online payment is currently unavailable. Your order remains saved,
               and you can view its status from My orders.
             </p>
-          ) : latestPayment &&
-          ["created", "initiated", "failed"].includes(latestPayment.status) ? (
+          ) : latestPayment && ["created", "initiated"].includes(latestPayment.status) ? (
             <PaymentRetryButton
-              orderNumber={order.order_number}
-              initialAttemptNumber={latestPayment.attempt_number}
               initialPaymentAttemptId={latestPayment.id}
-              initialPaymentStatus={latestPayment.status}
               paymentPurpose={latestPayment.purpose as "reservation" | "sample_full"}
-              confirmation
             />
+          ) : latestPayment?.status === "failed" ? (
+            <p className="text-sm leading-relaxed text-red-700">
+              This payment was not completed. Please contact Garmops support to continue.
+            </p>
           ) : latestPayment?.status === "pending" ? (
             <p className="text-sm leading-relaxed text-amber-800">
               PayU verification is pending. Do not make another payment; this
