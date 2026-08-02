@@ -8,6 +8,7 @@ import {
   updateCompanyDetailsAction,
 } from "@/app/account/company-actions";
 import { INDIA_STATES } from "@/components/configurator/cart/AddressForm";
+import TechpackSectionHeading from "@/components/portal/TechpackSectionHeading";
 import { INITIAL_STAFF_ACTION_STATE } from "@/lib/staff/actionState";
 
 export type CompanyAddress = Readonly<{
@@ -41,9 +42,8 @@ function Message({
     <p
       key={state.resetToken}
       role="status"
-      className={`text-sm ${
-        state.status === "error" ? "text-red-700" : "text-emerald-700"
-      }`}
+      data-tone={state.status === "error" ? "error" : "success"}
+      className="techpack-notice px-3 py-2 text-sm"
     >
       {state.message}
     </p>
@@ -335,32 +335,33 @@ export default function CompanyDetailsForms({
   return (
     <div className="space-y-5">
       <section className="techpack-surface rounded-[4px] border p-6">
-        <h2 className="text-lg font-semibold">Company identity</h2>
-        <p className="mt-2 text-sm leading-relaxed text-black/50">
-          Used on order records and billing documents.
-        </p>
+        <TechpackSectionHeading
+          index="01"
+          title="Company identity"
+          description="Used on order records and billing documents."
+        />
         <div className="mt-6">
           <CompanyForm companyName={companyName} gstin={gstin} editable={canEditCompany} />
         </div>
       </section>
 
       <section className="techpack-surface rounded-[4px] border p-6">
-        <h2 className="text-lg font-semibold">Billing address</h2>
-        <p className="mt-2 text-sm leading-relaxed text-black/50">
-          This address is reused for billing and copied into each submitted order.
-        </p>
+        <TechpackSectionHeading
+          index="02"
+          title="Billing address"
+          description="This address is reused for billing and copied into each submitted order."
+        />
         <div className="mt-6">
           <BillingAddressForm address={billingAddress} editable={canEditAddresses} />
         </div>
       </section>
 
       <section className="space-y-4">
-        <div>
-          <h2 className="text-lg font-semibold">Shipping addresses</h2>
-          <p className="mt-2 text-sm leading-relaxed text-black/50">
-            Save delivery locations and choose the default used at checkout.
-          </p>
-        </div>
+        <TechpackSectionHeading
+          index="03"
+          title="Shipping addresses"
+          description="Save delivery locations and choose the default used at checkout."
+        />
         {shippingAddresses.map((address) => (
           <details
             key={address.id}
@@ -369,7 +370,7 @@ export default function CompanyDetailsForms({
             <summary className="cursor-pointer list-none font-semibold">
               <span>{address.label ?? "Shipping address"}</span>
               {address.is_default_shipping ? (
-                <span className="ml-2 rounded-full bg-[var(--color-accent)]/10 px-2 py-1 text-[10px] uppercase tracking-wider text-[var(--color-accent)]">
+                <span className="techpack-stamp ml-2" data-tone="accent">
                   Default
                 </span>
               ) : null}

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Copy, Plus } from 'lucide-react';
+import { Copy, Plus } from 'lucide-react';
 import type { ProductId } from '@/lib/configurator/pricing';
 import type { GarmentColour, Artwork, NeckLabel } from '@/lib/configurator/types/configurator';
 import type { GarmentView } from '@/lib/configurator/types/garment';
@@ -317,17 +317,12 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-[var(--text-primary)]/50">
               {formatSpecCode(`CART-${cartId}`)}
             </p>
-            <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Order summary</h1>
+            <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Sizes &amp; quantity</h1>
+            <p className="mt-1 text-sm text-[var(--text-primary)]/55">
+              Confirm the final size allocation for each configured product.
+            </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => router.push('/configurator')}
-              className="inline-flex items-center gap-2 rounded-[4px] border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[var(--text-primary)]/75 hover:border-[var(--color-accent)] hover:text-[var(--text-primary)]"
-            >
-              <ArrowLeft size={16} strokeWidth={2.2} />
-              Back to configurator
-            </button>
             <button
               type="button"
               onClick={handleAddAnotherProduct}

@@ -230,7 +230,6 @@ export async function prepareAndSubmitDurableOrder(input: {
   const item = input.draft.items[0];
   const fingerprint = fingerprintFor(input.draft);
   let prepared = readPreparedOrder(input.cartId);
-  const existingLink = readCloudDesignLink(item.productId);
 
   if (!prepared || prepared.fingerprint !== fingerprint) {
     const cloudResult = await saveBuildDraftToCloud({

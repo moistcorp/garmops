@@ -178,7 +178,6 @@ export const products: Product[] = [
   },
 ]
 
-export const categories = ['T-Shirts', 'Longsleeve', 'Polos', 'Sweatshirts', 'Hoodies', 'Accessories']
 
 export function productSeoTitle(product: Product) {
   const fit = product.fits?.[0]

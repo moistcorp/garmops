@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, CalendarDays, Check, Clock3, MapPin, Package, Palette, ReceiptIndianRupee, Ruler } from "lucide-react";
+import { ArrowLeft, CalendarDays, Check, Clock3, MapPin, Palette, ReceiptIndianRupee, Ruler } from "lucide-react";
 
 import InvoiceDownloadButton from "@/components/account/InvoiceDownloadButton";
 import PortalPlaceholder from "@/components/portal/PortalPlaceholder";

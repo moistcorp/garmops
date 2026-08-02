@@ -22,19 +22,20 @@ export function ActionFeedback({
   onAction,
 }: ActionFeedbackProps) {
   const Icon = tone === "loading" ? LoaderCircle : tone === "success" ? CheckCircle2 : CircleAlert;
-  const toneClass =
+  const iconClass =
     tone === "error"
-      ? "border-[#F0CACA] bg-[#FFF5F5] text-[#8A2E2E]"
+      ? "text-[#A62D2D]"
       : tone === "success"
-        ? "border-[#CDE8D2] bg-[#F2FBF3] text-[#1B6A2E]"
-        : tone === "loading"
-          ? "border-[var(--color-accent)]/25 bg-[var(--color-accent)]/5 text-[var(--color-accent-dark)]"
-          : "border-[#E5E5E5] bg-[#F7F7F7] text-[var(--text-primary)]/70";
+        ? "text-[#276E48]"
+        : "text-[var(--color-accent)]";
 
   return (
-    <div role={tone === "error" ? "alert" : "status"} aria-live="polite" className={`flex items-start gap-3 rounded-[4px] border p-3 text-xs ${toneClass}`}>
-      <Icon size={17} className={`mt-0.5 shrink-0 ${tone === "loading" ? "animate-spin" : ""}`} aria-hidden="true" />
+    <div role={tone === "error" ? "alert" : "status"} aria-live="polite" data-tone={tone} className="techpack-notice flex items-start gap-3 p-3 text-xs">
+      <Icon size={17} className={`mt-0.5 shrink-0 ${iconClass} ${tone === "loading" ? "animate-spin" : ""}`} aria-hidden="true" />
       <div className="min-w-0 flex-1">
+        <p className="mb-1 font-mono text-[8px] font-semibold uppercase tracking-[0.12em] opacity-45">
+          {tone === "error" ? "Action required" : tone === "success" ? "Confirmed" : tone === "loading" ? "Processing" : "Notice"}
+        </p>
         <p className="font-semibold">{title}</p>
         {detail && <p className="mt-1 leading-relaxed opacity-80">{detail}</p>}
         {actionLabel && onAction && (

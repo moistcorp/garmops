@@ -1,5 +1,6 @@
 import CompanyDetailsForms from "@/components/account/CompanyDetailsForms";
 import PortalPlaceholder from "@/components/portal/PortalPlaceholder";
+import TechpackPageHeader from "@/components/portal/TechpackPageHeader";
 import { requireOrganizationMember } from "@/lib/auth/guards";
 
 export const dynamic = "force-dynamic";
@@ -44,18 +45,12 @@ export default async function CompanyDetailsPage() {
 
   return (
     <div className="space-y-7">
-      <header>
-        <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-accent)]">
-          Account
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-          Company details
-        </h1>
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-black/50">
-          Save company, GST and address information once so it can be reused for
-          future orders and billing.
-        </p>
-      </header>
+      <TechpackPageHeader
+        eyebrow="Customer account"
+        reference="Company record"
+        title="Company details"
+        description="Save company, GST and address information once so it can be reused for future orders and billing."
+      />
 
       <CompanyDetailsForms
         companyName={organization.legal_name || organization.display_name}

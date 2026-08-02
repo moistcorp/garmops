@@ -11,7 +11,7 @@ type OrderClient = SupabaseClient<Database>;
 type PublicOrderStatus = Database["public"]["Enums"]["public_order_status"];
 
 const listSelect =
-  "id, order_number, order_type, status, public_status, currency, estimated_total_paise, reservation_amount_paise, amount_paid_paise, requested_delivery_date, estimated_dispatch_at, submitted_at, expires_at, order_items(product_name, quantity)";
+  "id, order_number, order_type, status, public_status, currency, estimated_total_paise, reservation_amount_paise, amount_paid_paise, requested_delivery_date, submitted_at, expires_at, order_items(product_name, quantity)";
 
 export function listCustomerOrders(
   supabase: OrderClient,

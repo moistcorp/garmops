@@ -141,7 +141,6 @@ export default function ProductGrid() {
             key={product.id}
             product={product}
             quantity={quantity}
-            selectedUseCase={useCase}
             compared={compareIds.includes(product.id)}
             compareDisabled={compareIds.length >= 3}
             onCompareChange={(selected) => toggleCompare(product.id, selected)}

@@ -130,5 +130,4 @@ export const orderListFilterSchema = z.enum([
 export type SubmitCustomOrderRequest = z.infer<
   typeof submitCustomOrderRequestSchema
 >;
-export type OrderAddress = z.infer<typeof orderAddressSchema>;
 export type OrderListFilter = z.infer<typeof orderListFilterSchema>;

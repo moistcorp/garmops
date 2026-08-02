@@ -44,14 +44,6 @@ function customerClient() {
 
   return {
     from: (table: string) => query(results[table]),
-    rpc: () =>
-      Promise.resolve({
-        data: null,
-        error: {
-          message:
-            "Could not find public.customer_shipment_events in the schema cache",
-        },
-      }),
   } as unknown as SupabaseClient<Database>;
 }
 

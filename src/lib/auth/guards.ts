@@ -40,19 +40,6 @@ export async function requireOrganizationMember(next = "/account") {
   return { ...context, membership: data };
 }
 
-export async function requireOrganizationRole(
-  organizationId: string,
-  allowedRoles: Array<"owner" | "buyer" | "approver" | "finance" | "viewer">,
-) {
-  const context = await requireVerifiedUser("/account");
-  const { data, error } = await context.supabase.rpc("has_organization_role", {
-    p_organization_id: organizationId,
-    p_allowed_roles: allowedRoles,
-  });
-  if (error || !data) redirect("/auth/error?code=ACCOUNT_ACCESS_DENIED");
-  return context;
-}
-
 export async function requireStaffRecord(options?: { allowInvited?: boolean }) {
   const context = await requireVerifiedUser("/staff");
   const { data: staff, error } = await context.supabase

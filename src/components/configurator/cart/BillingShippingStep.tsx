@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, MapPin, UserRound } from "lucide-react";
+import { MapPin, UserRound } from "lucide-react";
 import { DeliveryDatePicker } from "@/components/configurator/cart/DeliveryDatePicker";
 import {
   AddressForm,
@@ -98,6 +98,7 @@ const FIELD_ID_MAP: Record<string, string> = {
 };
 
 function sectionHeading(
+  index: string,
   icon: ReactNode,
   title: string,
   description: string
@@ -108,6 +109,9 @@ function sectionHeading(
         {icon}
       </span>
       <div>
+        <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">
+          {index} / Delivery specification
+        </p>
         <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--text-primary)]">
           {title}
         </h2>
@@ -426,38 +430,26 @@ export function BillingShippingStep({
             />
           )}
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
+          <div>
             <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-[var(--text-primary)]/50">
               {formatSpecCode(`CART-${cartId}`)}
-              </p>
-              <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-                Delivery details
-              </h1>
-              <p className="mt-1 max-w-2xl text-sm leading-relaxed text-[var(--text-primary)]/55">
-                Just the essentials for your reservation. Invoice and
-                procurement details can be shared after our team reviews the
-                order.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() =>
-                router.push(
-                  `/configurator/cart/${encodeURIComponent(cartId)}/review`
-                )
-              }
-              className="inline-flex shrink-0 items-center gap-2 self-start whitespace-nowrap rounded-[4px] border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[var(--text-primary)]/75 hover:border-[var(--color-accent)] hover:text-[var(--text-primary)] sm:self-auto"
-            >
-              <ArrowLeft size={16} strokeWidth={2.2} />
-              Back to order summary
-            </button>
+            </p>
+            <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
+              Delivery details
+            </h1>
+            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-[var(--text-primary)]/55">
+              Just the essentials for your reservation. Invoice and procurement
+              details can be shared after our team reviews the order.
+            </p>
           </div>
 
           <section
             id="delivery-target"
             className="techpack-panel scroll-mt-16 rounded-[4px] border p-5"
           >
+            <p className="mb-3 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">
+              01 / Delivery window
+            </p>
             <DeliveryDatePicker
               orderConfirmedDate={deliveryBaseDate}
               extraLeadTimeDays={extraLeadTimeDays}
@@ -483,6 +475,7 @@ export function BillingShippingStep({
             className="techpack-panel scroll-mt-16 rounded-[4px] border p-5"
           >
             {sectionHeading(
+              "02",
               <UserRound size={18} />,
               "Contact details",
               "Who should receive order updates and coordinate the delivery?"
@@ -597,6 +590,7 @@ export function BillingShippingStep({
             className="techpack-panel scroll-mt-16 rounded-[4px] border p-5"
           >
             {sectionHeading(
+              "03",
               <MapPin size={18} />,
               "Delivery address",
               "Enter one primary delivery location in India. We’ll use the contact name above as the recipient."
@@ -611,7 +605,6 @@ export function BillingShippingStep({
               }
             />
           </section>
-
         </div>
 
         <div className="lg:sticky lg:top-36 lg:self-start">

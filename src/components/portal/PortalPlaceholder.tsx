@@ -20,10 +20,13 @@ export default function PortalPlaceholder({
         </div>
       ) : null}
       <div className="techpack-surface rounded-[4px] border p-6 sm:p-8">
-        <h2 className="text-xl font-semibold">{title}</h2>
+        <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">
+          Workspace notice
+        </p>
+        <h2 className="mt-2 text-xl font-semibold">{title}</h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-black/50">{description}</p>
-        <div className="mt-8 rounded-[4px] border border-dashed border-black/15 bg-white p-8 text-center text-sm text-black/35">
-          The secure workspace is ready. Operational data arrives in its scheduled integration phase.
+        <div className="techpack-notice mt-8 border-dashed p-8 text-center text-sm text-black/45" data-tone="info">
+          Your secure workspace remains available. Refresh or return to the previous register to continue.
         </div>
       </div>
     </div>

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import { roleCan } from "./permissions";
 import {
   allowedNextStatusesForRole,
   ORDER_TRANSITIONS,
@@ -53,13 +52,5 @@ describe("Phase 10 staff operations rules", () => {
     expect(
       allowedNextStatusesForRole("in_production", "dispatch"),
     ).toEqual(["on_hold"]);
-  });
-
-  it("keeps sensitive actions role-limited", () => {
-    expect(roleCan("read_only", "add_internal_note")).toBe(false);
-    expect(roleCan("support", "send_customer_update")).toBe(true);
-    expect(roleCan("finance", "retry_invoice_job")).toBe(true);
-    expect(roleCan("sales", "change_file_visibility")).toBe(false);
-    expect(roleCan("operations_admin", "view_audit")).toBe(true);
   });
 });

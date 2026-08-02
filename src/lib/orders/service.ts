@@ -304,5 +304,3 @@ export async function retryOrderPayment(input: {
   }
   return result;
 }
-
-export const retryCustomOrderPayment = retryOrderPayment;

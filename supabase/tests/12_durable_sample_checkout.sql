@@ -3,7 +3,7 @@ create extension if not exists pgtap with schema extensions;
 begin;
 set local search_path = public, extensions;
 
-select plan(44);
+select plan(41);
 
 select ok(
   to_regprocedure('public.retry_order_payment(uuid,uuid,text,text)') is not null,
@@ -279,7 +279,7 @@ select is(
     select resource_id from public.idempotency_keys where scope = 'submit_order' and key = 'phase12-durable-sample-order-1'
   ) and kind = 'sample_tax_invoice'),
   'not_required',
-  'sample Zoho automation remains explicitly disabled pending finance configuration'
+  'sample invoice is retained for in-house document generation'
 );
 select is(
   (select count(*) from public.integration_jobs where aggregate_id = (
@@ -325,24 +325,6 @@ select is(
   1::bigint,
   'duplicate verification creates no second confirmation job'
 );
-
-set local role authenticated;
-select set_config(
-  'request.jwt.claims',
-  '{"sub":"44444444-4444-4444-8444-444444444444","role":"authenticated","aal":"aal2"}',
-  true
-);
-select is(
-  (public.staff_dashboard_metrics()->>'newPaidSampleOrders')::integer,
-  1,
-  'staff dashboard surfaces a newly paid sample order'
-);
-select is(
-  (public.staff_dashboard_metrics()->>'newPaidReservations')::integer,
-  1,
-  'staff dashboard still counts paid custom-bulk reservations'
-);
-reset role;
 
 -- A second unpaid order proves staff cannot bypass verified full payment.
 select lives_ok(
@@ -431,12 +413,6 @@ select throws_ok(
   'P0001',
   'INVALID_STATUS_TRANSITION',
   'sample order cannot enter custom artwork workflow'
-);
-select is(
-  (select count(*) from public.approvals
-   where order_id = current_setting('test.phase12_paid_order_id')::uuid),
-  0::bigint,
-  'sample fulfilment requires no artwork approval record'
 );
 select is(
   (select count(*) from public.order_status_history

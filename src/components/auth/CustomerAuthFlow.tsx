@@ -5,26 +5,48 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import {
   completeMinimalCustomerOnboardingAction,
-  loginAction,
   requestCustomerOtpAction,
   verifyCustomerOtpAction,
 } from "@/app/(auth)/actions";
 import TurnstileWidget from "@/components/auth/TurnstileWidget";
+import { ActionFeedback } from "@/components/configurator/ActionFeedback";
 import { INITIAL_AUTH_ACTION_STATE, type AuthActionState } from "@/lib/auth/constants";
 
-type Step = "email" | "otp" | "password" | "onboarding";
+type Step = "email" | "otp" | "onboarding";
 
 const inputClass = "techpack-control w-full rounded-[4px] border px-4 py-3 text-sm outline-none transition-colors focus:!border-[var(--color-accent)]";
 
 function Message({ state }: { state: AuthActionState }) {
   if (!state.message) return null;
   return (
-    <p
-      role={state.status === "error" ? "alert" : "status"}
-      className={`rounded-[4px] border px-4 py-3 text-sm ${state.status === "error" ? "border-red-200 bg-red-50 text-red-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}
-    >
-      {state.message}
-    </p>
+    <ActionFeedback
+      tone={state.status === "error" ? "error" : "success"}
+      title={state.message}
+    />
+  );
+}
+
+function AuthProgress({ step }: { step: Step }) {
+  const activeIndex = step === "email" ? 0 : step === "otp" ? 1 : 2;
+  const labels = ["Email", "Verify", "Workspace"];
+  return (
+    <ol className="mb-6 grid grid-cols-3 border border-[var(--color-rule)]" aria-label="Account access progress">
+      {labels.map((label, index) => (
+        <li
+          key={label}
+          aria-current={index === activeIndex ? "step" : undefined}
+          className={`border-r border-[var(--color-rule)] px-2 py-2 text-center font-mono text-[8px] font-semibold uppercase tracking-[0.08em] last:border-r-0 ${
+            index === activeIndex
+              ? "bg-[var(--color-accent)] text-white"
+              : index < activeIndex
+                ? "bg-[var(--color-cream-soft)] text-[var(--color-navy)]"
+                : "text-[var(--text-primary)]/35"
+          }`}
+        >
+          {String(index + 1).padStart(2, "0")} {label}
+        </li>
+      ))}
+    </ol>
   );
 }
 
@@ -61,14 +83,6 @@ export default function CustomerAuthFlow({
     }
     return result;
   }, INITIAL_AUTH_ACTION_STATE);
-  const [passwordState, passwordAction, passwordPending] = useActionState(async (state: AuthActionState, formData: FormData) => {
-    const result = await loginAction(state, formData);
-    if (result.status === "success") {
-      if (result.requiresOnboarding) setStep("onboarding");
-      else if (result.destination) finish(result.destination);
-    }
-    return result;
-  }, INITIAL_AUTH_ACTION_STATE);
   const [onboardingState, onboardingAction, onboardingPending] = useActionState(async (state: AuthActionState, formData: FormData) => {
     const result = await completeMinimalCustomerOnboardingAction(state, formData);
     if (result.status === "success" && result.destination) finish(result.destination);
@@ -85,27 +99,31 @@ export default function CustomerAuthFlow({
 
   if (step === "onboarding") {
     return (
-      <form action={onboardingAction} className="flex flex-col gap-4" aria-busy={onboardingPending}>
-        <input type="hidden" name="next" value={next} />
-        <p className="text-sm leading-relaxed text-black/55">A few details will help us keep your orders in one place.</p>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="flex flex-col gap-1.5 text-xs font-medium uppercase tracking-wide text-black/55">First name<input className={inputClass} name="firstName" required autoComplete="given-name" autoFocus /></label>
-          <label className="flex flex-col gap-1.5 text-xs font-medium uppercase tracking-wide text-black/55">Last name<input className={inputClass} name="lastName" required autoComplete="family-name" /></label>
-        </div>
-        <label className="flex flex-col gap-1.5 text-xs font-medium uppercase tracking-wide text-black/55">Company name <span className="normal-case text-black/40">(optional)</span><input className={inputClass} name="companyName" autoComplete="organization" /></label>
-        <label className="flex items-start gap-3 text-sm leading-relaxed text-black/60">
-          <input className="mt-1 size-4" type="checkbox" name="consent" required />
-          <span>I agree to the <Link href="/terms" className="text-[var(--color-accent)] hover:underline">Terms of Service</Link> and acknowledge the <Link href="/privacy" className="text-[var(--color-accent)] hover:underline">Privacy Policy</Link>.</span>
-        </label>
-        <Message state={onboardingState} />
-        <button type="submit" disabled={onboardingPending} className="min-h-11 rounded-[4px] bg-[var(--color-accent)] px-6 py-3 text-sm font-medium text-white disabled:opacity-60">{onboardingPending ? "Saving…" : "Continue"}</button>
-      </form>
+      <div>
+        <AuthProgress step="onboarding" />
+        <form action={onboardingAction} className="flex flex-col gap-4" aria-busy={onboardingPending}>
+          <input type="hidden" name="next" value={next} />
+          <p className="text-sm leading-relaxed text-black/55">A few details will help us keep your orders in one place.</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="flex flex-col gap-1.5 text-xs font-medium uppercase tracking-wide text-black/55">First name<input className={inputClass} name="firstName" required autoComplete="given-name" autoFocus /></label>
+            <label className="flex flex-col gap-1.5 text-xs font-medium uppercase tracking-wide text-black/55">Last name<input className={inputClass} name="lastName" required autoComplete="family-name" /></label>
+          </div>
+          <label className="flex flex-col gap-1.5 text-xs font-medium uppercase tracking-wide text-black/55">Company name <span className="normal-case text-black/40">(optional)</span><input className={inputClass} name="companyName" autoComplete="organization" /></label>
+          <label className="flex items-start gap-3 text-sm leading-relaxed text-black/60">
+            <input className="mt-1 size-4" type="checkbox" name="consent" required />
+            <span>I agree to the <Link href="/terms" className="text-[var(--color-accent)] hover:underline">Terms of Service</Link> and acknowledge the <Link href="/privacy" className="text-[var(--color-accent)] hover:underline">Privacy Policy</Link>.</span>
+          </label>
+          <Message state={onboardingState} />
+          <button type="submit" disabled={onboardingPending} className="min-h-11 rounded-[4px] bg-[var(--color-accent)] px-6 py-3 text-sm font-medium text-white disabled:opacity-60">{onboardingPending ? "Saving…" : "Open workspace"}</button>
+        </form>
+      </div>
     );
   }
 
   if (step === "otp") {
     return (
       <div className="space-y-4">
+        <AuthProgress step="otp" />
         <form action={verifyAction} className="flex flex-col gap-4" aria-busy={verifying}>
           <input type="hidden" name="email" value={email} />
           <input type="hidden" name="next" value={next} />
@@ -122,35 +140,21 @@ export default function CustomerAuthFlow({
         </form>
         <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
           <button type="button" onClick={() => setStep("email")} className="min-h-11 text-[var(--color-accent)] hover:underline">Change email</button>
-          <button type="button" onClick={() => setStep("password")} className="min-h-11 text-[var(--color-accent)] hover:underline">Login with password</button>
         </div>
       </div>
     );
   }
 
-  if (step === "password") {
-    return (
-      <form action={passwordAction} className="flex flex-col gap-4" aria-busy={passwordPending}>
-        <input type="hidden" name="next" value={next} />
-        <input type="hidden" name="portal" value="customer" />
-        <label className="flex flex-col gap-1.5 text-xs font-medium uppercase tracking-wide text-black/55">Email address<input className={inputClass} name="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="email" autoFocus /></label>
-        <label className="flex flex-col gap-1.5 text-xs font-medium uppercase tracking-wide text-black/55">Password<input className={inputClass} name="password" type="password" required autoComplete="current-password" /></label>
-        <TurnstileWidget action="login" resetToken={passwordState.resetToken} />
-        <Message state={passwordState} />
-        <button type="submit" disabled={passwordPending} className="min-h-11 rounded-[4px] bg-[var(--color-accent)] px-6 py-3 text-sm font-medium text-white disabled:opacity-60">{passwordPending ? "Signing in…" : "Sign in"}</button>
-        <div className="flex flex-wrap justify-between gap-x-4 gap-y-2 text-sm"><Link href="/forgot-password" className="min-h-11 text-[var(--color-accent)] hover:underline">Forgot password?</Link><button type="button" onClick={() => setStep("email")} className="min-h-11 text-[var(--color-accent)] hover:underline">Use email OTP instead</button></div>
-      </form>
-    );
-  }
-
   return (
-    <form action={requestAction} className="flex flex-col gap-4" aria-busy={requesting}>
-      <input type="hidden" name="next" value={next} />
-      <label className="flex flex-col gap-1.5 text-xs font-medium uppercase tracking-wide text-black/55">Email address<input className={inputClass} name="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="email" autoFocus placeholder="name@company.com" /></label>
-      <TurnstileWidget action="login" resetToken={requestState.resetToken} />
-      <Message state={requestState} />
-      <button type="submit" disabled={requesting} className="min-h-11 rounded-[4px] bg-[var(--color-accent)] px-6 py-3 text-sm font-medium text-white disabled:opacity-60">{requesting ? "Sending…" : "Continue"}</button>
-      <button type="button" onClick={() => setStep("password")} className="min-h-11 text-left text-sm text-[var(--color-accent)] hover:underline">Login with password</button>
-    </form>
+    <div>
+      <AuthProgress step="email" />
+      <form action={requestAction} className="flex flex-col gap-4" aria-busy={requesting}>
+        <input type="hidden" name="next" value={next} />
+        <label className="flex flex-col gap-1.5 text-xs font-medium uppercase tracking-wide text-black/55">Email address<input className={inputClass} name="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="email" autoFocus placeholder="name@company.com" /></label>
+        <TurnstileWidget action="login" resetToken={requestState.resetToken} />
+        <Message state={requestState} />
+        <button type="submit" disabled={requesting} className="min-h-11 rounded-[4px] bg-[var(--color-accent)] px-6 py-3 text-sm font-medium text-white disabled:opacity-60">{requesting ? "Sending code…" : "Send access code"}</button>
+      </form>
+    </div>
   );
 }

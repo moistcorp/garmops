@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
   CheckCircle2,
   CreditCard,
   FileText,
@@ -35,6 +34,7 @@ import {
 import { formatDeliveryLabel, isDeliverySelectionValid } from "@/lib/configurator/delivery";
 import { formatInr } from "@/lib/configurator/pricing";
 import { formatSpecCode } from "@/lib/orders/format";
+import { getPaymentJourneyStep } from "@/lib/configurator/journey";
 import {
   CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS,
   CUSTOM_DYE_MOQ_UNITS,
@@ -389,8 +389,12 @@ export function ConfirmationStep({
 
   const topBar = (
     <ConfiguratorTopBar
-      currentStep="review"
-      backHref={`/configurator/cart/${encodeURIComponent(cartId)}/shipping`}
+      currentStep={getPaymentJourneyStep(isProcessing)}
+      backHref={
+        isProcessing
+          ? undefined
+          : `/configurator/cart/${encodeURIComponent(cartId)}/shipping`
+      }
       showCart
       productName={getCartProductLabel(draft.items)}
       specReference={`CART-${cartId}`}
@@ -420,23 +424,22 @@ export function ConfirmationStep({
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-[var(--text-primary)]/50">{formatSpecCode(`CART-${cartId}`)}</p>
-            <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Review & payment</h1>
-            {draft.projectName && <p className="mt-1 text-sm font-medium text-[var(--text-primary)]/60">{draft.projectName}</p>}
+            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-[var(--text-primary)]/50">
+              {formatSpecCode(`CART-${cartId}`)}
+            </p>
+            <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
+              Review &amp; payment
+            </h1>
+            {draft.projectName && (
+              <p className="mt-1 text-sm font-medium text-[var(--text-primary)]/60">
+                {draft.projectName}
+              </p>
+            )}
           </div>
-          <button
-            type="button"
-            onClick={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping`)}
-            className="inline-flex shrink-0 items-center gap-2 self-start whitespace-nowrap rounded-[4px] border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[var(--text-primary)]/75 hover:border-[var(--color-accent)] hover:text-[var(--text-primary)] sm:self-auto"
-          >
-            <ArrowLeft size={16} strokeWidth={2.2} />
-            Back to delivery details
-          </button>
-        </div>
 
         <ReviewSection
+          index="01"
           icon={<MapPin size={18} />}
           title="Delivery and billing details"
           onEdit={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping`)}
@@ -526,6 +529,7 @@ export function ConfirmationStep({
 
         {(draft.projectPreferences.orderNotes || draft.projectPreferences.receiveEmails) && (
           <section className="techpack-panel rounded-[4px] border p-5">
+            <p className="mb-2 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">Supplement / Project notes</p>
             <h3 className="text-sm font-medium text-[var(--text-primary)]">Project notes & communication</h3>
             {draft.projectPreferences.orderNotes && (
               <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[var(--text-primary)]/70">{draft.projectPreferences.orderNotes}</p>
@@ -537,6 +541,7 @@ export function ConfirmationStep({
         )}
 
         <section className="techpack-panel rounded-[4px] border p-5">
+          <p className="mb-2 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">02 / Order specification</p>
           <h3 className="mb-4 text-sm font-medium text-[var(--text-primary)]">Order summary</h3>
           <div className="space-y-4">
             {draft.items.map((item) => <ProductRecapCard key={item.id} item={item} />)}
@@ -544,6 +549,7 @@ export function ConfirmationStep({
         </section>
 
         <section className="techpack-panel rounded-[4px] border !border-[var(--color-accent)]/25 p-5">
+          <p className="mb-3 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">03 / Production handoff</p>
           <div className="flex items-start gap-3">
             <span className="rounded-[4px] bg-white p-2 text-[var(--color-accent-dark)]"><ShieldCheck size={18} /></span>
             <div className="min-w-0 flex-1">
@@ -568,6 +574,7 @@ export function ConfirmationStep({
         </section>
 
         <section className="techpack-panel rounded-[4px] border p-5">
+          <p className="mb-3 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">04 / Reservation authorisation</p>
           <label className="flex cursor-pointer items-start gap-3 text-sm text-[var(--text-primary)]">
             <input
               type="checkbox"
@@ -626,11 +633,13 @@ export function ConfirmationStep({
 }
 
 function ReviewSection({
+  index,
   icon,
   title,
   onEdit,
   children,
 }: {
+  index: string;
   icon: ReactNode;
   title: string;
   onEdit: () => void;
@@ -638,6 +647,9 @@ function ReviewSection({
 }) {
   return (
     <section className="techpack-panel rounded-[4px] border p-5">
+      <p className="mb-3 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">
+        {index} / Review section
+      </p>
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className="text-[var(--color-accent-dark)]">{icon}</span>

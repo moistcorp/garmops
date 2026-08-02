@@ -27,13 +27,13 @@ select has_table('public', 'idempotency_keys', 'idempotency_keys table exists');
 select has_table('public', 'payment_attempts', 'payment_attempts table exists');
 select has_table('public', 'payment_events', 'payment_events table exists');
 select has_table('public', 'order_status_history', 'order_status_history table exists');
-select has_table('public', 'order_comments', 'order_comments table exists');
+select hasnt_table('public', 'order_comments', 'retired order comments table is absent');
 select has_table('public', 'order_files', 'order_files table exists');
-select has_table('public', 'approvals', 'approvals table exists');
+select hasnt_table('public', 'approvals', 'retired approvals table is absent');
 select has_table('public', 'invoices', 'invoices table exists');
 select has_table('public', 'integration_jobs', 'integration_jobs table exists');
-select has_table('public', 'shipments', 'shipments table exists');
-select has_table('public', 'notifications', 'notifications table exists');
+select hasnt_table('public', 'shipments', 'retired shipments table is absent');
+select hasnt_table('public', 'notifications', 'retired notifications table is absent');
 select has_table('public', 'audit_logs', 'audit_logs table exists');
 
 select is(
@@ -43,29 +43,25 @@ select is(
     join pg_namespace as n on n.oid = c.relnamespace
     where n.nspname = 'public'
       and c.relname = any(array[
-        'approvals',
         'audit_logs',
         'design_project_versions',
         'design_projects',
         'idempotency_keys',
         'integration_jobs',
         'invoices',
-        'notifications',
         'number_counters',
-        'order_comments',
         'order_files',
         'order_item_sizes',
         'order_items',
         'order_status_history',
         'orders',
         'payment_attempts',
-        'payment_events',
-        'shipments'
+        'payment_events'
       ])
       and c.relrowsecurity
   ),
-  18::bigint,
-  'every Phase 2 table has RLS enabled'
+  14::bigint,
+  'every retained durable-order table has RLS enabled'
 );
 
 select is(

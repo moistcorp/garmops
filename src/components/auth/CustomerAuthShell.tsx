@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function CustomerAuthShell({
   title,
   description,
@@ -10,12 +12,29 @@ export default function CustomerAuthShell({
   footer?: React.ReactNode;
 }) {
   return (
-    <div className="techpack-canvas min-h-[calc(100vh-4.5rem)] px-4 py-10 sm:px-6 sm:py-16">
-      <section className="mx-auto w-full max-w-[480px] border border-[var(--color-rule)] bg-white px-5 py-7 sm:px-10 sm:py-10">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{title}</h1>
-        <p className="mt-3 text-sm leading-relaxed text-black/55">{description}</p>
-        <div className="mt-8">{children}</div>
-        {footer ? <div className="mt-6 border-t border-[var(--color-rule)] pt-5 text-sm text-black/55">{footer}</div> : null}
+    <div className="techpack-canvas techpack-paper-grid min-h-screen px-4 py-10 sm:px-6 sm:py-16">
+      <section className="mx-auto w-full max-w-[520px] border border-[var(--color-rule)] bg-white">
+        <div className="flex items-center justify-between border-b border-[var(--color-rule)] px-5 py-3 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--text-primary)]/40 sm:px-10">
+          <Link href="/" className="text-[var(--color-navy)] hover:text-[var(--color-accent)]">Garmops</Link>
+          <span>Access / Customer</span>
+        </div>
+        <div className="px-5 py-7 sm:px-10 sm:py-10">
+          <span className="techpack-stamp" data-tone="accent">
+            Secure email access
+          </span>
+          <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
+            {title}
+          </h1>
+          <p className="mt-3 text-sm leading-relaxed text-black/55">
+            {description}
+          </p>
+          <div className="mt-8">{children}</div>
+          {footer ? (
+            <div className="mt-6 border-t border-[var(--color-rule)] pt-5 text-sm text-black/55">
+              {footer}
+            </div>
+          ) : null}
+        </div>
       </section>
     </div>
   );

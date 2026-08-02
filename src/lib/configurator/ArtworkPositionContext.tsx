@@ -41,7 +41,6 @@ export const DEFAULT_POSITION_STATE: PositionControlsState = {
 export const STEP = 0.5;
 export const MIN_DIM = 1;
 export const MAX_DIM = 50;
-export const MIN_OFFSET = 0;
 
 export function clampDim(value: number, min: number = MIN_DIM, max: number = MAX_DIM): number {
   const rounded = Math.round(value * 2) / 2;
@@ -111,7 +110,6 @@ export function constrainArtworkToPrintArea(
 // on the rendered garment, not the full square canvas.
 // ---------------------------------------------------------------------------
 
-export const PRINT_AREA_CM = { width: 31, height: 43 };
 export const CANVAS_PX = { width: 600, height: 600 };
 export const PX_PER_CM_X = 7.8;
 export const PX_PER_CM_Y = 7.4;

@@ -70,7 +70,6 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const GSTIN_RE = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 const INDIA_PIN_RE = /^[1-9][0-9]{5}$/;
 const INDIA_MOBILE_RE = /^[6-9][0-9]{9}$/;
-const WEBSITE_RE = /^(https?:\/\/)?([a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}(?:[/?#].*)?$/i;
 
 const GST_STATE_CODES: Record<string, string[]> = {
   "01": ["jammu and kashmir", "jammu kashmir", "jk"],
@@ -139,11 +138,6 @@ export function isIndianPhoneValid(phone: string): boolean {
 
 export function isEmailValid(email: string): boolean {
   return EMAIL_RE.test(email.trim());
-}
-
-export function isWebsiteValid(website: string): boolean {
-  const trimmed = website.trim();
-  return !trimmed || WEBSITE_RE.test(trimmed);
 }
 
 function normalizeStateName(state: string): string {

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Clock3, FileText, MapPin, Package, Palette, ReceiptIndianRupee, Ruler, UserRound } from "lucide-react";
+import { ArrowLeft, Clock3, FileText, MapPin, Palette, ReceiptIndianRupee, Ruler, UserRound } from "lucide-react";
 import { requireStaffPermission } from "@/lib/auth/guards";
 import { formatMoneyPaise, formatOrderCode, formatOrderDate, formatOrderTimestamp, publicOrderStatusLabel } from "@/lib/orders/format";
 import { allowedNextStatusesForRole, ORDER_STATUS_LABELS } from "@/lib/staff/statuses";

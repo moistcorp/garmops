@@ -14,13 +14,11 @@ export default function AuthShell({
   footer?: React.ReactNode;
 }) {
   return (
-    <main className="techpack-canvas min-h-screen px-4 py-8 sm:px-6 sm:py-12">
+    <main className="techpack-canvas techpack-paper-grid min-h-screen px-4 py-8 sm:px-6 sm:py-12">
       <div className="mx-auto flex min-h-[calc(100vh-6rem)] max-w-6xl items-center">
         <div className="grid w-full overflow-hidden rounded-[4px] border border-[var(--color-rule)] bg-white lg:grid-cols-[0.8fr_1.2fr]">
           <aside className="techpack-dark hidden min-h-[640px] flex-col justify-between p-10 text-white lg:flex">
-            <Link href="/" className="text-xl font-bold tracking-tight">
-              Garmops
-            </Link>
+            <div><Link href="/" className="text-xl font-bold tracking-tight">Garmops</Link><p className="mt-2 font-mono text-[9px] uppercase tracking-[0.14em] text-white/35">Access control / secure</p></div>
             <div>
               <p className="mb-4 text-xs uppercase tracking-[0.24em] text-white/45">
                 Production, without guesswork
@@ -39,9 +37,7 @@ export default function AuthShell({
               <Link href="/" className="mb-10 inline-block text-lg font-bold lg:hidden">
                 Garmops
               </Link>
-              <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--color-accent)]">
-                {eyebrow}
-              </p>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><p className="font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--color-accent)]">{eyebrow}</p><span className="techpack-stamp">Identity check</span></div>
               <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{title}</h1>
               <p className="mt-3 text-sm leading-relaxed text-black/50">{description}</p>
               <div className="mt-8">{children}</div>

@@ -187,7 +187,7 @@ export function OrderBar({
             htmlFor="configurator-quantity"
             className="mb-0.5 block text-[9px] font-semibold uppercase tracking-wide text-[var(--text-primary)]/45"
           >
-            Quantity
+            Planned quantity
           </label>
           <div className="techpack-control flex h-10 w-full items-center justify-between rounded-[4px] border px-1.5">
             <button

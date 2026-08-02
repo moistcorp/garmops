@@ -30,23 +30,6 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   expired: "Expired",
 };
 
-export const PUBLIC_STATUS_LABELS: Record<PublicOrderStatus, string> = {
-  payment_incomplete: "Payment incomplete",
-  order_submitted: "Order submitted",
-  action_required: "Action required",
-  under_review: "Under review",
-  awaiting_approval: "Awaiting approval",
-  payment_due: "Payment due",
-  approved: "Approved",
-  in_production: "In production",
-  quality_check: "Quality check",
-  ready_to_dispatch: "Ready to dispatch",
-  dispatched: "Dispatched",
-  delivered: "Delivered",
-  on_hold: "On hold",
-  cancelled: "Cancelled",
-};
-
 export const PUBLIC_STATUS_BY_INTERNAL: Record<
   OrderStatus,
   PublicOrderStatus
@@ -181,11 +164,6 @@ const SAMPLE_ORDER_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
     "cancelled",
   ],
 };
-
-export const HIGH_IMPACT_STATUSES = new Set<OrderStatus>([
-  "cancelled",
-  "refunded",
-]);
 
 export function allowedNextStatuses(
   status: OrderStatus,

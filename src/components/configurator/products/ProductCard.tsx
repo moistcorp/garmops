@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { Check, ChevronDown, GitCompareArrows, Sparkles } from "lucide-react";
-import type { Product, ProductUseCase } from "@/lib/configurator/products";
+import type { Product } from "@/lib/configurator/products";
 import { formatInr, getBasePrice, getVolumeDiscountPercent } from "@/lib/configurator/pricing";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 
@@ -21,7 +21,6 @@ function getDisplayPrice(productId: Product["id"], quantity: number): string {
 interface ProductCardProps {
   product: Product;
   quantity: number;
-  selectedUseCase: ProductUseCase | "";
   compared: boolean;
   compareDisabled: boolean;
   onCompareChange: (selected: boolean) => void;
@@ -32,7 +31,6 @@ interface ProductCardProps {
 export default function ProductCard({
   product,
   quantity,
-  selectedUseCase,
   compared,
   compareDisabled,
   onCompareChange,

@@ -57,6 +57,7 @@ import CustomerAuthDialog from "@/components/auth/CustomerAuthDialog";
 import { useCustomerSession } from "@/components/auth/useCustomerSession";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 import { readPreferredQuantity } from "@/lib/configurator/clientPreferences";
+import { getConfiguratorCtaLabel } from "@/lib/configurator/journey";
 import {
   cloudSnapshotToBuildDraft,
   loadCloudDesign,
@@ -155,13 +156,6 @@ function stepsForConfiguration(
       summary: summary ?? (restored?.skipped ? "Skipped · standard label only" : null),
     };
   });
-}
-
-function getCtaLabel(openStep: AccordionStepId | null): string {
-  if (openStep === "garment-colour") return "Continue";
-  if (openStep === "artwork") return "Continue";
-  if (openStep === "neck-label") return "Continue to sizes";
-  return "Continue to sizes";
 }
 
 export default function ConfigureClient({ configId }: ConfigureClientProps) {
@@ -1266,7 +1260,11 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 quantity={quantity}
                 onQuantityChange={setSafeQuantity}
                 minQuantity={minimumQuantity}
-                ctaLabel={getCtaLabel(expandedStepId)}
+                ctaLabel={getConfiguratorCtaLabel(expandedStepId, {
+                  hasArtwork: Boolean(artwork.front || artwork.back),
+                  hasCustomLabel: Boolean(neckLabel?.fileUrl || neckLabel?.fileId),
+                  isToteProduct,
+                })}
                 onCtaClick={handleCtaClick}
                 pricingBreakdown={pricingBreakdown}
                 ctaErrorMessage={ctaErrorMessage}

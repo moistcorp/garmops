@@ -118,6 +118,14 @@ canvas {
   background: var(--color-studio-bg);
 }
 
+.techpack-paper-grid {
+  background-color: var(--color-cream-soft);
+  background-image:
+    linear-gradient(rgba(22, 33, 43, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(22, 33, 43, 0.035) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
 /* Shared tech-pack materials used across configurator, commerce, and portal surfaces. */
 .techpack-surface,
 .techpack-subtle,
@@ -188,6 +196,27 @@ canvas {
 .techpack-stamp[data-tone="success"] {
   border-color: rgba(39, 110, 72, 0.45);
   color: #276e48;
+}
+
+.techpack-notice {
+  border: 1px solid var(--color-rule);
+  border-left-width: 3px;
+  border-radius: 4px;
+  background: var(--color-cream);
+  color: var(--color-navy);
+}
+
+.techpack-notice[data-tone="info"],
+.techpack-notice[data-tone="loading"] {
+  border-left-color: var(--color-accent);
+}
+
+.techpack-notice[data-tone="success"] {
+  border-left-color: #276e48;
+}
+
+.techpack-notice[data-tone="error"] {
+  border-left-color: #a62d2d;
 }
 
 .techpack-control:hover {

@@ -597,10 +597,6 @@ export function totalUnits(sizeQuantities: Record<Size, number>): number {
   );
 }
 
-export function itemSubtotal(item: CartItem): number {
-  return totalUnits(item.sizeQuantities) * getCartItemUnitPrice(item);
-}
-
 export function getCartItemBaseUnitPrice(item: CartItem): number {
   return (
     item.baseUnitPrice ??

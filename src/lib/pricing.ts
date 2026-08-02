@@ -46,12 +46,6 @@ export function getRushCharge(qty: number): number {
   return getRushDeliveryUnitFee(qty)
 }
 
-export function getPricePerPiece(productName: string, qty: number, rush = false): number {
-  const base = PRODUCT_PRICES[productName] ?? 535
-  const rushCharge = rush ? getRushCharge(qty) : 0
-  return Math.round(applyVolumeDiscount(base + rushCharge, qty))
-}
-
 export function calcOrder(productName: string, qty: number, rush = false) {
   const basePrice = PRODUCT_PRICES[productName] ?? 535
   const discount = getDiscount(qty)
@@ -75,11 +69,4 @@ export function calcOrder(productName: string, qty: number, rush = false) {
     gst,
     total,
   }
-}
-
-export function getDeliveryDate(rush = false): string {
-  const days = rush ? RUSH_DELIVERY_DAYS : DELIVERY_DAYS
-  const d = new Date()
-  d.setDate(d.getDate() + days)
-  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
 }

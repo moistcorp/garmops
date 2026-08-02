@@ -1,8 +1,6 @@
 import {
-  doesGstinMatchState,
   getAddressMissingFields,
   isEmailValid,
-  isGstinValid,
   isIndianPhoneValid,
   type Address,
 } from "./AddressForm";
@@ -115,35 +113,6 @@ export function getShippingMissingFields(shipping: ShippingInformation): Missing
     missing.push({ key: "shipping.recipientName", label: "shipping recipient", section: "shipping" });
   }
   missing.push(...addressFields(shipping.address, "shipping", "shipping.address"));
-  return missing;
-}
-
-export function getBillingMissingFields(
-  billing: BillingInformation,
-  company: CompanyInformation
-): MissingCheckoutField[] {
-  const missing: MissingCheckoutField[] = [];
-  const address = billing.sameAsCompanyAddress ? company.address : billing.address;
-  if (!billing.entity.trim()) missing.push({ key: "billing.entity", label: "billing entity", section: "billing" });
-  if (!isEmailValid(billing.accountsPayableEmail)) {
-    missing.push({ key: "billing.accountsPayableEmail", label: "accounts-payable email", section: "billing" });
-  }
-  if (!isGstinValid(billing.gstin)) {
-    missing.push({ key: "billing.gstin", label: "valid billing GSTIN", section: "billing" });
-  }
-  missing.push(...addressFields(
-    address,
-    "billing",
-    billing.sameAsCompanyAddress ? "company.address" : "billing.address"
-  ));
-  if (
-    billing.gstin.trim() &&
-    isGstinValid(billing.gstin) &&
-    address.state &&
-    !doesGstinMatchState(billing.gstin, address.state)
-  ) {
-    missing.push({ key: "billing.gstin-state", label: "GSTIN matching billing state", section: "billing" });
-  }
   return missing;
 }
 

@@ -35,8 +35,8 @@ successful release result.
 - `CRON_SECRET` is a newly generated secret and is configured in Vercel Cron.
 - PayU live callback and webhook URLs point to the production origin.
 - R2 private bucket CORS allows only the production application origin.
-- Resend sender/domain, Zoho data centre, tax configuration, and PayU merchant
-  credentials have been verified in their provider dashboards.
+- Resend sender/domain, in-house invoice tax configuration, and PayU merchant
+  credentials have been verified.
 - `DURABLE_CUSTOM_CHECKOUT_ENABLED=true` and
   `DURABLE_SAMPLE_CHECKOUT_ENABLED=true` are enabled only after staging UAT.
 
@@ -72,7 +72,7 @@ changes orders, payments, invoices, or access control.
 
 Alert on non-2xx responses from `/api/health`, repeated failures from the
 authenticated integration-health probe, failed job processor invocations,
-PayU reconciliation errors, and R2/Zoho/Resend provider errors. Review the
+PayU reconciliation errors, and R2/Resend provider errors. Review the
 Vercel function log, Supabase logs, PayU dashboard, R2 metrics, and provider
 quotas at least daily during the pilot.
 

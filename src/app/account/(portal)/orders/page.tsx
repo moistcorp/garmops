@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 
 import PortalPlaceholder from "@/components/portal/PortalPlaceholder";
+import TechpackPageHeader from "@/components/portal/TechpackPageHeader";
 import { requireOrganizationMember } from "@/lib/auth/guards";
 import { isFeatureEnabled } from "@/lib/config/featureFlags";
 import { listCustomerOrders } from "@/lib/orders/dal";
@@ -59,19 +60,13 @@ export default async function AccountOrdersPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-accent)]">
-            Account
-          </p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight">
-            My orders
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-black/50">
-            View the status and details of orders placed with Garmops.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
+      <TechpackPageHeader
+        eyebrow="Customer account"
+        reference="Order register"
+        title="My orders"
+        description="View the status and production details of orders placed with Garmops."
+        actions={
+          <>
           {isFeatureEnabled("DURABLE_SAMPLE_CHECKOUT_ENABLED") ? (
             <Link
               href="/products"
@@ -89,8 +84,9 @@ export default async function AccountOrdersPage({
               Start designing
             </Link>
           ) : null}
-        </div>
-      </div>
+          </>
+        }
+      />
 
       <div className="flex gap-2 overflow-x-auto border-b border-black/8 pb-3">
         {filters.map((entry) => (
