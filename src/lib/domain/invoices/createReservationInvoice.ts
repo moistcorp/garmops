@@ -14,6 +14,7 @@ function hsnCodeForProduct(productName: string, fallback: string) {
   const product = productName.toLowerCase();
   if (product.includes("canvas tote")) return "4202";
   if (product.includes("hoodie") || product.includes("sweatshirt")) return "6110";
+  if (product.includes("polo")) return "610910";
   if (product.includes("tee") || product.includes("t-shirt") || product.includes("t shirt")) return "610910";
   return fallback;
 }

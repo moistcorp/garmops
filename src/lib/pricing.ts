@@ -20,7 +20,6 @@ export const PRODUCT_PRICES: Record<string, number> = {
   'Boxy Fit Sweatshirt (320 GSM)': 585,
   'Regular Fit Hoodie (320 GSM)': 575,
   'Boxy Fit Hoodie (320 GSM)': 615,
-  'Shorts (220 GSM)': 505,
   'Canvas Tote Bag': 350,
 }
 
