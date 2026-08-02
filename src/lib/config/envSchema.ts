@@ -63,9 +63,9 @@ const serverEnvironmentSchema = z
     PAYU_ENVIRONMENT: z.enum(["test", "live"]).default("test"),
     NEXT_PUBLIC_PAYU_BASE_URL: optionalUrl,
 
-    INVOICE_SELLER_LEGAL_NAME: z.string().trim().min(1).max(200).default("Moist Corp — configure legal name"),
-    INVOICE_SELLER_ADDRESS: z.string().trim().min(1).max(500).default("Configure registered seller address, Uttar Pradesh, India"),
-    INVOICE_SELLER_GSTIN: z.string().trim().min(1).max(40).default("CONFIGURE_SELLER_GSTIN"),
+    INVOICE_SELLER_LEGAL_NAME: z.string().trim().min(1).max(200).default("M/s Moist Corp"),
+    INVOICE_SELLER_ADDRESS: z.string().trim().min(1).max(500).default("2nd Floor, Q-5 Site-5, Road Number 4, Prime Infra Engineers, UPSIDC Site 5, Greater Noida, Gautambuddha Nagar, Uttar Pradesh 201312"),
+    INVOICE_SELLER_GSTIN: z.string().trim().min(1).max(40).default("09HPFPS8162L1ZY"),
     INVOICE_SELLER_STATE: z.string().trim().min(1).max(80).default("Uttar Pradesh"),
     INVOICE_DEFAULT_HSN_CODE: z.string().trim().min(1).max(40).default("CONFIGURE_HSN_CODE"),
     INVOICE_GST_RATE_BASIS_POINTS: positiveInteger(500, 10_000),
