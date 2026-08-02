@@ -17,7 +17,7 @@ export const metadata: Metadata = generateMeta({
 
 export default function ConfiguratorPage() {
   return (
-    <main className="techpack-canvas min-h-screen px-4 pb-10 sm:px-6">
+    <main className="techpack-studio-bg min-h-screen px-4 pb-10 sm:px-6">
       <div className="mx-auto flex max-w-7xl flex-col gap-8">
         <ConfiguratorTopBar
           currentStep="product"

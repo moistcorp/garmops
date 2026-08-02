@@ -96,7 +96,7 @@ export function SizeQuantityGrid({
                 min={0}
                 value={value[size] ?? 0}
                 onChange={(e) => handleInputChange(size, e.target.value)}
-                className="h-full w-8 bg-transparent text-center font-mono text-sm font-medium text-[var(--text-primary)] outline-none"
+                className="no-spinner h-full w-8 bg-transparent text-center font-mono text-sm font-medium text-[var(--text-primary)] outline-none"
               />
               <button
                 type="button"
