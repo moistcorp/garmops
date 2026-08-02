@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import AuthActionForm from "@/components/auth/AuthActionForm";
-import AuthShell from "@/components/auth/AuthShell";
 import { safeInternalPath } from "@/lib/auth/redirects";
 
 export const metadata: Metadata = {
@@ -16,17 +14,19 @@ export default async function StaffLoginPage({
 }) {
   const { next } = await searchParams;
   return (
-    <AuthShell
-      eyebrow="Garmops operations"
-      title="Staff sign in"
-      description="Staff access to the order queue and order details. Sign in with your email and password."
-      footer={
-        <>
-          Customer? <Link href="/login" className="text-[var(--color-accent)] hover:underline">Sign in to your account</Link>
-        </>
-      }
-    >
-      <AuthActionForm variant="login" portal="staff" next={safeInternalPath(next, "/staff")} />
-    </AuthShell>
+    <main className="techpack-canvas flex min-h-screen items-center justify-center px-4 py-8 sm:px-6">
+      <section className="w-full max-w-md rounded-[6px] border border-[var(--color-rule)] bg-white p-6 sm:p-8">
+        <p className="font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--color-accent)]">
+          Garmops operations
+        </p>
+        <h1 className="mt-3 text-2xl font-bold tracking-tight">Staff sign in</h1>
+        <p className="mt-2 text-sm leading-relaxed text-black/50">
+          Use your staff email and password to access operations.
+        </p>
+        <div className="mt-7">
+          <AuthActionForm variant="login" portal="staff" next={safeInternalPath(next, "/staff")} />
+        </div>
+      </section>
+    </main>
   );
 }

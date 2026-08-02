@@ -79,7 +79,6 @@ export default function Footer() {
           <Link href="/contact" className={linkClass}>Help</Link>
           <Link href="/terms" className={linkClass}>Terms of Service</Link>
           <Link href="/privacy" className={linkClass}>Privacy Policy</Link>
-          <Link href="/staff/login" className={linkClass}>Staff sign in</Link>
           <a href="mailto:hello@garmops.com" className={`${linkClass} break-all sm:break-normal`}>hello@garmops.com</a>
           <a href="tel:+918800711169" className={linkClass}>+91-8800711169</a>
           <a href="https://moistcorp.com" target="_blank" rel="noopener noreferrer" className={linkClass}>Moist Corp</a>
