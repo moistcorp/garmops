@@ -5,6 +5,11 @@ import {
   createReservationInvoice,
   markReservationInvoiceFailure,
 } from "@/lib/domain/invoices/createReservationInvoice";
+import {
+  EMAIL_THEME,
+  escapeEmailHtml,
+  renderBrandedEmail,
+} from "@/lib/email/brand";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type IntegrationJob = Readonly<{
@@ -27,15 +32,6 @@ function record(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : {};
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
 }
 
 async function sendResendEmail(input: {
@@ -112,26 +108,35 @@ async function sendPaymentConfirmation(job: IntegrationJob): Promise<void> {
     style: "currency",
     currency: "INR",
   }).format(attempt.amount_paise / 100);
-  const safeName = escapeHtml(attempt.customer_name);
-  const safeOrder = escapeHtml(order.order_number);
+  const safeName = escapeEmailHtml(attempt.customer_name, 160);
+  const safeOrder = escapeEmailHtml(order.order_number, 100);
   const invoiceMessage = invoice?.document_number
-    ? `Your invoice <strong>${escapeHtml(invoice.document_number)}</strong> is available in your account.`
+    ? `Your invoice <strong>${escapeEmailHtml(invoice.document_number, 100)}</strong> is available in your account.`
     : "Your invoice is being generated and will appear in your account shortly.";
+  const orderUrl = new URL(
+    `/account/orders/${encodeURIComponent(order.order_number)}`,
+    getServerEnvironment().NEXT_PUBLIC_APP_URL,
+  ).toString();
 
   await sendResendEmail({
     to: attempt.customer_email,
     subject: `Payment confirmed for ${order.order_number}`,
     idempotencyKey: `garmops-payment-confirmation-${attempt.id}`,
-    html: `
-      <div style="font-family:Arial,sans-serif;max-width:620px;margin:0 auto;color:#111827">
-        <h1 style="font-size:24px">${sampleOrder ? "Sample payment" : "Reservation payment"} confirmed</h1>
-        <p>Hi ${safeName},</p>
-        <p>We verified your ${amount} ${sampleOrder ? "full sample" : "reservation"} payment for order <strong>${safeOrder}</strong>.</p>
-        <p>${invoiceMessage}</p>
-        <p><a href="${escapeHtml(new URL(`/account/orders/${encodeURIComponent(order.order_number)}`, getServerEnvironment().NEXT_PUBLIC_APP_URL).toString())}">View your order</a></p>
-        <p style="font-size:12px;color:#6b7280">This email is generated from the verified PayU payment record. Do not reply with payment credentials.</p>
-      </div>
-    `,
+    html: renderBrandedEmail({
+      preheader: `Payment confirmed for order ${order.order_number}.`,
+      eyebrow: sampleOrder ? "Payment / sample order" : "Payment / reservation",
+      title: `${sampleOrder ? "Sample payment" : "Reservation payment"} confirmed`,
+      statusLabel: "Payment verified",
+      statusTone: "success",
+      action: { label: "View order", url: orderUrl },
+      footerNote:
+        "Generated from the verified PayU payment record. Never share payment credentials by email.",
+      bodyHtml: `
+        <p style="margin: 0 0 10px;">Hi ${safeName},</p>
+        <p style="margin: 0 0 16px; color: ${EMAIL_THEME.muted};">We verified your <strong style="color: ${EMAIL_THEME.ink};">${escapeEmailHtml(amount, 100)}</strong> ${sampleOrder ? "full sample" : "reservation"} payment for order <strong style="color: ${EMAIL_THEME.ink};">${safeOrder}</strong>.</p>
+        <div style="padding: 14px 16px; border: 1px solid ${EMAIL_THEME.line}; border-left: 3px solid ${EMAIL_THEME.accent}; border-radius: 4px; background: ${EMAIL_THEME.accentSoft}; color: ${EMAIL_THEME.accentDark};">${invoiceMessage}</div>
+      `,
+    }),
   });
 }
 
@@ -142,7 +147,19 @@ async function sendFinanceAlert(job: IntegrationJob, message: string): Promise<v
     to: environment.FINANCE_ALERT_EMAIL,
     subject: `Garmops finance integration exception: ${job.job_type}`,
     idempotencyKey: `garmops-finance-alert-${job.id}-${job.attempt_count}`,
-    html: `<p>Integration job <strong>${escapeHtml(job.id)}</strong> requires attention.</p><p>${escapeHtml(message)}</p>`,
+    html: renderBrandedEmail({
+      preheader: `Finance integration exception for ${job.job_type}.`,
+      eyebrow: "Finance / integration alert",
+      title: "Integration job requires attention",
+      statusLabel: "Exception",
+      statusTone: "danger",
+      bodyHtml: `
+        <table style="width: 100%; border-collapse: collapse; border: 1px solid ${EMAIL_THEME.line}; background: ${EMAIL_THEME.cream};">
+          <tr><td style="padding: 12px; border-bottom: 1px solid ${EMAIL_THEME.line}; color: ${EMAIL_THEME.muted};">Job</td><td style="padding: 12px; border-bottom: 1px solid ${EMAIL_THEME.line}; font-family: 'Courier New', Courier, monospace;">${escapeEmailHtml(job.id, 100)}</td></tr>
+          <tr><td style="padding: 12px; color: ${EMAIL_THEME.muted};">Detail</td><td style="padding: 12px;">${escapeEmailHtml(message, 1000)}</td></tr>
+        </table>
+      `,
+    }),
   }).catch(() => undefined);
 }
 

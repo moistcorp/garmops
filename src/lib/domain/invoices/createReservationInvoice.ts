@@ -2,6 +2,11 @@ import "server-only";
 
 import { Resend } from "resend";
 import { getServerEnvironment } from "@/lib/config/env";
+import {
+  EMAIL_THEME,
+  escapeEmailHtml,
+  renderBrandedEmail,
+} from "@/lib/email/brand";
 import { buildInvoicePdf } from "@/lib/invoices/pdf";
 import { putPrivatePdf } from "@/lib/r2/put";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -52,7 +57,49 @@ export async function createReservationInvoice(invoiceId: string) {
   const taxable = isGstInvoice ? Math.round(payment.amount_paise * 10_000 / (10_000 + env.INVOICE_GST_RATE_BASIS_POINTS)) : payment.amount_paise;
   const { error: updateError } = await admin.from("invoices").update({ provider: "garmops", sync_status: "completed", document_number: number, issue_date: issuedAt.slice(0, 10), subtotal_paise: taxable, tax_paise: payment.amount_paise - taxable, total_paise: payment.amount_paise, paid_paise: payment.amount_paise, balance_paise: 0, tax_configuration_snapshot: { format: isGstInvoice ? "gst" : "simple", hsn_codes: isGstInvoice ? [...new Set(lines.map((line) => line.hsnCode))] : [], gst_rate_basis_points: isGstInvoice ? env.INVOICE_GST_RATE_BASIS_POINTS : 0 } as Json, pdf_file_id: pdfFileId, completed_at: new Date().toISOString(), last_error_code: null, last_error_message: null, next_attempt_at: null }).eq("id", invoice.id);
   if (updateError) throw new Error(updateError.message);
-  if (!invoice.emailed_at && env.RESEND_API_KEY && env.RESEND_FROM_EMAIL) { const resend = new Resend(env.RESEND_API_KEY); const { error: emailError } = await resend.emails.send({ from: env.RESEND_FROM_EMAIL, to: payment.customer_email, subject: `Invoice ${number} for ${order.order_number}`, html: `<p>Hi ${payment.customer_name},</p><p>Your invoice <strong>${number}</strong> is attached. You can also download it from your order in Garmops.</p>`, attachments: [{ filename: generated.filename, content: Buffer.from(generated.bytes).toString("base64") }] }, { idempotencyKey: `garmops-invoice-${invoice.id}` }); if (emailError) throw Object.assign(new Error(emailError.message), { retryable: true }); await admin.from("invoices").update({ emailed_at: new Date().toISOString() }).eq("id", invoice.id); }
+  if (!invoice.emailed_at && env.RESEND_API_KEY && env.RESEND_FROM_EMAIL) {
+    const resend = new Resend(env.RESEND_API_KEY);
+    const orderUrl = new URL(
+      `/account/orders/${encodeURIComponent(order.order_number)}`,
+      env.NEXT_PUBLIC_APP_URL,
+    ).toString();
+    const emailHtml = renderBrandedEmail({
+      preheader: `Invoice ${number} is ready for order ${order.order_number}.`,
+      eyebrow: "Accounts / invoice",
+      title: "Your invoice is ready",
+      statusLabel: "Invoice attached",
+      statusTone: "accent",
+      action: { label: "View order", url: orderUrl },
+      bodyHtml: `
+        <p style="margin: 0 0 10px;">Hi ${escapeEmailHtml(payment.customer_name, 160)},</p>
+        <p style="margin: 0 0 18px; color: ${EMAIL_THEME.muted};">Invoice <strong style="color: ${EMAIL_THEME.ink};">${escapeEmailHtml(number, 100)}</strong> for order <strong style="color: ${EMAIL_THEME.ink};">${escapeEmailHtml(order.order_number, 100)}</strong> is attached to this email.</p>
+        <div style="padding: 14px 16px; border: 1px solid ${EMAIL_THEME.line}; border-left: 3px solid ${EMAIL_THEME.accent}; border-radius: 4px; background: ${EMAIL_THEME.accentSoft}; color: ${EMAIL_THEME.accentDark};">You can also download the invoice from the order in your secure Garmops workspace.</div>
+      `,
+    });
+    const { error: emailError } = await resend.emails.send(
+      {
+        from: env.RESEND_FROM_EMAIL,
+        to: payment.customer_email,
+        subject: `Invoice ${number} for ${order.order_number}`,
+        html: emailHtml,
+        text: `Hi ${payment.customer_name},\n\nInvoice ${number} for order ${order.order_number} is attached. You can also view it at ${orderUrl}.`,
+        attachments: [
+          {
+            filename: generated.filename,
+            content: Buffer.from(generated.bytes).toString("base64"),
+          },
+        ],
+      },
+      { idempotencyKey: `garmops-invoice-${invoice.id}` },
+    );
+    if (emailError) {
+      throw Object.assign(new Error(emailError.message), { retryable: true });
+    }
+    await admin
+      .from("invoices")
+      .update({ emailed_at: new Date().toISOString() })
+      .eq("id", invoice.id);
+  }
   return { invoiceId: invoice.id, documentNumber: number, pdfFileId };
 }
 

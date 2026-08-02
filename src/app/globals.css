@@ -572,19 +572,11 @@ canvas {
   letter-spacing: -0.02em;
 }
 
-.garmops-loader-copy p:not(.garmops-loader-kicker) {
+.garmops-loader-copy p {
   margin-top: 0.45rem;
   color: rgba(22, 33, 43, 0.55);
   font-size: 0.8rem;
   line-height: 1.55;
-}
-
-.garmops-loader-kicker {
-  color: var(--color-accent);
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
 }
 
 .garmops-loader-steps {

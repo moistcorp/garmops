@@ -1,4 +1,5 @@
 import Link from "next/link";
+import GarmopsLogo from "@/components/common/GarmopsLogo";
 
 export default function CustomerAuthShell({
   title,
@@ -15,7 +16,9 @@ export default function CustomerAuthShell({
     <div className="techpack-canvas techpack-paper-grid min-h-screen px-4 py-10 sm:px-6 sm:py-16">
       <section className="mx-auto w-full max-w-[520px] border border-[var(--color-rule)] bg-white">
         <div className="flex items-center justify-between border-b border-[var(--color-rule)] px-5 py-3 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--text-primary)]/40 sm:px-10">
-          <Link href="/" className="text-[var(--color-navy)] hover:text-[var(--color-accent)]">Garmops</Link>
+          <Link href="/" aria-label="Garmops home" className="inline-flex">
+            <GarmopsLogo className="h-3 w-auto" />
+          </Link>
           <span>Access / Customer</span>
         </div>
         <div className="px-5 py-7 sm:px-10 sm:py-10">

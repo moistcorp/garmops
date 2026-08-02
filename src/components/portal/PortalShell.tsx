@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { logoutAction } from "@/app/(auth)/actions";
+import GarmopsLogo from "@/components/common/GarmopsLogo";
 import PortalNav, { type PortalNavItem } from "./PortalNav";
 
 export default function PortalShell({
@@ -21,7 +22,9 @@ export default function PortalShell({
     <main className="techpack-canvas techpack-paper-grid min-h-screen p-3 sm:p-5">
       <div className="mx-auto grid min-h-[calc(100vh-2.5rem)] max-w-[1500px] overflow-hidden rounded-[4px] border border-[var(--color-rule)] bg-white lg:grid-cols-[260px_1fr]">
         <aside className="techpack-dark flex flex-col p-5 text-white sm:p-7">
-          <Link href="/" className="text-xl font-bold tracking-tight">Garmops</Link>
+          <Link href="/" aria-label="Garmops home" className="inline-flex">
+            <GarmopsLogo inverted className="h-4 w-auto" />
+          </Link>
           <p className="mt-2 font-mono text-[9px] uppercase tracking-[0.18em] text-white/40">{kind}</p>
           <PortalNav items={nav} />
           <div className="mt-8 border-t border-white/10 pt-5">

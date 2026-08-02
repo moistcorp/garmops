@@ -1,5 +1,10 @@
 import "server-only";
 
+import {
+  EMAIL_THEME as BRAND,
+  renderEmailFooter,
+  renderEmailHeader,
+} from "@/lib/email/brand";
 import type { PaymentKind } from "@/lib/payu";
 
 export type PaymentEmailTemplate = {
@@ -37,21 +42,6 @@ type SummaryRow = {
   label: string;
   value?: string;
   multiline?: boolean;
-};
-
-// Email markup renders outside the app document, so :root design tokens are unavailable.
-const BRAND = {
-  ink: "#111111",
-  muted: "#66706D",
-  line: "#DDE7E4",
-  canvas: "#F1F6F4",
-  teal: "#0E7C72",
-  tealDark: "#075E57",
-  tealSoft: "#E6F5F2",
-  red: "#B42318",
-  redSoft: "#FEF3F2",
-  amber: "#8A5A00",
-  amberSoft: "#FFF8E7",
 };
 
 function cleanText(value: unknown, maxLength = 1000): string {
@@ -139,7 +129,7 @@ function renderSteps(steps: string[]): string {
       (step, index) => `
         <tr>
           <td width="34" valign="top" style="padding: 0 10px 14px 0;">
-            <div style="width: 24px; height: 24px; border-radius: 12px; background: ${BRAND.tealSoft}; color: ${BRAND.tealDark}; font-size: 12px; font-weight: 700; line-height: 24px; text-align: center;">${index + 1}</div>
+            <div style="width: 24px; height: 24px; border: 1px solid ${BRAND.accent}; border-radius: 4px; background: ${BRAND.accentSoft}; color: ${BRAND.accentDark}; font-family: 'Courier New', Courier, monospace; font-size: 11px; font-weight: 700; line-height: 24px; text-align: center;">${String(index + 1).padStart(2, "0")}</div>
           </td>
           <td valign="top" style="padding: 2px 0 14px; color: ${BRAND.muted}; font-size: 13px; line-height: 20px;">${escapeHtml(step, 300)}</td>
         </tr>
@@ -182,14 +172,14 @@ function renderEmailShell({
   supportEmail?: string;
 }): string {
   const isSuccess = statusTone === "success";
-  const statusBackground = isSuccess ? BRAND.tealSoft : BRAND.redSoft;
-  const statusColor = isSuccess ? BRAND.tealDark : BRAND.red;
+  const statusBackground = isSuccess ? BRAND.successSoft : BRAND.dangerSoft;
+  const statusColor = isSuccess ? BRAND.success : BRAND.danger;
   const safeButtonUrl = validHttpUrl(buttonUrl);
   const safeSupportEmail = validEmail(supportEmail);
   const calloutBackground =
-    calloutTone === "warning" ? BRAND.amberSoft : BRAND.tealSoft;
+    calloutTone === "warning" ? BRAND.warningSoft : BRAND.accentSoft;
   const calloutColor =
-    calloutTone === "warning" ? BRAND.amber : BRAND.tealDark;
+    calloutTone === "warning" ? BRAND.warning : BRAND.accentDark;
 
   return `
     <!doctype html>
@@ -204,20 +194,11 @@ function renderEmailShell({
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; background: ${BRAND.canvas};">
           <tr>
             <td align="center" style="padding: 28px 12px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 620px; border-collapse: separate; background: #FFFFFF; border: 1px solid ${BRAND.line}; border-radius: 20px; overflow: hidden;">
-                <tr>
-                  <td style="padding: 24px 28px; background: ${BRAND.ink};">
-                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                      <tr>
-                        <td style="color: #FFFFFF; font-family: Arial, Helvetica, sans-serif; font-size: 18px; font-weight: 800; letter-spacing: 1.8px;">GARMOPS<span style="color: #59C9BD;">.</span></td>
-                        <td align="right" style="color: #B9C2C0; font-family: Arial, Helvetica, sans-serif; font-size: 10px; letter-spacing: 1px; text-transform: uppercase;">${escapeHtml(eyebrow, 80)}</td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 620px; border-collapse: separate; background: ${BRAND.surface}; border: 1px solid ${BRAND.line}; border-radius: 4px; overflow: hidden;">
+                ${renderEmailHeader(eyebrow)}
                 <tr>
                   <td style="padding: 34px 28px 12px; font-family: Arial, Helvetica, sans-serif;">
-                    <div style="display: inline-block; margin-bottom: 18px; padding: 7px 11px; border-radius: 999px; background: ${statusBackground}; color: ${statusColor}; font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;">${isSuccess ? "&#10003;&nbsp;" : "&#33;&nbsp;"}${escapeHtml(statusLabel, 80)}</div>
+                    <div style="display: inline-block; margin-bottom: 18px; padding: 6px 9px; border: 1px solid ${statusColor}; border-radius: 4px; background: ${statusBackground}; color: ${statusColor}; font-family: 'Courier New', Courier, monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;">${escapeHtml(statusLabel, 80)}</div>
                     <h1 style="margin: 0 0 14px; color: ${BRAND.ink}; font-size: 30px; line-height: 36px; letter-spacing: -0.7px;">${escapeHtml(title, 160)}</h1>
                     <p style="margin: 0 0 8px; color: ${BRAND.ink}; font-size: 15px; line-height: 24px;">Hi ${escapeHtml(greeting, 120)},</p>
                     <p style="margin: 0; color: ${BRAND.muted}; font-size: 15px; line-height: 24px;">${escapeHtml(introduction, 600)}</p>
@@ -225,8 +206,8 @@ function renderEmailShell({
                 </tr>
                 <tr>
                   <td style="padding: 22px 28px 0; font-family: Arial, Helvetica, sans-serif;">
-                    <div style="padding: 20px; border: 1px solid ${BRAND.line}; border-radius: 14px;">
-                      <div style="margin-bottom: 4px; color: ${BRAND.ink}; font-size: 13px; font-weight: 700; letter-spacing: 0.3px;">${escapeHtml(summaryTitle, 100)}</div>
+                    <div style="padding: 20px; border: 1px solid ${BRAND.line}; border-radius: 4px; background: ${BRAND.cream};">
+                      <div style="margin-bottom: 4px; color: ${BRAND.accent}; font-family: 'Courier New', Courier, monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;">${escapeHtml(summaryTitle, 100)}</div>
                       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse;">
                         ${renderSummaryRows(summaryRows)}
                       </table>
@@ -238,7 +219,7 @@ function renderEmailShell({
                     ? `
                 <tr>
                   <td style="padding: 18px 28px 0; font-family: Arial, Helvetica, sans-serif;">
-                    <div style="padding: 14px 16px; border-radius: 12px; background: ${calloutBackground}; color: ${calloutColor}; font-size: 12px; line-height: 19px;">${escapeHtml(callout, 600)}</div>
+                    <div style="padding: 14px 16px; border: 1px solid ${BRAND.line}; border-left: 3px solid ${calloutColor}; border-radius: 4px; background: ${calloutBackground}; color: ${calloutColor}; font-size: 12px; line-height: 19px;">${escapeHtml(callout, 600)}</div>
                   </td>
                 </tr>
                 `
@@ -257,23 +238,13 @@ function renderEmailShell({
                     ? `
                 <tr>
                   <td style="padding: 16px 28px 28px; font-family: Arial, Helvetica, sans-serif;">
-                    <a href="${escapeHtml(safeButtonUrl, 1000)}" style="display: inline-block; padding: 13px 22px; border-radius: 999px; background: ${BRAND.teal}; color: #FFFFFF; font-size: 13px; font-weight: 700; line-height: 18px; text-decoration: none;">${escapeHtml(buttonLabel, 80)}</a>
+                    <a href="${escapeHtml(safeButtonUrl, 1000)}" style="display: inline-block; padding: 12px 18px; border-radius: 4px; background: ${BRAND.accent}; color: #FFFFFF; font-family: 'Courier New', Courier, monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.7px; line-height: 16px; text-decoration: none; text-transform: uppercase;">${escapeHtml(buttonLabel, 80)}</a>
                   </td>
                 </tr>
                 `
                     : ""
                 }
-                <tr>
-                  <td style="padding: 22px 28px; border-top: 1px solid ${BRAND.line}; background: #FAFCFB; color: ${BRAND.muted}; font-family: Arial, Helvetica, sans-serif; font-size: 11px; line-height: 18px;">
-                    ${
-                      safeSupportEmail
-                        ? `Questions? Reply to this email or contact <a href="mailto:${escapeHtml(safeSupportEmail, 320)}" style="color: ${BRAND.tealDark}; text-decoration: underline;">${escapeHtml(safeSupportEmail, 320)}</a>.<br>`
-                        : ""
-                    }
-                    Garmops &mdash; Powered by Moist Corp<br>
-                    Greater Noida, Uttar Pradesh, India
-                  </td>
-                </tr>
+                ${renderEmailFooter({ supportEmail: safeSupportEmail })}
               </table>
             </td>
           </tr>

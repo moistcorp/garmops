@@ -9,6 +9,7 @@ import {
   buildPaymentFailureEmail,
   buildPaymentSuccessEmail,
 } from '@/lib/email/paymentTemplates'
+import { EMAIL_THEME, renderBrandedEmail } from '@/lib/email/brand'
 import { consumeAuthRateLimit, requestIpAddress } from '@/lib/auth/rateLimit'
 import { verifyTurnstile } from '@/lib/auth/turnstile'
 import { isFeatureEnabled } from '@/lib/config/featureFlags'
@@ -88,9 +89,9 @@ function detailRow(label: string, value: unknown, maxLength = 500): string {
   if (!safeValue) return ''
 
   return `
-    <tr style="border-bottom: 1px solid #F0F0F0;">
-      <td style="padding: 10px 20px; color: #888; width: 40%; vertical-align: top;">${escapeHtml(label)}</td>
-      <td style="padding: 10px 20px; color: #111; font-weight: 500; white-space: pre-wrap;">${safeValue}</td>
+    <tr>
+      <td style="width: 40%; padding: 12px 14px; border-bottom: 1px solid ${EMAIL_THEME.line}; color: ${EMAIL_THEME.muted}; font-family: 'Courier New', Courier, monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; vertical-align: top;">${escapeHtml(label)}</td>
+      <td style="padding: 12px 14px; border-bottom: 1px solid ${EMAIL_THEME.line}; color: ${EMAIL_THEME.ink}; font-size: 13px; font-weight: 500; white-space: pre-wrap; vertical-align: top;">${safeValue}</td>
     </tr>
   `
 }
@@ -339,47 +340,42 @@ export async function POST(req: NextRequest) {
     const resend = new Resend(apiKey)
     const firstName = escapeHtml(name.split(/\s+/)[0], 120)
 
-    // Email HTML renders outside the app document, so :root design tokens are unavailable.
-    const contactEmailHtml = `
-      <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto; color: #111111;">
-        <div style="border-bottom: 1px solid #E5E5E5; padding-bottom: 20px; margin-bottom: 24px;">
-          <h1 style="font-size: 18px; font-weight: 700; margin: 0;">Garmops</h1>
-        </div>
-        <p style="font-size: 15px; margin-bottom: 6px;">Hi ${firstName},</p>
-        <p style="font-size: 15px; color: #555; line-height: 1.7; margin-bottom: 24px;">
-          Thanks for reaching out. We have received your enquiry and our team will review it and get back to you with a detailed quote within <strong style="color: #111;">24 hours</strong>.
-        </p>
-        <div style="border: 1px solid #E5E5E5; margin-bottom: 24px;">
-          <div style="background: #111111; padding: 12px 20px;">
-            <p style="font-size: 11px; font-weight: 600; color: white; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">Enquiry summary</p>
-          </div>
+    const contactEmailHtml = renderBrandedEmail({
+      preheader: 'We received your Garmops enquiry.',
+      eyebrow: 'Customer enquiry / received',
+      title: 'We received your enquiry',
+      statusLabel: 'Enquiry received',
+      statusTone: 'success',
+      supportEmail: contactToEmail,
+      bodyHtml: `
+        <p style="margin: 0 0 8px;">Hi ${firstName},</p>
+        <p style="margin: 0 0 22px; color: ${EMAIL_THEME.muted};">Thanks for reaching out. Our team will review your requirements and respond with the next steps within <strong style="color: ${EMAIL_THEME.ink};">24 hours</strong>.</p>
+        <div style="border: 1px solid ${EMAIL_THEME.line}; border-radius: 4px; background: ${EMAIL_THEME.cream}; overflow: hidden;">
+          <div style="padding: 11px 14px; border-bottom: 1px solid ${EMAIL_THEME.line}; color: ${EMAIL_THEME.accent}; font-family: 'Courier New', Courier, monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;">01 / Enquiry summary</div>
           <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
             ${detailRow('Company', company, 120)}
             ${detailRow('Looking for', enquiryType, 120)}
             ${detailRow('Phone', phone, 40)}
           </table>
         </div>
-        <div style="background: #F7F7F7; border: 1px solid #E5E5E5; padding: 16px 20px; margin-bottom: 24px;">
-          <p style="font-size: 12px; font-weight: 600; color: #111; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px;">What happens next</p>
-          <ol style="margin: 0; padding-left: 18px; font-size: 13px; color: #555; line-height: 2;">
-            <li>We review your requirements</li>
-            <li>We send you a detailed proforma invoice</li>
-            <li>Once confirmed, production begins</li>
-            <li>Delivery within 35 days</li>
+        <div style="margin-top: 18px; padding: 14px 16px; border: 1px solid ${EMAIL_THEME.line}; border-left: 3px solid ${EMAIL_THEME.accent}; border-radius: 4px; background: ${EMAIL_THEME.accentSoft};">
+          <p style="margin: 0 0 8px; color: ${EMAIL_THEME.accentDark}; font-family: 'Courier New', Courier, monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;">02 / What happens next</p>
+          <ol style="margin: 0; padding-left: 18px; color: ${EMAIL_THEME.muted}; line-height: 1.9;">
+            <li>We review your requirements.</li>
+            <li>We prepare the relevant specification and estimate.</li>
+            <li>We contact you if anything needs clarification.</li>
           </ol>
         </div>
-        <p style="font-size: 13px; color: #888; line-height: 1.7;">If you have urgent questions, reply directly to this email.</p>
-        <div style="border-top: 1px solid #E5E5E5; margin-top: 32px; padding-top: 20px; font-size: 11px; color: #aaa;">
-          <p style="margin: 0;">Garmops &mdash; Powered by Moist Corp</p>
-          <p style="margin: 4px 0 0 0;">Greater Noida, Uttar Pradesh, India</p>
-        </div>
-      </div>
-    `
+      `,
+    })
 
-    const contactNotificationHtml = `
-      <div style="font-family: sans-serif; max-width: 640px; margin: 0 auto; color: #111111;">
-        <h1 style="font-size: 20px; margin: 0 0 20px;">New website enquiry</h1>
-        <table style="width: 100%; border-collapse: collapse; border: 1px solid #E5E5E5; font-size: 13px;">
+    const contactNotificationHtml = renderBrandedEmail({
+      preheader: `New website enquiry from ${company}.`,
+      eyebrow: 'Operations / enquiry',
+      title: 'New website enquiry',
+      statusLabel: 'Action required',
+      bodyHtml: `
+        <table style="width: 100%; border-collapse: collapse; border: 1px solid ${EMAIL_THEME.line}; background: ${EMAIL_THEME.cream}; font-size: 13px;">
           ${detailRow('Name', name, 120)}
           ${detailRow('Company', company, 120)}
           ${detailRow('Email', email, 320)}
@@ -387,15 +383,18 @@ export async function POST(req: NextRequest) {
           ${detailRow('Looking for', enquiryType, 120)}
           ${detailRow('Message', message, 2000)}
         </table>
-        <p style="font-size: 12px; color: #888; margin-top: 18px;">Reply to this email to respond directly to the customer.</p>
-      </div>
-    `
+        <p style="margin: 16px 0 0; color: ${EMAIL_THEME.muted}; font-size: 12px;">Reply to this email to respond directly to the customer.</p>
+      `,
+    })
 
     const totalQuantity = cleanText(orderDetails.totalQty, 30)
-    const configureNotificationHtml = `
-      <div style="font-family: sans-serif; max-width: 680px; margin: 0 auto; color: #111111;">
-        <h1 style="font-size: 20px; margin: 0 0 20px;">New configurator reservation</h1>
-        <table style="width: 100%; border-collapse: collapse; border: 1px solid #E5E5E5; font-size: 13px;">
+    const configureNotificationHtml = renderBrandedEmail({
+      preheader: `New configurator reservation ${txnid}.`,
+      eyebrow: 'Operations / reservation',
+      title: 'New configurator reservation',
+      statusLabel: 'Production review',
+      bodyHtml: `
+        <table style="width: 100%; border-collapse: collapse; border: 1px solid ${EMAIL_THEME.line}; background: ${EMAIL_THEME.cream}; font-size: 13px;">
           ${detailRow('Transaction ID', txnid, 100)}
           ${detailRow('Company', orderDetails.companyName, 160)}
           ${detailRow('Industry', orderDetails.industry, 120)}
@@ -426,16 +425,20 @@ export async function POST(req: NextRequest) {
           ${detailRow('Delivery address', orderDetails.shippingAddress, 1000)}
           ${detailRow('Order notes', orderDetails.orderNotes, 2000)}
         </table>
-        <p style="font-size: 12px; color: #888; margin-top: 18px;">Reply to this email to contact the project coordinator.</p>
-      </div>
-    `
+        <p style="margin: 16px 0 0; color: ${EMAIL_THEME.muted}; font-size: 12px;">Reply to this email to contact the project coordinator.</p>
+      `,
+    })
 
     const sampleItems = formatOrderItems(orderDetails.items ?? orderDetails.productinfo)
     const paidAmount = orderDetails.amount ?? orderDetails.total ?? orderDetails.estimatedTotal
-    const sampleNotificationHtml = `
-      <div style="font-family: sans-serif; max-width: 640px; margin: 0 auto; color: #111111;">
-        <h1 style="font-size: 20px; margin: 0 0 20px;">New paid sample order</h1>
-        <table style="width: 100%; border-collapse: collapse; border: 1px solid #E5E5E5; font-size: 13px;">
+    const sampleNotificationHtml = renderBrandedEmail({
+      preheader: `New paid sample order ${txnid}.`,
+      eyebrow: 'Operations / sample order',
+      title: 'New paid sample order',
+      statusLabel: 'Payment received',
+      statusTone: 'success',
+      bodyHtml: `
+        <table style="width: 100%; border-collapse: collapse; border: 1px solid ${EMAIL_THEME.line}; background: ${EMAIL_THEME.cream}; font-size: 13px;">
           ${detailRow('Customer', name, 120)}
           ${detailRow('Email', email, 320)}
           ${detailRow('Transaction ID', txnid, 100)}
@@ -443,8 +446,8 @@ export async function POST(req: NextRequest) {
           ${detailRow('Amount paid', paidAmount, 100)}
           ${detailRow('Shipping address', orderDetails.shippingAddress, 1000)}
         </table>
-      </div>
-    `
+      `,
+    })
 
     const successEmail =
       paymentKind && paymentStatus === 'success'

@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   category: 'Custom apparel manufacturing',
   manifest: '/manifest.webmanifest',
   icons: {
-    icon: '/favicon.ico',
+    icon: '/icon.png',
   },
   openGraph: {
     siteName: siteConfig.name,

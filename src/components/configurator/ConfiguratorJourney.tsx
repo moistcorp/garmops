@@ -2,8 +2,8 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { ArrowLeft, Download, LoaderCircle } from "lucide-react";
+import GarmopsLogo from "@/components/common/GarmopsLogo";
 import { formatSpecCode } from "@/lib/orders/format";
 import { ConfiguratorStageTracker } from "./ConfiguratorStageTracker";
 import ProductPickerCartLink from "./products/ProductPickerCartLink";
@@ -107,13 +107,7 @@ export function ConfiguratorJourney({
                 ))}
                 {(previousStepHandler || previousStepHref) && <span className="hidden font-mono text-[10px] uppercase tracking-[0.06em] text-[var(--text-primary)]/45 sm:inline">Back</span>}
                 <div className="flex min-w-0 items-center gap-3 border-l border-[var(--color-rule)] pl-3">
-                  <Image
-                    src="/logo3.png"
-                    alt="Garmops"
-                    width={908}
-                    height={114}
-                    className="h-3.5 w-auto shrink-0 object-contain"
-                  />
+                  <GarmopsLogo className="h-3.5 w-auto shrink-0" />
                   {productName && (
                     <>
                       <span

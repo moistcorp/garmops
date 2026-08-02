@@ -1,3 +1,5 @@
+import GarmopsLogo from "@/components/common/GarmopsLogo";
+
 const productionSteps = ["Cut", "Print", "Stitch", "QC"] as const;
 
 export default function GarmopsLoadingScreen() {
@@ -63,7 +65,7 @@ export default function GarmopsLoadingScreen() {
 
         <div className="garmops-loader-copy">
           <div>
-            <p className="garmops-loader-kicker">GARMOPS</p>
+            <GarmopsLogo className="h-3 w-auto" />
             <h1>Preparing your workspace</h1>
             <p>Loading product specifications, orders and production details.</p>
           </div>

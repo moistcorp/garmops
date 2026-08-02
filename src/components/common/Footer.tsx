@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import Image from 'next/image'
+import GarmopsLogo from '@/components/common/GarmopsLogo'
 
 const productLinks = [
   { label: 'Bulk Custom T-Shirts', href: '/custom-t-shirt-printing' },
@@ -47,7 +47,7 @@ export default function Footer() {
       <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-6 gap-y-10 text-sm text-[var(--text-primary)]/55 md:grid-cols-[1.25fr_1fr_1fr_1.1fr] md:gap-8">
         <div className="col-span-2 md:col-span-1">
           <Link href="/" aria-label="Garmops home">
-            <Image src="/logo3.png" alt="Garmops" width={908} height={114} className="mb-3 h-8 w-auto object-contain" />
+            <GarmopsLogo className="mb-3 h-8 w-auto" />
           </Link>
           <p className="max-w-xs text-sm leading-6 text-[var(--text-primary)]/55">
             Bulk custom apparel and branded merchandise made in India from 50 pieces per style.

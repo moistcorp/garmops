@@ -252,6 +252,10 @@ otp_expiry = 3600
 subject = "Verify your Garmops work email"
 content_path = "./supabase/templates/confirmation.html"
 
+[auth.email.template.magic_link]
+subject = "Your Garmops access code"
+content_path = "./supabase/templates/magic-link.html"
+
 [auth.email.template.recovery]
 subject = "Reset your Garmops password"
 content_path = "./supabase/templates/recovery.html"

@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
@@ -9,6 +8,7 @@ import { CircleHelp, ShoppingCart } from 'lucide-react'
 import CustomerAccountControl from '@/components/auth/CustomerAccountControl'
 import CustomerAuthDialog from '@/components/auth/CustomerAuthDialog'
 import { useCustomerSession } from '@/components/auth/useCustomerSession'
+import GarmopsLogo from '@/components/common/GarmopsLogo'
 
 const links = [
   { label: 'Products', href: '/products' },
@@ -108,11 +108,7 @@ export default function Navbar() {
       <div className="relative z-50 mx-auto w-full">
         <div className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-2 sm:gap-4 sm:px-6 sm:py-3 xl:grid-cols-[auto_auto_minmax(24px,1fr)_auto] xl:gap-8 xl:px-16">
           <Link href="/" className="flex min-w-0 shrink items-center xl:justify-self-start" aria-label="Garmops home">
-            <Image
-              src="/logo3.png"
-              alt="Garmops"
-              width={908}
-              height={114}
+            <GarmopsLogo
               className="h-4 w-auto max-w-[132px] object-contain min-[360px]:h-[18px] min-[360px]:max-w-[160px] sm:h-5 sm:max-w-[180px]"
               preload
             />
