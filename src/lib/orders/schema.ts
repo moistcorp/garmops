@@ -92,6 +92,7 @@ export const submitCustomOrderRequestSchema = z
   .object({
     designProjectId: z.uuid(),
     designVersion: z.number().int().positive(),
+    estimateId: z.uuid().optional(),
     organizationId: z.uuid(),
     sizeQuantities: sizeQuantitiesSchema,
     deliveryType: z.enum(["rush", "standard", "flexible"]),

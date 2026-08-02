@@ -56,6 +56,8 @@ import {
 import { generateApprovalPdf } from "@/lib/configurator/approvalPdf";
 import { RESERVATION_FEE } from "@/lib/configurator/reservation";
 import { ActionFeedback, type ActionFeedbackTone } from "./ActionFeedback";
+import CustomerAuthDialog from "@/components/auth/CustomerAuthDialog";
+import { useCustomerSession } from "@/components/auth/useCustomerSession";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 import { getDeliveryFeasibility } from "@/lib/configurator/deliveryFeasibility";
 import {
@@ -67,6 +69,7 @@ import {
   cloudSnapshotToBuildDraft,
   loadCloudDesign,
   readCloudDesignLink,
+  writeEstimateForDesign,
   saveBuildDraftToCloud,
   writeCloudDesignLink,
   type CloudDesignLink,
@@ -180,6 +183,11 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   const requestedStepParam = searchParams.get("step");
   const requestedDesignId = searchParams.get("designId");
   const requestedCloudSave = searchParams.get("cloudSave") === "1";
+  const requestedSaveTitle = searchParams.get("saveTitle") ?? "";
+  const requestedEstimateId = searchParams.get("estimateId");
+  const savedDesignsEnabled = process.env.NEXT_PUBLIC_CLOUD_DESIGNS_ENABLED === "true";
+  const accountsEnabled = process.env.NEXT_PUBLIC_ACCOUNTS_ENABLED === "true";
+  const customerSession = useCustomerSession(accountsEnabled);
   const requestedStep: AccordionStepId =
     requestedStepParam === "artwork" || requestedStepParam === "neck-label"
       ? requestedStepParam
@@ -222,6 +230,9 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   );
   const [cloudConflict, setCloudConflict] =
     useState<CloudSaveConflict | null>(null);
+  const [nameDialogOpen, setNameDialogOpen] = useState(false);
+  const [designTitle, setDesignTitle] = useState("");
+  const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const hasHydrated = useRef(false);
   const saveTimer = useRef<number | null>(null);
   const saveStatusTimer = useRef<number | null>(null);
@@ -366,6 +377,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         interactive?: boolean;
         forceRevision?: number;
         createCopy?: boolean;
+        title?: string;
       }
     ) => {
       if (cloudSaveInFlight.current) return;
@@ -373,7 +385,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       setCloudSaveStatus("saving");
       setCloudMessage(
         options?.createCopy
-          ? "Creating an independent cloud copy…"
+          ? "Creating a saved copy…"
           : "Saving design and artwork securely…"
       );
 
@@ -386,6 +398,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
           existingLink: cloudLinkRef.current,
           forceRevision: options?.forceRevision,
           createCopy: options?.createCopy,
+          title: options?.title,
         });
       } catch {
         cloudSaveInFlight.current = false;
@@ -402,13 +415,13 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         setCloudConflict(null);
         setCloudSaveStatus("saved");
         setCloudMessage(
-          `Cloud saved · version ${result.link.currentVersion}`
+          "Saved to your account"
         );
         if (options?.interactive) {
           setFeedback({
             tone: "success",
             title: options.createCopy
-              ? "Cloud copy created"
+              ? "Saved copy created"
               : "Design saved to your account",
             detail:
               "Your browser draft remains available as a fallback, and this design can now be resumed from another device.",
@@ -420,14 +433,15 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       if (result.kind === "conflict") {
         setCloudConflict(result.conflict);
         setCloudSaveStatus("conflict");
-        setCloudMessage("A newer cloud draft needs your choice.");
+        setCloudMessage("This design changed on another device.");
         return;
       }
 
       setCloudSaveStatus("error");
       setCloudMessage(result.message);
       if (result.kind === "unauthorized" && options?.interactive) {
-        const next = `/configurator/build/${encodeURIComponent(configId)}?cloudSave=1`;
+        const titleParam = options?.title ? `&saveTitle=${encodeURIComponent(options.title)}` : "";
+        const next = `/configurator/build/${encodeURIComponent(configId)}?cloudSave=1${titleParam}`;
         router.push(`/login?next=${encodeURIComponent(next)}`);
       }
     },
@@ -444,6 +458,23 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   );
 
   async function handleSaveToAccount() {
+    if (!savedDesignsEnabled) return;
+    if (!cloudLinkRef.current) {
+      if (!customerSession.email) {
+        writeBuildDraft(configId, {
+          colour,
+          artwork,
+          neckLabel,
+          steps,
+          quantity,
+        });
+        setAuthDialogOpen(true);
+        return;
+      }
+      setDesignTitle(`${productName} — ${colour.name} — ${quantity} pcs`);
+      setNameDialogOpen(true);
+      return;
+    }
     const draft = currentBuildDraft();
     writeBuildDraft(configId, {
       colour: draft.colour,
@@ -453,6 +484,22 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       quantity: draft.quantity,
     });
     await syncDraftToCloud(draft, { interactive: true });
+  }
+
+  async function handleNamedSave() {
+    const draft = currentBuildDraft();
+    writeBuildDraft(configId, {
+      colour: draft.colour,
+      artwork: draft.artwork,
+      neckLabel: draft.neckLabel,
+      steps: draft.steps,
+      quantity: draft.quantity,
+    });
+    setNameDialogOpen(false);
+    await syncDraftToCloud(draft, {
+      interactive: true,
+      title: designTitle.trim() || `${productName} design`,
+    });
   }
 
   async function handleUseThisDevice() {
@@ -466,7 +513,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   async function handleUseCloudVersion() {
     if (!cloudConflict || !cloudLinkRef.current) return;
     setCloudSaveStatus("saving");
-    setCloudMessage("Restoring the cloud version…");
+    setCloudMessage("Restoring the saved version…");
     const restored = await cloudSnapshotToBuildDraft(cloudConflict.snapshot);
     await applyRestoredConfiguration(
       restored.colour,
@@ -484,7 +531,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
     setActiveCloudLink(nextLink);
     setCloudConflict(null);
     setCloudSaveStatus("saved");
-    setCloudMessage(`Cloud version ${nextLink.currentVersion} restored`);
+    setCloudMessage("Saved version restored");
   }
 
   async function handleCreateCloudCopy() {
@@ -626,7 +673,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
             );
             setCloudSaveStatus("saved");
             setCloudMessage(
-              `Cloud version ${cloud.design.current_version} restored`
+              "Saved version restored"
             );
           } else if (localDraft) {
             await applyRestoredConfiguration(
@@ -638,7 +685,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
             );
             setCloudSaveStatus("saved");
             setCloudMessage(
-              `Cloud linked · version ${cloud.design.current_version}`
+              "Saved to your account"
             );
           }
         } else if (requestedDesignId && cloud.status === 401) {
@@ -656,7 +703,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
           }
           setCloudSaveStatus("error");
           setCloudMessage(
-            "Cloud restore is unavailable. Your browser draft is still safe."
+            "Saved design access is unavailable. Your browser draft is still safe."
           );
         }
       } else if (hasMeaningfulDraft(localDraft) && localDraft) {
@@ -763,7 +810,10 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       steps,
       quantity,
     });
-    void syncDraftToCloud(draft, { interactive: true });
+    void syncDraftToCloud(draft, {
+      interactive: true,
+      title: requestedSaveTitle || undefined,
+    });
   }, [
     artwork,
     colour,
@@ -772,6 +822,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
     neckLabel,
     quantity,
     requestedCloudSave,
+    requestedSaveTitle,
     steps,
     syncDraftToCloud,
   ]);
@@ -856,6 +907,9 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         detail: "Your configuration is still open. Free some browser storage or try another browser before continuing.",
       });
       return;
+    }
+    if (requestedEstimateId && cloudLinkRef.current) {
+      writeEstimateForDesign(cloudLinkRef.current.designId, requestedEstimateId);
     }
 
     if (preferredTargetDate) {
@@ -1090,7 +1144,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                   onClick={handleUseCloudVersion}
                   className="rounded-[4px] border border-amber-900/20 bg-white/70 px-3 py-1.5 font-semibold hover:bg-white"
                 >
-                  Use cloud version
+                  Use saved version
                 </button>
                 <button
                   type="button"
@@ -1102,7 +1156,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
               </div>
             ) : cloudSaveStatus !== "saving" ? (
               <div className="flex items-center gap-1.5">
-                {cloudLink ? (
+                  {cloudLink ? (
                   <button
                     type="button"
                     onClick={() =>
@@ -1112,20 +1166,48 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                     }
                     className="rounded-[4px] border border-[#1D49B4]/20 bg-white/70 px-3 py-1.5 font-semibold hover:bg-white"
                   >
-                    View in account
+                    View saved design
                   </button>
                 ) : null}
                 <button
                   type="button"
                   onClick={handleSaveToAccount}
+                  disabled={!savedDesignsEnabled}
+                  title={!savedDesignsEnabled ? "Saving designs is not available right now" : undefined}
                   className="rounded-[4px] bg-[#1D49B4] px-3 py-1.5 font-semibold text-white hover:bg-[#173A91]"
                 >
-                  {cloudLink ? "Save now" : "Save to account"}
+                  {!savedDesignsEnabled ? "Save design unavailable" : cloudLink ? "Save now" : "Save design"}
                 </button>
               </div>
             ) : null}
           </div>
         </div>
+
+        {nameDialogOpen ? (
+          <div className="fixed inset-0 z-[75] flex items-center justify-center bg-[#16212B]/45 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setNameDialogOpen(false); }}>
+            <div className="w-full max-w-md rounded-[4px] border border-black/10 bg-white p-6" role="dialog" aria-modal="true" aria-labelledby="save-design-title">
+              <h2 id="save-design-title" className="text-xl font-semibold">Save design</h2>
+              <p className="mt-2 text-sm text-black/55">Give this design a name so you can find it later.</p>
+              <label htmlFor="design-name" className="mt-5 block text-sm font-medium">Design name</label>
+              <input id="design-name" autoFocus value={designTitle} onChange={(event) => setDesignTitle(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void handleNamedSave(); }} maxLength={160} className="mt-2 w-full rounded border border-black/15 px-3 py-2.5 outline-none focus:border-[#1D49B4]" />
+              <div className="mt-5 flex justify-end gap-2"><button type="button" onClick={() => setNameDialogOpen(false)} className="rounded border border-black/10 px-4 py-2 text-sm">Cancel</button><button type="button" onClick={() => void handleNamedSave()} className="rounded bg-[#1D49B4] px-4 py-2 text-sm font-semibold text-white">Save design</button></div>
+            </div>
+          </div>
+        ) : null}
+
+        {accountsEnabled ? (
+          <CustomerAuthDialog
+            open={authDialogOpen}
+            onClose={() => setAuthDialogOpen(false)}
+            next={`/configurator/build/${encodeURIComponent(configId)}`}
+            onAuthenticated={() => {
+              setAuthDialogOpen(false);
+              void customerSession.refresh();
+              setDesignTitle(`${productName} — ${colour.name} — ${quantity} pcs`);
+              setNameDialogOpen(true);
+            }}
+          />
+        ) : null}
 
         {feedback && (
           <div className="fixed right-4 top-24 z-[70] w-[min(380px,calc(100vw-2rem))]">

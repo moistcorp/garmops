@@ -23,6 +23,7 @@ export async function findWritableOrganization(
 
 export async function listCloudDesigns(
   supabase: DesignClient,
+  userId: string,
   includeArchived = false,
 ) {
   let query = supabase
@@ -30,6 +31,7 @@ export async function listCloudDesigns(
     .select(
       "id, title, status, schema_version, current_version, draft_revision, draft_snapshot, source, last_saved_at, created_at, updated_at, archived_at",
     )
+    .eq("created_by", userId)
     .order("updated_at", { ascending: false })
     .limit(100);
 
@@ -40,6 +42,7 @@ export async function listCloudDesigns(
 export async function getCloudDesign(
   supabase: DesignClient,
   designProjectId: string,
+  userId: string,
 ) {
   return Promise.all([
     supabase
@@ -48,6 +51,7 @@ export async function getCloudDesign(
         "id, organization_id, created_by, title, status, schema_version, current_version, draft_revision, draft_snapshot, pricing_input_snapshot, source, last_saved_at, submitted_at, archived_at, created_at, updated_at",
       )
       .eq("id", designProjectId)
+      .eq("created_by", userId)
       .maybeSingle(),
     supabase
       .from("design_project_versions")
@@ -57,10 +61,19 @@ export async function getCloudDesign(
       .limit(100),
     supabase
       .from("orders")
-      .select("id, order_number, design_version_id, status, submitted_at")
+      .select("id, order_number, design_version_id, status:public_status, submitted_at")
       .eq("design_project_id", designProjectId)
       .order("submitted_at", { ascending: false })
       .limit(100),
+    supabase
+      .from("design_estimates")
+      .select(
+        "id, organization_id, created_by, design_project_id, design_version_id, design_revision, estimate_number, status, currency, pricing_engine_version, pricing_snapshot, subtotal_paise, discount_paise, taxable_subtotal_paise, gst_rate_basis_points, gst_paise, shipping_paise, total_paise, reservation_fee_paise, balance_due_paise, generated_at, valid_until, converted_order_id, client_operation_id, created_at",
+      )
+      .eq("design_project_id", designProjectId)
+      .eq("created_by", userId)
+      .order("generated_at", { ascending: false })
+      .limit(30),
   ]);
 }
 

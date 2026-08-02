@@ -204,7 +204,7 @@ export default function BrowserDraftImporter() {
             </p>
             <p className="mt-1 text-xs leading-relaxed text-[#1D49B4]/75">
               {message ??
-                "Import local Studio and cart drafts, including saved IndexedDB artwork, for cross-device access."}
+                "Import them to your account for access on other devices."}
             </p>
           </div>
         </div>

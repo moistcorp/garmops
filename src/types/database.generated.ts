@@ -390,6 +390,96 @@ export type Database = {
           },
         ]
       }
+      design_estimates: {
+        Row: {
+          id: string
+          organization_id: string
+          created_by: string
+          design_project_id: string
+          design_version_id: string
+          design_revision: number
+          estimate_number: string
+          status: string
+          currency: string
+          pricing_engine_version: string
+          pricing_snapshot: Json
+          subtotal_paise: number
+          discount_paise: number
+          taxable_subtotal_paise: number
+          gst_rate_basis_points: number
+          gst_paise: number
+          shipping_paise: number | null
+          total_paise: number
+          reservation_fee_paise: number
+          balance_due_paise: number
+          generated_at: string
+          valid_until: string
+          converted_order_id: string | null
+          client_operation_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          created_by: string
+          design_project_id: string
+          design_version_id: string
+          design_revision: number
+          estimate_number: string
+          status?: string
+          currency?: string
+          pricing_engine_version: string
+          pricing_snapshot: Json
+          subtotal_paise: number
+          discount_paise: number
+          taxable_subtotal_paise: number
+          gst_rate_basis_points: number
+          gst_paise: number
+          shipping_paise?: number | null
+          total_paise: number
+          reservation_fee_paise: number
+          balance_due_paise: number
+          generated_at?: string
+          valid_until: string
+          converted_order_id?: string | null
+          client_operation_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          created_by?: string
+          design_project_id?: string
+          design_version_id?: string
+          design_revision?: number
+          estimate_number?: string
+          status?: string
+          currency?: string
+          pricing_engine_version?: string
+          pricing_snapshot?: Json
+          subtotal_paise?: number
+          discount_paise?: number
+          taxable_subtotal_paise?: number
+          gst_rate_basis_points?: number
+          gst_paise?: number
+          shipping_paise?: number | null
+          total_paise?: number
+          reservation_fee_paise?: number
+          balance_due_paise?: number
+          generated_at?: string
+          valid_until?: string
+          converted_order_id?: string | null
+          client_operation_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          { foreignKeyName: "design_estimates_organization_id_fkey"; columns: ["organization_id"]; isOneToOne: false; referencedRelation: "organizations"; referencedColumns: ["id"] },
+          { foreignKeyName: "design_estimates_created_by_fkey"; columns: ["created_by"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+          { foreignKeyName: "design_estimates_design_project_id_fkey"; columns: ["design_project_id"]; isOneToOne: false; referencedRelation: "design_projects"; referencedColumns: ["id"] },
+          { foreignKeyName: "design_estimates_design_version_id_fkey"; columns: ["design_version_id"]; isOneToOne: false; referencedRelation: "design_project_versions"; referencedColumns: ["id"] },
+          { foreignKeyName: "design_estimates_converted_order_id_fkey"; columns: ["converted_order_id"]; isOneToOne: false; referencedRelation: "orders"; referencedColumns: ["id"] }
+        ]
+      }
       idempotency_keys: {
         Row: {
           actor_id: string | null
@@ -1042,6 +1132,7 @@ export type Database = {
           delivered_at: string | null
           design_project_id: string | null
           design_version_id: string | null
+          estimate_id: string | null
           dispatched_at: string | null
           estimated_dispatch_at: string | null
           estimated_total_paise: number
@@ -1088,6 +1179,7 @@ export type Database = {
           delivered_at?: string | null
           design_project_id?: string | null
           design_version_id?: string | null
+          estimate_id?: string | null
           dispatched_at?: string | null
           estimated_dispatch_at?: string | null
           estimated_total_paise?: number
@@ -1134,6 +1226,7 @@ export type Database = {
           delivered_at?: string | null
           design_project_id?: string | null
           design_version_id?: string | null
+          estimate_id?: string | null
           dispatched_at?: string | null
           estimated_dispatch_at?: string | null
           estimated_total_paise?: number
@@ -1802,6 +1895,36 @@ export type Database = {
           version_number: number
         }[]
       }
+      create_design_estimate_from_server: {
+        Args: {
+          p_balance_due_paise: number
+          p_client_operation_id: string
+          p_created_by: string
+          p_design_project_id: string
+          p_discount_paise: number
+          p_expected_revision: number
+          p_gst_paise: number
+          p_gst_rate_basis_points: number
+          p_organization_id: string
+          p_pricing_engine_version: string
+          p_pricing_snapshot: Json
+          p_reservation_fee_paise: number
+          p_shipping_paise: number
+          p_subtotal_paise: number
+          p_taxable_subtotal_paise: number
+          p_total_paise: number
+          p_valid_until: string
+        }
+        Returns: {
+          created: boolean
+          design_revision: number
+          design_version_id: string
+          estimate_id: string
+          estimate_number: string
+          status: string
+          valid_until: string
+        }[]
+      }
       create_cloud_design_version: {
         Args: { p_design_project_id: string; p_expected_revision: number }
         Returns: {
@@ -1916,6 +2039,10 @@ export type Database = {
           order_number: string
           payment_attempt_id: string
         }[]
+      }
+      link_order_to_estimate: {
+        Args: { p_customer_user_id: string; p_estimate_id: string; p_order_id: string }
+        Returns: boolean
       }
       has_organization_role: {
         Args: {

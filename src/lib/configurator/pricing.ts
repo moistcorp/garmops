@@ -52,6 +52,15 @@ export const TECHNIQUE_UNIT_PRICE_DELTAS: Record<ArtworkTechnique, number> = {
   embroidery: 65,
 };
 
+/** A private cloud upload is still an artwork asset even when no URL is present. */
+export function hasArtworkAsset(side?: Partial<Pick<import("./types/configurator").ArtworkSide, "fileUrl" | "fileId">>): boolean {
+  return Boolean(side?.fileUrl || side?.fileId);
+}
+
+export function hasNeckLabelAsset(label?: Partial<Pick<NeckLabel, "fileUrl" | "fileId">>): boolean {
+  return Boolean(label?.fileUrl || label?.fileId);
+}
+
 export type UnitPriceAdjustment = {
   label: string;
   percent?: number;
@@ -71,18 +80,18 @@ export function getUnitPriceAdjustments(
 
   (["front", "back"] as const).forEach((side) => {
     const artworkSide = artwork[side];
-    if (!artworkSide?.fileUrl || !artworkSide.technique) return;
+    if (!artworkSide || !hasArtworkAsset(artworkSide) || !artworkSide.technique) return;
     adjustments.push({
       label: `${side === "front" ? "Front" : "Back"} ${artworkSide.technique.replaceAll("_", " ")}`,
       amount: TECHNIQUE_UNIT_PRICE_DELTAS[artworkSide.technique],
     });
   });
 
-  if (artwork.back?.fileUrl) {
+  if (hasArtworkAsset(artwork.back)) {
     adjustments.push({ label: "Back artwork", percent: BACK_ARTWORK_UNIT_INCREASE_PERCENT });
   }
 
-  if (neckLabel?.fileUrl) {
+  if (hasNeckLabelAsset(neckLabel)) {
     adjustments.push({ label: "Neck label", amount: NECK_LABEL_UNIT_PRICE });
   }
 

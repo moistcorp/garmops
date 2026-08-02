@@ -107,6 +107,7 @@ const serverEnvironmentSchema = z
       .enum(["true", "false"])
       .default("true")
       .transform((value) => value === "true"),
+    ESTIMATE_VALIDITY_DAYS: positiveInteger(7, 90),
 
     RESEND_API_KEY: optionalText(2048),
     RESEND_FROM_EMAIL: optionalText(320),

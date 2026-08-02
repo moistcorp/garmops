@@ -11,6 +11,7 @@ import type { CloudDesignSnapshot } from "@/lib/designs/schema";
 
 const CLOUD_LINK_PREFIX = "mf_configurator_cloud:";
 const PENDING_IMPORT_PREFIX = "mf_configurator_cloud_pending:";
+const ESTIMATE_LINK_PREFIX = "garmops:estimate-for-design:";
 
 export type CloudDesignLink = {
   designId: string;
@@ -47,6 +48,22 @@ function cloudLinkKey(configId: string): string {
 
 function pendingImportKey(operationKey: string): string {
   return `${PENDING_IMPORT_PREFIX}${operationKey}`;
+}
+
+function estimateLinkKey(designId: string): string {
+  return `${ESTIMATE_LINK_PREFIX}${designId}`;
+}
+
+export function writeEstimateForDesign(designId: string, estimateId: string): void {
+  try { window.localStorage.setItem(estimateLinkKey(designId), estimateId); } catch { /* browser storage is optional */ }
+}
+
+export function readEstimateForDesign(designId: string): string | null {
+  try { return window.localStorage.getItem(estimateLinkKey(designId)); } catch { return null; }
+}
+
+export function clearEstimateForDesign(designId: string): void {
+  try { window.localStorage.removeItem(estimateLinkKey(designId)); } catch { /* no-op */ }
 }
 
 function replaySafeImportId(operationKey: string): string {
@@ -356,6 +373,7 @@ export async function saveBuildDraftToCloud(input: {
   forceRevision?: number;
   createCopy?: boolean;
   operationKey?: string;
+  title?: string;
 }): Promise<CloudSaveResult> {
   let link = input.createCopy
     ? null
@@ -368,7 +386,7 @@ export async function saveBuildDraftToCloud(input: {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        title: `${input.productName} design`,
+        title: input.title?.trim() || `${input.productName} design`,
         schemaVersion: 1,
         snapshot: buildCloudDesignSnapshot(input.configId, input.draft),
         pricingSnapshot: {

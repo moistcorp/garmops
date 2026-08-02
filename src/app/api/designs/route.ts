@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
     request.nextUrl.searchParams.get("includeArchived") === "true";
   const { data, error } = await listCloudDesigns(
     auth.supabase,
+    auth.user.id,
     includeArchived,
   );
 

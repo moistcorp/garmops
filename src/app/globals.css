@@ -245,3 +245,436 @@ canvas {
     transform: translateX(-50%);
   }
 }
+
+/* Garmops production-blueprint route loader. */
+.garmops-loader-shell {
+  display: grid;
+  min-height: min(760px, calc(100svh - 4rem));
+  place-items: center;
+  padding: clamp(1rem, 4vw, 3.5rem);
+}
+
+.garmops-loader-card {
+  position: relative;
+  width: min(100%, 720px);
+  overflow: hidden;
+  border: 1px solid var(--color-rule);
+  border-radius: 4px;
+  background: var(--color-cream);
+}
+
+.garmops-loader-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--color-rule);
+  padding: 0.75rem 1rem;
+  color: rgba(22, 33, 43, 0.48);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.garmops-loader-board {
+  position: relative;
+  height: clamp(260px, 43vw, 360px);
+  overflow: hidden;
+  background-color: var(--color-cream-soft);
+  background-image:
+    linear-gradient(rgba(22, 33, 43, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(22, 33, 43, 0.055) 1px, transparent 1px),
+    linear-gradient(rgba(22, 33, 43, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(22, 33, 43, 0.025) 1px, transparent 1px);
+  background-position: center;
+  background-size: 40px 40px, 40px 40px, 8px 8px, 8px 8px;
+}
+
+.garmops-loader-board::before,
+.garmops-loader-board::after {
+  position: absolute;
+  z-index: 1;
+  background: rgba(29, 73, 180, 0.2);
+  content: "";
+}
+
+.garmops-loader-board::before {
+  inset-block: 0;
+  left: 50%;
+  width: 1px;
+}
+
+.garmops-loader-board::after {
+  inset-inline: 0;
+  top: 50%;
+  height: 1px;
+}
+
+.garmops-loader-pattern {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: 50%;
+  width: min(68%, 330px);
+  transform: translate(-50%, -50%);
+  overflow: visible;
+}
+
+.garmops-loader-pattern-fill {
+  fill: rgba(29, 73, 180, 0.045);
+  stroke: none;
+}
+
+.garmops-loader-pattern-line {
+  animation: garmops-pattern-draw 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite
+    alternate;
+  stroke: var(--color-accent);
+  stroke-dasharray: 690;
+  stroke-dashoffset: 690;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  stroke-width: 2;
+}
+
+.garmops-loader-seam,
+.garmops-loader-centre-line {
+  stroke: rgba(22, 33, 43, 0.45);
+  stroke-dasharray: 4 5;
+  stroke-width: 1;
+}
+
+.garmops-loader-centre-line {
+  stroke: rgba(29, 73, 180, 0.38);
+  stroke-dasharray: 2 6;
+}
+
+.garmops-loader-registration {
+  fill: var(--color-cream-soft);
+  stroke: var(--color-accent);
+  stroke-width: 1;
+}
+
+.garmops-loader-scan {
+  position: absolute;
+  z-index: 4;
+  top: 13%;
+  left: 19%;
+  width: 62%;
+  height: 1px;
+  animation: garmops-pattern-scan 2.8s ease-in-out infinite;
+  background: var(--color-accent);
+  box-shadow: 0 0 12px rgba(29, 73, 180, 0.45);
+}
+
+.garmops-loader-scan::before,
+.garmops-loader-scan::after {
+  position: absolute;
+  top: -3px;
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--color-accent);
+  background: var(--color-cream-soft);
+  content: "";
+}
+
+.garmops-loader-scan::before {
+  left: -3px;
+}
+
+.garmops-loader-scan::after {
+  right: -3px;
+}
+
+.garmops-loader-corner {
+  position: absolute;
+  z-index: 5;
+  width: 18px;
+  height: 18px;
+  border-color: rgba(22, 33, 43, 0.4);
+}
+
+.garmops-loader-corner[data-corner="top-left"] {
+  top: 14px;
+  left: 14px;
+  border-top: 1px solid;
+  border-left: 1px solid;
+}
+
+.garmops-loader-corner[data-corner="top-right"] {
+  top: 14px;
+  right: 14px;
+  border-top: 1px solid;
+  border-right: 1px solid;
+}
+
+.garmops-loader-corner[data-corner="bottom-left"] {
+  bottom: 14px;
+  left: 14px;
+  border-bottom: 1px solid;
+  border-left: 1px solid;
+}
+
+.garmops-loader-corner[data-corner="bottom-right"] {
+  right: 14px;
+  bottom: 14px;
+  border-right: 1px solid;
+  border-bottom: 1px solid;
+}
+
+.garmops-loader-measure {
+  position: absolute;
+  z-index: 2;
+  color: rgba(22, 33, 43, 0.4);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+}
+
+.garmops-loader-measure::before,
+.garmops-loader-measure::after {
+  position: absolute;
+  background: currentColor;
+  content: "";
+}
+
+.garmops-loader-measure-x {
+  right: 19%;
+  bottom: 12%;
+  left: 19%;
+  border-top: 1px dashed currentColor;
+  text-align: center;
+}
+
+.garmops-loader-measure-x::before,
+.garmops-loader-measure-x::after {
+  top: -4px;
+  width: 1px;
+  height: 7px;
+}
+
+.garmops-loader-measure-x::before {
+  left: 0;
+}
+
+.garmops-loader-measure-x::after {
+  right: 0;
+}
+
+.garmops-loader-measure-x span {
+  position: relative;
+  top: 6px;
+  padding: 0 0.4rem;
+  background: var(--color-cream-soft);
+}
+
+.garmops-loader-measure-y {
+  top: 19%;
+  bottom: 19%;
+  left: 14%;
+  border-left: 1px dashed currentColor;
+}
+
+.garmops-loader-measure-y::before,
+.garmops-loader-measure-y::after {
+  left: -4px;
+  width: 7px;
+  height: 1px;
+}
+
+.garmops-loader-measure-y::before {
+  top: 0;
+}
+
+.garmops-loader-measure-y::after {
+  bottom: 0;
+}
+
+.garmops-loader-measure-y span {
+  position: absolute;
+  top: 50%;
+  left: -12px;
+  padding: 0.35rem 0;
+  background: var(--color-cream-soft);
+  writing-mode: vertical-rl;
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.garmops-loader-spec {
+  position: absolute;
+  z-index: 5;
+  color: rgba(22, 33, 43, 0.42);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+
+.garmops-loader-spec-one {
+  top: 14%;
+  right: 8%;
+}
+
+.garmops-loader-spec-two {
+  right: 8%;
+  bottom: 15%;
+}
+
+.garmops-loader-copy {
+  display: grid;
+  gap: 1.5rem;
+  padding: 1.4rem;
+}
+
+.garmops-loader-copy h1 {
+  margin-top: 0.35rem;
+  color: var(--color-navy);
+  font-size: clamp(1.15rem, 3vw, 1.6rem);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.garmops-loader-copy p:not(.garmops-loader-kicker) {
+  margin-top: 0.45rem;
+  color: rgba(22, 33, 43, 0.55);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.garmops-loader-kicker {
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.garmops-loader-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.35rem;
+  align-self: end;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.garmops-loader-steps li {
+  animation: garmops-step-pulse 3.2s ease-in-out infinite;
+  animation-delay: calc(var(--loader-step) * 0.35s);
+  border-top: 2px solid rgba(22, 33, 43, 0.13);
+  color: rgba(22, 33, 43, 0.38);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  padding-top: 0.45rem;
+  text-transform: uppercase;
+}
+
+.garmops-loader-steps li span {
+  display: block;
+  margin-bottom: 0.15rem;
+  font-size: 7px;
+  font-weight: 400;
+}
+
+.garmops-loader-progress {
+  height: 3px;
+  overflow: hidden;
+  background: rgba(29, 73, 180, 0.1);
+}
+
+.garmops-loader-progress span {
+  display: block;
+  width: 34%;
+  height: 100%;
+  animation: garmops-progress-pass 1.8s cubic-bezier(0.65, 0, 0.35, 1)
+    infinite;
+  background: var(--color-accent);
+}
+
+@media (min-width: 640px) {
+  .garmops-loader-copy {
+    grid-template-columns: minmax(0, 1.25fr) minmax(230px, 0.75fr);
+    padding: 1.6rem 1.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .garmops-loader-meta span:last-child,
+  .garmops-loader-spec,
+  .garmops-loader-measure-y {
+    display: none;
+  }
+
+  .garmops-loader-board {
+    height: 250px;
+  }
+
+  .garmops-loader-pattern {
+    width: 78%;
+  }
+
+  .garmops-loader-scan {
+    left: 11%;
+    width: 78%;
+  }
+}
+
+@keyframes garmops-pattern-draw {
+  0%,
+  12% {
+    stroke-dashoffset: 690;
+  }
+
+  88%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes garmops-pattern-scan {
+  0%,
+  10% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+
+  22% {
+    opacity: 1;
+  }
+
+  78% {
+    opacity: 1;
+  }
+
+  90%,
+  100% {
+    opacity: 0;
+    transform: translateY(clamp(180px, 30vw, 260px));
+  }
+}
+
+@keyframes garmops-step-pulse {
+  0%,
+  25%,
+  100% {
+    border-color: rgba(22, 33, 43, 0.13);
+    color: rgba(22, 33, 43, 0.38);
+  }
+
+  10% {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+}
+
+@keyframes garmops-progress-pass {
+  from {
+    transform: translateX(-110%);
+  }
+
+  to {
+    transform: translateX(325%);
+  }
+}
