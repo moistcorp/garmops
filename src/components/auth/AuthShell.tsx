@@ -31,7 +31,7 @@ export default function AuthShell({
             </div>
             <p className="text-xs leading-relaxed text-white/40">
               Customer workspaces are organization-isolated. Staff access
-              requires invite-only authenticator MFA.
+              is managed directly in Supabase.
             </p>
           </aside>
           <section className="flex min-h-[640px] items-center p-5 sm:p-10 lg:p-14">

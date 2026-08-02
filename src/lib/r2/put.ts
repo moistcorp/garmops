@@ -44,7 +44,7 @@ export async function putPrivatePdf(input: {
       ContentDisposition: attachmentContentDisposition(input.filename),
       CacheControl: "private, no-store, max-age=0",
       Metadata: {
-        source: "zoho-invoice",
+        source: "garmops-invoice",
         sha256,
         ...(input.metadata ?? {}),
       },

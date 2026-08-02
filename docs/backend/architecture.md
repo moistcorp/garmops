@@ -12,7 +12,7 @@ Garmops will remain one Next.js 16 App Router application deployed on Vercel. Th
 - Supabase PostgreSQL is the system of record and enforces tenant isolation with Row Level Security.
 - Cloudflare R2 stores all public and private file bytes; PostgreSQL stores object keys, ownership, visibility, and lifecycle metadata.
 - PayU collects payments, while PostgreSQL records durable attempts, verified events, and final payment state.
-- Zoho Invoice creates the authoritative accounting document and legal document number.
+- Garmops creates and stores the invoice PDF and legal document number directly.
 - Resend delivers application notifications.
 - PostgreSQL `integration_jobs` plus bounded Vercel Cron invocations provide durable retries.
 - Cloudflare provides DNS, the public download domain, Turnstile, and edge controls.
@@ -31,18 +31,18 @@ The browser is a temporary input and guest-draft layer. It is never authoritativ
 
 The server recalculates commercial values from canonical data. Money is stored as integer paise, timestamps as UTC, and user-facing dates are rendered in `Asia/Kolkata`. Submitted designs, addresses, pricing inputs, and order items become immutable snapshots.
 
-An order and payment attempt must exist in PostgreSQL before the browser is sent to PayU. Callback and webhook processing share one idempotent payment finalisation service, validate the PayU hash, reconcile the expected amount and transaction, and use PayU verification before marking an attempt paid. A verified payment is not rolled back when Zoho, R2, or email is unavailable.
+An order and payment attempt must exist in PostgreSQL before the browser is sent to PayU. Callback and webhook processing share one idempotent payment finalisation service, validate the PayU hash, reconcile the expected amount and transaction, and use PayU verification before marking an attempt paid. A verified payment is not rolled back when invoice generation, R2, or email is unavailable.
 
-Zoho work is enqueued only after verified payment finalisation commits. Provider creation retries must search for and adopt an existing external reference after an ambiguous timeout instead of blindly creating another document.
+Invoice generation is enqueued only after verified payment finalisation commits. It allocates a durable financial-year invoice number, stores a private PDF, and retries delivery safely.
 
 ## Application layers
 
 Backend code is organised into four layers:
 
 1. Route handlers and server actions parse requests, authenticate, authorise, and map safe errors.
-2. Domain services enforce order, payment, invoice, file, approval, and notification invariants.
+2. Domain services enforce order, payment, invoice, file, and notification invariants.
 3. Data-access modules use typed Supabase clients and explicit transaction/database functions.
-4. Provider adapters isolate PayU, Zoho, R2, Resend, and Turnstile payloads.
+4. Provider adapters isolate PayU, R2, Resend, and Turnstile payloads.
 
 Provider payloads do not become UI or order-domain types. Service-role and provider credentials stay in server-only modules and never receive a `NEXT_PUBLIC_` prefix.
 
@@ -71,4 +71,4 @@ Development uses local Supabase where possible and Free/shared non-production se
 - a controlled Supabase Free pilot with encrypted off-site logical dumps, a completed restore drill, monitoring, and accepted recovery risk; or
 - Supabase Pro with managed daily backups and seven-day retention.
 
-Provider plans, quotas, credentials, tax IDs, Zoho document mode, R2 access, callback URLs, CORS, WAF rules, and backup restoration must be verified in the relevant provider account before their feature flag is enabled.
+Provider plans, quotas, credentials, seller GST/HSN configuration, R2 access, callback URLs, CORS, WAF rules, and backup restoration must be verified before production enablement.

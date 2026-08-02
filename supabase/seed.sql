@@ -214,7 +214,6 @@ insert into public.staff_members (
   role,
   team,
   active,
-  must_use_mfa,
   invited_at,
   activated_at
 )
@@ -224,7 +223,6 @@ values
     'super_admin',
     'Operations',
     true,
-    true,
     now(),
     now()
   ),
@@ -232,7 +230,6 @@ values
     '55555555-5555-4555-8555-555555555555',
     'read_only',
     'Operations',
-    true,
     true,
     now(),
     now()

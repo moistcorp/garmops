@@ -208,18 +208,12 @@ async function destinationAfterLogin(
       await supabase.auth.signOut();
       return "/auth/error?code=STAFF_ACCESS_DENIED";
     }
-    const { data: assurance } =
-      await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (assurance?.currentLevel === "aal2") {
-      if (!staff.active && staff.invited_at && !staff.activated_at) {
-        await supabase.rpc("activate_invited_staff");
-      }
-      await supabase.rpc("record_staff_login");
-      return "/staff";
+    if (!staff.active) {
+      await supabase.auth.signOut();
+      return "/auth/error?code=STAFF_ACCESS_DENIED";
     }
-    return assurance?.nextLevel === "aal2"
-      ? "/staff/mfa/challenge"
-      : "/staff/mfa/enrol";
+    await supabase.rpc("record_staff_login");
+    return "/staff/orders";
   }
 
   const { data: membership } = await supabase
@@ -251,7 +245,7 @@ export async function loginAction(
 
   const supabase = await createClient();
   if (!parsed.data.password && parsed.data.portal === "staff") {
-    return actionError("Staff sign-in requires a password and authenticator MFA.");
+    return actionError("Staff sign-in requires a password.");
   }
   if (!parsed.data.password) {
     const { error: otpError } = await supabase.auth.signInWithOtp({
@@ -293,7 +287,7 @@ export async function loginAction(
   redirect(destination);
 }
 
-/** Customer-only email OTP request. Staff continues to use password + MFA. */
+/** Customer-only email OTP request. Staff uses password sign-in. */
 export async function requestCustomerOtpAction(
   _state: AuthActionState,
   formData: FormData,

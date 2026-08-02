@@ -133,10 +133,7 @@ async function applyVerification(
       p_verified_amount_paise: verification.amountPaise,
       p_currency: attempt.currency,
       p_verified_snapshot: verification.snapshot as Json,
-      p_invoice_kind:
-        getServerEnvironment().ZOHO_RESERVATION_DOCUMENT_MODE === "retainer_invoice"
-          ? "reservation_retainer"
-          : "reservation_invoice",
+      p_invoice_kind: "reservation_invoice",
     });
     if (error) {
       if (/another payment attempt already paid/i.test(error.message)) {
@@ -164,9 +161,9 @@ async function applyVerification(
   const { error } = await admin.rpc("record_payu_payment_state", {
     p_payment_attempt_id: attempt.id,
     p_state: state,
-    p_provider_payment_id: verification.providerPaymentId,
-    p_failure_code: verification.failureCode,
-    p_failure_message: verification.failureMessage,
+    p_provider_payment_id: verification.providerPaymentId ?? undefined,
+    p_failure_code: verification.failureCode ?? undefined,
+    p_failure_message: verification.failureMessage ?? undefined,
     p_verified_snapshot: verification.snapshot as Json,
   });
   if (error) throw new Error(error.message);
@@ -335,7 +332,7 @@ export async function processPayuEvent(
       await admin.rpc("record_payu_payment_state", {
         p_payment_attempt_id: attempt.id,
         p_state: "pending",
-        p_provider_payment_id: fields.mihpayid || null,
+        p_provider_payment_id: fields.mihpayid || undefined,
         p_failure_code: "VERIFICATION_PENDING",
         p_failure_message:
           "PayU response was authentic but provider verification requires reconciliation",

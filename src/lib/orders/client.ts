@@ -6,8 +6,6 @@ import type { BuildDraft } from "@/lib/configurator/buildDraft";
 import { CUSTOM_ORDER_TERMS_VERSION } from "@/lib/orders/terms";
 import {
   readCloudDesignLink,
-  readEstimateForDesign,
-  clearEstimateForDesign,
   saveBuildDraftToCloud,
   writeCloudDesignLink,
   type CloudDesignLink,
@@ -20,7 +18,6 @@ type PreparedOrder = {
   idempotencyKey: string;
   designProjectId: string;
   designVersion: number;
-  estimateId?: string;
 };
 
 type SubmissionResult =
@@ -234,12 +231,9 @@ export async function prepareAndSubmitDurableOrder(input: {
   const fingerprint = fingerprintFor(input.draft);
   let prepared = readPreparedOrder(input.cartId);
   const existingLink = readCloudDesignLink(item.productId);
-  const estimateId = existingLink ? readEstimateForDesign(existingLink.designId) : null;
 
   if (!prepared || prepared.fingerprint !== fingerprint) {
-    const cloudResult = estimateId && existingLink
-      ? { ok: true as const, link: existingLink }
-      : await saveBuildDraftToCloud({
+    const cloudResult = await saveBuildDraftToCloud({
       configId: item.productId,
       productName: item.productName,
       draft: draftForItem(item),
@@ -265,7 +259,7 @@ export async function prepareAndSubmitDurableOrder(input: {
 
     let frozen: CloudDesignLink;
     try {
-      frozen = estimateId && existingLink ? existingLink : await freezeVersion(item.productId, cloudResult.link);
+      frozen = await freezeVersion(item.productId, cloudResult.link);
     } catch (error) {
       return {
         ok: false,
@@ -281,15 +275,9 @@ export async function prepareAndSubmitDurableOrder(input: {
       idempotencyKey: crypto.randomUUID(),
       designProjectId: frozen.designId,
       designVersion: frozen.currentVersion,
-      estimateId: estimateId ?? undefined,
     };
     writePreparedOrder(input.cartId, prepared);
   }
-  if (prepared && estimateId && prepared.estimateId !== estimateId) {
-    prepared = { ...prepared, estimateId };
-    writePreparedOrder(input.cartId, prepared);
-  }
-
   const company = input.draft.companyInformation;
   const contact = input.draft.projectContact;
   const billing = input.draft.billingInformation;
@@ -302,7 +290,6 @@ export async function prepareAndSubmitDurableOrder(input: {
     body: JSON.stringify({
       designProjectId: prepared.designProjectId,
       designVersion: prepared.designVersion,
-      estimateId: prepared.estimateId,
       organizationId: input.organizationId,
       sizeQuantities: item.sizeQuantities,
       deliveryType: input.draft.deliveryType,
@@ -353,7 +340,5 @@ export async function prepareAndSubmitDurableOrder(input: {
       message: body.error ?? "Order could not be submitted",
     };
   }
-  if (prepared.estimateId) clearEstimateForDesign(prepared.designProjectId);
-
   return { ok: true, order: body.order };
 }

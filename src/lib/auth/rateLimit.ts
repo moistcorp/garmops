@@ -11,7 +11,6 @@ export type AuthRateLimitScope =
   | "forgot_password"
   | "resend_verification"
   | "contact"
-  | "mfa"
   | "staff_invite";
 
 const RULES: Record<
@@ -23,7 +22,6 @@ const RULES: Record<
   forgot_password: { maxAttempts: 4, windowSeconds: 3600 },
   resend_verification: { maxAttempts: 4, windowSeconds: 3600 },
   contact: { maxAttempts: 3, windowSeconds: 600 },
-  mfa: { maxAttempts: 10, windowSeconds: 600 },
   staff_invite: { maxAttempts: 20, windowSeconds: 3600 },
 };
 

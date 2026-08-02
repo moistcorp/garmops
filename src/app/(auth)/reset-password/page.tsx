@@ -6,7 +6,7 @@ export default function ResetPasswordPage() {
     <AuthShell
       eyebrow="Account recovery"
       title="Choose a new password"
-      description="Use at least eight characters. Staff invitations continue to authenticator MFA after this step."
+      description="Use at least eight characters."
     >
       <AuthActionForm variant="reset" />
     </AuthShell>

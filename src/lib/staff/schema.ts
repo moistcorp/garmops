@@ -92,9 +92,3 @@ export const fileVisibilitySchema = z.object({
   visibility: z.enum(["customer", "staff_only"]),
   reason: z.string().trim().min(1).max(1000),
 });
-
-export const customerReplySchema = z.object({
-  orderId: staffOrderIdSchema,
-  orderNumber: staffOrderNumberSchema,
-  body: z.string().trim().min(1).max(10000),
-});

@@ -16,7 +16,7 @@ Validation must preserve secret-free CI and local builds. Provider credentials a
 - Supabase privileged: service-role key, available only to narrowly scoped admin/job modules.
 - R2: account, S3 endpoint, access credentials, bucket names, and public download origin.
 - PayU: environment, merchant key, salt, signing secret, hosted-checkout URL, and verification base URL.
-- Zoho: data-centre URLs, OAuth credentials, organisation/item/tax IDs, document/tax modes, and email behaviour.
+- Invoice: seller legal name/address/GSTIN, HSN codes, GST rate, and email behaviour.
 - Reservation: positive integer paise, `INR`, and credit-to-final-invoice decision.
 - Resend: API key, verified sender, and operational recipients.
 - Turnstile: public site key and server secret.
@@ -28,7 +28,7 @@ URLs use URL validation, email addresses use email validation, integer settings 
 ## Conditional requirements
 
 - Accounts require Supabase URL and publishable key.
-- Staff portal additionally requires the service-role boundary and configured staff/MFA data.
+- Staff portal additionally requires the service-role boundary and an active staff record.
 - Private R2 uploads require all private-bucket credentials and exact application origins.
 - Cloud designs require accounts and private R2 uploads before their server
   routes can be enabled.
@@ -36,7 +36,7 @@ URLs use URL validation, email addresses use email validation, integer settings 
   boundary, and cloud designs. It does not require PayU credentials merely to
   create the pre-payment order and attempt; PayU signing and verification
   become mandatory when Phase 8 provider processing is enabled.
-- Zoho automation requires durable custom checkout, Zoho credentials/IDs, reservation settings, R2 private storage, and the PostgreSQL job backend.
+- In-house invoice generation requires durable checkout, R2 private storage, Resend, seller tax configuration, and the PostgreSQL job backend.
 - Turnstile-protected routes require both site and secret keys.
 - SMS, WhatsApp, Realtime, and any unsupported job backend are rejected for the initial release even if accidentally enabled.
 
@@ -46,7 +46,7 @@ The current legacy PayU and Resend routes retain their existing configuration be
 
 Only variables intentionally named `NEXT_PUBLIC_*` may be exposed to client bundles. Next.js inlines these at build time, so changing them requires a new deployment. Server enforcement reads server flags at request time and never relies solely on a public flag.
 
-`SUPABASE_SERVICE_ROLE_KEY`, `PAYU_SALT`, `PAYMENT_SIGNING_SECRET`, R2 credentials, Zoho secrets/tokens, `RESEND_API_KEY`, `TURNSTILE_SECRET_KEY`, and `CRON_SECRET` are server-only. Logs and validation errors must never include their values.
+`SUPABASE_SERVICE_ROLE_KEY`, `PAYU_SALT`, `PAYMENT_SIGNING_SECRET`, R2 credentials, `RESEND_API_KEY`, `TURNSTILE_SECRET_KEY`, and `CRON_SECRET` are server-only. Logs and validation errors must never include their values.
 
 ## Validation entry points
 
@@ -55,7 +55,7 @@ Phase 1 provides:
 - a pure schema in `src/lib/config/envSchema.ts` that is unit tested with explicit environment objects;
 - a cached, `server-only` accessor in `src/lib/config/env.ts`;
 - secret-free validation tests with every rollout flag off;
-- conditional validation for Supabase, PayU, R2, and Zoho rollout dependencies;
+- conditional validation for Supabase, PayU, R2, and invoice rollout dependencies;
 - safe errors that report invalid variable names without values.
 
 The build must not contact providers or require production credentials. Route handlers and job processors validate the provider group before performing a side effect and return a safe configuration error when a disabled or incomplete integration is invoked.

@@ -50,21 +50,11 @@ function pendingImportKey(operationKey: string): string {
   return `${PENDING_IMPORT_PREFIX}${operationKey}`;
 }
 
-function estimateLinkKey(designId: string): string {
-  return `${ESTIMATE_LINK_PREFIX}${designId}`;
-}
-
+/** Retained for configurator deep links; checkout no longer consumes estimates. */
 export function writeEstimateForDesign(designId: string, estimateId: string): void {
-  try { window.localStorage.setItem(estimateLinkKey(designId), estimateId); } catch { /* browser storage is optional */ }
+  try { window.localStorage.setItem(`${ESTIMATE_LINK_PREFIX}${designId}`, estimateId); } catch { /* browser storage is optional */ }
 }
 
-export function readEstimateForDesign(designId: string): string | null {
-  try { return window.localStorage.getItem(estimateLinkKey(designId)); } catch { return null; }
-}
-
-export function clearEstimateForDesign(designId: string): void {
-  try { window.localStorage.removeItem(estimateLinkKey(designId)); } catch { /* no-op */ }
-}
 
 function replaySafeImportId(operationKey: string): string {
   const storageKey = pendingImportKey(operationKey);

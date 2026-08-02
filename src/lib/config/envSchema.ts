@@ -30,24 +30,6 @@ const booleanValue = z
 const positiveInteger = (fallback: number, maximum: number) =>
   z.coerce.number().int().positive().max(maximum).default(fallback);
 
-const optionalNonnegativeInteger = (maximum: number) =>
-  z.preprocess(
-    emptyToUndefined,
-    z.coerce.number().int().nonnegative().max(maximum).optional()
-  );
-
-
-const ZOHO_DATA_CENTRE_HOSTS = Object.freeze({
-  "accounts.zoho.com": "www.zohoapis.com",
-  "accounts.zoho.eu": "www.zohoapis.eu",
-  "accounts.zoho.in": "www.zohoapis.in",
-  "accounts.zoho.com.au": "www.zohoapis.com.au",
-  "accounts.zoho.jp": "www.zohoapis.jp",
-  "accounts.zohocloud.ca": "www.zohoapis.ca",
-  "accounts.zoho.com.cn": "www.zohoapis.com.cn",
-  "accounts.zoho.sa": "www.zohoapis.sa",
-} as const);
-
 const serverEnvironmentSchema = z
   .object({
     APP_ENV: z
@@ -81,25 +63,12 @@ const serverEnvironmentSchema = z
     PAYU_ENVIRONMENT: z.enum(["test", "live"]).default("test"),
     NEXT_PUBLIC_PAYU_BASE_URL: optionalUrl,
 
-    ZOHO_CLIENT_ID: optionalText(512),
-    ZOHO_CLIENT_SECRET: optionalText(2048),
-    ZOHO_REFRESH_TOKEN: optionalText(4096),
-    ZOHO_ORGANIZATION_ID: optionalText(128),
-    ZOHO_ACCOUNTS_BASE_URL: optionalUrl,
-    ZOHO_INVOICE_API_BASE_URL: optionalUrl,
-    ZOHO_RESERVATION_DOCUMENT_MODE: z
-      .enum(["retainer_invoice", "standard_invoice"])
-      .default("retainer_invoice"),
-    ZOHO_RESERVATION_ITEM_ID: optionalText(128),
-    ZOHO_RESERVATION_TAX_ID: optionalText(128),
-    ZOHO_RESERVATION_TAX_MODE: z
-      .enum(["inclusive", "exclusive"])
-      .default("inclusive"),
-    ZOHO_RESERVATION_TAX_BASIS_POINTS: optionalNonnegativeInteger(100_000),
-    ZOHO_SEND_DOCUMENT_EMAIL: z
-      .enum(["true", "false"])
-      .default("true")
-      .transform((value) => value === "true"),
+    INVOICE_SELLER_LEGAL_NAME: z.string().trim().min(1).max(200).default("Moist Corp — configure legal name"),
+    INVOICE_SELLER_ADDRESS: z.string().trim().min(1).max(500).default("Configure registered seller address, Uttar Pradesh, India"),
+    INVOICE_SELLER_GSTIN: z.string().trim().min(1).max(40).default("CONFIGURE_SELLER_GSTIN"),
+    INVOICE_SELLER_STATE: z.string().trim().min(1).max(80).default("Uttar Pradesh"),
+    INVOICE_DEFAULT_HSN_CODE: z.string().trim().min(1).max(40).default("CONFIGURE_HSN_CODE"),
+    INVOICE_GST_RATE_BASIS_POINTS: positiveInteger(500, 10_000),
 
     RESERVATION_AMOUNT_PAISE: positiveInteger(49_900, 100_000_000),
     RESERVATION_CURRENCY: z.literal("INR").default("INR"),
@@ -130,7 +99,6 @@ const serverEnvironmentSchema = z
     CLOUD_DESIGNS_ENABLED: booleanValue,
     DURABLE_CUSTOM_CHECKOUT_ENABLED: booleanValue,
     DURABLE_SAMPLE_CHECKOUT_ENABLED: booleanValue,
-    ZOHO_INVOICE_AUTOMATION_ENABLED: booleanValue,
     ENABLE_REALTIME_ORDER_UPDATES: booleanValue,
     ENABLE_WHATSAPP_NOTIFICATIONS: booleanValue,
     ENABLE_SMS_NOTIFICATIONS: booleanValue,
@@ -363,106 +331,6 @@ const serverEnvironmentSchema = z
         path: ["DURABLE_CUSTOM_CHECKOUT_ENABLED"],
         message:
           "Cloud designs must be enabled before durable custom checkout",
-      });
-    }
-
-    let zohoAccountsHost: keyof typeof ZOHO_DATA_CENTRE_HOSTS | null = null;
-    let zohoApiHost: string | null = null;
-    if (environment.ZOHO_ACCOUNTS_BASE_URL) {
-      const accounts = new URL(environment.ZOHO_ACCOUNTS_BASE_URL);
-      if (
-        accounts.protocol !== "https:" ||
-        !(accounts.hostname in ZOHO_DATA_CENTRE_HOSTS) ||
-        accounts.pathname !== "/" ||
-        accounts.search ||
-        accounts.hash ||
-        accounts.username ||
-        accounts.password
-      ) {
-        context.addIssue({
-          code: "custom",
-          path: ["ZOHO_ACCOUNTS_BASE_URL"],
-          message: "Zoho accounts URL must be an exact official HTTPS data-centre origin",
-        });
-      } else {
-        zohoAccountsHost = accounts.hostname as keyof typeof ZOHO_DATA_CENTRE_HOSTS;
-      }
-    }
-
-    if (environment.ZOHO_INVOICE_API_BASE_URL) {
-      const api = new URL(environment.ZOHO_INVOICE_API_BASE_URL);
-      const officialApiHosts = new Set<string>(Object.values(ZOHO_DATA_CENTRE_HOSTS));
-      if (
-        api.protocol !== "https:" ||
-        !officialApiHosts.has(api.hostname) ||
-        api.pathname.replace(/\/$/, "") !== "/invoice/v3" ||
-        api.search ||
-        api.hash ||
-        api.username ||
-        api.password
-      ) {
-        context.addIssue({
-          code: "custom",
-          path: ["ZOHO_INVOICE_API_BASE_URL"],
-          message: "Zoho Invoice API URL must be an exact official /invoice/v3 data-centre endpoint",
-        });
-      } else {
-        zohoApiHost = api.hostname;
-      }
-    }
-
-    if (
-      zohoAccountsHost &&
-      zohoApiHost &&
-      ZOHO_DATA_CENTRE_HOSTS[zohoAccountsHost] !== zohoApiHost
-    ) {
-      context.addIssue({
-        code: "custom",
-        path: ["ZOHO_INVOICE_API_BASE_URL"],
-        message: "Zoho OAuth and Invoice API endpoints must use the same data centre",
-      });
-    }
-
-    requireValues(
-      environment.ZOHO_INVOICE_AUTOMATION_ENABLED,
-      [
-        "ZOHO_CLIENT_ID",
-        "ZOHO_CLIENT_SECRET",
-        "ZOHO_REFRESH_TOKEN",
-        "ZOHO_ORGANIZATION_ID",
-        "ZOHO_ACCOUNTS_BASE_URL",
-        "ZOHO_INVOICE_API_BASE_URL",
-        "ZOHO_RESERVATION_ITEM_ID",
-        "ZOHO_RESERVATION_TAX_ID",
-        "RESEND_API_KEY",
-        "RESEND_FROM_EMAIL",
-      ],
-      "when Zoho invoice automation is enabled"
-    );
-
-    if (
-      environment.ZOHO_INVOICE_AUTOMATION_ENABLED &&
-      environment.ZOHO_RESERVATION_TAX_MODE === "exclusive" &&
-      environment.ZOHO_RESERVATION_TAX_BASIS_POINTS === undefined
-    ) {
-      context.addIssue({
-        code: "custom",
-        path: ["ZOHO_RESERVATION_TAX_BASIS_POINTS"],
-        message:
-          "Exclusive Zoho tax mode requires the finance-approved combined tax rate in basis points",
-      });
-    }
-
-    if (
-      environment.ZOHO_INVOICE_AUTOMATION_ENABLED &&
-      (!environment.DURABLE_CUSTOM_CHECKOUT_ENABLED ||
-        !environment.R2_PRIVATE_UPLOADS_ENABLED)
-    ) {
-      context.addIssue({
-        code: "custom",
-        path: ["ZOHO_INVOICE_AUTOMATION_ENABLED"],
-        message:
-          "Zoho automation requires durable custom checkout and private R2 uploads",
       });
     }
 

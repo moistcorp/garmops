@@ -58,7 +58,7 @@ export async function requireStaffRecord(options?: { allowInvited?: boolean }) {
   const { data: staff, error } = await context.supabase
     .from("staff_members")
     .select(
-      "user_id, role, team, active, must_use_mfa, invited_at, activated_at, deactivated_at",
+      "user_id, role, team, active, invited_at, activated_at, deactivated_at",
     )
     .eq("user_id", context.user.id)
     .maybeSingle();

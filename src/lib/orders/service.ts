@@ -132,28 +132,6 @@ export async function submitCustomOrder(input: {
     throw new Error("Organization is unavailable");
   }
 
-  let estimateToConvert: { id: string; design_version_id: string; design_revision: number; status: string; valid_until: string } | null = null;
-  if (request.estimateId) {
-    const estimateResult = await supabase
-      .from("design_estimates")
-      .select("id, design_version_id, design_revision, status, valid_until")
-      .eq("id", request.estimateId)
-      .eq("design_project_id", request.designProjectId)
-      .eq("created_by", user.id)
-      .maybeSingle();
-    if (
-      estimateResult.error ||
-      !estimateResult.data ||
-      estimateResult.data.design_version_id !== versionResult.data.id ||
-      estimateResult.data.design_revision !== projectResult.data.draft_revision ||
-      estimateResult.data.status !== "active" ||
-      new Date(estimateResult.data.valid_until).getTime() <= Date.now()
-    ) {
-      throw new Error("This estimate is no longer current. Generate a new estimate before payment.");
-    }
-    estimateToConvert = estimateResult.data;
-  }
-
   const snapshot = cloudDesignSnapshotSchema.parse(
     versionResult.data.configuration_snapshot,
   );
@@ -295,17 +273,6 @@ export async function submitCustomOrder(input: {
   const result = data?.[0];
   if (error || !result) {
     throw new Error(error?.message ?? "Order could not be submitted");
-  }
-
-  if (estimateToConvert) {
-    const linked = await admin.rpc("link_order_to_estimate", {
-      p_order_id: result.order_id,
-      p_estimate_id: estimateToConvert.id,
-      p_customer_user_id: user.id,
-    });
-    if (linked.error || linked.data !== true) {
-      throw new Error("The order was created, but its estimate link could not be completed");
-    }
   }
 
   return {

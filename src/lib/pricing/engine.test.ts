@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { buildEstimateSnapshot, calculateEstimatePricing } from "./engine";
-import { estimateFilename, deriveEstimateStatus, isEstimateCurrent } from "@/lib/estimates/presentation";
 import type { CloudDesignSnapshot } from "@/lib/designs/schema";
 import type { ArtworkSide, NeckLabel } from "@/lib/configurator/types/configurator";
 
@@ -74,18 +73,5 @@ describe("authoritative estimate pricing", () => {
     expect(snapshot.customisation.back.present).toBe(true);
     expect(snapshot.customisation.back.technique).toBe("embroidery");
     expect(snapshot.shipping.included).toBe(false);
-  });
-});
-
-describe("estimate lifecycle presentation", () => {
-  it("detects stale and expired estimates without rewriting them", () => {
-    const estimate = { status: "active" as const, valid_until: "2026-08-10T00:00:00Z", design_revision: 4 };
-    expect(isEstimateCurrent(estimate, 4)).toBe(true);
-    expect(isEstimateCurrent(estimate, 5)).toBe(false);
-    expect(deriveEstimateStatus({ ...estimate, valid_until: "2026-07-01T00:00:00Z" }, new Date("2026-08-02T00:00:00Z"))).toBe("expired");
-  });
-
-  it("uses the customer-facing estimate filename", () => {
-    expect(estimateFilename("EST-2026-000123")).toBe("Garmops-Estimate-EST-2026-000123.pdf");
   });
 });

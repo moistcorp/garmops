@@ -115,10 +115,8 @@ async function sendPaymentConfirmation(job: IntegrationJob): Promise<void> {
   const safeName = escapeHtml(attempt.customer_name);
   const safeOrder = escapeHtml(order.order_number);
   const invoiceMessage = invoice?.document_number
-    ? `Your official ${sampleOrder ? "sample tax" : "reservation"} document <strong>${escapeHtml(invoice.document_number)}</strong> is available in your account.`
-    : sampleOrder && invoice?.sync_status === "not_required"
-      ? "Your sample payment is recorded. Automatic sample tax invoicing is not enabled yet; Garmops finance can issue the required document separately."
-      : `Your official ${sampleOrder ? "sample tax" : "reservation"} document is being generated and will appear in your account shortly.`;
+    ? `Your invoice <strong>${escapeHtml(invoice.document_number)}</strong> is available in your account.`
+    : "Your invoice is being generated and will appear in your account shortly.";
 
   await sendResendEmail({
     to: attempt.customer_email,
@@ -201,21 +199,6 @@ export async function processIntegrationJobs(options?: {
   const jobs = (data ?? []) as IntegrationJob[];
   const results: JobResult[] = [];
   for (const job of jobs) {
-    if (
-      job.job_type === "create_reservation_invoice" &&
-      !environment.ZOHO_INVOICE_AUTOMATION_ENABLED
-    ) {
-      const { error: deferError } = await admin.rpc("defer_integration_job", {
-        p_job_id: job.id,
-        p_worker_id: workerId,
-        p_available_at: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(),
-        p_reason: "Zoho invoice automation is intentionally disabled",
-      });
-      if (deferError) throw new Error(deferError.message);
-      results.push({ jobId: job.id, jobType: job.job_type, status: "retry" });
-      continue;
-    }
-
     try {
       await handleJob(job);
       const { error: completeError } = await admin.rpc("complete_integration_job", {
