@@ -181,7 +181,10 @@ export function OrderBar({
     >
       <VolumeDiscountProgress quantity={quantity} />
 
-      <div className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)] items-end gap-2 border-t border-white/55 pt-2 sm:grid-cols-[132px_minmax(0,1fr)_minmax(0,1fr)_auto]" aria-live="polite">
+      <div
+        className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)] items-end gap-2 border-t border-white/55 pt-2 sm:grid-cols-[minmax(132px,1.2fr)_minmax(92px,1fr)_minmax(92px,1fr)]"
+        aria-live="polite"
+      >
         <div className="min-w-0">
           <label
             htmlFor="configurator-quantity"
@@ -264,7 +267,7 @@ export function OrderBar({
         <button
           type="button"
           onClick={onCtaClick}
-          className={`col-span-3 min-h-10 w-full shrink-0 rounded-[4px] px-5 text-sm font-semibold text-white transition-all hover:opacity-90 sm:col-span-1 sm:w-auto ${
+          className={`col-span-3 min-h-10 w-full rounded-[4px] px-5 py-2 text-sm font-semibold leading-tight text-white transition-all hover:opacity-90 ${
             flashError
               ? "bg-[#C62828] ring-2 ring-[#C62828]/40 ring-offset-2"
               : "bg-[var(--color-accent)] hover:bg-[var(--color-accent-dark)]"

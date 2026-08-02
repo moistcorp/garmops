@@ -106,21 +106,26 @@ export function ConfiguratorJourney({
                   </Link>
                 ))}
                 {(previousStepHandler || previousStepHref) && <span className="hidden font-mono text-[10px] uppercase tracking-[0.06em] text-[var(--text-primary)]/45 sm:inline">Back</span>}
-                {productName && (
-                  <div className="flex min-w-0 items-center gap-3 border-l border-[var(--color-rule)] pl-3">
-                    <Image
-                      src="/logo3.png"
-                      alt="Garmops"
-                      width={908}
-                      height={114}
-                      className="h-3.5 w-auto shrink-0 object-contain"
-                    />
-                    <span aria-hidden="true" className="h-4 w-px shrink-0 bg-[var(--text-primary)]/15" />
-                    <span className="max-w-40 truncate text-sm font-medium text-[var(--text-primary)]/85 sm:max-w-64">
-                      {productName}
-                    </span>
-                  </div>
-                )}
+                <div className="flex min-w-0 items-center gap-3 border-l border-[var(--color-rule)] pl-3">
+                  <Image
+                    src="/logo3.png"
+                    alt="Garmops"
+                    width={908}
+                    height={114}
+                    className="h-3.5 w-auto shrink-0 object-contain"
+                  />
+                  {productName && (
+                    <>
+                      <span
+                        aria-hidden="true"
+                        className="h-4 w-px shrink-0 bg-[var(--text-primary)]/15"
+                      />
+                      <span className="max-w-40 truncate text-sm font-medium text-[var(--text-primary)]/85 sm:max-w-64">
+                        {productName}
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
             )}
 
