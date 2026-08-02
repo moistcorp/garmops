@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { Check, ChevronDown, GitCompareArrows, Sparkles } from "lucide-react";
 import type { Product, ProductUseCase } from "@/lib/configurator/products";
 import { formatInr, getBasePrice, getVolumeDiscountPercent } from "@/lib/configurator/pricing";
@@ -27,6 +27,7 @@ interface ProductCardProps {
   compared: boolean;
   compareDisabled: boolean;
   onCompareChange: (selected: boolean) => void;
+  onProductSelect: (event: MouseEvent<HTMLAnchorElement>, product: Product) => void;
   recommended: boolean;
 }
 
@@ -38,6 +39,7 @@ export default function ProductCard({
   compared,
   compareDisabled,
   onCompareChange,
+  onProductSelect,
   recommended,
 }: ProductCardProps) {
   const priceLabel = getDisplayPrice(product.id, quantity);
@@ -88,7 +90,7 @@ export default function ProductCard({
       <div className="relative aspect-[3/4] w-full shrink-0 overflow-hidden bg-white">
         <Link
           href={configuratorHref}
-          onClick={() => trackConfiguratorEvent("product_selected", { product_id: product.id, quantity, use_case: selectedUseCase || null })}
+          onClick={(event) => onProductSelect(event, product)}
           className="absolute inset-0 z-10"
           aria-label={`Customise ${product.name}`}
         >
@@ -126,7 +128,7 @@ export default function ProductCard({
           <div className="min-w-0 flex-1">
             <Link
               href={configuratorHref}
-              onClick={() => trackConfiguratorEvent("product_selected", { product_id: product.id, quantity, use_case: selectedUseCase || null })}
+              onClick={(event) => onProductSelect(event, product)}
               className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-[#111111] hover:text-[var(--color-accent-dark)]"
             >
               {product.name}
@@ -173,7 +175,7 @@ export default function ProductCard({
         <div className="mt-auto flex items-center gap-2 pt-1">
           <Link
             href={configuratorHref}
-            onClick={() => trackConfiguratorEvent("product_selected", { product_id: product.id, quantity, use_case: selectedUseCase || null })}
+            onClick={(event) => onProductSelect(event, product)}
             className="flex min-h-10 flex-1 items-center justify-center rounded-[4px] bg-[var(--color-accent)] px-4 text-sm font-semibold text-white hover:bg-[var(--color-accent-dark)]"
           >
             Customise

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CloudOff, FileCheck2, LoaderCircle, X } from "lucide-react";
+import { X } from "lucide-react";
 import GarmentColourPanel from "./GarmentColourPanel/GarmentColourPanel";
 import ArtworkPanel from "./ArtworkPanel/ArtworkPanel";
 import NeckLabelPanel from "./NeckLabelPanel/NeckLabelPanel";
@@ -36,7 +36,6 @@ export interface ConfiguratorSidebarProps {
   isToteProduct?: boolean;
   onResetStep?: (id: AccordionStepId) => void;
   activeStepSummary?: string;
-  saveStatus?: "restoring" | "saving" | "saved" | "error";
   draftRestored?: boolean;
   onDismissDraftRestored?: () => void;
 }
@@ -73,7 +72,6 @@ export function ConfiguratorSidebar({
   isToteProduct = false,
   onResetStep,
   activeStepSummary,
-  saveStatus = "restoring",
   draftRestored = false,
   onDismissDraftRestored,
 }: ConfiguratorSidebarProps = {}) {
@@ -126,54 +124,15 @@ export function ConfiguratorSidebar({
     isToteProduct && activeStep.id === "neck-label"
       ? "Bag Label"
       : activeStep.title.replace("Garment ", "");
-  const saveStatusLabel =
-    saveStatus === "restoring"
-      ? "Restoring…"
-      : saveStatus === "saving"
-        ? "Saving…"
-        : saveStatus === "error"
-          ? "Save unavailable"
-          : "Autosaved";
-  const SaveStatusIcon =
-    saveStatus === "error"
-      ? CloudOff
-      : saveStatus === "saving" || saveStatus === "restoring"
-        ? LoaderCircle
-        : FileCheck2;
-
   return (
     <section className="flex h-full min-h-0 flex-col overflow-hidden bg-transparent">
-      <div className="shrink-0 border-b border-[var(--color-rule)] bg-[var(--color-cream)] px-4 py-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-semibold text-[#111111]">{activeStepTitle}</h2>
-            </div>
-            <p className="mt-0.5 truncate text-xs text-[#111111]/55" title={activeStepSummary}>
-              {activeStepSummary ?? activeStep.summary ?? "Not added yet"}
-            </p>
-          </div>
-
-          <span
-            aria-live="polite"
-            className={`inline-flex shrink-0 items-center gap-1 rounded-[4px] border px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.04em] ${
-              saveStatus === "error"
-                ? "border-[#A63A3A]/35 bg-[#FFF0F0] text-[#A63A3A]"
-                : "border-[var(--color-accent)]/30 bg-[var(--color-cream-soft)] text-[var(--color-accent-dark)]"
-            }`}
-          >
-            <SaveStatusIcon
-              size={12}
-              strokeWidth={2.3}
-              aria-hidden="true"
-              className={
-                saveStatus === "saving" || saveStatus === "restoring" ? "animate-spin" : ""
-              }
-            />
-            {saveStatusLabel}
-          </span>
+      <div className="shrink-0 border-b border-[#DCE1E6] bg-white px-4 py-3">
+        <div className="min-w-0">
+          <h2 className="text-sm font-semibold text-[#111111]">{activeStepTitle}</h2>
+          <p className="mt-0.5 truncate text-xs text-[#111111]/55" title={activeStepSummary}>
+            {activeStepSummary ?? activeStep.summary ?? "Not added yet"}
+          </p>
         </div>
-
       </div>
 
       {draftRestored && (

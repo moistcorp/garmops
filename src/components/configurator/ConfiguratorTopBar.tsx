@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import {
   ConfiguratorJourney,
   type ConfiguratorJourneyStep,
@@ -14,6 +15,8 @@ export interface ConfiguratorTopBarProps {
   isDownloadingPdf?: boolean;
   isDownloadDisabled?: boolean;
   showCart?: boolean;
+  productName?: string;
+  accountSaveNotice?: ReactNode;
   links?: Partial<Record<ConfiguratorJourneyStep, string>>;
   onStepSelect?: Partial<Record<ConfiguratorJourneyStep, () => void>>;
   className?: string;
@@ -48,15 +51,17 @@ export function ConfiguratorTopBar({
   isDownloadingPdf = false,
   isDownloadDisabled = false,
   showCart = false,
+  productName,
+  accountSaveNotice,
   links = {},
   onStepSelect = {},
   className = "",
 }: ConfiguratorTopBarProps) {
   return (
     <div
-      className={`sticky top-0 z-30 ml-[calc(50%-50dvw)] w-[100dvw] shrink-0 bg-[var(--color-cream)] px-4 py-2.5 sm:py-3 ${className}`}
+      className={`sticky top-0 z-30 ml-[calc(50%-50dvw)] w-[100dvw] shrink-0 bg-[#F4F6F8] px-4 py-3 sm:py-4 ${className}`}
     >
-      <header className="overflow-hidden border border-[var(--color-rule)] bg-[var(--color-cream)]">
+      <header className="overflow-hidden rounded-[6px] border border-[#DCE1E6] bg-white">
         <NetworkStatusBanner />
 
         <div>
@@ -70,6 +75,8 @@ export function ConfiguratorTopBar({
             isDownloadingPdf={isDownloadingPdf}
             isDownloadDisabled={isDownloadDisabled}
             showCart={showCart}
+            productName={productName}
+            accountSaveNotice={accountSaveNotice}
             className="!rounded-none !border-0 !bg-transparent !"
           />
         </div>

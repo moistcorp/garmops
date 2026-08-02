@@ -193,7 +193,7 @@ export function OrderBar({
   return (
     <section
       aria-label="Order estimate"
-      className="techpack-stack techpack-surface grid gap-2.5 rounded-[4px] border p-3"
+      className="techpack-stack techpack-surface grid gap-2.5 rounded-[6px] !border-[#DCE1E6] !bg-white border p-3"
     >
       <VolumeDiscountProgress quantity={quantity} />
 

@@ -1,12 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
+import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { PRODUCT_USE_CASES, products, type ProductUseCase } from "@/lib/configurator/products";
 import { formatInr, getBasePrice, getVolumeDiscountPercent } from "@/lib/configurator/pricing";
 import { readPreferredQuantity, readPreferredTargetDate, writePreferredQuantity, writePreferredTargetDate } from "@/lib/configurator/clientPreferences";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
+import GarmopsLoadingScreen from "@/components/common/GarmopsLoadingScreen";
 import ProductCard from "./ProductCard";
+
+const PRODUCT_TRANSITION_MS = 2000;
 
 function todayInputValue(): string {
   const date = new Date();
@@ -18,11 +22,14 @@ function todayInputValue(): string {
 }
 
 export default function ProductGrid() {
+  const router = useRouter();
   const [useCase, setUseCase] = useState<ProductUseCase | "">("");
   const [quantity, setQuantity] = useState(100);
   const [quantityDraft, setQuantityDraft] = useState("100");
   const [targetDate, setTargetDate] = useState("");
   const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const selectionTimer = useRef<number | null>(null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -32,6 +39,10 @@ export default function ProductGrid() {
       setTargetDate(readPreferredTargetDate());
     }, 0);
     return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => () => {
+    if (selectionTimer.current) window.clearTimeout(selectionTimer.current);
   }, []);
 
   const sortedProducts = useMemo(() => {
@@ -71,6 +82,32 @@ export default function ProductGrid() {
     setCompareIds((current) => selected ? [...current, productId].slice(0, 3) : current.filter((id) => id !== productId));
     if (selected) trackConfiguratorEvent("product_compared", { product_id: productId });
   }
+
+  const selectProduct = useCallback((event: MouseEvent<HTMLAnchorElement>, product: (typeof products)[number]) => {
+    trackConfiguratorEvent("product_selected", {
+      product_id: product.id,
+      quantity,
+      use_case: useCase || null,
+    });
+
+    if (
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey ||
+      selectedProductId
+    ) return;
+
+    event.preventDefault();
+    const href = `/configurator/build/${product.id}`;
+    setSelectedProductId(product.id);
+    router.prefetch(href);
+    // Dynamic-route prefetching stops at the loading boundary, so warm the
+    // configurator client bundle during the intentional transition as well.
+    void import("../ConfigureClient");
+    selectionTimer.current = window.setTimeout(() => router.push(href), PRODUCT_TRANSITION_MS);
+  }, [quantity, router, selectedProductId, useCase]);
 
   return (
     <div className="space-y-6">
@@ -137,6 +174,7 @@ export default function ProductGrid() {
             compared={compareIds.includes(product.id)}
             compareDisabled={compareIds.length >= 3}
             onCompareChange={(selected) => toggleCompare(product.id, selected)}
+            onProductSelect={selectProduct}
             recommended={Boolean(useCase && product.bestFor.includes(useCase) && index < 3)}
           />
         ))}
@@ -173,6 +211,12 @@ export default function ProductGrid() {
             </table>
           </div>
         </section>
+      )}
+
+      {selectedProductId && (
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-[var(--color-cream)]">
+          <GarmopsLoadingScreen />
+        </div>
       )}
     </div>
   );

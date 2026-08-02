@@ -7,7 +7,6 @@ import {
   useRef,
   useState,
 } from "react";
-import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronUp, Cloud, CloudAlert, LoaderCircle } from "lucide-react";
 import type { GarmentView } from "@/lib/configurator/types/garment";
@@ -218,7 +217,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const [draftRestored, setDraftRestored] = useState(false);
   const [hydrationComplete, setHydrationComplete] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
   const [preferredTargetDate, setPreferredTargetDate] = useState("");
@@ -235,7 +233,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const hasHydrated = useRef(false);
   const saveTimer = useRef<number | null>(null);
-  const saveStatusTimer = useRef<number | null>(null);
   const autosaveErrorNotifiedRef = useRef(false);
   const retainedObjectUrlsRef = useRef<Set<string>>(new Set());
   const cloudLinkRef = useRef<CloudDesignLink | null>(null);
@@ -279,14 +276,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
           : activeDrawerStep.skipped
             ? `${isToteProduct ? "Bag" : "Neck"} label skipped`
             : `No ${isToteProduct ? "bag" : "neck"} label added`;
-  const displayedSaveStatus =
-    !hydrationComplete
-      ? "restoring"
-      : saveStatus === "saving"
-        ? "saving"
-        : saveStatus === "error"
-          ? "error"
-          : "saved";
   const completedCustomisationSteps = new Set(
     steps
       .filter((step) => step.confirmed || step.skipped)
@@ -741,11 +730,8 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   useEffect(() => {
     if (!hasHydrated.current) return;
     if (saveTimer.current) window.clearTimeout(saveTimer.current);
-    if (saveStatusTimer.current) window.clearTimeout(saveStatusTimer.current);
-    setSaveStatus("saving");
     saveTimer.current = window.setTimeout(() => {
       const saved = writeBuildDraft(configId, { colour, artwork, neckLabel, steps, quantity });
-      setSaveStatus(saved ? "saved" : "error");
       if (!saved && !autosaveErrorNotifiedRef.current) {
         autosaveErrorNotifiedRef.current = true;
         setFeedback({
@@ -756,7 +742,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       }
       if (saved) {
         autosaveErrorNotifiedRef.current = false;
-        saveStatusTimer.current = window.setTimeout(() => setSaveStatus("idle"), 1800);
         const savedDraft = readBuildDraft(configId);
         if (savedDraft && cloudLinkRef.current && !cloudConflict) {
           if (cloudSaveTimer.current) {
@@ -771,7 +756,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
     }, 450);
     return () => {
       if (saveTimer.current) window.clearTimeout(saveTimer.current);
-      if (saveStatusTimer.current) window.clearTimeout(saveStatusTimer.current);
       if (cloudSaveTimer.current) window.clearTimeout(cloudSaveTimer.current);
     };
   }, [
@@ -1099,89 +1083,50 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
           onDownloadPdf={handleDownloadPdf}
           isDownloadingPdf={isDownloadingPdf}
           showCart
+          productName={productName}
+          accountSaveNotice={
+            <div
+              role="status"
+              aria-live="polite"
+              className={`flex min-w-0 max-w-[42vw] items-center gap-2 text-xs ${
+                cloudSaveStatus === "conflict"
+                  ? "text-amber-950"
+                  : cloudSaveStatus === "error"
+                    ? "text-rose-900"
+                    : "text-[#1D49B4]"
+              }`}
+            >
+              {cloudSaveStatus === "saving" ? (
+                <LoaderCircle size={15} className="shrink-0 animate-spin" aria-hidden="true" />
+              ) : cloudSaveStatus === "conflict" || cloudSaveStatus === "error" ? (
+                <CloudAlert size={15} className="shrink-0" aria-hidden="true" />
+              ) : (
+                <Cloud size={15} className="shrink-0" aria-hidden="true" />
+              )}
+              <span className="min-w-0 flex-1 truncate font-medium">{cloudMessage}</span>
+
+              {cloudSaveStatus === "conflict" ? (
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <button type="button" onClick={handleUseThisDevice} className="rounded-[4px] bg-[#1D49B4] px-3 py-1.5 font-semibold text-white hover:bg-[#173A91]">Use this device</button>
+                  <button type="button" onClick={handleUseCloudVersion} className="rounded-[4px] border border-amber-900/20 bg-white/70 px-3 py-1.5 font-semibold hover:bg-white">Use saved version</button>
+                  <button type="button" onClick={handleCreateCloudCopy} className="rounded-[4px] border border-amber-900/20 bg-white/70 px-3 py-1.5 font-semibold hover:bg-white">Create a copy</button>
+                </div>
+              ) : cloudSaveStatus !== "saving" ? (
+                <div className="flex shrink-0 items-center gap-1.5">
+                  {cloudLink ? (
+                    <button type="button" onClick={() => router.push(`/account/designs/${encodeURIComponent(cloudLink.designId)}`)} className="rounded-[4px] border border-[#1D49B4]/20 bg-white/70 px-3 py-1.5 font-semibold hover:bg-white">View saved design</button>
+                  ) : null}
+                  <button type="button" onClick={handleSaveToAccount} disabled={!savedDesignsEnabled} title={!savedDesignsEnabled ? "Saving designs is not available right now" : undefined} className="rounded-[4px] bg-[#1D49B4] px-3 py-1.5 font-semibold text-white hover:bg-[#173A91]">
+                    {!savedDesignsEnabled ? "Save design unavailable" : cloudLink ? "Save now" : "Save design"}
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          }
           links={{ product: "/configurator" }}
           onStepSelect={journeyStepSelection}
           className="px-4"
         />
-
-        <div className="px-4 pb-2 lg:px-5">
-          <div
-            role="status"
-            aria-live="polite"
-            className={`mx-auto flex max-w-[1480px] flex-wrap items-center gap-2 rounded-[4px] border px-3 py-2 text-xs   ${
-              cloudSaveStatus === "conflict"
-                ? "border-amber-300/70 bg-amber-50/90 text-amber-950"
-                : cloudSaveStatus === "error"
-                  ? "border-rose-200/80 bg-rose-50/90 text-rose-900"
-                  : "border-white/75 bg-white/55 text-[#1D49B4]"
-            }`}
-          >
-            {cloudSaveStatus === "saving" ? (
-              <LoaderCircle
-                size={15}
-                className="shrink-0 animate-spin"
-                aria-hidden="true"
-              />
-            ) : cloudSaveStatus === "conflict" ||
-              cloudSaveStatus === "error" ? (
-              <CloudAlert size={15} className="shrink-0" aria-hidden="true" />
-            ) : (
-              <Cloud size={15} className="shrink-0" aria-hidden="true" />
-            )}
-            <span className="min-w-0 flex-1 font-medium">{cloudMessage}</span>
-
-            {cloudSaveStatus === "conflict" ? (
-              <div className="flex flex-wrap items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={handleUseThisDevice}
-                  className="rounded-[4px] bg-[#1D49B4] px-3 py-1.5 font-semibold text-white hover:bg-[#173A91]"
-                >
-                  Use this device
-                </button>
-                <button
-                  type="button"
-                  onClick={handleUseCloudVersion}
-                  className="rounded-[4px] border border-amber-900/20 bg-white/70 px-3 py-1.5 font-semibold hover:bg-white"
-                >
-                  Use saved version
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCreateCloudCopy}
-                  className="rounded-[4px] border border-amber-900/20 bg-white/70 px-3 py-1.5 font-semibold hover:bg-white"
-                >
-                  Create a copy
-                </button>
-              </div>
-            ) : cloudSaveStatus !== "saving" ? (
-              <div className="flex items-center gap-1.5">
-                  {cloudLink ? (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      router.push(
-                        `/account/designs/${encodeURIComponent(cloudLink.designId)}`
-                      )
-                    }
-                    className="rounded-[4px] border border-[#1D49B4]/20 bg-white/70 px-3 py-1.5 font-semibold hover:bg-white"
-                  >
-                    View saved design
-                  </button>
-                ) : null}
-                <button
-                  type="button"
-                  onClick={handleSaveToAccount}
-                  disabled={!savedDesignsEnabled}
-                  title={!savedDesignsEnabled ? "Saving designs is not available right now" : undefined}
-                  className="rounded-[4px] bg-[#1D49B4] px-3 py-1.5 font-semibold text-white hover:bg-[#173A91]"
-                >
-                  {!savedDesignsEnabled ? "Save design unavailable" : cloudLink ? "Save now" : "Save design"}
-                </button>
-              </div>
-            ) : null}
-          </div>
-        </div>
 
         {nameDialogOpen ? (
           <div className="fixed inset-0 z-[75] flex items-center justify-center bg-[#16212B]/45 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setNameDialogOpen(false); }}>
@@ -1234,25 +1179,8 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
           </ArtworkPositionProvider>
         </div>
 
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 overflow-y-auto px-4 pb-20 lg:grid-cols-[minmax(0,1fr)_clamp(360px,34vw,420px)] lg:overflow-hidden lg:px-5 lg:pb-4 xl:grid-cols-[minmax(0,1fr)_440px]">
-            <main className="relative flex min-h-[72dvh] min-w-0 flex-col overflow-hidden rounded-[4px] border border-white/70 bg-white ring-1 ring-black/5 lg:min-h-0">
-            <div className="pointer-events-none absolute left-4 top-4 z-20 flex h-10 max-w-[calc(100%-2rem)] items-center gap-3 overflow-hidden rounded-[4px] border border-[var(--color-rule)] bg-[var(--color-cream)] px-4">
-              <Image
-                src="/logo3.png"
-                alt="Garmops"
-                width={908}
-                height={114}
-                className="relative z-10 h-3.5 w-auto shrink-0 object-contain"
-              />
-              <span
-                aria-hidden="true"
-                className="relative z-10 h-4 w-px shrink-0 bg-[#111111]/15"
-              />
-              <span className="relative z-10 truncate text-sm font-medium text-[#111111]/85">
-                {productName}
-              </span>
-            </div>
-
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-y-auto px-4 pb-20 lg:grid-cols-[minmax(0,1fr)_clamp(360px,34vw,420px)] lg:overflow-hidden lg:px-5 lg:pb-5 xl:grid-cols-[minmax(0,1fr)_440px]">
+            <main className="relative flex min-h-[72dvh] min-w-0 flex-col overflow-hidden rounded-[6px] border border-[#DCE1E6] bg-[#F8FAFB] lg:min-h-0">
             <div
               data-configurator-preview="true"
               className="flex min-h-0 flex-1 items-center justify-center overflow-hidden"
@@ -1282,7 +1210,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
           <aside className="contents lg:flex lg:min-h-0 lg:min-w-0 lg:flex-col lg:gap-3 lg:overflow-hidden">
             <section
               aria-label="Active customisation controls"
-              className={`techpack-stack techpack-surface fixed inset-x-3 bottom-0 z-50 flex flex-col overflow-hidden rounded-t-[4px] border border-b-0 transition-[height] duration-300 ease-in-out lg:static lg:z-auto lg:min-h-0 lg:flex-1 lg:rounded-[4px] lg:border-b ${
+              className={`techpack-stack techpack-surface fixed inset-x-3 bottom-0 z-50 flex flex-col overflow-hidden rounded-t-[6px] !border-[#DCE1E6] !bg-white border border-b-0 transition-[height] duration-300 ease-in-out lg:static lg:z-auto lg:min-h-0 lg:flex-1 lg:rounded-[6px] lg:border-b ${
                 isDrawerOpen ? "h-[42dvh]" : "h-14"
               } lg:h-auto`}
             >
@@ -1359,7 +1287,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                     isToteProduct={isToteProduct}
                     onResetStep={resetStepDraft}
                     activeStepSummary={activeControlSummary}
-                    saveStatus={displayedSaveStatus}
                     draftRestored={draftRestored}
                     onDismissDraftRestored={() => setDraftRestored(false)}
                   />

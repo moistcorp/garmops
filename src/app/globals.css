@@ -111,7 +111,8 @@ canvas {
 }
 
 .techpack-studio-bg {
-  background: var(--color-cream-soft);
+  /* Keep the configurator canvas neutral so product colours stay accurate. */
+  background: #f4f6f8;
 }
 
 /* Shared tech-pack materials used across configurator, commerce, and portal surfaces. */
