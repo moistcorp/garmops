@@ -126,7 +126,7 @@ export function ConfiguratorSidebar({
       : activeStep.title.replace("Garment ", "");
   return (
     <section className="flex h-full min-h-0 flex-col overflow-hidden bg-transparent">
-      <div className="shrink-0 border-b border-[#DCE1E6] bg-white px-4 py-3">
+      <div className="shrink-0 border-b border-[var(--color-control-border)] bg-white px-4 py-3">
         <div className="min-w-0">
           <h2 className="text-sm font-semibold text-[var(--text-primary)]">{activeStepTitle}</h2>
           <p className="mt-0.5 truncate text-xs text-[var(--text-primary)]/55" title={activeStepSummary}>

@@ -28,6 +28,7 @@ interface ConfiguratorJourneyProps {
   isDownloadDisabled?: boolean;
   showCart?: boolean;
   productName?: string;
+  specReference?: string;
   accountSaveNotice?: ReactNode;
   compact?: boolean;
   className?: string;
@@ -57,6 +58,7 @@ export function ConfiguratorJourney({
   isDownloadDisabled = false,
   showCart = false,
   productName,
+  specReference,
   accountSaveNotice,
   compact = false,
   className = "",
@@ -66,7 +68,7 @@ export function ConfiguratorJourney({
   const previousStepHandler = previousStep ? onStepSelect[previousStep.id] : undefined;
   const previousStepHref = previousStep ? links[previousStep.id] ?? backHref : backHref;
   const progressPercent = (currentIndex / (STEPS.length - 1)) * 100;
-  const specCode = formatSpecCode("DRAFT");
+  const specCode = specReference ? formatSpecCode(specReference) : null;
   const backButtonClass =
     "flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px] border border-[var(--color-rule)] bg-[var(--color-cream)] text-[var(--color-navy)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]";
 
@@ -130,7 +132,7 @@ export function ConfiguratorJourney({
 
             <div className="ml-auto flex items-center gap-3">
               <div className="text-right font-mono text-[10px] uppercase tracking-[0.06em] text-[var(--color-navy)]">
-                <span className="block">{specCode}</span>
+                {specCode && <span className="block">{specCode}</span>}
                 <span className="block text-[var(--text-primary)]/45">
                   STEP {String(currentIndex + 1).padStart(2, "0")} / 08
                 </span>

@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle2, CircleAlert, TrendingUp } from "lucide-react";
-import type { DeliveryFeasibility } from "@/lib/configurator/deliveryFeasibility";
+import { TrendingUp } from "lucide-react";
 import type { PricingBreakdown } from "@/lib/configurator/pricing";
 import { formatInr } from "@/lib/configurator/pricing";
 import {
@@ -18,9 +17,6 @@ export interface OrderBarProps {
   ctaLabel: string;
   onCtaClick?: () => void;
   pricingBreakdown: PricingBreakdown;
-  preferredTargetDate?: string;
-  onPreferredTargetDateChange?: (date: string) => void;
-  deliveryFeasibility?: DeliveryFeasibility;
   ctaErrorMessage?: string | null;
   ctaErrorNonce?: number;
 }
@@ -134,15 +130,6 @@ function VolumeDiscountProgress({ quantity }: { quantity: number }) {
   );
 }
 
-function tomorrowInputValue(): string {
-  const date = new Date();
-  date.setDate(date.getDate() + 1);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
 export function OrderBar({
   quantity,
   onQuantityChange,
@@ -150,9 +137,6 @@ export function OrderBar({
   ctaLabel,
   onCtaClick,
   pricingBreakdown,
-  preferredTargetDate,
-  onPreferredTargetDateChange,
-  deliveryFeasibility,
   ctaErrorMessage,
   ctaErrorNonce,
 }: OrderBarProps) {
@@ -193,79 +177,11 @@ export function OrderBar({
   return (
     <section
       aria-label="Order estimate"
-      className="techpack-stack techpack-surface grid gap-2.5 rounded-[6px] !border-[#DCE1E6] !bg-white border p-3"
+      className="techpack-stack techpack-surface grid gap-2.5 rounded-[6px] !border-[var(--color-control-border)] !bg-white border p-3"
     >
       <VolumeDiscountProgress quantity={quantity} />
 
-      <div
-        className="grid grid-cols-3 divide-x divide-white/55 text-xs"
-        aria-live="polite"
-      >
-        <div className="min-w-0 pr-2">
-          <div className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text-primary)]/45">
-            Unit cost
-          </div>
-          <div className="mt-1 flex min-w-0 items-baseline gap-1.5">
-            {pricingBreakdown.discountPercent > 0 && (
-              <span className="truncate text-[10px] font-medium text-[var(--text-primary)]/45 line-through">
-                {formatInr(pricingBreakdown.unitPrice)}
-              </span>
-            )}
-            <span className="truncate font-mono text-sm font-semibold text-[var(--text-primary)]">
-              {formatInr(discountedUnitCost)}
-            </span>
-          </div>
-          {pricingBreakdown.discountPercent > 0 && (
-            <p className="mt-0.5 text-[10px] font-medium text-[#2E7D32]">
-              {pricingBreakdown.discountPercent}% off
-            </p>
-          )}
-        </div>
-
-        <div className="min-w-0 px-2">
-          <label
-            htmlFor="configurator-target-date"
-            className="block text-[10px] font-semibold uppercase tracking-wide text-[var(--text-primary)]/45"
-          >
-            Target delivery date
-          </label>
-          <div className="mt-1 flex min-w-0 items-center gap-1">
-            {preferredTargetDate && deliveryFeasibility?.status === "comfortable" ? (
-              <CheckCircle2 size={13} className="shrink-0 text-[#2E7D32]" aria-hidden="true" />
-            ) : preferredTargetDate ? (
-              <CircleAlert size={13} className="shrink-0 text-[#8A6212]" aria-hidden="true" />
-            ) : null}
-            <input
-              id="configurator-target-date"
-              type="date"
-              min={tomorrowInputValue()}
-              value={preferredTargetDate ?? ""}
-              onChange={(event) => onPreferredTargetDateChange?.(event.target.value)}
-              className="h-6 min-w-0 w-full bg-transparent text-xs font-semibold text-[var(--text-primary)] outline-none"
-            />
-          </div>
-          <p
-            className="mt-0.5 truncate text-[10px] text-[var(--text-primary)]/50"
-            title={deliveryFeasibility?.detail}
-          >
-            {preferredTargetDate
-              ? deliveryFeasibility?.label ?? "Timing review"
-              : "Select a date"}
-          </p>
-        </div>
-
-        <div className="min-w-0 pl-2 text-right">
-          <div className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text-primary)]/45">
-            Due today
-          </div>
-          <div className="mt-1 truncate font-mono text-sm font-semibold text-[var(--text-primary)]">
-            {formatInr(RESERVATION_FEE)}
-          </div>
-          <p className="mt-0.5 text-[10px] text-[var(--text-primary)]/45">Reservation fee</p>
-        </div>
-      </div>
-
-      <div className="flex flex-col items-stretch justify-between gap-2 border-t border-white/55 pt-2 sm:flex-row sm:items-end">
+      <div className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)] items-end gap-2 border-t border-white/55 pt-2 sm:grid-cols-[132px_minmax(0,1fr)_minmax(0,1fr)_auto]" aria-live="polite">
         <div className="min-w-0">
           <label
             htmlFor="configurator-quantity"
@@ -273,7 +189,7 @@ export function OrderBar({
           >
             Quantity
           </label>
-          <div className="techpack-control flex h-10 w-full items-center justify-between rounded-[4px] border px-1.5 sm:w-32">
+          <div className="techpack-control flex h-10 w-full items-center justify-between rounded-[4px] border px-1.5">
             <button
               type="button"
               aria-label="Decrease quantity"
@@ -315,10 +231,40 @@ export function OrderBar({
             </button>
           </div>
         </div>
+
+        <div className="min-w-0 border-l border-white/55 pl-2">
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text-primary)]/45">
+            Unit cost
+          </div>
+          <div className="mt-1 flex min-w-0 items-baseline gap-1.5">
+            {pricingBreakdown.discountPercent > 0 && (
+              <span className="truncate text-[10px] font-medium text-[var(--text-primary)]/45 line-through">
+                {formatInr(pricingBreakdown.unitPrice)}
+              </span>
+            )}
+            <span className="truncate font-mono text-sm font-semibold text-[var(--text-primary)]">
+              {formatInr(discountedUnitCost)}
+            </span>
+          </div>
+          {pricingBreakdown.discountPercent > 0 && (
+            <p className="mt-0.5 text-[10px] font-medium text-[#2E7D32]">
+              {pricingBreakdown.discountPercent}% off
+            </p>
+          )}
+        </div>
+
+        <div className="min-w-0 border-l border-white/55 pl-2">
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text-primary)]/45">
+            Due today
+          </div>
+          <div className="mt-1 truncate font-mono text-sm font-semibold text-[var(--text-primary)]">
+            {formatInr(RESERVATION_FEE)}
+          </div>
+        </div>
         <button
           type="button"
           onClick={onCtaClick}
-          className={`min-h-10 w-full shrink-0 rounded-[4px] px-5 text-sm font-semibold text-white transition-all hover:opacity-90 sm:w-auto ${
+          className={`col-span-3 min-h-10 w-full shrink-0 rounded-[4px] px-5 text-sm font-semibold text-white transition-all hover:opacity-90 sm:col-span-1 sm:w-auto ${
             flashError
               ? "bg-[#C62828] ring-2 ring-[#C62828]/40 ring-offset-2"
               : "bg-[var(--color-accent)] hover:bg-[var(--color-accent-dark)]"

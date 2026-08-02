@@ -65,7 +65,7 @@ export default function GarmentPreview({
 
   return (
     <div className="relative h-full w-full min-h-0">
-      <div className="absolute inset-3 overflow-hidden rounded-[4px] bg-white sm:inset-4">
+      <div className="absolute inset-3 bg-[var(--color-studio-bg)] sm:inset-4">
         <div className="flex h-full w-full items-center justify-center">
           <CanvasRenderer
             view={activeView}
@@ -93,7 +93,7 @@ export default function GarmentPreview({
         </div>
       )}
 
-      <div className="pointer-events-none absolute inset-x-4 bottom-2 z-20 flex flex-col items-center gap-2">
+      <div className="pointer-events-none absolute inset-x-4 bottom-2 z-20 flex flex-col items-start gap-2">
         {quality.metadata && <p className="text-[11px] text-[var(--text-primary)]/50">File check: {quality.metadata}</p>}
         <div className="pointer-events-auto">
           <ViewTabs

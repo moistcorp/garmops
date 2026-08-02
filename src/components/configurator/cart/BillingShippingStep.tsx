@@ -20,6 +20,7 @@ import {
 import { CartSummarySidebar } from "@/components/configurator/cart/CartSummarySidebar";
 import {
   ConfiguratorTopBar,
+  getCartProductLabel,
   getCartJourneyLinks,
 } from "@/components/configurator/ConfiguratorTopBar";
 import {
@@ -396,6 +397,9 @@ export function BillingShippingStep({
       <ConfiguratorTopBar
         currentStep="company"
         backHref={`/configurator/cart/${encodeURIComponent(cartId)}/review`}
+        showCart
+        productName={getCartProductLabel(draft.items)}
+        specReference={`CART-${cartId}`}
         links={getCartJourneyLinks(
           cartId,
           draft.items[0]?.productId,

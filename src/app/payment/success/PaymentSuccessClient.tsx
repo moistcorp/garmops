@@ -79,7 +79,11 @@ export default function PaymentSuccessClient({
 }: PaymentSuccessClientProps) {
   const hasHandled = useRef(false);
   const clearCart = useCartStore((state) => state.clearCart);
-  const [orderSummary, setOrderSummary] = useState({ name: "", email: "" });
+  const [orderSummary, setOrderSummary] = useState({
+    name: "",
+    email: "",
+    productName: "",
+  });
   const [emailStatus, setEmailStatus] = useState<EmailStatus>("idle");
   const [orderDetailsStatus, setOrderDetailsStatus] =
     useState<OrderDetailsStatus>("checking");
@@ -135,6 +139,7 @@ export default function PaymentSuccessClient({
     setOrderSummary({
       name: order.name ?? "",
       email: order.email ?? "",
+      productName: order.product ?? order.items?.[0]?.name ?? "",
     });
 
     if (isMockPayment) {
@@ -283,7 +288,13 @@ export default function PaymentSuccessClient({
 
   return (
     <>
-      {!isSampleOrder && <ConfiguratorTopBar currentStep="reserve" />}
+      {!isSampleOrder && (
+        <ConfiguratorTopBar
+          currentStep="reserve"
+          productName={orderSummary.productName || undefined}
+          specReference={txnid ? `PAYMENT-${txnid}` : undefined}
+        />
+      )}
       <div className="techpack-canvas flex min-h-[80vh] items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
         <div className="techpack-surface w-full max-w-md rounded-[4px] border p-5 text-center sm:rounded-[4px] sm:p-9">
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-[4px] bg-[var(--color-accent)]/10">

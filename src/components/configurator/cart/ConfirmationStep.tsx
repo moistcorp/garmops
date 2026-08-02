@@ -19,6 +19,7 @@ import {
 import { CartSummarySidebar } from "./CartSummarySidebar";
 import {
   ConfiguratorTopBar,
+  getCartProductLabel,
   getCartJourneyLinks,
 } from "../ConfiguratorTopBar";
 import { getProcurementMissingFields } from "./checkoutDetails";
@@ -390,6 +391,9 @@ export function ConfirmationStep({
     <ConfiguratorTopBar
       currentStep="review"
       backHref={`/configurator/cart/${encodeURIComponent(cartId)}/shipping`}
+      showCart
+      productName={getCartProductLabel(draft.items)}
+      specReference={`CART-${cartId}`}
       links={getCartJourneyLinks(
         cartId,
         draft.items[0]?.productId,

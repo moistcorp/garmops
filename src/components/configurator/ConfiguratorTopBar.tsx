@@ -16,10 +16,21 @@ export interface ConfiguratorTopBarProps {
   isDownloadDisabled?: boolean;
   showCart?: boolean;
   productName?: string;
+  specReference?: string;
   accountSaveNotice?: ReactNode;
   links?: Partial<Record<ConfiguratorJourneyStep, string>>;
   onStepSelect?: Partial<Record<ConfiguratorJourneyStep, () => void>>;
   className?: string;
+}
+
+export function getCartProductLabel(
+  items: readonly { productName: string }[]
+): string | undefined {
+  const firstProductName = items[0]?.productName.trim();
+  if (!firstProductName) return undefined;
+  return items.length > 1
+    ? `${firstProductName} + ${items.length - 1} more`
+    : firstProductName;
 }
 
 export function getCartJourneyLinks(
@@ -52,6 +63,7 @@ export function ConfiguratorTopBar({
   isDownloadDisabled = false,
   showCart = false,
   productName,
+  specReference,
   accountSaveNotice,
   links = {},
   onStepSelect = {},
@@ -59,9 +71,9 @@ export function ConfiguratorTopBar({
 }: ConfiguratorTopBarProps) {
   return (
     <div
-      className={`sticky top-0 z-30 ml-[calc(50%-50dvw)] w-[100dvw] shrink-0 bg-[#F4F6F8] px-4 py-3 sm:py-4 ${className}`}
+      className={`sticky top-0 z-30 ml-[calc(50%-50dvw)] w-[100dvw] shrink-0 bg-[var(--color-studio-bg)] px-4 py-3 sm:py-4 ${className}`}
     >
-      <header className="overflow-hidden rounded-[6px] border border-[#DCE1E6] bg-white">
+      <header className="overflow-hidden rounded-[6px] border border-[var(--color-control-border)] bg-white">
         <NetworkStatusBanner />
 
         <div>
@@ -76,6 +88,7 @@ export function ConfiguratorTopBar({
             isDownloadDisabled={isDownloadDisabled}
             showCart={showCart}
             productName={productName}
+            specReference={specReference}
             accountSaveNotice={accountSaveNotice}
             className="!rounded-none !border-0 !bg-transparent !"
           />

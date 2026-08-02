@@ -5,28 +5,18 @@ import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { PRODUCT_USE_CASES, products, type ProductUseCase } from "@/lib/configurator/products";
 import { formatInr, getBasePrice, getVolumeDiscountPercent } from "@/lib/configurator/pricing";
-import { readPreferredQuantity, readPreferredTargetDate, writePreferredQuantity, writePreferredTargetDate } from "@/lib/configurator/clientPreferences";
+import { readPreferredQuantity, writePreferredQuantity } from "@/lib/configurator/clientPreferences";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 import GarmopsLoadingScreen from "@/components/common/GarmopsLoadingScreen";
 import ProductCard from "./ProductCard";
 
 const PRODUCT_TRANSITION_MS = 2000;
 
-function todayInputValue(): string {
-  const date = new Date();
-  date.setDate(date.getDate() + 1);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
 export default function ProductGrid() {
   const router = useRouter();
   const [useCase, setUseCase] = useState<ProductUseCase | "">("");
   const [quantity, setQuantity] = useState(100);
   const [quantityDraft, setQuantityDraft] = useState("100");
-  const [targetDate, setTargetDate] = useState("");
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const selectionTimer = useRef<number | null>(null);
@@ -36,7 +26,6 @@ export default function ProductGrid() {
       const preferredQuantity = readPreferredQuantity() ?? 100;
       setQuantity(preferredQuantity);
       setQuantityDraft(String(preferredQuantity));
-      setTargetDate(readPreferredTargetDate());
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
@@ -70,12 +59,6 @@ export default function ProductGrid() {
     setQuantity(next);
     setQuantityDraft(String(next));
     writePreferredQuantity(next);
-  }
-
-  function updateTargetDate(value: string) {
-    setTargetDate(value);
-    writePreferredTargetDate(value);
-    trackConfiguratorEvent("target_date_selected", { target_date: value || null });
   }
 
   function toggleCompare(productId: string, selected: boolean) {
@@ -114,9 +97,9 @@ export default function ProductGrid() {
       <section className="techpack-surface rounded-[4px] border p-4 sm:p-5" aria-labelledby="product-guidance-title">
         <div className="flex flex-col gap-1">
           <h2 id="product-guidance-title" className="text-base font-semibold text-[var(--text-primary)]">Help us recommend the right product</h2>
-          <p className="text-sm text-[var(--text-primary)]/60">These details only improve recommendations and delivery guidance. You can still browse every product.</p>
+          <p className="text-sm text-[var(--text-primary)]/60">These details only improve recommendations. You can still browse every product.</p>
         </div>
-        <div className="mt-4 grid gap-3 md:grid-cols-[minmax(0,1.4fr)_160px_190px]">
+        <div className="mt-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_160px]">
           <div>
             <label htmlFor="product-use-case" className="mb-1 block text-xs font-medium text-[var(--text-primary)]/65">Primary use case</label>
             <select
@@ -148,17 +131,6 @@ export default function ProductGrid() {
               className="techpack-control min-h-11 w-full rounded-[4px] border px-3 text-sm text-[var(--text-primary)]"
             />
           </div>
-          <div>
-            <label htmlFor="project-target-date" className="mb-1 block text-xs font-medium text-[var(--text-primary)]/65">Target delivery date</label>
-            <input
-              id="project-target-date"
-              type="date"
-              min={todayInputValue()}
-              value={targetDate}
-              onChange={(event) => updateTargetDate(event.target.value)}
-              className="techpack-control min-h-11 w-full rounded-[4px] border px-3 text-sm text-[var(--text-primary)]"
-            />
-          </div>
         </div>
         <p className="mt-3 text-xs text-[var(--text-primary)]/55">Current volume tier: {discount}% off blank product pricing. Customisation is calculated in Studio.</p>
       </section>
@@ -170,7 +142,6 @@ export default function ProductGrid() {
             product={product}
             quantity={quantity}
             selectedUseCase={useCase}
-            targetDate={targetDate}
             compared={compareIds.includes(product.id)}
             compareDisabled={compareIds.length >= 3}
             onCompareChange={(selected) => toggleCompare(product.id, selected)}

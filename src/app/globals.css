@@ -37,6 +37,9 @@
   --color-navy: #16212b;
   --color-navy-soft: #1d2a36;
   --color-rule: rgba(22, 33, 43, 0.2);
+  --color-surface: #ffffff;
+  --color-studio-bg: #f4f6f8;
+  --color-control-border: #dce1e6;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -112,7 +115,7 @@ canvas {
 
 .techpack-studio-bg {
   /* Keep the configurator canvas neutral so product colours stay accurate. */
-  background: #f4f6f8;
+  background: var(--color-studio-bg);
 }
 
 /* Shared tech-pack materials used across configurator, commerce, and portal surfaces. */
@@ -209,6 +212,12 @@ canvas {
 
 .techpack-canvas .techpack-canvas {
   background: transparent;
+}
+
+/* Cart steps use the same cool canvas and white surfaces as the progress shell. */
+.techpack-cart-page .techpack-surface,
+.techpack-cart-page .techpack-panel {
+  background: var(--color-surface) !important;
 }
 
 .marquee {

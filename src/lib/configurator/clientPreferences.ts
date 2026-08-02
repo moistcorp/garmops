@@ -1,25 +1,4 @@
-const TARGET_DATE_KEY = "garmops:configurator:target-date";
 const TARGET_QUANTITY_KEY = "garmops:configurator:target-quantity";
-
-export function readPreferredTargetDate(): string {
-  if (typeof window === "undefined") return "";
-  try {
-    return window.sessionStorage.getItem(TARGET_DATE_KEY) ?? "";
-  } catch {
-    return "";
-  }
-}
-
-export function writePreferredTargetDate(value: string): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    if (value) window.sessionStorage.setItem(TARGET_DATE_KEY, value);
-    else window.sessionStorage.removeItem(TARGET_DATE_KEY);
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 export function readPreferredQuantity(): number | undefined {
   if (typeof window === "undefined") return undefined;

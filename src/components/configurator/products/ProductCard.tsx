@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { Check, ChevronDown, GitCompareArrows, Sparkles } from "lucide-react";
 import type { Product, ProductUseCase } from "@/lib/configurator/products";
 import { formatInr, getBasePrice, getVolumeDiscountPercent } from "@/lib/configurator/pricing";
-import { getDeliveryFeasibility } from "@/lib/configurator/deliveryFeasibility";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 
 function getDisplayPrice(productId: Product["id"], quantity: number): string {
@@ -23,7 +22,6 @@ interface ProductCardProps {
   product: Product;
   quantity: number;
   selectedUseCase: ProductUseCase | "";
-  targetDate: string;
   compared: boolean;
   compareDisabled: boolean;
   onCompareChange: (selected: boolean) => void;
@@ -35,7 +33,6 @@ export default function ProductCard({
   product,
   quantity,
   selectedUseCase,
-  targetDate,
   compared,
   compareDisabled,
   onCompareChange,
@@ -47,7 +44,6 @@ export default function ProductCard({
   const hasTrackedView = useRef(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const configuratorHref = `/configurator/build/${product.id}`;
-  const feasibility = useMemo(() => getDeliveryFeasibility(targetDate), [targetDate]);
 
   useEffect(() => {
     const card = cardRef.current;
@@ -75,15 +71,6 @@ export default function ProductCard({
     observer.observe(card);
     return () => observer.disconnect();
   }, [product.id, product.name]);
-
-  const feasibilityClass =
-    feasibility.status === "comfortable"
-      ? "bg-[#EAF7EA] text-[#1B6A2E]"
-      : feasibility.status === "tight" || feasibility.status === "rush"
-        ? "bg-[#FFF3D6] text-[#7A5400]"
-        : feasibility.status === "review"
-          ? "bg-[#FFF0F0] text-[#8A2E2E]"
-          : "bg-[#F2F0EA] text-[var(--text-primary)]/55";
 
   return (
     <article ref={cardRef} className={`techpack-panel group relative flex h-full self-stretch flex-col overflow-hidden rounded-[4px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45 ${recommended ? "!border-[var(--color-accent)]/60" : ""}`}>
@@ -117,8 +104,8 @@ export default function ProductCard({
               <Sparkles size={12} aria-hidden="true" /> Recommended
             </span>
           ) : <span />}
-          <span className={`rounded-[4px] px-2.5 py-1 text-[10px] font-semibold  ${feasibilityClass}`}>
-            {targetDate ? feasibility.label : product.standardLeadTime}
+          <span className="rounded-[4px] bg-[#F2F0EA] px-2.5 py-1 text-[10px] font-semibold text-[var(--text-primary)]/55">
+            {product.standardLeadTime}
           </span>
         </div>
       </div>

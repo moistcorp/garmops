@@ -10,6 +10,7 @@ import { SizeQuantityGrid, SIZES, type Size } from './SizeQuantityGrid';
 import { CartSummarySidebar } from './CartSummarySidebar';
 import {
   ConfiguratorTopBar,
+  getCartProductLabel,
   getCartJourneyLinks,
 } from '../ConfiguratorTopBar';
 import {
@@ -303,6 +304,8 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
         isDownloadingPdf={isDownloadingPdf}
         isDownloadDisabled={!draftLoaded || items.length === 0}
         showCart
+        productName={getCartProductLabel(items)}
+        specReference={`CART-${cartId}`}
         links={getCartJourneyLinks(cartId, items[0]?.productId, items[0]?.id)}
       />
 

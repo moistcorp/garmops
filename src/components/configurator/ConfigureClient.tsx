@@ -3,7 +3,6 @@
 import {
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -35,7 +34,6 @@ import {
 import { CUSTOM_DYE_MOQ_UNITS } from "@/lib/configurator/colours";
 import {
   readDraft,
-  writeDraft,
   totalUnits,
   upsertConfiguredCartItem,
   splitQuantityAcrossSizes,
@@ -58,12 +56,7 @@ import { ActionFeedback, type ActionFeedbackTone } from "./ActionFeedback";
 import CustomerAuthDialog from "@/components/auth/CustomerAuthDialog";
 import { useCustomerSession } from "@/components/auth/useCustomerSession";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
-import { getDeliveryFeasibility } from "@/lib/configurator/deliveryFeasibility";
-import {
-  readPreferredQuantity,
-  readPreferredTargetDate,
-  writePreferredTargetDate,
-} from "@/lib/configurator/clientPreferences";
+import { readPreferredQuantity } from "@/lib/configurator/clientPreferences";
 import {
   cloudSnapshotToBuildDraft,
   loadCloudDesign,
@@ -219,7 +212,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   const [hydrationComplete, setHydrationComplete] = useState(false);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
-  const [preferredTargetDate, setPreferredTargetDate] = useState("");
   const [cloudLink, setCloudLink] = useState<CloudDesignLink | null>(null);
   const [cloudSaveStatus, setCloudSaveStatus] =
     useState<CloudSaveStatus>("local");
@@ -550,7 +542,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      setPreferredTargetDate(readPreferredTargetDate());
       const preferredQuantity = readPreferredQuantity();
       if (preferredQuantity) {
         setQuantity((current) => current === 50 ? preferredQuantity : current);
@@ -811,11 +802,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
     syncDraftToCloud,
   ]);
 
-  const deliveryFeasibility = useMemo(
-    () => getDeliveryFeasibility(preferredTargetDate, colour.type === "custom_dye" ? 7 : 0),
-    [preferredTargetDate, colour.type]
-  );
-
   function showCtaError(message: string) {
     setCtaErrorMessage(message);
     setCtaErrorNonce((previous) => previous + 1);
@@ -823,12 +809,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
 
   function setSafeQuantity(next: number) {
     setQuantity(safeQuantity(next, minimumQuantity));
-  }
-
-  function updatePreferredTargetDate(next: string) {
-    setPreferredTargetDate(next);
-    writePreferredTargetDate(next);
-    trackConfiguratorEvent("target_date_selected", { target_date: next || null });
   }
 
   function applyExpandedStepChange(next: AccordionStepId | null) {
@@ -896,26 +876,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       writeEstimateForDesign(cloudLinkRef.current.designId, requestedEstimateId);
     }
 
-    if (preferredTargetDate) {
-      const targetDraft = readDraft(targetCartId);
-      if (!targetDraft.selectedDeliveryDateIso) {
-        const dateSaved = writeDraft(targetCartId, {
-          ...targetDraft,
-          selectedDeliveryDateIso: new Date(`${preferredTargetDate}T12:00:00`).toISOString(),
-          deliveryType: "flexible",
-        });
-        if (!dateSaved) {
-          try {
-            window.sessionStorage.setItem(
-              "garmops:cart-update",
-              "Product saved, but the target date could not be retained. Select it again before payment."
-            );
-          } catch {
-            // The review page remains usable even when session storage is unavailable.
-          }
-        }
-      }
-    }
     trackConfiguratorEvent("added_to_cart", { product_id: productId, quantity, editing: Boolean(editCartId) });
     clearBuildDraft(configId);
     router.push(`/configurator/cart/${encodeURIComponent(targetCartId)}/review`);
@@ -1084,6 +1044,13 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
           isDownloadingPdf={isDownloadingPdf}
           showCart
           productName={productName}
+          specReference={
+            editItemId
+              ? `ITEM-${editItemId}`
+              : cloudLink?.designId || requestedDesignId
+                ? `DESIGN-${cloudLink?.designId ?? requestedDesignId}`
+                : undefined
+          }
           accountSaveNotice={
             <div
               role="status"
@@ -1180,10 +1147,10 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         </div>
 
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-y-auto px-4 pb-20 lg:grid-cols-[minmax(0,1fr)_clamp(360px,34vw,420px)] lg:overflow-hidden lg:px-5 lg:pb-5 xl:grid-cols-[minmax(0,1fr)_440px]">
-            <main className="relative flex min-h-[72dvh] min-w-0 flex-col overflow-hidden rounded-[6px] border border-[#DCE1E6] bg-[#F8FAFB] lg:min-h-0">
+          <main className="relative flex min-h-[72dvh] min-w-0 flex-col bg-[var(--color-studio-bg)] lg:min-h-0">
             <div
               data-configurator-preview="true"
-              className="flex min-h-0 flex-1 items-center justify-center overflow-hidden"
+              className="flex min-h-0 flex-1 items-center justify-center"
             >
               <GarmentPreview
                 activeView={activeView}
@@ -1210,7 +1177,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
           <aside className="contents lg:flex lg:min-h-0 lg:min-w-0 lg:flex-col lg:gap-3 lg:overflow-hidden">
             <section
               aria-label="Active customisation controls"
-              className={`techpack-stack techpack-surface fixed inset-x-3 bottom-0 z-50 flex flex-col overflow-hidden rounded-t-[6px] !border-[#DCE1E6] !bg-white border border-b-0 transition-[height] duration-300 ease-in-out lg:static lg:z-auto lg:min-h-0 lg:flex-1 lg:rounded-[6px] lg:border-b ${
+              className={`techpack-stack techpack-surface fixed inset-x-3 bottom-0 z-50 flex flex-col overflow-hidden rounded-t-[6px] !border-[var(--color-control-border)] !bg-white border border-b-0 transition-[height] duration-300 ease-in-out lg:static lg:z-auto lg:min-h-0 lg:flex-1 lg:rounded-[6px] lg:border-b ${
                 isDrawerOpen ? "h-[42dvh]" : "h-14"
               } lg:h-auto`}
             >
@@ -1302,9 +1269,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 ctaLabel={getCtaLabel(expandedStepId)}
                 onCtaClick={handleCtaClick}
                 pricingBreakdown={pricingBreakdown}
-                preferredTargetDate={preferredTargetDate}
-                onPreferredTargetDateChange={updatePreferredTargetDate}
-                deliveryFeasibility={deliveryFeasibility}
                 ctaErrorMessage={ctaErrorMessage}
                 ctaErrorNonce={ctaErrorNonce}
               />
