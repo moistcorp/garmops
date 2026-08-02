@@ -40,13 +40,6 @@ function customerClient() {
     orders: { data: order, error: null },
     order_items: { data: [{ id: "item-1" }], error: null },
     order_status_history: { data: [{ id: "history-1" }], error: null },
-    order_comments: { data: [], error: null },
-    approvals: {
-      data: null,
-      error: { message: "column approvals.snapshot_sha256 does not exist" },
-    },
-    shipments: { data: [], error: null },
-    order_files: { data: [], error: null },
   };
 
   return {
@@ -70,7 +63,7 @@ describe("getCustomerOrder", () => {
     });
   });
 
-  it("keeps core order history available when optional lifecycle schema is absent", async () => {
+  it("loads the retained read-only order summary", async () => {
     const result = await getCustomerOrder(
       customerClient(),
       "organization-1",
@@ -85,8 +78,6 @@ describe("getCustomerOrder", () => {
     expect(result.items.data).toEqual([{ id: "item-1" }]);
     expect(result.history.data).toEqual([{ id: "history-1" }]);
     expect(result.payments).toEqual([{ id: "payment-1" }]);
-    expect(result.approvals).toEqual([]);
-    expect(result.shipmentEvents).toEqual([]);
   });
 
   it("keeps the order available when payment history cannot be loaded", async () => {

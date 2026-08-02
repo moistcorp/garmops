@@ -65,15 +65,6 @@ export async function getCloudDesign(
       .eq("design_project_id", designProjectId)
       .order("submitted_at", { ascending: false })
       .limit(100),
-    supabase
-      .from("design_estimates")
-      .select(
-        "id, organization_id, created_by, design_project_id, design_version_id, design_revision, estimate_number, status, currency, pricing_engine_version, pricing_snapshot, subtotal_paise, discount_paise, taxable_subtotal_paise, gst_rate_basis_points, gst_paise, shipping_paise, total_paise, reservation_fee_paise, balance_due_paise, generated_at, valid_until, converted_order_id, client_operation_id, created_at",
-      )
-      .eq("design_project_id", designProjectId)
-      .eq("created_by", userId)
-      .order("generated_at", { ascending: false })
-      .limit(30),
   ]);
 }
 

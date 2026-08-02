@@ -47,7 +47,7 @@ export async function GET(
   const auth = await authenticateDesignApi();
   if (!auth.ok) return auth.response;
 
-  const [projectResult, versionsResult, ordersResult, estimatesResult] = await getCloudDesign(
+  const [projectResult, versionsResult, ordersResult] = await getCloudDesign(
     auth.supabase,
     id.data,
     auth.user.id,
@@ -55,7 +55,7 @@ export async function GET(
   if (projectResult.error || !projectResult.data) {
     return designJsonError("Design not found", 404);
   }
-  if (versionsResult.error || ordersResult.error || estimatesResult.error) {
+  if (versionsResult.error || ordersResult.error) {
     return designJsonError("Design could not be loaded", 500);
   }
 
@@ -72,7 +72,6 @@ export async function GET(
       draft_snapshot: parsedSnapshot.data,
       versions: versionsResult.data ?? [],
       orders: ordersResult.data ?? [],
-      estimates: estimatesResult.data ?? [],
     },
   });
 }
