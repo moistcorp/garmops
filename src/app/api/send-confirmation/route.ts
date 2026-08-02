@@ -339,6 +339,7 @@ export async function POST(req: NextRequest) {
     const resend = new Resend(apiKey)
     const firstName = escapeHtml(name.split(/\s+/)[0], 120)
 
+    // Email HTML renders outside the app document, so :root design tokens are unavailable.
     const contactEmailHtml = `
       <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto; color: #111111;">
         <div style="border-bottom: 1px solid #E5E5E5; padding-bottom: 20px; margin-bottom: 24px;">

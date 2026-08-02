@@ -212,7 +212,7 @@ function VectorConversionDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#111111]/20 p-4 "
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--text-primary)]/20 p-4 "
       role="dialog"
       aria-modal="true"
       aria-labelledby="vector-conversion-title"
@@ -232,12 +232,12 @@ function VectorConversionDialog({
           <X size={18} strokeWidth={2.4} />
         </button>
 
-        <div className="flex flex-col gap-5 text-[#111111]">
+        <div className="flex flex-col gap-5 text-[var(--text-primary)]">
           <div className="flex flex-col gap-3">
             <h2 id="vector-conversion-title" className="text-2xl font-bold tracking-normal">
               Convert your artwork in three steps
             </h2>
-            <div className="flex flex-col gap-2 text-sm leading-relaxed text-[#111111]/80">
+            <div className="flex flex-col gap-2 text-sm leading-relaxed text-[var(--text-primary)]/80">
               <p id="vector-conversion-description">
                 Why vector files? Vector graphics are made from paths, not pixels, which means
                 they scale without losing quality.
@@ -254,7 +254,7 @@ function VectorConversionDialog({
               <span className="text-2xl font-bold">1</span>
               <div className="flex flex-col gap-2">
                 <h3 className="text-base font-bold">Access Converter and upload your file</h3>
-                <p className="max-w-[420px] text-sm leading-relaxed text-[#111111]/75">
+                <p className="max-w-[420px] text-sm leading-relaxed text-[var(--text-primary)]/75">
                   Upload your image file (e.g., .jpg, .png, etc.). The tool will help you convert
                   your design into a high-quality vector file.
                 </p>
@@ -273,7 +273,7 @@ function VectorConversionDialog({
               <span className="text-2xl font-bold">2</span>
               <div className="flex flex-col gap-2">
                 <h3 className="text-base font-bold">Download your converted file</h3>
-                <p className="max-w-[520px] text-sm leading-relaxed text-[#111111]/75">
+                <p className="max-w-[520px] text-sm leading-relaxed text-[var(--text-primary)]/75">
                   Once the conversion is completed, download the resulting .svg vector file. Make
                   sure everything looks correct: sharp, clean and free of artifacts.
                 </p>
@@ -284,7 +284,7 @@ function VectorConversionDialog({
               <span className="text-2xl font-bold">3</span>
               <div className="flex flex-col gap-2">
                 <h3 className="text-base font-bold">Upload your .svg in Studio</h3>
-                <p className="max-w-[420px] text-sm leading-relaxed text-[#111111]/75">
+                <p className="max-w-[420px] text-sm leading-relaxed text-[var(--text-primary)]/75">
                   Return to the Studio and upload the converted file. This ensures you have access
                   to all artwork techniques.
                 </p>
@@ -550,16 +550,16 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
             <span className="techpack-control mb-1 flex h-10 w-10 items-center justify-center rounded-[4px] border text-[var(--color-accent-dark)] transition-transform group-hover:-translate-y-0.5">
               <Upload size={17} strokeWidth={2.2} aria-hidden="true" />
             </span>
-            <span className="text-sm font-medium text-[#111111]">
+            <span className="text-sm font-medium text-[var(--text-primary)]">
               Drag and drop artwork, or click to browse
             </span>
-            <span className="text-xs text-[#111111]/50">Accepts .jpg, .jpeg, .png, .svg and .ai up to 4.5 MB</span>
+            <span className="text-xs text-[var(--text-primary)]/50">Accepts .jpg, .jpeg, .png, .svg and .ai up to 4.5 MB</span>
           </button>
           <div className="relative z-10 mt-3 flex flex-wrap items-center justify-center gap-2">
             <a
               href={PRINT_TEMPLATES_HREF}
               download
-              className="techpack-control inline-flex min-h-9 items-center gap-1.5 rounded-[4px] border px-3 text-xs font-medium text-[#111111]/80 transition-colors hover:!border-[var(--color-accent)]/45 hover:text-[var(--color-accent-dark)]"
+              className="techpack-control inline-flex min-h-9 items-center gap-1.5 rounded-[4px] border px-3 text-xs font-medium text-[var(--text-primary)]/80 transition-colors hover:!border-[var(--color-accent)]/45 hover:text-[var(--color-accent-dark)]"
             >
               Download templates
               <Download size={13} strokeWidth={2.2} />
@@ -576,11 +576,11 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
       ) : (
         <div className="techpack-subtle flex flex-col gap-2 rounded-[4px] p-3">
           <div className="flex items-center gap-3">
-            <div className="techpack-control flex h-10 w-10 shrink-0 items-center justify-center border text-[10px] uppercase text-[#111111]/50">
+            <div className="techpack-control flex h-10 w-10 shrink-0 items-center justify-center border text-[10px] uppercase text-[var(--text-primary)]/50">
               {value.fileType}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm text-[#111111]">{filename || "artwork"}</p>
+              <p className="truncate text-sm text-[var(--text-primary)]">{filename || "artwork"}</p>
               {isPending && (
                 <div className="mt-1 h-1 w-full overflow-hidden rounded-[4px] bg-[#E5E5E5]">
                   <div

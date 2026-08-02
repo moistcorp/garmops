@@ -29,7 +29,7 @@ export function ActionFeedback({
         ? "border-[#CDE8D2] bg-[#F2FBF3] text-[#1B6A2E]"
         : tone === "loading"
           ? "border-[var(--color-accent)]/25 bg-[var(--color-accent)]/5 text-[var(--color-accent-dark)]"
-          : "border-[#E5E5E5] bg-[#F7F7F7] text-[#111111]/70";
+          : "border-[#E5E5E5] bg-[#F7F7F7] text-[var(--text-primary)]/70";
 
   return (
     <div role={tone === "error" ? "alert" : "status"} aria-live="polite" className={`flex items-start gap-3 rounded-[4px] border p-3 text-xs ${toneClass}`}>

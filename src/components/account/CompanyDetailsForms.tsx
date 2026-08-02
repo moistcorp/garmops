@@ -26,10 +26,10 @@ export type CompanyAddress = Readonly<{
 }>;
 
 const inputClass =
-  "techpack-control mt-1.5 w-full rounded-[4px] border px-3 py-2.5 text-sm outline-none transition focus:!border-[#1D49B4] disabled:cursor-not-allowed disabled:bg-black/[0.03] disabled:text-black/45";
+  "techpack-control mt-1.5 w-full rounded-[4px] border px-3 py-2.5 text-sm outline-none transition focus:!border-[var(--color-accent)] disabled:cursor-not-allowed disabled:bg-black/[0.03] disabled:text-black/45";
 const labelClass = "block text-xs font-medium text-black/55";
 const buttonClass =
-  "inline-flex min-h-11 items-center justify-center rounded-[4px] bg-[#1D49B4] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#173A91] disabled:cursor-wait disabled:opacity-50";
+  "inline-flex min-h-11 items-center justify-center rounded-[4px] bg-[var(--color-accent)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--color-accent-dark)] disabled:cursor-wait disabled:opacity-50";
 
 function Message({
   state,
@@ -369,7 +369,7 @@ export default function CompanyDetailsForms({
             <summary className="cursor-pointer list-none font-semibold">
               <span>{address.label ?? "Shipping address"}</span>
               {address.is_default_shipping ? (
-                <span className="ml-2 rounded-full bg-[#1D49B4]/10 px-2 py-1 text-[10px] uppercase tracking-wider text-[#1D49B4]">
+                <span className="ml-2 rounded-full bg-[var(--color-accent)]/10 px-2 py-1 text-[10px] uppercase tracking-wider text-[var(--color-accent)]">
                   Default
                 </span>
               ) : null}
@@ -384,7 +384,7 @@ export default function CompanyDetailsForms({
         ))}
         {canEditAddresses ? (
           <details className="techpack-panel rounded-[4px] border border-dashed p-5">
-            <summary className="cursor-pointer list-none font-semibold text-[#1D49B4]">
+            <summary className="cursor-pointer list-none font-semibold text-[var(--color-accent)]">
               Add another shipping address
             </summary>
             <div className="mt-5 border-t border-black/8 pt-5">

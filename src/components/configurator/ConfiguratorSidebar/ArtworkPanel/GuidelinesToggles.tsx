@@ -51,17 +51,17 @@ export function GuidelinesToggles(props: GuidelinesTogglesProps): JSX.Element {
         className="techpack-control flex w-full items-center justify-between gap-4 rounded-[4px] border px-3 py-2.5 text-left"
       >
         <span className="min-w-0">
-          <span className="block text-xs font-semibold text-[#111111]/80">
+          <span className="block text-xs font-semibold text-[var(--text-primary)]/80">
             Maximum area
           </span>
-          <span className="block text-[11px] text-[#111111]/45">
+          <span className="block text-[11px] text-[var(--text-primary)]/45">
             Show the selected size boundary
           </span>
         </span>
         <span
           aria-hidden="true"
           className={`relative h-6 w-11 shrink-0 rounded-[4px] p-0.5 transition-colors ${
-            maximumArea ? "bg-[var(--color-accent)]" : "bg-[#111111]/15"
+            maximumArea ? "bg-[var(--color-accent)]" : "bg-[var(--text-primary)]/15"
           }`}
         >
           <span
@@ -80,17 +80,17 @@ export function GuidelinesToggles(props: GuidelinesTogglesProps): JSX.Element {
         className="techpack-control flex w-full items-center justify-between gap-4 rounded-[4px] border px-3 py-2.5 text-left"
       >
         <span className="min-w-0">
-          <span className="block text-xs font-semibold text-[#111111]/80">
+          <span className="block text-xs font-semibold text-[var(--text-primary)]/80">
             Left chest
           </span>
-          <span className="block text-[11px] text-[#111111]/45">
+          <span className="block text-[11px] text-[var(--text-primary)]/45">
             Show the left-chest reference
           </span>
         </span>
         <span
           aria-hidden="true"
           className={`relative h-6 w-11 shrink-0 rounded-[4px] p-0.5 transition-colors ${
-            leftChest ? "bg-[var(--color-accent)]" : "bg-[#111111]/15"
+            leftChest ? "bg-[var(--color-accent)]" : "bg-[var(--text-primary)]/15"
           }`}
         >
           <span

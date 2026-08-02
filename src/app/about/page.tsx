@@ -28,19 +28,19 @@ export default function AboutPage() {
     <div className="techpack-canvas">
       <JsonLd data={organizationSchema()} />
       <section className="mx-auto max-w-7xl px-4 pb-10 pt-10 sm:px-6 sm:pb-16 sm:pt-20">
-        <p className="mb-4 text-xs font-medium uppercase tracking-widest text-[#111111]/40">About Garmops</p>
-        <h1 className="max-w-3xl text-4xl font-bold leading-tight tracking-tight text-[#111111] sm:text-5xl">
+        <p className="mb-4 text-xs font-medium uppercase tracking-widest text-[var(--text-primary)]/40">About Garmops</p>
+        <h1 className="max-w-3xl text-4xl font-bold leading-tight tracking-tight text-[var(--text-primary)] sm:text-5xl">
           Custom apparel production, made clearer
         </h1>
-        <p className="mt-6 max-w-2xl text-base leading-7 text-[#111111]/60 sm:text-lg">
+        <p className="mt-6 max-w-2xl text-base leading-7 text-[var(--text-primary)]/60 sm:text-lg">
           Garmops is a B2B custom apparel and branded merchandise platform operated by Moist Corp from Greater Noida, India. We help businesses turn a product, artwork and quantity into a production-ready order without an opaque sourcing process.
         </p>
       </section>
 
       <section className="mx-auto grid max-w-7xl gap-6 px-4 pb-16 sm:px-6 sm:pb-24 lg:grid-cols-[1.4fr_1fr]">
         <div className="techpack-surface rounded-[4px] border p-6 sm:p-9">
-          <h2 className="text-2xl font-bold tracking-tight text-[#111111]">What we make</h2>
-          <div className="mt-5 space-y-4 text-sm leading-7 text-[#111111]/65">
+          <h2 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">What we make</h2>
+          <div className="mt-5 space-y-4 text-sm leading-7 text-[var(--text-primary)]/65">
             <p>
               Our catalogue covers regular and boxy T-shirts, long-sleeve tees, polos, sweatshirts, hoodies and canvas tote bags. Projects can combine ready-stock or custom garment colours with screen printing, DTG, DTF, reflective heat transfer, embroidery, puff decoration and custom neck-label details.
             </p>
@@ -62,12 +62,12 @@ export default function AboutPage() {
         </div>
 
         <aside className="techpack-panel rounded-[4px] border p-6 sm:p-8" aria-label="Garmops at a glance">
-          <h2 className="text-lg font-bold tracking-tight text-[#111111]">At a glance</h2>
+          <h2 className="text-lg font-bold tracking-tight text-[var(--text-primary)]">At a glance</h2>
           <dl className="mt-5 divide-y divide-white/60">
             {facts.map(([label, value]) => (
               <div key={label} className="py-4 first:pt-0 last:pb-0">
-                <dt className="text-xs uppercase tracking-wider text-[#111111]/40">{label}</dt>
-                <dd className="mt-1 text-sm font-medium text-[#111111]">{value}</dd>
+                <dt className="text-xs uppercase tracking-wider text-[var(--text-primary)]/40">{label}</dt>
+                <dd className="mt-1 text-sm font-medium text-[var(--text-primary)]">{value}</dd>
               </div>
             ))}
           </dl>

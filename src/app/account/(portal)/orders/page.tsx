@@ -61,7 +61,7 @@ export default async function AccountOrdersPage({
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.18em] text-[#1D49B4]">
+          <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-accent)]">
             Account
           </p>
           <h2 className="mt-2 text-2xl font-semibold tracking-tight">
@@ -75,7 +75,7 @@ export default async function AccountOrdersPage({
           {isFeatureEnabled("DURABLE_SAMPLE_CHECKOUT_ENABLED") ? (
             <Link
               href="/products"
-              className="inline-flex items-center justify-center gap-2 rounded-[4px] border border-black/10 px-4 py-2.5 text-sm font-semibold transition hover:border-[#1D49B4]/40"
+              className="inline-flex items-center justify-center gap-2 rounded-[4px] border border-black/10 px-4 py-2.5 text-sm font-semibold transition hover:border-[var(--color-accent)]/40"
             >
               Browse samples
             </Link>
@@ -83,7 +83,7 @@ export default async function AccountOrdersPage({
           {isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED") ? (
             <Link
               href="/configurator"
-              className="inline-flex items-center justify-center gap-2 rounded-[4px] bg-[#1D49B4] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#173A91]"
+              className="inline-flex items-center justify-center gap-2 rounded-[4px] bg-[var(--color-accent)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--color-accent-dark)]"
             >
               <ShoppingBag size={16} aria-hidden="true" />
               Start designing
@@ -103,7 +103,7 @@ export default async function AccountOrdersPage({
             }
             className={`whitespace-nowrap rounded-[4px] px-3 py-1.5 text-xs font-semibold ${
               filter === entry.value
-                ? "bg-[#1D49B4] text-white"
+                ? "bg-[var(--color-accent)] text-white"
                 : "bg-black/5 text-black/55 hover:bg-black/8"
             }`}
           >
@@ -126,7 +126,7 @@ export default async function AccountOrdersPage({
               <Link
                 key={order.id}
                 href={`/account/orders/${encodeURIComponent(order.order_number)}`}
-                className="group techpack-surface grid gap-5 rounded-[4px] border p-5 transition hover:-translate-y-0.5 hover:border-[#1D49B4]/30 hover:bg-black/[0.03] lg:grid-cols-[1.2fr_0.9fr_1fr_0.9fr_auto] lg:items-center"
+                className="group techpack-surface grid gap-5 rounded-[4px] border p-5 transition hover:-translate-y-0.5 hover:border-[var(--color-accent)]/30 hover:bg-black/[0.03] lg:grid-cols-[1.2fr_0.9fr_1fr_0.9fr_auto] lg:items-center"
               >
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -153,7 +153,7 @@ export default async function AccountOrdersPage({
                 <div className="flex items-start gap-2">
                   <CalendarDays
                     size={16}
-                    className="mt-0.5 text-[#1D49B4]"
+                    className="mt-0.5 text-[var(--color-accent)]"
                     aria-hidden="true"
                   />
                   <div>
@@ -166,7 +166,7 @@ export default async function AccountOrdersPage({
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CalendarDays size={16} className="mt-0.5 text-[#1D49B4]" aria-hidden="true" />
+                  <CalendarDays size={16} className="mt-0.5 text-[var(--color-accent)]" aria-hidden="true" />
                   <div>
                     <p className="text-[10px] uppercase tracking-widest text-black/30">{order.requested_delivery_date ? "Requested delivery" : "Estimated total"}</p>
                     <p className="mt-1 text-sm text-black/65">{order.requested_delivery_date ? formatOrderDate(`${order.requested_delivery_date}T00:00:00Z`) : formatMoneyPaise(order.estimated_total_paise)}</p>
@@ -182,7 +182,7 @@ export default async function AccountOrdersPage({
                   ) : (
                     <PackageCheck
                       size={16}
-                      className="mt-0.5 text-[#1D49B4]"
+                      className="mt-0.5 text-[var(--color-accent)]"
                       aria-hidden="true"
                     />
                   )}
@@ -203,7 +203,7 @@ export default async function AccountOrdersPage({
                 </div>
                 <ArrowRight
                   size={18}
-                  className="text-black/25 transition group-hover:translate-x-0.5 group-hover:text-[#1D49B4]"
+                  className="text-black/25 transition group-hover:translate-x-0.5 group-hover:text-[var(--color-accent)]"
                   aria-hidden="true"
                 />
               </Link>
@@ -214,7 +214,7 @@ export default async function AccountOrdersPage({
         <div className="techpack-surface rounded-[4px] border border-dashed p-10 text-center">
           <ShoppingBag
             size={28}
-            className="mx-auto text-[#1D49B4]"
+            className="mx-auto text-[var(--color-accent)]"
             aria-hidden="true"
           />
           <h3 className="mt-4 font-semibold">No matching orders</h3>

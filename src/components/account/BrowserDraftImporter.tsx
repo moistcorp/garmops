@@ -188,21 +188,21 @@ export default function BrowserDraftImporter() {
   if (!candidates.length && !message) return null;
 
   return (
-    <div className="rounded-[4px] border border-[#1D49B4]/20 bg-[#1D49B4]/8 p-4">
+    <div className="rounded-[4px] border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/8 p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           <CloudUpload
             size={18}
-            className="mt-0.5 shrink-0 text-[#1D49B4]"
+            className="mt-0.5 shrink-0 text-[var(--color-accent)]"
             aria-hidden="true"
           />
           <div>
-            <p className="text-sm font-semibold text-[#173A91]">
+            <p className="text-sm font-semibold text-[var(--color-accent-dark)]">
               {candidates.length
                 ? `${candidates.length} design${candidates.length === 1 ? "" : "s"} found in this browser`
                 : "Browser import complete"}
             </p>
-            <p className="mt-1 text-xs leading-relaxed text-[#1D49B4]/75">
+            <p className="mt-1 text-xs leading-relaxed text-[var(--color-accent)]/75">
               {message ??
                 "Import them to your account for access on other devices."}
             </p>
@@ -213,7 +213,7 @@ export default function BrowserDraftImporter() {
             type="button"
             onClick={importDrafts}
             disabled={importing}
-            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-[4px] bg-[#1D49B4] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#173A91] disabled:opacity-55"
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-[4px] bg-[var(--color-accent)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--color-accent-dark)] disabled:opacity-55"
           >
             {importing ? (
               <LoaderCircle

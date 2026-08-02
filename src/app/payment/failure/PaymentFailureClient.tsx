@@ -161,10 +161,10 @@ export default function PaymentFailureClient({
           </svg>
         </div>
 
-        <h1 className="mb-3 text-3xl font-bold tracking-tight text-[#111111]">
+        <h1 className="mb-3 text-3xl font-bold tracking-tight text-[var(--text-primary)]">
           {verified ? "Payment failed" : "Payment not verified"}
         </h1>
-        <p className="mb-6 text-sm text-[#111111]/60">
+        <p className="mb-6 text-sm text-[var(--text-primary)]/60">
           {firstName ? `Hi ${firstName}, we` : "We"} could not complete your
           payment.
           {error && (
@@ -173,14 +173,14 @@ export default function PaymentFailureClient({
         </p>
 
         {emailStatus === "sending" && (
-          <p className="mb-4 text-sm text-[#111111]/55">
+          <p className="mb-4 text-sm text-[var(--text-primary)]/55">
             Sending payment guidance to your email…
           </p>
         )}
         {emailStatus === "sent" && customerEmail && (
-          <p className="mb-4 text-sm text-[#111111]/65">
+          <p className="mb-4 text-sm text-[var(--text-primary)]/65">
             We sent retry guidance to{" "}
-            <span className="font-medium text-[#111111]">{customerEmail}</span>.
+            <span className="font-medium text-[var(--text-primary)]">{customerEmail}</span>.
           </p>
         )}
         {emailStatus === "failed" && (
@@ -197,13 +197,13 @@ export default function PaymentFailureClient({
         )}
 
         {txnid && (
-          <p className="mb-6 text-xs text-[#111111]/40">
+          <p className="mb-6 text-xs text-[var(--text-primary)]/40">
             Transaction reference:{" "}
             <span className="break-all font-mono">{txnid}</span>
           </p>
         )}
 
-        <div className="techpack-panel mb-6 rounded-[4px] border p-4 text-left text-xs leading-relaxed text-[#111111]/70">
+        <div className="techpack-panel mb-6 rounded-[4px] border p-4 text-left text-xs leading-relaxed text-[var(--text-primary)]/70">
           <p className="mb-1 font-semibold">Important — before retrying</p>
           <p>
             If an amount was deducted from your bank account,{" "}
@@ -245,7 +245,7 @@ export default function PaymentFailureClient({
 
           <a
             href={supportHref}
-            className="mt-1 text-xs text-[#111111]/40 transition-colors hover:text-[#111111]"
+            className="mt-1 text-xs text-[var(--text-primary)]/40 transition-colors hover:text-[var(--text-primary)]"
           >
             Need help? Email us →
           </a>

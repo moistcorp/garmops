@@ -13,13 +13,13 @@ export default function ConfiguratorLayout({
           <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-[4px] border border-[var(--color-accent)]/30 bg-[var(--color-cream-soft)] text-[var(--color-accent-dark)]">
             <MonitorUp size={25} aria-hidden="true" />
           </span>
-          <p className="mt-5 text-xs font-semibold uppercase tracking-wide text-[#111111]/50">
+          <p className="mt-5 text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/50">
             Desktop required
           </p>
-          <h1 className="mt-2 text-2xl font-semibold text-[#111111]">
+          <h1 className="mt-2 text-2xl font-semibold text-[var(--text-primary)]">
             Continue on a desktop
           </h1>
-          <p className="mt-3 text-sm leading-relaxed text-[#111111]/60">
+          <p className="mt-3 text-sm leading-relaxed text-[var(--text-primary)]/60">
             The Garmops configurator is currently available on desktop only.
             Open this page on a screen at least 1024 px wide to customise your
             products and reserve a production review.

@@ -418,14 +418,14 @@ export function ConfirmationStep({
         <div className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-[#111111]/50">{formatSpecCode(`CART-${cartId}`)}</p>
-            <h1 className="text-2xl font-semibold text-[#111111]">Review & payment</h1>
-            {draft.projectName && <p className="mt-1 text-sm font-medium text-[#111111]/60">{draft.projectName}</p>}
+            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-[var(--text-primary)]/50">{formatSpecCode(`CART-${cartId}`)}</p>
+            <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Review & payment</h1>
+            {draft.projectName && <p className="mt-1 text-sm font-medium text-[var(--text-primary)]/60">{draft.projectName}</p>}
           </div>
           <button
             type="button"
             onClick={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping`)}
-            className="inline-flex shrink-0 items-center gap-2 self-start whitespace-nowrap rounded-[4px] border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-accent)] hover:text-[#111111] sm:self-auto"
+            className="inline-flex shrink-0 items-center gap-2 self-start whitespace-nowrap rounded-[4px] border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[var(--text-primary)]/75 hover:border-[var(--color-accent)] hover:text-[var(--text-primary)] sm:self-auto"
           >
             <ArrowLeft size={16} strokeWidth={2.2} />
             Back to delivery details
@@ -437,12 +437,12 @@ export function ConfirmationStep({
           title="Delivery and billing details"
           onEdit={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping`)}
         >
-          <div className="grid gap-5 text-sm text-[#111111]/75 md:grid-cols-2">
+          <div className="grid gap-5 text-sm text-[var(--text-primary)]/75 md:grid-cols-2">
             <div className="space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#111111]/45">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/45">
                 Company and contact
               </p>
-              <p className="font-medium text-[#111111]">
+              <p className="font-medium text-[var(--text-primary)]">
                 {draft.companyInformation.name}
               </p>
               <p>
@@ -453,29 +453,29 @@ export function ConfirmationStep({
               </p>
               <p>{projectContact.email} · {projectContact.phone}</p>
               {draft.companyInformation.gstin && (
-                <p className="text-xs text-[#111111]/55">
+                <p className="text-xs text-[var(--text-primary)]/55">
                   GSTIN: {draft.companyInformation.gstin}
                 </p>
               )}
             </div>
             <div className="space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#111111]/45">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/45">
                 Delivery address
               </p>
-              <p className="font-medium text-[#111111]">
+              <p className="font-medium text-[var(--text-primary)]">
                 {draft.shippingInformation.recipientName}
               </p>
               <AddressSummary address={draft.shippingInformation.address} />
-              <p className="pt-1 text-xs text-[#111111]/55">
+              <p className="pt-1 text-xs text-[var(--text-primary)]/55">
                 Target delivery date: {delivery}
               </p>
             </div>
             <div className="space-y-1 border-t border-[#E5E5E5] pt-4 md:col-span-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#111111]/45">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/45">
                 Billing
               </p>
               <p>
-                <span className="font-medium text-[#111111]">
+                <span className="font-medium text-[var(--text-primary)]">
                   {billingEntity}
                 </span>{" "}
                 · {billingEmail}
@@ -483,17 +483,17 @@ export function ConfirmationStep({
               {draft.billingInformation.gstin &&
                 draft.billingInformation.gstin !==
                   draft.companyInformation.gstin && (
-                  <p className="text-xs text-[#111111]/55">
+                  <p className="text-xs text-[var(--text-primary)]/55">
                     Billing GSTIN: {draft.billingInformation.gstin}
                   </p>
                 )}
               {billingUsesDeliveryAddress ? (
-                <p className="text-xs text-[#111111]/55">
+                <p className="text-xs text-[var(--text-primary)]/55">
                   Billing address is the same as the delivery address.
                 </p>
               ) : (
                 <div className="pt-1">
-                  <p className="mb-1 text-xs text-[#111111]/55">
+                  <p className="mb-1 text-xs text-[var(--text-primary)]/55">
                     Alternate billing address
                   </p>
                   <AddressSummary address={billingAddress} />
@@ -502,8 +502,8 @@ export function ConfirmationStep({
             </div>
           </div>
           {draft.shippingInformation.multipleLocations && (
-            <div className="mt-4 rounded-[4px] bg-[#F7F7F7] p-3 text-xs leading-relaxed text-[#111111]/65">
-              <p className="font-medium text-[#111111]">
+            <div className="mt-4 rounded-[4px] bg-[#F7F7F7] p-3 text-xs leading-relaxed text-[var(--text-primary)]/65">
+              <p className="font-medium text-[var(--text-primary)]">
                 Multiple delivery locations requested
               </p>
               <p className="mt-1">
@@ -513,27 +513,27 @@ export function ConfirmationStep({
             </div>
           )}
           {draft.billingInformation.purchaseOrder && (
-            <div className="mt-3 flex items-center gap-2 rounded-[4px] bg-[#F7F7F7] p-3 text-xs text-[#111111]/65">
+            <div className="mt-3 flex items-center gap-2 rounded-[4px] bg-[#F7F7F7] p-3 text-xs text-[var(--text-primary)]/65">
               <FileText size={16} className="shrink-0 text-[var(--color-accent-dark)]" />
-              <span>Purchase order attached: <strong className="text-[#111111]">{draft.billingInformation.purchaseOrder.fileName}</strong></span>
+              <span>Purchase order attached: <strong className="text-[var(--text-primary)]">{draft.billingInformation.purchaseOrder.fileName}</strong></span>
             </div>
           )}
         </ReviewSection>
 
         {(draft.projectPreferences.orderNotes || draft.projectPreferences.receiveEmails) && (
           <section className="techpack-panel rounded-[4px] border p-5">
-            <h3 className="text-sm font-medium text-[#111111]">Project notes & communication</h3>
+            <h3 className="text-sm font-medium text-[var(--text-primary)]">Project notes & communication</h3>
             {draft.projectPreferences.orderNotes && (
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[#111111]/70">{draft.projectPreferences.orderNotes}</p>
+              <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[var(--text-primary)]/70">{draft.projectPreferences.orderNotes}</p>
             )}
             {draft.projectPreferences.receiveEmails && (
-              <p className="mt-2 text-xs text-[#111111]/50">Marketing and product updates enabled.</p>
+              <p className="mt-2 text-xs text-[var(--text-primary)]/50">Marketing and product updates enabled.</p>
             )}
           </section>
         )}
 
         <section className="techpack-panel rounded-[4px] border p-5">
-          <h3 className="mb-4 text-sm font-medium text-[#111111]">Order summary</h3>
+          <h3 className="mb-4 text-sm font-medium text-[var(--text-primary)]">Order summary</h3>
           <div className="space-y-4">
             {draft.items.map((item) => <ProductRecapCard key={item.id} item={item} />)}
           </div>
@@ -543,8 +543,8 @@ export function ConfirmationStep({
           <div className="flex items-start gap-3">
             <span className="rounded-[4px] bg-white p-2 text-[var(--color-accent-dark)]"><ShieldCheck size={18} /></span>
             <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-semibold text-[#111111]">What happens after reservation?</h3>
-              <div className="mt-3 grid gap-2 text-xs leading-relaxed text-[#111111]/65 sm:grid-cols-2">
+              <h3 className="text-sm font-semibold text-[var(--text-primary)]">What happens after reservation?</h3>
+              <div className="mt-3 grid gap-2 text-xs leading-relaxed text-[var(--text-primary)]/65 sm:grid-cols-2">
                 {[
                   "A merch specialist checks artwork and production feasibility.",
                   "Final pricing and shipping are confirmed before the balance is due.",
@@ -553,7 +553,7 @@ export function ConfirmationStep({
                   <p key={item} className="flex items-start gap-2"><CheckCircle2 size={14} className="mt-0.5 shrink-0 text-[var(--color-accent-dark)]" />{item}</p>
                 ))}
               </div>
-              <div className="mt-4 flex items-center gap-2 border-t border-[var(--color-accent)]/20 pt-3 text-xs font-medium text-[#111111]/65">
+              <div className="mt-4 flex items-center gap-2 border-t border-[var(--color-accent)]/20 pt-3 text-xs font-medium text-[var(--text-primary)]/65">
                 <CreditCard size={15} className="text-[var(--color-accent-dark)]" />
                 {durableCheckoutEnabled
                   ? "Your order number and immutable specification are saved before PayU opens."
@@ -564,7 +564,7 @@ export function ConfirmationStep({
         </section>
 
         <section className="techpack-panel rounded-[4px] border p-5">
-          <label className="flex cursor-pointer items-start gap-3 text-sm text-[#111111]">
+          <label className="flex cursor-pointer items-start gap-3 text-sm text-[var(--text-primary)]">
             <input
               type="checkbox"
               checked={termsAccepted}
@@ -574,7 +574,7 @@ export function ConfirmationStep({
             I agree to the reservation terms: {formatInr(RESERVATION_FEE)} is
             charged today and credited against the final invoice.
           </label>
-          <p className="mt-3 text-xs leading-relaxed text-[#111111]/60">
+          <p className="mt-3 text-xs leading-relaxed text-[var(--text-primary)]/60">
             The final invoice, including confirmed shipping, is shared after
             feasibility review. Production starts only after final approval and
             the agreed payment terms.
@@ -599,7 +599,7 @@ export function ConfirmationStep({
             className={`flex w-full items-center justify-center gap-2 rounded-[4px] py-3 text-sm font-semibold transition-colors ${
               termsAccepted && !isProcessing
                 ? "bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-dark)]"
-                : "cursor-not-allowed bg-[#E5E5E5] text-[#111111]/40"
+                : "cursor-not-allowed bg-[#E5E5E5] text-[var(--text-primary)]/40"
             }`}
           >
             {isProcessing && <LoaderCircle size={16} className="animate-spin" />}
@@ -612,7 +612,7 @@ export function ConfirmationStep({
                 : `Lock spec & reserve review — ${formatInr(RESERVATION_FEE)}`}
           </button>
           {!termsAccepted && (
-            <p className="text-center text-xs text-[#111111]/55">Accept the reservation terms to continue.</p>
+            <p className="text-center text-xs text-[var(--text-primary)]/55">Accept the reservation terms to continue.</p>
           )}
           {paymentError && <ActionFeedback tone="error" title="Payment could not be opened" detail={`${paymentError} Your project details are safe.`} actionLabel="Try payment again" onAction={handlePayment} onDismiss={() => setPaymentError("")} />}
         </div>
@@ -637,12 +637,12 @@ function ReviewSection({
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className="text-[var(--color-accent-dark)]">{icon}</span>
-          <h3 className="text-sm font-medium text-[#111111]">{title}</h3>
+          <h3 className="text-sm font-medium text-[var(--text-primary)]">{title}</h3>
         </div>
         <button
           type="button"
           onClick={onEdit}
-          className="text-xs text-[#111111]/70 underline hover:text-[#111111]"
+          className="text-xs text-[var(--text-primary)]/70 underline hover:text-[var(--text-primary)]"
         >
           Edit details
         </button>
@@ -654,7 +654,7 @@ function ReviewSection({
 
 function AddressSummary({ address }: { address: Address }) {
   return (
-    <div className="space-y-1 text-sm text-[#111111]/75">
+    <div className="space-y-1 text-sm text-[var(--text-primary)]/75">
       <p>{address.addressLine1}</p>
       {address.addressLine2 && <p>{address.addressLine2}</p>}
       <p>{address.city}{address.state ? `, ${address.state}` : ""} {address.zip}</p>
@@ -685,18 +685,18 @@ function ProductRecapCard({ item }: { item: CartItem }) {
         </ArtworkPositionProvider>
       </div>
       <div className="flex-1">
-        <p className="text-sm font-medium text-[#111111]">{item.productName}</p>
-        <p className="text-xs text-[#111111]/60">
+        <p className="text-sm font-medium text-[var(--text-primary)]">{item.productName}</p>
+        <p className="text-xs text-[var(--text-primary)]/60">
           {item.colour.name || "Bright White"} · <span className="font-mono">{units} units · {formatInr(unitPrice)}/unit</span>
           {discountPercent > 0 ? ` · ${discountPercent}% off` : ""}
         </p>
         <div
-          className="mt-2 grid gap-1 text-[10px] text-[#111111]/60"
+          className="mt-2 grid gap-1 text-[10px] text-[var(--text-primary)]/60"
           style={{ gridTemplateColumns: `repeat(${Math.max(1, productSizes.length)}, minmax(0, 1fr))` }}
         >
           {productSizes.map((size) => (
             <div key={size} className="text-center">
-              <div className="font-medium text-[#111111]">{size}</div>
+              <div className="font-medium text-[var(--text-primary)]">{size}</div>
               <div>{item.sizeQuantities[size] ?? 0}</div>
             </div>
           ))}

@@ -32,10 +32,10 @@ export function ArtworkAreaSizeSelect(props?: ArtworkAreaSizeSelectProps): JSX.E
     <div className="flex flex-col gap-1.5">
       <label
         htmlFor={selectId}
-        className="text-xs font-semibold leading-none tracking-normal text-[#111111]/70"
+        className="text-xs font-semibold leading-none tracking-normal text-[var(--text-primary)]/70"
       >
         Smallest Size{" "}
-        <span className="font-normal text-[#111111]/45">
+        <span className="font-normal text-[var(--text-primary)]/45">
           (sets artwork area)
         </span>
       </label>
@@ -44,7 +44,7 @@ export function ArtworkAreaSizeSelect(props?: ArtworkAreaSizeSelectProps): JSX.E
           id={selectId}
           value={value}
           onChange={(event) => handleChange(event.target.value as PrintAreaSize)}
-          className="techpack-control h-11 w-full appearance-none rounded-[4px] border px-3 pr-9 text-sm font-medium leading-none tracking-normal text-[#111111]/80 outline-none focus:!border-[var(--color-accent)]/60"
+          className="techpack-control h-11 w-full appearance-none rounded-[4px] border px-3 pr-9 text-sm font-medium leading-none tracking-normal text-[var(--text-primary)]/80 outline-none focus:!border-[var(--color-accent)]/60"
         >
           {SIZE_ORDER.map((size) => {
             const dims = PRINT_AREA_SIZE_CHART[size];
@@ -59,10 +59,10 @@ export function ArtworkAreaSizeSelect(props?: ArtworkAreaSizeSelectProps): JSX.E
           size={15}
           strokeWidth={2.2}
           aria-hidden="true"
-          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#111111]/45"
+          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-primary)]/45"
         />
       </div>
-      <p className="text-xs leading-relaxed tracking-normal text-[#111111]/45">
+      <p className="text-xs leading-relaxed tracking-normal text-[var(--text-primary)]/45">
         Sizes to order: {value}–{maxSize}. The dotted boundary updates automatically.
       </p>
     </div>

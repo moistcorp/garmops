@@ -36,7 +36,7 @@ export default function SignatureColourGrid({
             />
             <span className="min-w-0 truncate">
               <span className="block truncate text-xs">{colour.name}</span>
-              <span className="mt-0.5 block font-mono text-[9px] uppercase tracking-[0.04em] text-[#111111]/45">
+              <span className="mt-0.5 block font-mono text-[9px] uppercase tracking-[0.04em] text-[var(--text-primary)]/45">
                 {colour.hex}
               </span>
             </span>

@@ -270,8 +270,8 @@ export function AddressForm({
     setTouched((current) => ({ ...current, [key]: true }));
   const showError = (key: string, invalid: boolean) => touched[key] && invalid;
   const inputClass =
-    "techpack-control w-full rounded-[4px] border px-3 py-2 text-sm text-[#111111] placeholder:text-[#111111]/40 focus:!border-[var(--color-accent)] focus:outline-none";
-  const labelClass = "mb-1 block text-xs font-medium text-[#111111]/70";
+    "techpack-control w-full rounded-[4px] border px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-primary)]/40 focus:!border-[var(--color-accent)] focus:outline-none";
+  const labelClass = "mb-1 block text-xs font-medium text-[var(--text-primary)]/70";
 
   return (
     <div className="space-y-4">
@@ -349,7 +349,7 @@ export function AddressForm({
               }}
               onBlur={() => markTouched("zip")}
             />
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#111111]/35">
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-primary)]/35">
               {visibleLookupStatus === "loading" ? (
                 <LoaderCircle size={15} className="animate-spin" aria-label="Looking up PIN code" />
               ) : visibleLookupStatus === "success" ? (
@@ -362,7 +362,7 @@ export function AddressForm({
           {showError("zip", !isPinCodeValid(value.zip)) && (
             <p className="mt-1 text-xs text-red-600">Enter a valid 6-digit PIN code</p>
           )}
-          {visibleLookupStatus === "loading" && <p className="mt-1 text-xs text-[#111111]/50">Finding city and state…</p>}
+          {visibleLookupStatus === "loading" && <p className="mt-1 text-xs text-[var(--text-primary)]/50">Finding city and state…</p>}
           {visibleLookupStatus === "success" && <p className="mt-1 text-xs text-[var(--color-accent-dark)]">City and state filled from PIN code.</p>}
           {(visibleLookupStatus === "not-found" || visibleLookupStatus === "error") && (
             <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-amber-700">
@@ -387,8 +387,8 @@ export function AddressForm({
 
       {compact && visibleLookupStatus === "success" && !editingLocation && (
         <div className="flex items-center justify-between gap-3 rounded-[4px] border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/5 px-3 py-2.5">
-          <p className="text-sm text-[#111111]/75">
-            <span className="font-medium text-[#111111]">{value.city}</span>
+          <p className="text-sm text-[var(--text-primary)]/75">
+            <span className="font-medium text-[var(--text-primary)]">{value.city}</span>
             {value.state ? `, ${value.state}` : ""}
           </p>
           <button

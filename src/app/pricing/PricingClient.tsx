@@ -60,11 +60,11 @@ export default function PricingClient() {
   return (
     <div className="techpack-canvas">
       <section className="max-w-7xl mx-auto px-4 pb-10 pt-10 sm:px-6 sm:pb-12 sm:pt-20">
-        <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Pricing</p>
-        <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] max-w-xl leading-tight mb-4 tracking-tight">
+        <p className="text-xs text-[var(--text-primary)]/40 font-medium mb-4 tracking-widest uppercase">Pricing</p>
+        <h1 className="text-4xl sm:text-5xl font-bold text-[var(--text-primary)] max-w-xl leading-tight mb-4 tracking-tight">
           Bulk custom apparel pricing
         </h1>
-        <p className="max-w-lg text-base leading-relaxed text-[#111111]/50 sm:text-lg">
+        <p className="max-w-lg text-base leading-relaxed text-[var(--text-primary)]/50 sm:text-lg">
           Base prices include fabric, stitching, single-color screen print, neck label, and our margin. The estimate shows GST separately and includes it in the final total. Shipping is excluded.
         </p>
       </section>
@@ -77,7 +77,7 @@ export default function PricingClient() {
 
             {/* Product */}
             <div>
-              <label className="text-xs font-medium text-[#111111]/50 uppercase tracking-widest block mb-3">
+              <label className="text-xs font-medium text-[var(--text-primary)]/50 uppercase tracking-widest block mb-3">
                 Select product
               </label>
               <div ref={dropdownRef} className="techpack-surface overflow-hidden rounded-[4px] border">
@@ -95,11 +95,11 @@ export default function PricingClient() {
                     <Image src={selectedProduct.icon} alt={selectedProduct.name} width={36} height={36} className="object-contain" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-[#111111] leading-snug">{selectedProduct.name}</p>
-                    <p className="text-xs text-[#111111]/50 mt-0.5 line-clamp-1">{selectedProduct.description}</p>
+                    <p className="text-sm font-semibold text-[var(--text-primary)] leading-snug">{selectedProduct.name}</p>
+                    <p className="text-xs text-[var(--text-primary)]/50 mt-0.5 line-clamp-1">{selectedProduct.description}</p>
                   </div>
                   <svg
-                    className={`w-4 h-4 text-[#111111]/40 shrink-0 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}
+                    className={`w-4 h-4 text-[var(--text-primary)]/40 shrink-0 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}
                     fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -122,8 +122,8 @@ export default function PricingClient() {
                           <Image src={p.icon} alt={p.name} width={30} height={30} className="object-contain" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-[#111111] leading-snug">{p.name}</p>
-                          <p className="text-xs text-[#111111]/40 mt-0.5 line-clamp-1">{p.description}</p>
+                          <p className="text-sm font-medium text-[var(--text-primary)] leading-snug">{p.name}</p>
+                          <p className="text-xs text-[var(--text-primary)]/40 mt-0.5 line-clamp-1">{p.description}</p>
                         </div>
                       </button>
                     ))}
@@ -135,10 +135,10 @@ export default function PricingClient() {
             {/* Quantity */}
             <div>
               <div className="flex justify-between items-center mb-3">
-                <label className="text-xs font-medium text-[#111111]/50 uppercase tracking-widest">
+                <label className="text-xs font-medium text-[var(--text-primary)]/50 uppercase tracking-widest">
                   Quantity
                 </label>
-                <span className="text-sm font-bold text-[#111111]">{qty} pcs</span>
+                <span className="text-sm font-bold text-[var(--text-primary)]">{qty} pcs</span>
               </div>
               <input
                 type="range" min={50} max={1000} step={50} value={qty}
@@ -146,7 +146,7 @@ export default function PricingClient() {
                 onInput={e => setQty(Number((e.target as HTMLInputElement).value))}
                 className="w-full accent-[var(--color-accent)]"
               />
-              <div className="flex justify-between text-xs text-[#111111]/30 mt-1">
+              <div className="flex justify-between text-xs text-[var(--text-primary)]/30 mt-1">
                 <span>50 pcs</span><span>1000 pcs</span>
               </div>
             </div>
@@ -155,8 +155,8 @@ export default function PricingClient() {
             <div className="techpack-panel rounded-[4px] border p-4">
               <div className="flex items-center justify-between mb-1">
                 <div className="min-w-0 pr-3">
-                  <p className="text-sm font-semibold text-[#111111]">Rush order</p>
-                  <p className="text-xs text-[#111111]/50 mt-0.5">
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">Rush order</p>
+                  <p className="text-xs text-[var(--text-primary)]/50 mt-0.5">
                     Delivery in {RUSH_DELIVERY_DAYS} days instead of {DELIVERY_DAYS}
                   </p>
                 </div>
@@ -172,7 +172,7 @@ export default function PricingClient() {
                 </button>
               </div>
               {rush && (
-                <p className="text-xs text-[#111111]/50 mt-2 pt-2 border-t border-[#ECE7DF]">
+                <p className="text-xs text-[var(--text-primary)]/50 mt-2 pt-2 border-t border-[#ECE7DF]">
                   Rush premium: +&#8377;{getRushCharge(qty)}/piece (&#8377;{rushChargeTotal.toLocaleString('en-IN')} total)
                 </p>
               )}
@@ -180,7 +180,7 @@ export default function PricingClient() {
 
             {/* Volume tiers */}
             <div>
-              <p className="text-xs font-medium text-[#111111]/50 uppercase tracking-widest mb-3">
+              <p className="text-xs font-medium text-[var(--text-primary)]/50 uppercase tracking-widest mb-3">
                 Volume discounts
               </p>
               <div className="techpack-panel flex flex-col overflow-hidden rounded-[4px] border">
@@ -188,7 +188,7 @@ export default function PricingClient() {
                   <div
                     key={t.min}
                     className={`flex justify-between border-b border-white/55 px-4 py-3 text-xs transition-colors last:border-0 ${
-                      getDiscount(qty) === t.discount ? 'techpack-selected text-white' : 'text-[#111111]/50'
+                      getDiscount(qty) === t.discount ? 'techpack-selected text-white' : 'text-[var(--text-primary)]/50'
                     }`}
                   >
                     <span>{t.min}{t.max === Infinity ? '+' : `–${t.max}`} pcs</span>
@@ -201,7 +201,7 @@ export default function PricingClient() {
             {/* Rush tiers — shown when rush is on */}
             {rush && (
               <div>
-                <p className="text-xs font-medium text-[#111111]/50 uppercase tracking-widest mb-3">
+                <p className="text-xs font-medium text-[var(--text-primary)]/50 uppercase tracking-widest mb-3">
                   Rush premiums (per piece)
                 </p>
                 <div className="techpack-panel flex flex-col overflow-hidden rounded-[4px] border">
@@ -211,7 +211,7 @@ export default function PricingClient() {
                       className={`flex justify-between border-b border-white/55 px-4 py-3 text-xs transition-colors last:border-0 ${
                         getRushCharge(qty) === t.charge && qty >= t.min && qty <= t.max
                           ? 'techpack-selected text-white'
-                          : 'text-[#111111]/50'
+                          : 'text-[var(--text-primary)]/50'
                       }`}
                     >
                       <span>{t.min}{t.max === Infinity ? '+' : `–${t.max}`} pcs</span>
@@ -300,7 +300,7 @@ export default function PricingClient() {
       <section className="techpack-section py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <h2 className="text-2xl font-bold mb-2 tracking-tight">What&apos;s included in every order</h2>
-          <p className="text-[#111111]/50 text-sm mb-8">Base prices include the following. GST is shown separately and included in the final estimated total.</p>
+          <p className="text-[var(--text-primary)]/50 text-sm mb-8">Base prices include the following. GST is shown separately and included in the final estimated total.</p>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               { title: 'Fabric & stitching', desc: 'Premium blanks cut and sewn at our Greater Noida facility' },
@@ -310,7 +310,7 @@ export default function PricingClient() {
             ].map(i => (
               <div key={i.title} className="techpack-panel rounded-[4px] border p-5">
                 <p className="font-semibold text-sm mb-1">{i.title}</p>
-                <p className="text-xs text-[#111111]/50 leading-relaxed">{i.desc}</p>
+                <p className="text-xs text-[var(--text-primary)]/50 leading-relaxed">{i.desc}</p>
               </div>
             ))}
           </div>

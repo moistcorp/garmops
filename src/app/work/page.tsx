@@ -21,11 +21,11 @@ export default function Work() {
     <div className="techpack-canvas">
       {/* Header */}
       <section className="max-w-7xl mx-auto px-4 pb-10 pt-10 sm:px-6 sm:pb-16 sm:pt-20">
-        <p className="text-xs text-[#111111]/40 font-medium mb-4 tracking-widest uppercase">Case studies</p>
-        <h1 className="text-4xl sm:text-5xl font-bold text-[#111111] leading-tight mb-6 tracking-tight">
+        <p className="text-xs text-[var(--text-primary)]/40 font-medium mb-4 tracking-widest uppercase">Case studies</p>
+        <h1 className="text-4xl sm:text-5xl font-bold text-[var(--text-primary)] leading-tight mb-6 tracking-tight">
           Custom merchandise case studies
         </h1>
-        <p className="max-w-lg text-base leading-relaxed text-[#111111]/50 sm:text-lg">
+        <p className="max-w-lg text-base leading-relaxed text-[var(--text-primary)]/50 sm:text-lg">
           A selection of projects across restaurants, events, gyms, and creative studios. Real briefs, real timelines, real results.
         </p>
       </section>
@@ -45,7 +45,7 @@ export default function Work() {
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               ) : (
-                <span className="text-xs text-[#111111]/20 uppercase tracking-widest">
+                <span className="text-xs text-[var(--text-primary)]/20 uppercase tracking-widest">
                   {caseStudies[0].client}
                 </span>
               )}
@@ -54,18 +54,18 @@ export default function Work() {
             <div className="flex flex-col justify-between p-5 sm:p-8 md:p-10">
               <div>
                 <div className="mb-5 flex flex-wrap items-center gap-3 sm:mb-6">
-                  <span className="text-xs border border-[#ECE7DF] rounded-[4px] px-2.5 py-1 text-[#111111]/50">
+                  <span className="text-xs border border-[#ECE7DF] rounded-[4px] px-2.5 py-1 text-[var(--text-primary)]/50">
                     {caseStudies[0].industry}
                   </span>
-                  <span className="text-xs text-[#111111]/30">{caseStudies[0].date}</span>
+                  <span className="text-xs text-[var(--text-primary)]/30">{caseStudies[0].date}</span>
                 </div>
-                <h2 className="mb-4 text-2xl font-bold leading-tight tracking-tight text-[#111111] group-hover:underline sm:text-3xl">
+                <h2 className="mb-4 text-2xl font-bold leading-tight tracking-tight text-[var(--text-primary)] group-hover:underline sm:text-3xl">
                   {caseStudies[0].title}
                 </h2>
-                <p className="text-[#111111]/60 text-sm leading-relaxed mb-8">
+                <p className="text-[var(--text-primary)]/60 text-sm leading-relaxed mb-8">
                   {caseStudies[0].excerpt}
                 </p>
-                <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-[#111111]/40">
+                <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-[var(--text-primary)]/40">
                   <span>{caseStudies[0].quantity} pieces</span>
                   <span>{caseStudies[0].turnaround}</span>
                   <span>{caseStudies[0].deliverables.length} deliverables</span>
@@ -101,23 +101,23 @@ export default function Work() {
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 ) : (
-                  <span className="text-xs text-[#111111]/20 uppercase tracking-widest">{cs.client}</span>
+                  <span className="text-xs text-[var(--text-primary)]/20 uppercase tracking-widest">{cs.client}</span>
                 )}
               </div>
 
               {/* Content */}
               <div className="p-6 flex flex-col gap-3 flex-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs border border-[#ECE7DF] rounded-[4px] px-2.5 py-1 text-[#111111]/50">
+                  <span className="text-xs border border-[#ECE7DF] rounded-[4px] px-2.5 py-1 text-[var(--text-primary)]/50">
                     {cs.industry}
                   </span>
-                  <span className="text-xs text-[#111111]/30">{cs.date}</span>
+                  <span className="text-xs text-[var(--text-primary)]/30">{cs.date}</span>
                 </div>
-                <h3 className="text-base font-semibold text-[#111111] leading-snug group-hover:underline">
+                <h3 className="text-base font-semibold text-[var(--text-primary)] leading-snug group-hover:underline">
                   {cs.title}
                 </h3>
-                <p className="text-xs text-[#111111]/50 leading-relaxed flex-1">{cs.excerpt}</p>
-                <div className="flex gap-4 text-xs text-[#111111]/30 pt-3 border-t border-[#ECE7DF]">
+                <p className="text-xs text-[var(--text-primary)]/50 leading-relaxed flex-1">{cs.excerpt}</p>
+                <div className="flex gap-4 text-xs text-[var(--text-primary)]/30 pt-3 border-t border-[#ECE7DF]">
                   <span>{cs.quantity} pcs</span>
                   <span>{cs.turnaround}</span>
                 </div>

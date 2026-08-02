@@ -64,7 +64,7 @@ export default function HeroScrollVideo() {
           <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.16em] text-[#595959] sm:mb-6 sm:text-xs sm:tracking-widest">
             Custom apparel manufacturer in India
           </p>
-          <h1 className="mb-5 text-[2.5rem] font-bold leading-[1.02] tracking-tight text-[#111111] min-[360px]:text-5xl md:text-6xl lg:text-7xl">
+          <h1 className="mb-5 text-[2.5rem] font-bold leading-[1.02] tracking-tight text-[var(--text-primary)] min-[360px]:text-5xl md:text-6xl lg:text-7xl">
             Custom apparel<br />for your<br /><span className="text-[var(--color-accent)]">business</span>
           </h1>
           <p className="mb-8 max-w-sm text-[15px] leading-relaxed text-[#4a4a4a] sm:mb-10 sm:text-base">
@@ -72,20 +72,20 @@ export default function HeroScrollVideo() {
           </p>
           <div className="mb-8 grid grid-cols-3 gap-0 sm:mb-10 sm:flex sm:gap-6">
             <div className="min-w-0">
-              <p className="text-xl sm:text-2xl font-bold text-[#111111]">50</p>
+              <p className="text-xl sm:text-2xl font-bold text-[var(--text-primary)]">50</p>
               <p className="text-[9px] uppercase leading-tight tracking-normal text-[#595959] min-[360px]:text-[10px] sm:text-xs sm:tracking-wide">Min. pieces</p>
             </div>
             <div className="min-w-0 border-l border-[#E5E5E5] pl-3 sm:contents sm:border-0 sm:pl-0">
               <div className="hidden sm:block w-px bg-[#E5E5E5]" />
               <div>
-                <p className="text-xl sm:text-2xl font-bold text-[#111111]">{RUSH_DELIVERY_DAYS}</p>
+                <p className="text-xl sm:text-2xl font-bold text-[var(--text-primary)]">{RUSH_DELIVERY_DAYS}</p>
                 <p className="text-[9px] uppercase leading-tight tracking-normal text-[#595959] min-[360px]:text-[10px] sm:text-xs sm:tracking-wide">Day delivery</p>
               </div>
             </div>
             <div className="min-w-0 border-l border-[#E5E5E5] pl-3 sm:contents sm:border-0 sm:pl-0">
               <div className="hidden sm:block w-px bg-[#E5E5E5]" />
               <div>
-                <p className="text-xl sm:text-2xl font-bold text-[#111111]">100%</p>
+                <p className="text-xl sm:text-2xl font-bold text-[var(--text-primary)]">100%</p>
                 <p className="text-[9px] uppercase leading-tight tracking-normal text-[#595959] min-[360px]:text-[10px] sm:text-xs sm:tracking-wide">Made in India</p>
               </div>
             </div>
@@ -94,7 +94,7 @@ export default function HeroScrollVideo() {
             <Link href="/configurator" className="rounded-[4px] bg-[var(--color-accent)] px-5 py-3.5 text-center text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent-dark)] sm:px-8 sm:py-4">
               Start designing
             </Link>
-            <Link href="/products" className="rounded-[4px] border border-[#111111]/20 px-5 py-3.5 text-center text-sm font-medium text-[#111111] transition-colors hover:border-[#111111] sm:px-8 sm:py-4">
+            <Link href="/products" className="rounded-[4px] border border-[var(--text-primary)]/20 px-5 py-3.5 text-center text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--text-primary)] sm:px-8 sm:py-4">
               View catalogue
             </Link>
           </div>
@@ -111,7 +111,7 @@ export default function HeroScrollVideo() {
           />
           <div className="techpack-surface absolute bottom-4 left-4 z-10 rounded-[4px] border px-4 py-3 sm:bottom-8 sm:left-8 sm:px-5 sm:py-4">
             <p className="text-xs text-[#595959] uppercase tracking-widest mb-1">Starting from</p>
-            <p className="text-2xl font-bold text-[#111111]">&#8377;350</p>
+            <p className="text-2xl font-bold text-[var(--text-primary)]">&#8377;350</p>
             <p className="text-xs text-[#4a4a4a]">per piece &middot; MOQ 50</p>
           </div>
         </div>

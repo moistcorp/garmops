@@ -113,24 +113,24 @@ export default function ProductGrid() {
     <div className="space-y-6">
       <section className="techpack-surface rounded-[4px] border p-4 sm:p-5" aria-labelledby="product-guidance-title">
         <div className="flex flex-col gap-1">
-          <h2 id="product-guidance-title" className="text-base font-semibold text-[#111111]">Help us recommend the right product</h2>
-          <p className="text-sm text-[#111111]/60">These details only improve recommendations and delivery guidance. You can still browse every product.</p>
+          <h2 id="product-guidance-title" className="text-base font-semibold text-[var(--text-primary)]">Help us recommend the right product</h2>
+          <p className="text-sm text-[var(--text-primary)]/60">These details only improve recommendations and delivery guidance. You can still browse every product.</p>
         </div>
         <div className="mt-4 grid gap-3 md:grid-cols-[minmax(0,1.4fr)_160px_190px]">
           <div>
-            <label htmlFor="product-use-case" className="mb-1 block text-xs font-medium text-[#111111]/65">Primary use case</label>
+            <label htmlFor="product-use-case" className="mb-1 block text-xs font-medium text-[var(--text-primary)]/65">Primary use case</label>
             <select
               id="product-use-case"
               value={useCase}
               onChange={(event) => setUseCase(event.target.value as ProductUseCase | "")}
-              className="techpack-control min-h-11 w-full rounded-[4px] border px-3 text-sm text-[#111111]"
+              className="techpack-control min-h-11 w-full rounded-[4px] border px-3 text-sm text-[var(--text-primary)]"
             >
               <option value="">Show all products</option>
               {PRODUCT_USE_CASES.map((option) => <option key={option} value={option}>{option}</option>)}
             </select>
           </div>
           <div>
-            <label htmlFor="project-quantity" className="mb-1 block text-xs font-medium text-[#111111]/65">Approx. quantity</label>
+            <label htmlFor="project-quantity" className="mb-1 block text-xs font-medium text-[var(--text-primary)]/65">Approx. quantity</label>
             <input
               id="project-quantity"
               type="number"
@@ -145,22 +145,22 @@ export default function ProductGrid() {
                   event.currentTarget.blur();
                 }
               }}
-              className="techpack-control min-h-11 w-full rounded-[4px] border px-3 text-sm text-[#111111]"
+              className="techpack-control min-h-11 w-full rounded-[4px] border px-3 text-sm text-[var(--text-primary)]"
             />
           </div>
           <div>
-            <label htmlFor="project-target-date" className="mb-1 block text-xs font-medium text-[#111111]/65">Target delivery date</label>
+            <label htmlFor="project-target-date" className="mb-1 block text-xs font-medium text-[var(--text-primary)]/65">Target delivery date</label>
             <input
               id="project-target-date"
               type="date"
               min={todayInputValue()}
               value={targetDate}
               onChange={(event) => updateTargetDate(event.target.value)}
-              className="techpack-control min-h-11 w-full rounded-[4px] border px-3 text-sm text-[#111111]"
+              className="techpack-control min-h-11 w-full rounded-[4px] border px-3 text-sm text-[var(--text-primary)]"
             />
           </div>
         </div>
-        <p className="mt-3 text-xs text-[#111111]/55">Current volume tier: {discount}% off blank product pricing. Customisation is calculated in Studio.</p>
+        <p className="mt-3 text-xs text-[var(--text-primary)]/55">Current volume tier: {discount}% off blank product pricing. Customisation is calculated in Studio.</p>
       </section>
 
       <div className="grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -183,16 +183,16 @@ export default function ProductGrid() {
       {comparedProducts.length > 0 && (
         <section className="techpack-surface sticky bottom-4 z-30 overflow-hidden rounded-[4px] border !border-[var(--color-accent)]/30" aria-labelledby="comparison-title">
           <div className="flex items-center justify-between gap-3 border-b border-white/60 bg-white/15 px-4 py-3">
-            <div><h2 id="comparison-title" className="text-sm font-semibold text-[#111111]">Product comparison</h2><p className="text-xs text-[#111111]/55">Compare up to three options before customising.</p></div>
-            <button type="button" onClick={() => setCompareIds([])} className="techpack-control rounded-[4px] border px-3 py-1.5 text-xs font-semibold text-[#111111]/65">Clear comparison</button>
+            <div><h2 id="comparison-title" className="text-sm font-semibold text-[var(--text-primary)]">Product comparison</h2><p className="text-xs text-[var(--text-primary)]/55">Compare up to three options before customising.</p></div>
+            <button type="button" onClick={() => setCompareIds([])} className="techpack-control rounded-[4px] border px-3 py-1.5 text-xs font-semibold text-[var(--text-primary)]/65">Clear comparison</button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-left text-xs">
               <thead>
                 <tr className="bg-white/20">
-                  <th className="w-40 px-4 py-3 font-semibold text-[#111111]/55">Attribute</th>
+                  <th className="w-40 px-4 py-3 font-semibold text-[var(--text-primary)]/55">Attribute</th>
                   {comparedProducts.map((product) => (
-                    <th key={product.id} className="px-4 py-3 text-sm font-semibold text-[#111111]">
+                    <th key={product.id} className="px-4 py-3 text-sm font-semibold text-[var(--text-primary)]">
                       <div className="flex items-center justify-between gap-2"><span>{product.name}</span><button type="button" aria-label={`Remove ${product.name} from comparison`} onClick={() => toggleCompare(product.id, false)} className="rounded-[4px] p-1 hover:bg-white"><X size={14} /></button></div>
                     </th>
                   ))}
@@ -223,5 +223,5 @@ export default function ProductGrid() {
 }
 
 function CompareRow({ label, values }: { label: string; values: string[] }) {
-  return <tr><th className="px-4 py-3 font-semibold text-[#111111]/55">{label}</th>{values.map((value, index) => <td key={`${label}-${index}`} className="px-4 py-3 leading-relaxed text-[#111111]/70">{value}</td>)}</tr>;
+  return <tr><th className="px-4 py-3 font-semibold text-[var(--text-primary)]/55">{label}</th>{values.map((value, index) => <td key={`${label}-${index}`} className="px-4 py-3 leading-relaxed text-[var(--text-primary)]/70">{value}</td>)}</tr>;
 }

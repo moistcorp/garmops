@@ -42,7 +42,7 @@ export default function WhyGarmops() {
             <p className="text-xs text-[#595959] font-medium mb-4 tracking-widest uppercase">
               Why Garmops
             </p>
-            <h2 className="mb-6 text-3xl font-bold leading-tight tracking-tight text-[#111111] sm:mb-10 sm:text-4xl">
+            <h2 className="mb-6 text-3xl font-bold leading-tight tracking-tight text-[var(--text-primary)] sm:mb-10 sm:text-4xl">
               Merch made right,<br />in India.
             </h2>
 
@@ -60,7 +60,7 @@ export default function WhyGarmops() {
                     aria-controls={`why-garmops-panel-${i}`}
                     className="w-full flex items-center justify-between py-5 text-left gap-4"
                   >
-                    <span className={`text-base font-semibold leading-snug transition-colors ${openIndex === i ? 'text-[var(--color-accent)]' : 'text-[#111111]/60'}`}>
+                    <span className={`text-base font-semibold leading-snug transition-colors ${openIndex === i ? 'text-[var(--color-accent)]' : 'text-[var(--text-primary)]/60'}`}>
                       {item.title}
                     </span>
                     <span className={`shrink-0 w-5 h-5 flex items-center justify-center transition-colors ${openIndex === i ? 'text-[var(--color-accent)]' : 'text-[#666666]'}`}>

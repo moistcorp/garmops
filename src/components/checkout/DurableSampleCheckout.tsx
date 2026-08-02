@@ -14,7 +14,7 @@ import { useCartStore } from "@/lib/store";
 const inputClass =
   "techpack-control w-full rounded-[4px] border px-4 py-3 text-sm transition-colors focus:!border-[var(--color-accent)] focus:outline-none";
 const labelClass =
-  "mb-1.5 block text-xs font-medium uppercase tracking-wide text-[#111111]/50";
+  "mb-1.5 block text-xs font-medium uppercase tracking-wide text-[var(--text-primary)]/50";
 const SAMPLE_CHECKOUT_IDEMPOTENCY_KEY =
   "garmops-durable-sample-checkout-idempotency";
 
@@ -270,7 +270,7 @@ export default function DurableSampleCheckout({
     <div className="techpack-canvas min-h-[70vh] px-4 py-10 sm:px-6 sm:py-16">
       <div className="mx-auto max-w-7xl">
         <div className="mb-8 sm:mb-12">
-          <p className="text-xs uppercase tracking-[0.18em] text-[#1D49B4]">
+          <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-accent)]">
             Durable sample checkout
           </p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
@@ -292,7 +292,7 @@ export default function DurableSampleCheckout({
             }}
           >
             <section className="techpack-panel rounded-[4px] border p-5 sm:p-7">
-              <p className="mb-5 text-xs font-medium uppercase tracking-widest text-[#111111]/40">
+              <p className="mb-5 text-xs font-medium uppercase tracking-widest text-[var(--text-primary)]/40">
                 Account and contact
               </p>
               <div className="mb-5 rounded-[4px] border border-black/7 bg-white/45 px-4 py-3 text-sm">
@@ -383,10 +383,10 @@ export default function DurableSampleCheckout({
 
             <section className="techpack-panel rounded-[4px] border p-5 sm:p-7">
               <div className="mb-5">
-                <p className="text-xs font-medium uppercase tracking-widest text-[#111111]/40">
+                <p className="text-xs font-medium uppercase tracking-widest text-[var(--text-primary)]/40">
                   Delivery address
                 </p>
-                <p className="mt-1 text-xs text-[#111111]/50">
+                <p className="mt-1 text-xs text-[var(--text-primary)]/50">
                   This address is saved as the immutable delivery and provisional
                   billing snapshot for this sample purchase.
                 </p>
@@ -461,7 +461,7 @@ export default function DurableSampleCheckout({
                     key={`${item.id}-${item.size}`}
                     className="flex justify-between gap-4 text-xs"
                   >
-                    <span className="leading-snug text-[#111111]/60">
+                    <span className="leading-snug text-[var(--text-primary)]/60">
                       {item.name} ({item.size}) ×{item.quantity}
                     </span>
                     <span className="shrink-0 font-medium">
@@ -472,11 +472,11 @@ export default function DurableSampleCheckout({
               </div>
               <div className="flex flex-col gap-2 border-t border-[#ECE7DF] pt-4 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-[#111111]/50">Subtotal</span>
+                  <span className="text-[var(--text-primary)]/50">Subtotal</span>
                   <span>{rupees(cartTotalRupees * 100)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#111111]/50">Shipping</span>
+                  <span className="text-[var(--text-primary)]/50">Shipping</span>
                   <span>
                     {shippingRupees === 0
                       ? "Free"
@@ -484,7 +484,7 @@ export default function DurableSampleCheckout({
                   </span>
                 </div>
                 {shippingRupees ? (
-                  <p className="text-xs text-[#111111]/40">
+                  <p className="text-xs text-[var(--text-primary)]/40">
                     Add {rupees((2_000 - cartTotalRupees) * 100)} more for free
                     shipping.
                   </p>
@@ -510,14 +510,14 @@ export default function DurableSampleCheckout({
                     : "Saving order…"
                   : `Save order and pay ${rupees(displayedTotalPaise)}`}
               </button>
-              <p className="text-center text-xs text-[#111111]/40">
+              <p className="text-center text-xs text-[var(--text-primary)]/40">
                 Full payment through PayU. Card details are never stored by
                 Garmops.
               </p>
             </div>
             <Link
               href="/cart"
-              className="text-center text-xs text-[#111111]/40 hover:text-[#111111]"
+              className="text-center text-xs text-[var(--text-primary)]/40 hover:text-[var(--text-primary)]"
             >
               Back to cart
             </Link>

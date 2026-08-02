@@ -7,7 +7,7 @@ export default function ProofLinks({ caseStudies }: { caseStudies: CaseStudy[] }
     return (
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
         <div className="techpack-panel rounded-[4px] border p-6 sm:p-8">
-          <h2 className="text-2xl font-bold tracking-tight text-[#111111] sm:text-3xl">Review relevant production work</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-[var(--text-primary)] sm:text-3xl">Review relevant production work</h2>
           <p className="mt-3 max-w-2xl text-sm leading-7 text-[#3f3f3f]">
             Browse documented Garmops projects for product, quantity, decoration and delivery context.
           </p>
@@ -23,8 +23,8 @@ export default function ProofLinks({ caseStudies }: { caseStudies: CaseStudy[] }
     <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
         <div>
-          <p className="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-[#111111]/45">Documented work</p>
-          <h2 className="text-3xl font-bold tracking-tight text-[#111111] sm:text-4xl">Relevant case studies</h2>
+          <p className="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-[var(--text-primary)]/45">Documented work</p>
+          <h2 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl">Relevant case studies</h2>
         </div>
         <Link href="/work" className="text-sm font-medium text-[var(--color-accent-dark)] underline underline-offset-4">
           View all work
@@ -49,8 +49,8 @@ export default function ProofLinks({ caseStudies }: { caseStudies: CaseStudy[] }
               )}
             </div>
             <div className="p-5 sm:p-6">
-              <p className="text-xs font-medium uppercase tracking-widest text-[#111111]/45">{study.industry}</p>
-              <h3 className="mt-3 text-lg font-semibold leading-snug text-[#111111] group-hover:underline">{study.title}</h3>
+              <p className="text-xs font-medium uppercase tracking-widest text-[var(--text-primary)]/45">{study.industry}</p>
+              <h3 className="mt-3 text-lg font-semibold leading-snug text-[var(--text-primary)] group-hover:underline">{study.title}</h3>
               <p className="mt-3 text-sm leading-6 text-[#3f3f3f]">{study.excerpt}</p>
             </div>
           </Link>

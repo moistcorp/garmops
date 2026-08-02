@@ -111,7 +111,7 @@ function VolumeDiscountProgress({ quantity }: { quantity: number }) {
 
   return (
     <div className="techpack-subtle rounded-[4px] px-3 py-2.5">
-      <div className="flex items-start gap-2 text-[11px] font-semibold leading-snug text-[#1D49B4]">
+      <div className="flex items-start gap-2 text-[11px] font-semibold leading-snug text-[var(--color-accent)]">
         <TrendingUp size={14} strokeWidth={2.4} className="mt-0.5 shrink-0" aria-hidden="true" />
         <span>{message}</span>
       </div>
@@ -202,16 +202,16 @@ export function OrderBar({
         aria-live="polite"
       >
         <div className="min-w-0 pr-2">
-          <div className="text-[10px] font-semibold uppercase tracking-wide text-[#111111]/45">
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text-primary)]/45">
             Unit cost
           </div>
           <div className="mt-1 flex min-w-0 items-baseline gap-1.5">
             {pricingBreakdown.discountPercent > 0 && (
-              <span className="truncate text-[10px] font-medium text-[#111111]/45 line-through">
+              <span className="truncate text-[10px] font-medium text-[var(--text-primary)]/45 line-through">
                 {formatInr(pricingBreakdown.unitPrice)}
               </span>
             )}
-            <span className="truncate font-mono text-sm font-semibold text-[#111111]">
+            <span className="truncate font-mono text-sm font-semibold text-[var(--text-primary)]">
               {formatInr(discountedUnitCost)}
             </span>
           </div>
@@ -225,7 +225,7 @@ export function OrderBar({
         <div className="min-w-0 px-2">
           <label
             htmlFor="configurator-target-date"
-            className="block text-[10px] font-semibold uppercase tracking-wide text-[#111111]/45"
+            className="block text-[10px] font-semibold uppercase tracking-wide text-[var(--text-primary)]/45"
           >
             Target delivery date
           </label>
@@ -241,11 +241,11 @@ export function OrderBar({
               min={tomorrowInputValue()}
               value={preferredTargetDate ?? ""}
               onChange={(event) => onPreferredTargetDateChange?.(event.target.value)}
-              className="h-6 min-w-0 w-full bg-transparent text-xs font-semibold text-[#111111] outline-none"
+              className="h-6 min-w-0 w-full bg-transparent text-xs font-semibold text-[var(--text-primary)] outline-none"
             />
           </div>
           <p
-            className="mt-0.5 truncate text-[10px] text-[#111111]/50"
+            className="mt-0.5 truncate text-[10px] text-[var(--text-primary)]/50"
             title={deliveryFeasibility?.detail}
           >
             {preferredTargetDate
@@ -255,13 +255,13 @@ export function OrderBar({
         </div>
 
         <div className="min-w-0 pl-2 text-right">
-          <div className="text-[10px] font-semibold uppercase tracking-wide text-[#111111]/45">
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text-primary)]/45">
             Due today
           </div>
-          <div className="mt-1 truncate font-mono text-sm font-semibold text-[#111111]">
+          <div className="mt-1 truncate font-mono text-sm font-semibold text-[var(--text-primary)]">
             {formatInr(RESERVATION_FEE)}
           </div>
-          <p className="mt-0.5 text-[10px] text-[#111111]/45">Reservation fee</p>
+          <p className="mt-0.5 text-[10px] text-[var(--text-primary)]/45">Reservation fee</p>
         </div>
       </div>
 
@@ -269,7 +269,7 @@ export function OrderBar({
         <div className="min-w-0">
           <label
             htmlFor="configurator-quantity"
-            className="mb-0.5 block text-[9px] font-semibold uppercase tracking-wide text-[#111111]/45"
+            className="mb-0.5 block text-[9px] font-semibold uppercase tracking-wide text-[var(--text-primary)]/45"
           >
             Quantity
           </label>
@@ -281,7 +281,7 @@ export function OrderBar({
               onClick={() =>
                 onQuantityChange(Math.max(minQuantity, quantity - 1))
               }
-              className="flex h-8 w-8 items-center justify-center rounded-[4px] text-lg leading-none text-[#111111]/80 hover:bg-white disabled:cursor-not-allowed disabled:text-[#111111]/25"
+              className="flex h-8 w-8 items-center justify-center rounded-[4px] text-lg leading-none text-[var(--text-primary)]/80 hover:bg-white disabled:cursor-not-allowed disabled:text-[var(--text-primary)]/25"
             >
               −
             </button>
@@ -303,13 +303,13 @@ export function OrderBar({
                   event.currentTarget.blur();
                 }
               }}
-              className="h-full w-10 bg-transparent text-center text-sm font-semibold text-[#111111] outline-none"
+              className="h-full w-10 bg-transparent text-center text-sm font-semibold text-[var(--text-primary)] outline-none"
             />
             <button
               type="button"
               aria-label="Increase quantity"
               onClick={() => onQuantityChange(quantity + 1)}
-              className="flex h-8 w-8 items-center justify-center rounded-[4px] text-lg leading-none text-[#111111]/80 hover:bg-white"
+              className="flex h-8 w-8 items-center justify-center rounded-[4px] text-lg leading-none text-[var(--text-primary)]/80 hover:bg-white"
             >
               +
             </button>

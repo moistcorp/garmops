@@ -39,6 +39,7 @@ type SummaryRow = {
   multiline?: boolean;
 };
 
+// Email markup renders outside the app document, so :root design tokens are unavailable.
 const BRAND = {
   ink: "#111111",
   muted: "#66706D",

@@ -26,7 +26,7 @@ export default function StitchSelect({ value, onChange }: StitchSelectProps): JS
             className={`min-h-12 rounded-[4px] border px-3 py-2 text-center font-sans text-[13px] font-semibold leading-tight tracking-normal transition-all ${
               selected
                 ? 'techpack-selected'
-                : 'techpack-control border text-[#111111]/75 hover:!bg-white/60 hover:text-[#111111]'
+                : 'techpack-control border text-[var(--text-primary)]/75 hover:!bg-white/60 hover:text-[var(--text-primary)]'
             }`}
           >
             {option.label}

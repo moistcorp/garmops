@@ -50,7 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <SatoshiFontResources />
       </head>
-      <body className="font-sans bg-white text-[#111111] antialiased">
+      <body className="font-sans bg-white text-[var(--text-primary)] antialiased">
         <AppChrome>{children}</AppChrome>
       </body>
     </html>

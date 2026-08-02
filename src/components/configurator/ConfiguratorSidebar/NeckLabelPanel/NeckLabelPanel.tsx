@@ -55,7 +55,7 @@ function DimensionPreview({
         className={`block rounded-[3px] border  ${
           selected
             ? 'border-white/90 bg-white/30'
-            : 'border-[#1D49B4]/45 bg-[#1D49B4]/14'
+            : 'border-[var(--color-accent)]/45 bg-[var(--color-accent)]/14'
         }`}
         style={{
           width: `${Math.max(22, widthMm * 0.75)}px`,
@@ -64,7 +64,7 @@ function DimensionPreview({
       >
         <span
           className={`block h-full w-full border-t border-dashed ${
-            selected ? 'border-white/90' : 'border-[#1D49B4]/65'
+            selected ? 'border-white/90' : 'border-[var(--color-accent)]/65'
           }`}
         />
       </span>
@@ -228,13 +228,13 @@ export default function NeckLabelPanel({
   return (
     <div className="flex flex-col gap-5">
       {alreadyConfigured && (
-        <p className="techpack-subtle rounded-[4px] px-3 py-2 text-xs font-medium text-[#111111]/60">
+        <p className="techpack-subtle rounded-[4px] px-3 py-2 text-xs font-medium text-[var(--text-primary)]/60">
           {isToteProduct ? 'Bag label' : 'Neck label'} configured. Edit any option below to update.
         </p>
       )}
 
       <div>
-        <div className="mb-2 font-sans text-[11px] font-semibold uppercase tracking-[0.08em] text-[#111111]/70">
+        <div className="mb-2 font-sans text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-primary)]/70">
           Dimensions
         </div>
         <div className="grid grid-cols-4 gap-2">
@@ -249,7 +249,7 @@ export default function NeckLabelPanel({
                 className={`flex min-h-[78px] flex-col items-center justify-center gap-2 rounded-[4px] border font-sans text-[12px] font-semibold leading-tight tracking-normal transition-all ${
                   selected
                     ? 'techpack-selected'
-                    : 'techpack-control border text-[#111111]/70 hover:!bg-white/60 hover:text-[#111111]'
+                    : 'techpack-control border text-[var(--text-primary)]/70 hover:!bg-white/60 hover:text-[var(--text-primary)]'
                 }`}
               >
                 <DimensionPreview option={option} selected={selected} />
@@ -277,13 +277,13 @@ export default function NeckLabelPanel({
               {source === 'sample' ? (
                 <Image src={SAMPLE_ARTWORK_HREF} alt="" width={56} height={56} className="h-full w-full object-contain p-2" unoptimized />
               ) : (
-                <span className="font-sans text-[10px] font-semibold uppercase tracking-wide text-[#111111]/45">
+                <span className="font-sans text-[10px] font-semibold uppercase tracking-wide text-[var(--text-primary)]/45">
                   {fileType ?? 'file'}
                 </span>
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate font-sans text-[13px] font-semibold leading-tight tracking-normal text-[#111111]/85">
+              <p className="truncate font-sans text-[13px] font-semibold leading-tight tracking-normal text-[var(--text-primary)]/85">
                 {source === 'sample'
                   ? `Garmops sample · ${dimensions.replace('x', ' × ')} mm`
                   : fileName ?? `${isToteProduct ? 'Bag label' : 'Neck label'}.${fileType ?? 'ai'}`}
@@ -324,10 +324,10 @@ export default function NeckLabelPanel({
               <span className="techpack-control mb-1 flex h-10 w-10 items-center justify-center rounded-[4px] border text-[var(--color-accent-dark)] transition-transform group-hover:-translate-y-0.5">
                 <Upload size={17} strokeWidth={2.2} aria-hidden="true" />
               </span>
-              <span className="text-sm font-medium text-[#111111]">
+              <span className="text-sm font-medium text-[var(--text-primary)]">
                 Drag and drop {isToteProduct ? 'bag label' : 'neck label'} artwork, or click to browse
               </span>
-              <span className="text-xs text-[#111111]/50">
+              <span className="text-xs text-[var(--text-primary)]/50">
                 Supports .svg and .ai files up to 4.5 MB
               </span>
             </label>
@@ -335,7 +335,7 @@ export default function NeckLabelPanel({
               <a
                 href={TEMPLATE_HREF}
                 download
-                className="techpack-control inline-flex min-h-9 items-center gap-1.5 rounded-[4px] border px-3 text-xs font-medium text-[#111111]/80 transition-colors hover:!border-[var(--color-accent)]/45 hover:text-[var(--color-accent-dark)]"
+                className="techpack-control inline-flex min-h-9 items-center gap-1.5 rounded-[4px] border px-3 text-xs font-medium text-[var(--text-primary)]/80 transition-colors hover:!border-[var(--color-accent)]/45 hover:text-[var(--color-accent-dark)]"
               >
                 Download templates
                 <Download size={13} strokeWidth={2.2} />
@@ -361,7 +361,7 @@ export default function NeckLabelPanel({
       )}
 
       <div>
-        <div className="mb-2 font-sans text-[11px] font-semibold uppercase tracking-[0.08em] text-[#111111]/70">
+        <div className="mb-2 font-sans text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-primary)]/70">
           Position
         </div>
         <PositionSelect value={position} onChange={handlePositionChange} isToteProduct={isToteProduct} />
@@ -369,7 +369,7 @@ export default function NeckLabelPanel({
 
       {position === 'below_neck_tape' && (
         <div>
-          <div className="mb-2 font-sans text-[11px] font-semibold uppercase tracking-[0.08em] text-[#111111]/70">
+          <div className="mb-2 font-sans text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-primary)]/70">
             Stitch
           </div>
           <StitchSelect value={stitch} onChange={handleStitchChange} />

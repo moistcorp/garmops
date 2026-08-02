@@ -103,7 +103,7 @@ export function ConfiguratorJourney({
                     <ArrowLeft size={17} strokeWidth={2} aria-hidden="true" />
                   </Link>
                 ))}
-                {(previousStepHandler || previousStepHref) && <span className="hidden font-mono text-[10px] uppercase tracking-[0.06em] text-[#111111]/45 sm:inline">Back</span>}
+                {(previousStepHandler || previousStepHref) && <span className="hidden font-mono text-[10px] uppercase tracking-[0.06em] text-[var(--text-primary)]/45 sm:inline">Back</span>}
                 {productName && (
                   <div className="flex min-w-0 items-center gap-3 border-l border-[var(--color-rule)] pl-3">
                     <Image
@@ -113,8 +113,8 @@ export function ConfiguratorJourney({
                       height={114}
                       className="h-3.5 w-auto shrink-0 object-contain"
                     />
-                    <span aria-hidden="true" className="h-4 w-px shrink-0 bg-[#111111]/15" />
-                    <span className="max-w-40 truncate text-sm font-medium text-[#111111]/85 sm:max-w-64">
+                    <span aria-hidden="true" className="h-4 w-px shrink-0 bg-[var(--text-primary)]/15" />
+                    <span className="max-w-40 truncate text-sm font-medium text-[var(--text-primary)]/85 sm:max-w-64">
                       {productName}
                     </span>
                   </div>
@@ -131,7 +131,7 @@ export function ConfiguratorJourney({
             <div className="ml-auto flex items-center gap-3">
               <div className="text-right font-mono text-[10px] uppercase tracking-[0.06em] text-[var(--color-navy)]">
                 <span className="block">{specCode}</span>
-                <span className="block text-[#111111]/45">
+                <span className="block text-[var(--text-primary)]/45">
                   STEP {String(currentIndex + 1).padStart(2, "0")} / 08
                 </span>
               </div>
@@ -167,7 +167,7 @@ export function ConfiguratorJourney({
           </div>
 
           <div className="relative mt-3 px-1 pb-0.5 sm:mt-4">
-            <div aria-hidden="true" className="absolute inset-x-[6.25%] top-[10px] h-[2px] bg-[rgba(22,33,43,0.2)]">
+            <div aria-hidden="true" className="absolute inset-x-[6.25%] top-[10px] h-[2px] bg-[var(--color-rule)]">
               <span
                 className="techpack-progress absolute inset-y-0 left-0 block"
                 style={{ width: `${progressPercent}%` }}

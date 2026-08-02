@@ -34,8 +34,8 @@ export default function DimensionSelect({ value, onChange }: DimensionSelectProp
             aria-pressed={isSelected}
             className={`flex min-h-[72px] items-center justify-center rounded-[4px] px-2 text-xs font-bold transition-colors ${
               isSelected
-                ? "border border-[var(--color-accent)] bg-white/60 text-[#111111]  "
-                : "techpack-control border text-[#111111]/55 hover:!bg-white/60 hover:text-[#111111]"
+                ? "border border-[var(--color-accent)] bg-white/60 text-[var(--text-primary)]  "
+                : "techpack-control border text-[var(--text-primary)]/55 hover:!bg-white/60 hover:text-[var(--text-primary)]"
             }`}
           >
             {preset.label}

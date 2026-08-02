@@ -85,7 +85,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
             type="button"
             onClick={onClose}
             aria-label="Close cart"
-            className="flex h-11 w-11 items-center justify-center rounded-[4px] border border-transparent text-[#111111]/40 transition-colors hover:border-[var(--color-rule)] hover:bg-[var(--color-cream-soft)] hover:text-[#111111]"
+            className="flex h-11 w-11 items-center justify-center rounded-[4px] border border-transparent text-[var(--text-primary)]/40 transition-colors hover:border-[var(--color-rule)] hover:bg-[var(--color-cream-soft)] hover:text-[var(--text-primary)]"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -96,11 +96,11 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
 
         <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-4 sm:px-6">
           {!hasHydrated ? (
-            <p className="mt-12 text-center text-sm text-[#111111]/40" role="status">
+            <p className="mt-12 text-center text-sm text-[var(--text-primary)]/40" role="status">
               Loading cart…
             </p>
           ) : items.length === 0 ? (
-            <p className="mt-12 text-center text-sm text-[#111111]/40">Your cart is empty</p>
+            <p className="mt-12 text-center text-sm text-[var(--text-primary)]/40">Your cart is empty</p>
           ) : (
             items.map(item => (
               <div key={`${item.id}-${item.size}`} className="flex flex-wrap items-start gap-3 border border-[var(--color-rule)] bg-white p-3 min-[360px]:flex-nowrap min-[360px]:gap-4">
@@ -108,12 +108,12 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
                   {item.image ? (
                     <Image src={item.image} alt={item.name} fill sizes="56px" className="object-cover" />
                   ) : (
-                    <span className="text-[10px] text-[#111111]/20">IMG</span>
+                    <span className="text-[10px] text-[var(--text-primary)]/20">IMG</span>
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-semibold leading-snug text-[#111111]">{item.name}</p>
-                  <p className="mt-0.5 text-xs text-[#111111]/50">SIZE: {item.size}</p>
+                  <p className="text-xs font-semibold leading-snug text-[var(--text-primary)]">{item.name}</p>
+                  <p className="mt-0.5 text-xs text-[var(--text-primary)]/50">SIZE: {item.size}</p>
                   <p className="mt-1 font-mono text-xs font-bold">&#8377;{(item.price * item.quantity).toLocaleString('en-IN')}</p>
                 </div>
                 <div className="ml-auto flex flex-col items-end gap-2">
@@ -140,7 +140,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
                   <button
                     type="button"
                     onClick={() => removeItem(item.id, item.size)}
-                    className="font-mono text-[10px] uppercase tracking-[0.06em] text-[#111111]/30 transition-colors hover:text-[#111111]"
+                    className="font-mono text-[10px] uppercase tracking-[0.06em] text-[var(--text-primary)]/30 transition-colors hover:text-[var(--text-primary)]"
                   >
                     Remove
                   </button>
@@ -156,7 +156,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
               <span>TOTAL</span>
               <span className="font-mono">&#8377;{cartTotal.toLocaleString('en-IN')}</span>
             </div>
-            <p className="text-xs text-[#111111]/40">Shipping calculated at checkout</p>
+            <p className="text-xs text-[var(--text-primary)]/40">Shipping calculated at checkout</p>
             <Link
               href="/checkout"
               onClick={onClose}

@@ -37,7 +37,7 @@ export default function Cart() {
     <div className="techpack-canvas flex min-h-[70vh] items-center justify-center px-4 py-16 text-center sm:px-6 sm:py-24">
       <div className="techpack-surface w-full max-w-lg rounded-[4px] border p-6 sm:rounded-[4px] sm:p-10">
         <h1 className="text-3xl font-bold mb-4 tracking-tight">Your cart is empty</h1>
-        <p className="text-[#111111]/50 text-sm mb-8">Add some items from the shop to continue.</p>
+        <p className="text-[var(--text-primary)]/50 text-sm mb-8">Add some items from the shop to continue.</p>
         <Link href="/products" className="inline-block bg-[var(--color-accent)] text-white px-6 py-3 rounded-[4px] text-sm font-medium hover:bg-[var(--color-accent-dark)] transition">
           Back to shop
         </Link>
@@ -60,12 +60,12 @@ export default function Cart() {
                 {item.image ? (
                   <Image src={item.image} alt={item.name} fill sizes="80px" className="object-cover" />
                 ) : (
-                  <span className="text-xs text-[#111111]/20">IMG</span>
+                  <span className="text-xs text-[var(--text-primary)]/20">IMG</span>
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-[#111111] leading-snug break-words">{item.name}</p>
-                <p className="text-xs text-[#111111]/50 mt-0.5">Size: {item.size}</p>
+                <p className="text-sm font-semibold text-[var(--text-primary)] leading-snug break-words">{item.name}</p>
+                <p className="text-xs text-[var(--text-primary)]/50 mt-0.5">Size: {item.size}</p>
                 <p className="mt-2 font-mono text-sm font-bold">&#8377;{(item.price * item.quantity).toLocaleString('en-IN')}</p>
               </div>
               </div>
@@ -88,7 +88,7 @@ export default function Cart() {
                 </div>
                 <button type="button"
                   onClick={() => removeItem(item.id, item.size)}
-                  className="min-h-10 px-1 text-xs text-[#111111]/40 transition-colors hover:text-[#111111]">
+                  className="min-h-10 px-1 text-xs text-[var(--text-primary)]/40 transition-colors hover:text-[var(--text-primary)]">
                   Remove
                 </button>
               </div>
@@ -102,15 +102,15 @@ export default function Cart() {
             <p className="text-sm font-semibold">Order summary</p>
             <div className="flex flex-col gap-2 text-sm border-t border-[#ECE7DF] pt-4">
               <div className="flex justify-between">
-                <span className="text-[#111111]/50">Subtotal</span>
+                <span className="text-[var(--text-primary)]/50">Subtotal</span>
                 <span className="font-mono">&#8377;{cartTotal.toLocaleString('en-IN')}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#111111]/50">Shipping</span>
+                <span className="text-[var(--text-primary)]/50">Shipping</span>
                 <span className="font-mono">{shipping === 0 ? 'Free' : `₹${shipping}`}</span>
               </div>
               {shipping > 0 && (
-                <p className="text-xs text-[#111111]/40">Add ₹{(2000 - cartTotal).toLocaleString('en-IN')} more for free shipping</p>
+                <p className="text-xs text-[var(--text-primary)]/40">Add ₹{(2000 - cartTotal).toLocaleString('en-IN')} more for free shipping</p>
               )}
             </div>
             <div className="flex justify-between font-bold text-base border-t border-[#ECE7DF] pt-4">
@@ -124,7 +124,7 @@ export default function Cart() {
             >
               Proceed to checkout
             </button>
-            <Link href="/products" className="text-xs text-center text-[#111111]/40 hover:text-[#111111] transition-colors">
+            <Link href="/products" className="text-xs text-center text-[var(--text-primary)]/40 hover:text-[var(--text-primary)] transition-colors">
               Continue shopping
             </Link>
           </div>

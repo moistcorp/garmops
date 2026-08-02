@@ -42,9 +42,9 @@ export default function CustomDyePantoneGrid({
           }}
           placeholder="Search by Pantone code or colour name (e.g. navy, maroon)"
           aria-label="Search Colour"
-          className="techpack-control w-full rounded-[4px] border px-3 py-2 text-sm placeholder:text-[#111111]/40 focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
+          className="techpack-control w-full rounded-[4px] border px-3 py-2 text-sm placeholder:text-[var(--text-primary)]/40 focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
         />
-        <p className="mt-1.5 text-[10px] text-[#111111]/45">
+        <p className="mt-1.5 text-[10px] text-[var(--text-primary)]/45">
           {filtered.length.toLocaleString("en-IN")} uncoated colour
           {filtered.length === 1 ? "" : "s"}
         </p>
@@ -72,14 +72,14 @@ export default function CustomDyePantoneGrid({
               />
               <span className="min-w-0 flex-1 truncate">
                 <span className="block truncate font-mono text-[10px] uppercase tracking-[0.04em]">{colour.code}</span>
-                <span className="mt-0.5 block truncate text-[9px] text-[#111111]/45">{colour.aliases[0] ?? "Dye reference"}</span>
+                <span className="mt-0.5 block truncate text-[9px] text-[var(--text-primary)]/45">{colour.aliases[0] ?? "Dye reference"}</span>
               </span>
             </button>
           );
         })}
 
         {filtered.length === 0 && (
-          <p className="col-span-2 py-4 text-center text-sm text-[#111111]/50">
+          <p className="col-span-2 py-4 text-center text-sm text-[var(--text-primary)]/50">
             No colours match &ldquo;{query}&rdquo;.
           </p>
         )}
@@ -89,7 +89,7 @@ export default function CustomDyePantoneGrid({
         <button
           type="button"
           onClick={() => setVisibleCount((current) => current + PAGE_SIZE)}
-          className="techpack-control self-center rounded-[4px] border px-4 py-2 text-xs font-semibold text-[#111111]/65 hover:!border-[var(--color-accent)]/45 hover:!bg-white/60 hover:text-[#111111]"
+          className="techpack-control self-center rounded-[4px] border px-4 py-2 text-xs font-semibold text-[var(--text-primary)]/65 hover:!border-[var(--color-accent)]/45 hover:!bg-white/60 hover:text-[var(--text-primary)]"
         >
           Show more colours
         </button>

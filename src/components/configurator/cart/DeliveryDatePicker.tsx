@@ -51,7 +51,7 @@ export function DeliveryDatePicker({
     `flex-1 rounded-[4px] border px-5 py-3 text-left transition-colors ${
       active
         ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-white"
-        : "techpack-control text-[#111111] hover:!border-[var(--color-accent)]"
+        : "techpack-control text-[var(--text-primary)] hover:!border-[var(--color-accent)]"
     }`;
 
   const isSame = (a?: Date, b?: Date) =>
@@ -78,7 +78,7 @@ export function DeliveryDatePicker({
 
   return (
     <div className="space-y-3">
-      <p className="text-sm font-medium text-[#111111]">
+      <p className="text-sm font-medium text-[var(--text-primary)]">
         Select your target delivery date
       </p>
 
@@ -131,7 +131,7 @@ export function DeliveryDatePicker({
             type="date"
             min={toInputValue(options.standard)}
             value={selectedDate ? toInputValue(selectedDate) : ""}
-            className="techpack-control rounded-[4px] border px-3 py-2 text-sm text-[#111111] focus:!border-[var(--color-accent)] focus:outline-none"
+            className="techpack-control rounded-[4px] border px-3 py-2 text-sm text-[var(--text-primary)] focus:!border-[var(--color-accent)] focus:outline-none"
             onChange={(e) => handleFlexiblePick(e.target.value)}
           />
           {calendarError && (
@@ -146,7 +146,7 @@ export function DeliveryDatePicker({
         </div>
       )}
 
-      <div className="text-xs text-[#111111]/60 space-y-1 pt-1">
+      <div className="text-xs text-[var(--text-primary)]/60 space-y-1 pt-1">
         <p>Rush adds ₹75 per unit to the invoice.</p>
         <p>Standard follows the regular production and shipping timeline.</p>
         {extraLeadTimeDays > 0 && (

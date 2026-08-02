@@ -76,8 +76,8 @@ export type CheckoutAccountDefaults = Readonly<{
 }>;
 
 const INPUT_CLASS =
-  "techpack-control w-full rounded-[4px] border px-3 py-2 text-sm text-[#111111] placeholder:text-[#111111]/40 focus:!border-[var(--color-accent)] focus:outline-none";
-const LABEL_CLASS = "mb-1 block text-xs font-medium text-[#111111]/70";
+  "techpack-control w-full rounded-[4px] border px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-primary)]/40 focus:!border-[var(--color-accent)] focus:outline-none";
+const LABEL_CLASS = "mb-1 block text-xs font-medium text-[var(--text-primary)]/70";
 
 function formatIndianPhone(value: string): string {
   let digits = digitsOnly(value);
@@ -107,10 +107,10 @@ function sectionHeading(
         {icon}
       </span>
       <div>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-[#111111]">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--text-primary)]">
           {title}
         </h2>
-        <p className="mt-1 text-xs leading-relaxed text-[#111111]/55">
+        <p className="mt-1 text-xs leading-relaxed text-[var(--text-primary)]/55">
           {description}
         </p>
       </div>
@@ -424,13 +424,13 @@ export function BillingShippingStep({
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-[#111111]/50">
+            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-[var(--text-primary)]/50">
               {formatSpecCode(`CART-${cartId}`)}
               </p>
-              <h1 className="text-2xl font-semibold text-[#111111]">
+              <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
                 Delivery details
               </h1>
-              <p className="mt-1 max-w-2xl text-sm leading-relaxed text-[#111111]/55">
+              <p className="mt-1 max-w-2xl text-sm leading-relaxed text-[var(--text-primary)]/55">
                 Just the essentials for your reservation. Invoice and
                 procurement details can be shared after our team reviews the
                 order.
@@ -443,7 +443,7 @@ export function BillingShippingStep({
                   `/configurator/cart/${encodeURIComponent(cartId)}/review`
                 )
               }
-              className="inline-flex shrink-0 items-center gap-2 self-start whitespace-nowrap rounded-[4px] border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-accent)] hover:text-[#111111] sm:self-auto"
+              className="inline-flex shrink-0 items-center gap-2 self-start whitespace-nowrap rounded-[4px] border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[var(--text-primary)]/75 hover:border-[var(--color-accent)] hover:text-[var(--text-primary)] sm:self-auto"
             >
               <ArrowLeft size={16} strokeWidth={2.2} />
               Back to order summary
@@ -468,7 +468,7 @@ export function BillingShippingStep({
               selectedDate={selectedDeliveryDate}
               selectedType={draft.deliveryType}
             />
-            <p className="mt-3 text-xs leading-relaxed text-[#111111]/55">
+            <p className="mt-3 text-xs leading-relaxed text-[var(--text-primary)]/55">
               This is a target date. The final production schedule is confirmed
               after artwork review and approval.
             </p>

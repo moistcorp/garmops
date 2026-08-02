@@ -35,7 +35,7 @@ export default function EmailCapture() {
       <div className="max-w-7xl mx-auto px-4 py-14 sm:px-6 sm:py-20">
         <div className="max-w-xl mx-auto flex flex-col items-center text-center gap-5">
           <p className="text-xs text-[#595959] font-medium tracking-widest uppercase">Stay in the loop</p>
-          <h2 className="text-2xl font-bold tracking-tight text-[#111111] sm:text-3xl">Get updates in your inbox</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-[var(--text-primary)] sm:text-3xl">Get updates in your inbox</h2>
           <p className="text-[#4a4a4a] text-sm leading-relaxed max-w-sm">
             Occasional notes on new products, pricing changes, and case studies. No spam.
           </p>
@@ -67,7 +67,7 @@ export default function EmailCapture() {
                   }}
                   placeholder="you@company.com"
                   aria-label="Email address"
-                  className="flex-1 bg-transparent text-sm font-medium text-[#111111] placeholder:text-[#B5B5B5] focus:outline-none py-1.5 min-w-0"
+                  className="flex-1 bg-transparent text-sm font-medium text-[var(--text-primary)] placeholder:text-[#B5B5B5] focus:outline-none py-1.5 min-w-0"
                 />
                 <button
                   type="submit"

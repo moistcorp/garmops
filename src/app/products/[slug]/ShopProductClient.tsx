@@ -99,7 +99,7 @@ export default function ShopProductClient({
               </div>
             ) : (
               <div className="aspect-[3/4] bg-[var(--color-cream-soft)] rounded-[4px] border border-[#ECE7DF] flex items-center justify-center">
-                <span className="text-xs text-[#111111]/20 uppercase tracking-wide">Product photo</span>
+                <span className="text-xs text-[var(--text-primary)]/20 uppercase tracking-wide">Product photo</span>
               </div>
             )}
           </div>
@@ -107,27 +107,27 @@ export default function ShopProductClient({
           {/* Info */}
           <div className="techpack-surface flex flex-col gap-6 rounded-[4px] border p-4 sm:rounded-[4px] sm:p-7">
             <div>
-              <p className="text-xs text-[#111111]/40 uppercase tracking-widest mb-2">
+              <p className="text-xs text-[var(--text-primary)]/40 uppercase tracking-widest mb-2">
                 {product.category}
               </p>
-              <h1 className="mb-2 text-2xl font-bold leading-tight tracking-tight text-[#111111] sm:text-3xl">
+              <h1 className="mb-2 text-2xl font-bold leading-tight tracking-tight text-[var(--text-primary)] sm:text-3xl">
                 {product.name}
               </h1>
-              <p className="text-xs text-[#111111]/40 mb-3">
+              <p className="text-xs text-[var(--text-primary)]/40 mb-3">
                 {product.gsm} GSM{product.fits ? ` · ${product.fits[0]} fit` : ''}
               </p>
-              <p className="text-2xl font-bold text-[#111111]">
+              <p className="text-2xl font-bold text-[var(--text-primary)]">
                 &#8377;{product.price.toLocaleString('en-IN')}
               </p>
-              <p className="text-xs text-[#111111]/40 mt-1">Catalogue sample price per piece</p>
+              <p className="text-xs text-[var(--text-primary)]/40 mt-1">Catalogue sample price per piece</p>
             </div>
 
-            <p className="text-sm text-[#111111]/60 leading-relaxed">{product.description}</p>
+            <p className="text-sm text-[var(--text-primary)]/60 leading-relaxed">{product.description}</p>
 
             {/* Size selector */}
             {product.sizes.length > 0 && (
               <div>
-                <p className="text-xs font-medium text-[#111111]/50 uppercase tracking-widest mb-3">
+                <p className="text-xs font-medium text-[var(--text-primary)]/50 uppercase tracking-widest mb-3">
                   Size
                 </p>
                 <div className="flex gap-2 flex-wrap">
@@ -139,7 +139,7 @@ export default function ShopProductClient({
                       className={`min-w-12 h-12 rounded-[4px] px-3 text-sm whitespace-nowrap border transition-colors ${
                         selectedSize === s
                           ? 'techpack-selected'
-                          : 'techpack-control text-[#111111] hover:!border-[var(--color-accent)] hover:text-[var(--color-accent)]'
+                          : 'techpack-control text-[var(--text-primary)] hover:!border-[var(--color-accent)] hover:text-[var(--color-accent)]'
                       }`}
                     >
                       {s}
@@ -152,7 +152,7 @@ export default function ShopProductClient({
 
             {/* Quantity */}
             <div>
-              <p className="text-xs font-medium text-[#111111]/50 uppercase tracking-widest mb-3">
+              <p className="text-xs font-medium text-[var(--text-primary)]/50 uppercase tracking-widest mb-3">
                 Quantity
               </p>
               <div className="flex items-center gap-3">
@@ -193,13 +193,13 @@ export default function ShopProductClient({
               </button>
               <Link
                 href="/configurator"
-                className="w-full py-2 text-center text-sm font-medium text-[#111111]/55 underline-offset-4 transition-colors hover:text-[var(--color-accent)] hover:underline"
+                className="w-full py-2 text-center text-sm font-medium text-[var(--text-primary)]/55 underline-offset-4 transition-colors hover:text-[var(--color-accent)] hover:underline"
               >
                 Customise this product in the configurator
               </Link>
               <Link
                 href={categoryPath}
-                className="w-full py-1 text-center text-sm font-medium text-[#111111]/55 underline-offset-4 transition-colors hover:text-[var(--color-accent)] hover:underline"
+                className="w-full py-1 text-center text-sm font-medium text-[var(--text-primary)]/55 underline-offset-4 transition-colors hover:text-[var(--color-accent)] hover:underline"
               >
                 {productCategoryLinkLabel(product)}
               </Link>
@@ -207,13 +207,13 @@ export default function ShopProductClient({
 
             {/* Details */}
             <div className="border-t border-[#E5E5E5] pt-6">
-              <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-3">
+              <p className="text-xs font-medium text-[var(--text-primary)]/40 uppercase tracking-widest mb-3">
                 Details
               </p>
               <ul className="flex flex-col gap-1.5">
                 {product.details.map(d => (
-                  <li key={d} className="flex gap-2 text-xs text-[#111111]/60">
-                    <span className="text-[#111111]/20 shrink-0">&#8212;</span>
+                  <li key={d} className="flex gap-2 text-xs text-[var(--text-primary)]/60">
+                    <span className="text-[var(--text-primary)]/20 shrink-0">&#8212;</span>
                     {d}
                   </li>
                 ))}
@@ -222,13 +222,13 @@ export default function ShopProductClient({
 
             {/* Care */}
             <div className="border-t border-[#E5E5E5] pt-6">
-              <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-3">
+              <p className="text-xs font-medium text-[var(--text-primary)]/40 uppercase tracking-widest mb-3">
                 Care instructions
               </p>
               <ul className="flex flex-col gap-1.5">
                 {product.careInstructions.map(c => (
-                  <li key={c} className="flex gap-2 text-xs text-[#111111]/60">
-                    <span className="text-[#111111]/20 shrink-0">&#8212;</span>
+                  <li key={c} className="flex gap-2 text-xs text-[var(--text-primary)]/60">
+                    <span className="text-[var(--text-primary)]/20 shrink-0">&#8212;</span>
                     {c}
                   </li>
                 ))}
@@ -238,7 +238,7 @@ export default function ShopProductClient({
             {/* Size chart */}
             {sizeChart && (
               <div className="border-t border-[#E5E5E5] pt-6">
-                <p className="text-xs font-medium text-[#111111]/40 uppercase tracking-widest mb-3">
+                <p className="text-xs font-medium text-[var(--text-primary)]/40 uppercase tracking-widest mb-3">
                   Size chart
                 </p>
                 <div className="techpack-panel overflow-hidden rounded-[4px] border">
@@ -246,46 +246,46 @@ export default function ShopProductClient({
                   <table className="min-w-max w-full text-xs">
                     <thead>
                       <tr className="bg-[var(--color-cream-soft)]">
-                        <th className="text-left px-4 py-3 font-medium text-[#111111]/50">Size</th>
-                        <th className="text-left px-4 py-3 font-medium text-[#111111]/50">{sizeChart.chestLabel ?? 'Chest'}</th>
-                        <th className="text-left px-4 py-3 font-medium text-[#111111]/50">{sizeChart.lengthLabel ?? 'Length'}</th>
+                        <th className="text-left px-4 py-3 font-medium text-[var(--text-primary)]/50">Size</th>
+                        <th className="text-left px-4 py-3 font-medium text-[var(--text-primary)]/50">{sizeChart.chestLabel ?? 'Chest'}</th>
+                        <th className="text-left px-4 py-3 font-medium text-[var(--text-primary)]/50">{sizeChart.lengthLabel ?? 'Length'}</th>
                         {sizeChart.sizes[0].shoulder && (
-                          <th className="text-left px-4 py-3 font-medium text-[#111111]/50">Shoulder</th>
+                          <th className="text-left px-4 py-3 font-medium text-[var(--text-primary)]/50">Shoulder</th>
                         )}
                         {sizeChart.sizes[0].waist && (
-                          <th className="text-left px-4 py-3 font-medium text-[#111111]/50">Waist</th>
+                          <th className="text-left px-4 py-3 font-medium text-[var(--text-primary)]/50">Waist</th>
                         )}
                         {sizeChart.sizes[0].inseam && (
-                          <th className="text-left px-4 py-3 font-medium text-[#111111]/50">Inseam</th>
+                          <th className="text-left px-4 py-3 font-medium text-[var(--text-primary)]/50">Inseam</th>
                         )}
                         {sizeChart.sizes[0].sleeve && (
-                          <th className="text-left px-4 py-3 font-medium text-[#111111]/50">Sleeve</th>
+                          <th className="text-left px-4 py-3 font-medium text-[var(--text-primary)]/50">Sleeve</th>
                         )}
                         {sizeChart.sizes[0].handles && (
-                          <th className="text-left px-4 py-3 font-medium text-[#111111]/50">Handles</th>
+                          <th className="text-left px-4 py-3 font-medium text-[var(--text-primary)]/50">Handles</th>
                         )}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E5E5E5]">
                       {sizeChart.sizes.map(row => (
                         <tr key={row.size}>
-                          <td className="px-4 py-3 font-semibold text-[#111111]">{row.size}</td>
-                          <td className="px-4 py-3 text-[#111111]/60">{row.chest}</td>
-                          <td className="px-4 py-3 text-[#111111]/60">{row.length}</td>
+                          <td className="px-4 py-3 font-semibold text-[var(--text-primary)]">{row.size}</td>
+                          <td className="px-4 py-3 text-[var(--text-primary)]/60">{row.chest}</td>
+                          <td className="px-4 py-3 text-[var(--text-primary)]/60">{row.length}</td>
                           {row.shoulder && (
-                            <td className="px-4 py-3 text-[#111111]/60">{row.shoulder}</td>
+                            <td className="px-4 py-3 text-[var(--text-primary)]/60">{row.shoulder}</td>
                           )}
                           {row.waist && (
-                            <td className="px-4 py-3 text-[#111111]/60">{row.waist}</td>
+                            <td className="px-4 py-3 text-[var(--text-primary)]/60">{row.waist}</td>
                           )}
                           {row.inseam && (
-                            <td className="px-4 py-3 text-[#111111]/60">{row.inseam}</td>
+                            <td className="px-4 py-3 text-[var(--text-primary)]/60">{row.inseam}</td>
                           )}
                           {row.sleeve && (
-                            <td className="px-4 py-3 text-[#111111]/60">{row.sleeve}</td>
+                            <td className="px-4 py-3 text-[var(--text-primary)]/60">{row.sleeve}</td>
                           )}
                           {row.handles && (
-                            <td className="px-4 py-3 text-[#111111]/60">{row.handles}</td>
+                            <td className="px-4 py-3 text-[var(--text-primary)]/60">{row.handles}</td>
                           )}
                         </tr>
                       ))}
@@ -294,12 +294,12 @@ export default function ShopProductClient({
                   </div>
                 </div>
                 {sizeChart.note && (
-                  <p className="text-xs text-[#111111]/30 mt-2">{sizeChart.note}</p>
+                  <p className="text-xs text-[var(--text-primary)]/30 mt-2">{sizeChart.note}</p>
                 )}
               </div>
             )}
 
-            <p className="text-xs text-[#111111]/40">
+            <p className="text-xs text-[var(--text-primary)]/40">
               Free shipping above &#8377;2,000. Dispatches within 24 hours.
             </p>
           </div>
@@ -308,33 +308,33 @@ export default function ShopProductClient({
 
       <section className="mx-auto max-w-7xl px-4 pb-4 pt-2 sm:px-6 sm:pb-8 sm:pt-4">
         <div className="max-w-3xl">
-          <p className="mb-3 text-xs font-medium uppercase tracking-widest text-[#111111]/40">Bulk orders</p>
-          <h2 className="text-3xl font-bold tracking-tight text-[#111111] sm:text-4xl">
+          <p className="mb-3 text-xs font-medium uppercase tracking-widest text-[var(--text-primary)]/40">Bulk orders</p>
+          <h2 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl">
             Plan a branded run with this garment
           </h2>
-          <p className="mt-4 text-sm leading-7 text-[#111111]/60 sm:text-base">
+          <p className="mt-4 text-sm leading-7 text-[var(--text-primary)]/60 sm:text-base">
             The displayed price is for a catalogue sample. Bulk orders begin from 50 pieces per style and are reviewed against the complete garment, artwork, quantity, size and delivery specification.
           </p>
         </div>
         <div className="mt-8 grid gap-5 md:grid-cols-3">
           <article className="techpack-panel rounded-[4px] border p-5 sm:p-6">
-            <h3 className="text-base font-semibold text-[#111111]">Suitable use cases</h3>
+            <h3 className="text-base font-semibold text-[var(--text-primary)]">Suitable use cases</h3>
             <ul className="mt-4 space-y-2">
               {suitableUseCases.map(useCase => (
-                <li key={useCase} className="text-sm leading-6 text-[#111111]/60">— {useCase}</li>
+                <li key={useCase} className="text-sm leading-6 text-[var(--text-primary)]/60">— {useCase}</li>
               ))}
             </ul>
           </article>
           <article className="techpack-panel rounded-[4px] border p-5 sm:p-6">
-            <h3 className="text-base font-semibold text-[#111111]">Decoration methods to review</h3>
+            <h3 className="text-base font-semibold text-[var(--text-primary)]">Decoration methods to review</h3>
             <ul className="mt-4 space-y-2">
               {decorationMethods.map(method => (
-                <li key={method} className="text-sm leading-6 text-[#111111]/60">— {method}</li>
+                <li key={method} className="text-sm leading-6 text-[var(--text-primary)]/60">— {method}</li>
               ))}
             </ul>
           </article>
           <article className="techpack-panel rounded-[4px] border p-5 sm:p-6">
-            <h3 className="text-base font-semibold text-[#111111]">Continue the order</h3>
+            <h3 className="text-base font-semibold text-[var(--text-primary)]">Continue the order</h3>
             <div className="mt-4 flex flex-col items-start gap-3">
               <Link href={categoryPath} className="text-sm font-medium text-[var(--color-accent-dark)] underline underline-offset-4">
                 {productCategoryLinkLabel(product)}
@@ -353,7 +353,7 @@ export default function ShopProductClient({
       {/* Related */}
       {related.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 pb-16 pt-12 sm:px-6 sm:pb-24 sm:pt-16">
-          <h2 className="text-xs font-medium uppercase tracking-widest text-[#111111]/40 mb-8">
+          <h2 className="text-xs font-medium uppercase tracking-widest text-[var(--text-primary)]/40 mb-8">
             More in {product.category}
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
@@ -373,16 +373,16 @@ export default function ShopProductClient({
                       className="object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
-                    <span className="text-xs text-[#111111]/20 uppercase tracking-wide">
+                    <span className="text-xs text-[var(--text-primary)]/20 uppercase tracking-wide">
                       Product photo
                     </span>
                   )}
                 </div>
                 <div className="p-5 flex flex-col gap-2">
-                  <h3 className="text-sm font-semibold text-[#111111] group-hover:underline">
+                  <h3 className="text-sm font-semibold text-[var(--text-primary)] group-hover:underline">
                     {p.name}
                   </h3>
-                  <p className="text-xs text-[#111111]/40">
+                  <p className="text-xs text-[var(--text-primary)]/40">
                     {p.gsm} GSM{p.fits ? ` · ${p.fits[0]} fit` : ''}
                   </p>
                   <p className="text-base font-bold mt-1">

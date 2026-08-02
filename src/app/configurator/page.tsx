@@ -27,10 +27,10 @@ export default function ConfiguratorPage() {
 
         <div className="flex items-start justify-between">
           <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium uppercase tracking-wide text-[#111111]/60">
+            <span className="text-sm font-medium uppercase tracking-wide text-[var(--text-primary)]/60">
               Online custom apparel designer
             </span>
-            <h1 className="text-3xl font-semibold text-[#111111] sm:text-4xl">
+            <h1 className="text-3xl font-semibold text-[var(--text-primary)] sm:text-4xl">
               Choose a product to customise
             </h1>
           </div>

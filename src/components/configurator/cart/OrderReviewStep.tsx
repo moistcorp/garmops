@@ -311,16 +311,16 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
         {feedback && <ActionFeedback {...feedback} onDismiss={feedback.tone === 'loading' ? undefined : () => setFeedback(null)} actionLabel={feedback.tone === 'error' ? 'Retry PDF' : undefined} onAction={feedback.tone === 'error' ? handleDownloadApprovalPdf : undefined} />}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-[#111111]/50">
+            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-[var(--text-primary)]/50">
               {formatSpecCode(`CART-${cartId}`)}
             </p>
-            <h1 className="text-2xl font-semibold text-[#111111]">Order summary</h1>
+            <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Order summary</h1>
           </div>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => router.push('/configurator')}
-              className="inline-flex items-center gap-2 rounded-[4px] border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-accent)] hover:text-[#111111]"
+              className="inline-flex items-center gap-2 rounded-[4px] border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[var(--text-primary)]/75 hover:border-[var(--color-accent)] hover:text-[var(--text-primary)]"
             >
               <ArrowLeft size={16} strokeWidth={2.2} />
               Back to configurator
@@ -328,7 +328,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             <button
               type="button"
               onClick={handleAddAnotherProduct}
-              className="inline-flex items-center gap-2 rounded-[4px] border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[#111111]/75 hover:border-[var(--color-accent)] hover:text-[#111111]"
+              className="inline-flex items-center gap-2 rounded-[4px] border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[var(--text-primary)]/75 hover:border-[var(--color-accent)] hover:text-[var(--text-primary)]"
             >
               <Plus size={16} strokeWidth={2.2} />
               Add another product
@@ -340,8 +340,8 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
 
         {draftLoaded && items.length === 0 && (
           <section className="techpack-surface rounded-[4px] border p-8 text-center">
-            <h2 className="text-lg font-medium text-[#111111]">Your cart is empty</h2>
-            <p className="mt-1 text-sm text-[#111111]/60">
+            <h2 className="text-lg font-medium text-[var(--text-primary)]">Your cart is empty</h2>
+            <p className="mt-1 text-sm text-[var(--text-primary)]/60">
               Add a product to continue your order.
             </p>
             <button
@@ -420,10 +420,10 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                 <div className="min-w-0 flex-1 space-y-5">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <h2 className="text-lg font-medium text-[#111111]">
+                      <h2 className="text-lg font-medium text-[var(--text-primary)]">
                         {item.productName}
                       </h2>
-                      <p className="text-sm text-[#111111]/60">
+                      <p className="text-sm text-[var(--text-primary)]/60">
                         {item.colour.name} · <span className="font-mono">{itemUnits} units</span>
                       </p>
                     </div>
@@ -431,27 +431,27 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                       <button
                         type="button"
                         onClick={() => handleEdit(item)}
-                        className="rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-accent)] hover:text-[#111111]"
+                        className="rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 text-xs text-[var(--text-primary)]/70 hover:border-[var(--color-accent)] hover:text-[var(--text-primary)]"
                       >
                         Edit design
                       </button>
-                      <button type="button" onClick={() => handleDuplicate(item)} className="inline-flex items-center gap-1 rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-accent)]"><Copy size={13} /> Duplicate</button>
-                      {item.artwork.front && <button type="button" onClick={() => handleRemoveArtworkSide(item.id, "front")} className="rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-accent)]">Remove front print</button>}
-                      {item.artwork.back && <button type="button" onClick={() => handleRemoveArtworkSide(item.id, "back")} className="rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-accent)]">Remove back print</button>}
+                      <button type="button" onClick={() => handleDuplicate(item)} className="inline-flex items-center gap-1 rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 text-xs text-[var(--text-primary)]/70 hover:border-[var(--color-accent)]"><Copy size={13} /> Duplicate</button>
+                      {item.artwork.front && <button type="button" onClick={() => handleRemoveArtworkSide(item.id, "front")} className="rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 text-xs text-[var(--text-primary)]/70 hover:border-[var(--color-accent)]">Remove front print</button>}
+                      {item.artwork.back && <button type="button" onClick={() => handleRemoveArtworkSide(item.id, "back")} className="rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 text-xs text-[var(--text-primary)]/70 hover:border-[var(--color-accent)]">Remove back print</button>}
                       {pendingDeleteItemId === item.id ? (
-                        <div className="flex items-center gap-2 rounded-[4px] border border-[#E5E5E5] px-2 py-1.5 text-xs text-[#111111]/70">
+                        <div className="flex items-center gap-2 rounded-[4px] border border-[#E5E5E5] px-2 py-1.5 text-xs text-[var(--text-primary)]/70">
                           <span>Remove this item?</span>
                           <button
                             type="button"
                             onClick={() => setPendingDeleteItemId(null)}
-                            className="font-medium hover:text-[#111111]"
+                            className="font-medium hover:text-[var(--text-primary)]"
                           >
                             Cancel
                           </button>
                           <button
                             type="button"
                             onClick={() => handleDelete(item.id)}
-                            className="font-semibold text-[#111111] hover:opacity-70"
+                            className="font-semibold text-[var(--text-primary)] hover:opacity-70"
                           >
                             Remove
                           </button>
@@ -460,7 +460,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                         <button
                           type="button"
                           onClick={() => setPendingDeleteItemId(item.id)}
-                          className="rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 text-xs text-[#111111]/70 hover:border-[var(--color-accent)] hover:text-[#111111]"
+                          className="rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 text-xs text-[var(--text-primary)]/70 hover:border-[var(--color-accent)] hover:text-[var(--text-primary)]"
                         >
                           Delete
                         </button>
@@ -468,7 +468,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                     </div>
                   </div>
 
-                  <div className="rounded-[4px] border border-[#E5E5E5] bg-[#F7F7F7] px-3 py-2 text-xs leading-relaxed text-[#111111]/60">
+                  <div className="rounded-[4px] border border-[#E5E5E5] bg-[#F7F7F7] px-3 py-2 text-xs leading-relaxed text-[var(--text-primary)]/60">
                     We applied a recommended company-order size mix to the quantity selected in Studio. Adjust any size below before continuing; the total and volume price update automatically.
                   </div>
 
@@ -482,11 +482,11 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                   />
 
                   {sizeChart && (
-                    <details className="techpack-control rounded-[4px] border p-3 text-xs text-[#111111]">
+                    <details className="techpack-control rounded-[4px] border p-3 text-xs text-[var(--text-primary)]">
                       <summary className="cursor-pointer font-semibold">Fit / measurement chart</summary>
                       <div className="mt-3 overflow-x-auto">
                         <table className="w-full min-w-[420px] text-left">
-                          <thead className="text-[#111111]/50">
+                          <thead className="text-[var(--text-primary)]/50">
                             <tr>
                               <th className="py-1 pr-3">Size</th>
                               <th className="py-1 pr-3">Chest</th>
@@ -508,11 +508,11 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                           </tbody>
                         </table>
                       </div>
-                      {sizeChart.note && <p className="mt-2 text-[#111111]/55">{sizeChart.note}</p>}
+                      {sizeChart.note && <p className="mt-2 text-[var(--text-primary)]/55">{sizeChart.note}</p>}
                     </details>
                   )}
 
-                  <div className="rounded-[4px] border border-[#E5E5E5] bg-[#F7F7F7] px-4 py-3 text-sm text-[#111111]">
+                  <div className="rounded-[4px] border border-[#E5E5E5] bg-[#F7F7F7] px-4 py-3 text-sm text-[var(--text-primary)]">
                     <div className="flex items-center justify-between gap-4">
                       <span className="font-medium">Item total</span>
                       <span className="flex items-center gap-2 text-right font-semibold">

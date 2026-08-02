@@ -5,7 +5,7 @@ export default function TrustStrip({ points }: { points: string[] }) {
         {points.map((point) => (
           <p
             key={point}
-            className="border-b border-white/70 px-5 py-4 text-sm font-medium text-[#111111]/65 last:border-b-0 sm:border-r sm:[&:nth-last-child(-n+2)]:border-b-0 lg:[&:nth-child(3n)]:border-r-0 lg:[&:nth-last-child(-n+3)]:border-b-0"
+            className="border-b border-white/70 px-5 py-4 text-sm font-medium text-[var(--text-primary)]/65 last:border-b-0 sm:border-r sm:[&:nth-last-child(-n+2)]:border-b-0 lg:[&:nth-child(3n)]:border-r-0 lg:[&:nth-last-child(-n+3)]:border-b-0"
           >
             {point}
           </p>

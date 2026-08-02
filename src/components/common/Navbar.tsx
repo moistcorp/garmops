@@ -163,14 +163,14 @@ export default function Navbar() {
           </div>
 
           <div className="flex shrink-0 items-center gap-2.5 min-[360px]:gap-4 xl:hidden">
-            <Link href="/cart" className="flex min-h-11 items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.06em] text-[#111111]/60">
+            <Link href="/cart" className="flex min-h-11 items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.06em] text-[var(--text-primary)]/60">
               <ShoppingCart size={15} aria-hidden="true" />
               CART{itemCount > 0 ? ` · ${itemCount > 99 ? '99+' : itemCount}` : ''}
             </Link>
             <button
               ref={menuButtonRef}
               type="button"
-              className="relative flex h-11 w-11 items-center justify-center rounded-[4px] border border-transparent text-[#111111] transition-colors hover:border-[var(--color-rule)] hover:bg-[var(--color-cream-soft)]"
+              className="relative flex h-11 w-11 items-center justify-center rounded-[4px] border border-transparent text-[var(--text-primary)] transition-colors hover:border-[var(--color-rule)] hover:bg-[var(--color-cream-soft)]"
               onClick={() => setOpenPathname(open ? null : pathname)}
               aria-label={open ? 'Close menu' : 'Open menu'}
               aria-expanded={open}
@@ -207,7 +207,7 @@ export default function Navbar() {
           aria-label="Close menu"
           tabIndex={-1}
           onClick={closeMenu}
-          className={`absolute inset-0 bg-[#16212B]/20 transition-opacity duration-200 ${
+          className={`absolute inset-0 bg-[var(--color-navy)]/20 transition-opacity duration-200 ${
             open ? 'opacity-100' : 'opacity-0'
           }`}
         />
@@ -232,7 +232,7 @@ export default function Navbar() {
                   aria-current={isActive ? 'page' : undefined}
                   onClick={closeMenu}
                   className={`border-b-2 px-1 py-3.5 font-mono text-[11px] uppercase tracking-[0.06em] leading-none transition-colors sm:py-4 sm:text-xs ${
-                    isActive ? 'border-[var(--color-accent)] text-[var(--color-navy)]' : 'border-transparent text-[#111111]/65'
+                    isActive ? 'border-[var(--color-accent)] text-[var(--color-navy)]' : 'border-transparent text-[var(--text-primary)]/65'
                   }`}
                 >
                   {link.label}
@@ -244,7 +244,7 @@ export default function Navbar() {
           <div className="mt-5 grid gap-5 border-t border-[var(--color-rule)] pt-5 sm:grid-cols-2">
             {mobileGroups.map(group => (
               <div key={group.label}>
-                <p className="px-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#111111]/40">
+                <p className="px-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-primary)]/40">
                   {group.label}
                 </p>
                 <div className="mt-2 flex flex-col">
@@ -254,7 +254,7 @@ export default function Navbar() {
                       href={link.href}
                       tabIndex={open ? 0 : -1}
                       onClick={closeMenu}
-                      className="px-1 py-2.5 text-sm text-[#111111]/65 transition-colors hover:text-[var(--color-accent)]"
+                      className="px-1 py-2.5 text-sm text-[var(--text-primary)]/65 transition-colors hover:text-[var(--color-accent)]"
                     >
                       {link.label}
                     </Link>

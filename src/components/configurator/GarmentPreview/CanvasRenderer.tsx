@@ -163,7 +163,7 @@ function ArtworkPreview({ side }: { side: ArtworkSide }) {
   }
 
   return (
-    <div className="flex h-full w-full items-center justify-center bg-white/80 px-2 text-center text-xs font-semibold uppercase tracking-wide text-[#111111]/55">
+    <div className="flex h-full w-full items-center justify-center bg-white/80 px-2 text-center text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/55">
       {side.fileType} Artwork
     </div>
   );
@@ -184,6 +184,7 @@ function NeckLabelPreview({ neckLabel }: { neckLabel: NeckLabel }) {
   const w = widthMm * NECK_LABEL_PX_PER_MM.neck;
   const h = heightMm * NECK_LABEL_PX_PER_MM.neck;
   const renderable = isRenderableNeckLabel(neckLabel);
+  // Rendering data, not UI text: stitches and fallback label artwork are intentionally true black.
   const stitchColor = "#111111";
 
   // Stitch type only applies to a "below neck tape" hang-tag — an "on neck
@@ -616,6 +617,7 @@ export default function CanvasRenderer({
             />
           )}
           {dragMode && (
+            // Keep this literal black: it is a translucent contrast overlay over arbitrary garment colours.
             <div
               role="status"
               aria-live="polite"

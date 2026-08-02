@@ -83,7 +83,7 @@ export default function ProductCard({
         ? "bg-[#FFF3D6] text-[#7A5400]"
         : feasibility.status === "review"
           ? "bg-[#FFF0F0] text-[#8A2E2E]"
-          : "bg-[#F2F0EA] text-[#111111]/55";
+          : "bg-[#F2F0EA] text-[var(--text-primary)]/55";
 
   return (
     <article ref={cardRef} className={`techpack-panel group relative flex h-full self-stretch flex-col overflow-hidden rounded-[4px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45 ${recommended ? "!border-[var(--color-accent)]/60" : ""}`}>
@@ -129,12 +129,12 @@ export default function ProductCard({
             <Link
               href={configuratorHref}
               onClick={(event) => onProductSelect(event, product)}
-              className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-[#111111] hover:text-[var(--color-accent-dark)]"
+              className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-[var(--text-primary)] hover:text-[var(--color-accent-dark)]"
             >
               {product.name}
             </Link>
-            <p className="mt-1 text-xs text-[#111111]/55">Estimated at {quantity} units</p>
-            <p className="text-sm font-semibold text-[#111111]">{priceLabel}</p>
+            <p className="mt-1 text-xs text-[var(--text-primary)]/55">Estimated at {quantity} units</p>
+            <p className="text-sm font-semibold text-[var(--text-primary)]">{priceLabel}</p>
           </div>
           <button
             type="button"
@@ -142,7 +142,7 @@ export default function ProductCard({
             aria-expanded={detailsOpen}
             aria-controls={`product-details-${product.id}`}
             aria-label={`${detailsOpen ? "Hide" : "Show"} details for ${product.name}`}
-            className="techpack-control flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] border text-[#111111]/60 hover:!border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+            className="techpack-control flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] border text-[var(--text-primary)]/60 hover:!border-[var(--color-accent)] hover:text-[var(--color-accent)]"
           >
             <ChevronDown size={15} strokeWidth={2.2} className={`transition-transform ${detailsOpen ? "rotate-180" : ""}`} />
           </button>
@@ -150,25 +150,25 @@ export default function ProductCard({
 
         <div className="grid min-h-[92px] grid-cols-2 gap-2 text-[11px]">
           <div className="h-full rounded-[4px] bg-[#F7F7F7] p-2.5">
-            <p className="font-semibold text-[#111111]">Best for</p>
-            <p className="mt-0.5 leading-snug text-[#111111]/60">{product.bestFor.slice(0, 2).join(", ")}</p>
+            <p className="font-semibold text-[var(--text-primary)]">Best for</p>
+            <p className="mt-0.5 leading-snug text-[var(--text-primary)]/60">{product.bestFor.slice(0, 2).join(", ")}</p>
           </div>
           <div className="h-full rounded-[4px] bg-[#F7F7F7] p-2.5">
-            <p className="font-semibold text-[#111111]">Feel & fit</p>
-            <p className="mt-0.5 leading-snug text-[#111111]/60">{product.fabricFeel} · {product.fit}</p>
+            <p className="font-semibold text-[var(--text-primary)]">Feel & fit</p>
+            <p className="mt-0.5 leading-snug text-[var(--text-primary)]/60">{product.fabricFeel} · {product.fit}</p>
           </div>
         </div>
 
         {detailsOpen && (
-          <div id={`product-details-${product.id}`} className="space-y-3 border-t border-[#ECE7DF] pt-3 text-xs text-[#111111]/65">
+          <div id={`product-details-${product.id}`} className="space-y-3 border-t border-[#ECE7DF] pt-3 text-xs text-[var(--text-primary)]/65">
             <p className="leading-relaxed">{product.description}</p>
             <dl className="grid grid-cols-2 gap-3">
-              <div><dt className="font-semibold text-[#111111]">Fabric weight</dt><dd>{product.gsm} GSM</dd></div>
-              <div><dt className="font-semibold text-[#111111]">Climate</dt><dd>{product.climate}</dd></div>
-              <div><dt className="font-semibold text-[#111111]">Typical lead time</dt><dd>{product.standardLeadTime}</dd></div>
-              <div><dt className="font-semibold text-[#111111]">Recommended branding</dt><dd>{product.recommendedTechnique}</dd></div>
+              <div><dt className="font-semibold text-[var(--text-primary)]">Fabric weight</dt><dd>{product.gsm} GSM</dd></div>
+              <div><dt className="font-semibold text-[var(--text-primary)]">Climate</dt><dd>{product.climate}</dd></div>
+              <div><dt className="font-semibold text-[var(--text-primary)]">Typical lead time</dt><dd>{product.standardLeadTime}</dd></div>
+              <div><dt className="font-semibold text-[var(--text-primary)]">Recommended branding</dt><dd>{product.recommendedTechnique}</dd></div>
             </dl>
-            <div><span className="font-semibold text-[#111111]">Sizes</span><p>{product.sizes.join(", ")}</p></div>
+            <div><span className="font-semibold text-[var(--text-primary)]">Sizes</span><p>{product.sizes.join(", ")}</p></div>
           </div>
         )}
 
@@ -185,7 +185,7 @@ export default function ProductCard({
             aria-pressed={compared}
             disabled={!compared && compareDisabled}
             onClick={() => onCompareChange(!compared)}
-            className={`flex min-h-10 w-28 shrink-0 items-center justify-center gap-1.5 rounded-[4px] border px-3 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${compared ? "border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent-dark)]" : "border-[#E5E5E5] text-[#111111]/65 hover:border-[var(--color-accent)]"}`}
+            className={`flex min-h-10 w-28 shrink-0 items-center justify-center gap-1.5 rounded-[4px] border px-3 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${compared ? "border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent-dark)]" : "border-[#E5E5E5] text-[var(--text-primary)]/65 hover:border-[var(--color-accent)]"}`}
           >
             {compared ? <Check size={14} /> : <GitCompareArrows size={14} />}
             {compared ? "Added" : "Compare"}

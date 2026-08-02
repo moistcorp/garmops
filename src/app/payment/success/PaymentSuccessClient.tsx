@@ -251,10 +251,10 @@ export default function PaymentSuccessClient({
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-[4px] bg-amber-50 text-2xl text-amber-700">
             !
           </div>
-          <h1 className="mb-3 text-3xl font-bold tracking-tight text-[#111111]">
+          <h1 className="mb-3 text-3xl font-bold tracking-tight text-[var(--text-primary)]">
             Payment not verified
           </h1>
-          <p className="mb-8 text-sm leading-relaxed text-[#111111]/60">
+          <p className="mb-8 text-sm leading-relaxed text-[var(--text-primary)]/60">
             We could not validate a PayU response for this page. If money was
             deducted, do not retry immediately—contact us with your transaction
             reference so we can check it safely.
@@ -268,7 +268,7 @@ export default function PaymentSuccessClient({
             </Link>
             <Link
               href="/"
-              className="rounded-[4px] border border-[#ECE7DF] px-7 py-3 text-sm font-medium text-[#111111]"
+              className="rounded-[4px] border border-[#ECE7DF] px-7 py-3 text-sm font-medium text-[var(--text-primary)]"
             >
               Back to home
             </Link>
@@ -299,7 +299,7 @@ export default function PaymentSuccessClient({
           </svg>
         </div>
 
-        <h1 className="mb-3 text-3xl font-bold tracking-tight text-[#111111]">
+        <h1 className="mb-3 text-3xl font-bold tracking-tight text-[var(--text-primary)]">
           {isSampleOrder ? "Order placed" : "Reservation confirmed"}
         </h1>
         {isMockPayment && (
@@ -307,7 +307,7 @@ export default function PaymentSuccessClient({
             Development preview — no payment was charged.
           </p>
         )}
-        <p className="mb-2 text-sm text-[#111111]/60">
+        <p className="mb-2 text-sm text-[var(--text-primary)]/60">
           {firstName ? `Thanks ${firstName}!` : "Thank you!"}{" "}
           {isSampleOrder
             ? "Your sample order has been received."
@@ -322,12 +322,12 @@ export default function PaymentSuccessClient({
         )}
 
         {emailStatus === "sending" && (
-          <p className="mb-1 text-sm text-[#111111]/55">Sending your confirmation…</p>
+          <p className="mb-1 text-sm text-[var(--text-primary)]/55">Sending your confirmation…</p>
         )}
         {emailStatus === "sent" && orderSummary.email && (
           <p className="mb-1 text-sm">
             Confirmation sent to{" "}
-            <span className="font-medium text-[#111111]">{orderSummary.email}</span>
+            <span className="font-medium text-[var(--text-primary)]">{orderSummary.email}</span>
           </p>
         )}
         {emailStatus === "failed" && (
@@ -338,13 +338,13 @@ export default function PaymentSuccessClient({
         )}
 
         {txnid && (
-          <p className="mb-6 mt-2 text-xs text-[#111111]/40">
+          <p className="mb-6 mt-2 text-xs text-[var(--text-primary)]/40">
             Transaction ID: <span className="break-all font-mono">{txnid}</span>
           </p>
         )}
 
-        <div className="techpack-panel mb-8 rounded-[4px] border p-5 text-left text-xs leading-relaxed text-[#111111]/60">
-          <p className="mb-2 font-medium text-[#111111]">What happens next</p>
+        <div className="techpack-panel mb-8 rounded-[4px] border p-5 text-left text-xs leading-relaxed text-[var(--text-primary)]/60">
+          <p className="mb-2 font-medium text-[var(--text-primary)]">What happens next</p>
           {isSampleOrder ? (
             <ul className="flex flex-col gap-1.5">
               <li>· Our team will review and prepare your sample order</li>

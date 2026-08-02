@@ -45,7 +45,7 @@ export default async function CompanyDetailsPage() {
   return (
     <div className="space-y-7">
       <header>
-        <p className="text-xs uppercase tracking-[0.18em] text-[#1D49B4]">
+        <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-accent)]">
           Account
         </p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight">

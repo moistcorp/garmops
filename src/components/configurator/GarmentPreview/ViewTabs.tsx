@@ -65,7 +65,7 @@ export default function ViewTabs({
             className={`flex h-7 min-w-12 items-center justify-center rounded-[4px] px-2.5 text-[10px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-1 ${
               isActive
                 ? "bg-[var(--color-accent)] text-white "
-                : "text-[#111111]/60 hover:bg-[var(--color-cream-soft)] hover:text-[#111111]"
+                : "text-[var(--text-primary)]/60 hover:bg-[var(--color-cream-soft)] hover:text-[var(--text-primary)]"
             }`}
           >
             {opt.label}

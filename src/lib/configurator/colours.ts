@@ -12,6 +12,7 @@ export interface SignatureColour {
 export const SIGNATURE_COLOURS: SignatureColour[] = [
   { name: "Bright White", hex: "#FBFBF9" },
   { name: "Ecru", hex: "#E8E1D3" },
+  // Domain data, not UI ink: this literal is the customer-selectable True Black swatch.
   { name: "True Black", hex: "#111111" },
   { name: "Oat Milk", hex: "#DCD3C0" },
   { name: "Indian Almond", hex: "#C9A27E" },

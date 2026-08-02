@@ -265,7 +265,7 @@ export function ArtworkPanel({
             <button
               type="button"
               onClick={() => copyArtworkToOtherSide(side)}
-              className="techpack-control flex items-center gap-1.5 rounded-[4px] border px-3 py-1.5 text-xs font-semibold text-[#111111]/70 hover:!border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
+              className="techpack-control flex items-center gap-1.5 rounded-[4px] border px-3 py-1.5 text-xs font-semibold text-[var(--text-primary)]/70 hover:!border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
             >
               <Copy size={13} strokeWidth={2.2} />
               Copy to {side === "front" ? "back" : "front"}
@@ -298,11 +298,11 @@ export function ArtworkPanel({
             className="flex min-w-0 flex-1 items-center justify-between gap-3 rounded-[4px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/40"
           >
             <span className="min-w-0">
-              <span className="block text-xs font-semibold uppercase tracking-wide text-[#111111]/70">
+              <span className="block text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/70">
                 {SIDE_LABELS[side]}
               </span>
               {isReady && current?.technique && (
-                <span className="mt-0.5 block truncate text-[11px] text-[#111111]/50">
+                <span className="mt-0.5 block truncate text-[11px] text-[var(--text-primary)]/50">
                   {TECHNIQUE_LABELS[current.technique]} selected · saved automatically
                 </span>
               )}
@@ -318,7 +318,7 @@ export function ArtworkPanel({
                 size={17}
                 strokeWidth={2.2}
                 aria-hidden="true"
-                className={`text-[#111111]/45 transition-transform ${
+                className={`text-[var(--text-primary)]/45 transition-transform ${
                   isExpanded ? "rotate-180" : ""
                 }`}
               />
@@ -367,7 +367,7 @@ export function ArtworkPanel({
   }
 
   return (
-    <div className="flex flex-col gap-4 text-sm text-[#111111]">
+    <div className="flex flex-col gap-4 text-sm text-[var(--text-primary)]">
       {renderSide("front")}
       {renderSide("back")}
     </div>

@@ -185,7 +185,7 @@ export function TechniqueSelect({
       <div className="flex items-center justify-between gap-3">
         <span
           id={labelId}
-          className="text-xs font-semibold leading-none tracking-normal text-[#111111]/70"
+          className="text-xs font-semibold leading-none tracking-normal text-[var(--text-primary)]/70"
         >
           {sideLabel} Artwork Technique<span aria-hidden="true">*</span>
         </span>
@@ -219,7 +219,7 @@ export function TechniqueSelect({
       >
         <span
           className={`text-sm font-medium leading-none tracking-normal ${
-            value ? "text-[#111111]/80" : "text-[#111111]/45"
+            value ? "text-[var(--text-primary)]/80" : "text-[var(--text-primary)]/45"
           }`}
         >
           {value ? TECHNIQUE_LABELS[value] : "Select a production technique"}
@@ -228,7 +228,7 @@ export function TechniqueSelect({
           size={15}
           strokeWidth={2.2}
           aria-hidden="true"
-          className={`shrink-0 text-[#111111]/45 transition-transform ${
+          className={`shrink-0 text-[var(--text-primary)]/45 transition-transform ${
             open ? "rotate-180" : ""
           }`}
         />
@@ -239,7 +239,7 @@ export function TechniqueSelect({
           id={listboxId}
           role="listbox"
           aria-labelledby={labelId}
-          className="z-40 overflow-hidden rounded-[4px] border border-[#111111]/15 bg-white/82  ring-1 ring-white/75 "
+          className="z-40 overflow-hidden rounded-[4px] border border-[var(--text-primary)]/15 bg-white/82  ring-1 ring-white/75 "
         >
           <div className="max-h-[420px] overflow-y-auto p-1.5">
             {TECHNIQUE_ORDER.map((technique, index) => {
@@ -270,14 +270,14 @@ export function TechniqueSelect({
                   <TechniqueThumbnail technique={technique} />
                   <span className="min-w-0 flex-1">
                     <span className="flex flex-wrap items-center gap-1.5">
-                      <span className="text-sm font-semibold leading-tight tracking-normal text-[#111111]/85">
+                      <span className="text-sm font-semibold leading-tight tracking-normal text-[var(--text-primary)]/85">
                         {TECHNIQUE_LABELS[technique]}
                       </span>
                     </span>
-                    <span className="mt-1 block text-xs leading-relaxed tracking-normal text-[#111111]/55">
+                    <span className="mt-1 block text-xs leading-relaxed tracking-normal text-[var(--text-primary)]/55">
                       {TECHNIQUE_DESCRIPTIONS[technique]}
                     </span>
-                    <span className="mt-1.5 block text-[10px] font-semibold text-[#111111]/45">
+                    <span className="mt-1.5 block text-[10px] font-semibold text-[var(--text-primary)]/45">
                       +{formatInr(TECHNIQUE_UNIT_PRICE_DELTAS[technique])}/unit
                     </span>
                   </span>

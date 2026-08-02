@@ -67,7 +67,7 @@ export default function ContactClient() {
         <div className="mx-auto max-w-2xl text-center">
           <p className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--color-accent)]">Help</p>
           <h1 className="mt-3 text-4xl font-bold tracking-tight text-[var(--color-navy)] sm:text-5xl">How can we help?</h1>
-          <p className="mt-4 text-base leading-relaxed text-[#111111]/55 sm:text-lg">Get in touch with the Garmops team for sales enquiries and order support.</p>
+          <p className="mt-4 text-base leading-relaxed text-[var(--text-primary)]/55 sm:text-lg">Get in touch with the Garmops team for sales enquiries and order support.</p>
         </div>
 
         <div className="mt-14 grid gap-10 border-y border-[#ECE7DF] py-10 text-center sm:mt-16 sm:py-14 md:grid-cols-3 md:gap-8">
@@ -77,7 +77,7 @@ export default function ContactClient() {
                 <Icon size={22} strokeWidth={1.7} aria-hidden="true" />
               </span>
               <h2 className="mt-5 text-xl font-semibold tracking-tight text-[var(--color-navy)]">{title}</h2>
-              <div className="mt-3 text-base leading-relaxed text-[#111111]/55">{content}</div>
+              <div className="mt-3 text-base leading-relaxed text-[var(--text-primary)]/55">{content}</div>
             </section>
           ))}
         </div>
@@ -94,7 +94,7 @@ export default function ContactClient() {
                   {faq.question}
                   <Plus size={20} className="shrink-0 text-[var(--color-accent)] transition-transform group-open:rotate-45" aria-hidden="true" />
                 </summary>
-                <p className="border-t border-[#ECE7DF] px-5 py-4 text-sm leading-relaxed text-[#111111]/55 sm:px-6">{faq.answer}</p>
+                <p className="border-t border-[#ECE7DF] px-5 py-4 text-sm leading-relaxed text-[var(--text-primary)]/55 sm:px-6">{faq.answer}</p>
               </details>
             ))}
           </div>

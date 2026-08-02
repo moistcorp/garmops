@@ -25,7 +25,7 @@ export default function HomepageCaseStudies() {
               Case Studies
             </p>
 
-            <h2 className="mb-5 text-3xl font-bold leading-[1.05] tracking-tight text-[#111111] sm:mb-6 sm:text-4xl">
+            <h2 className="mb-5 text-3xl font-bold leading-[1.05] tracking-tight text-[var(--text-primary)] sm:mb-6 sm:text-4xl">
               How the best brands use Garmops
             </h2>
 
@@ -35,7 +35,7 @@ export default function HomepageCaseStudies() {
 
             <Link
               href="/work"
-              className="inline-flex items-center gap-2 text-sm font-medium border-b border-[#111111] pb-1 hover:opacity-60 transition-opacity"
+              className="inline-flex items-center gap-2 text-sm font-medium border-b border-[var(--text-primary)] pb-1 hover:opacity-60 transition-opacity"
             >
               Discover more stories
               <span>→</span>
@@ -91,7 +91,7 @@ export default function HomepageCaseStudies() {
                     ) : (
 
                       <div className="w-full h-full flex items-center justify-center">
-                        <span className="text-xs uppercase tracking-widest text-[#111111]/20">
+                        <span className="text-xs uppercase tracking-widest text-[var(--text-primary)]/20">
                           Upload Cover Image
                         </span>
                       </div>
@@ -104,7 +104,7 @@ export default function HomepageCaseStudies() {
 
                   <div className="p-5 sm:p-6">
 
-                    <p className="text-2xl font-semibold tracking-tight text-[#111111] mb-1 group-hover:underline">
+                    <p className="text-2xl font-semibold tracking-tight text-[var(--text-primary)] mb-1 group-hover:underline">
                       {cs.client}
                     </p>
 
@@ -145,7 +145,7 @@ export default function HomepageCaseStudies() {
         {featuredTestimonial && (
           <div className="mt-12 border-t border-[#ECE7DF] pt-10 sm:mt-20 sm:pt-16">
             <div className="max-w-3xl">
-              <p className="text-2xl md:text-3xl font-semibold text-[#111111] tracking-tight leading-snug mb-8">
+              <p className="text-2xl md:text-3xl font-semibold text-[var(--text-primary)] tracking-tight leading-snug mb-8">
                 &ldquo;{featuredTestimonial.quote}&rdquo;
               </p>
               <div className="flex items-center gap-3">
@@ -153,7 +153,7 @@ export default function HomepageCaseStudies() {
                   {initials(featuredTestimonial.author)}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-[#111111]">{featuredTestimonial.author}</p>
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">{featuredTestimonial.author}</p>
                   <p className="text-xs text-[#666666]">{featuredTestimonial.role}</p>
                 </div>
               </div>

@@ -24,7 +24,7 @@ export default function TrustedBy() {
 
         <div className="flex items-center gap-12">
 
-          <h2 className="text-2xl font-semibold shrink-0 text-[#111111]">
+          <h2 className="text-2xl font-semibold shrink-0 text-[var(--text-primary)]">
             Trusted by
           </h2>
 

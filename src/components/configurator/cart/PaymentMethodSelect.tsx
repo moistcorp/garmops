@@ -12,7 +12,7 @@ export function PaymentMethodSelect({ value, onChange }: PaymentMethodSelectProp
 
   return (
     <div>
-      <h3 className="text-sm font-medium text-[#111111] mb-3">
+      <h3 className="text-sm font-medium text-[var(--text-primary)] mb-3">
         Select payment method
       </h3>
       <button
@@ -34,14 +34,14 @@ export function PaymentMethodSelect({ value, onChange }: PaymentMethodSelectProp
             {selected && <span className="h-2 w-2 rounded-[4px] bg-white" />}
           </span>
           <div>
-            <p className={`text-sm font-medium ${selected ? "text-white" : "text-[#111111]"}`}>PayU</p>
-            <p className={`text-xs ${selected ? "text-white/75" : "text-[#111111]/60"}`}>
+            <p className={`text-sm font-medium ${selected ? "text-white" : "text-[var(--text-primary)]"}`}>PayU</p>
+            <p className={`text-xs ${selected ? "text-white/75" : "text-[var(--text-primary)]/60"}`}>
               Secure card, UPI, and netbanking checkout
             </p>
           </div>
         </div>
       </button>
-      <p className="mt-2 text-xs text-[#111111]/50">
+      <p className="mt-2 text-xs text-[var(--text-primary)]/50">
         More payment methods may be added in the future.
       </p>
     </div>

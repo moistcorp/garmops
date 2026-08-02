@@ -26,7 +26,7 @@ export function WhatsAppAssistantBar({ configId, productName }: WhatsAppAssistan
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Get help on WhatsApp"
-        className="techpack-control inline-flex h-9 items-center gap-1.5 rounded-[4px] border px-3 text-xs font-semibold text-[#111111]/70 hover:!border-[var(--color-accent)]/45 hover:!bg-white/60 hover:text-[var(--color-accent)]"
+        className="techpack-control inline-flex h-9 items-center gap-1.5 rounded-[4px] border px-3 text-xs font-semibold text-[var(--text-primary)]/70 hover:!border-[var(--color-accent)]/45 hover:!bg-white/60 hover:text-[var(--color-accent)]"
       >
         <CircleHelp size={15} strokeWidth={2.2} aria-hidden="true" />
         <span>Help</span>

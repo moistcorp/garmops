@@ -59,7 +59,7 @@ export default async function OrderConfirmationPage({
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <section className="techpack-surface overflow-hidden rounded-[4px] border">
-        <div className="bg-[#1D49B4] px-6 py-8 text-white sm:px-8">
+        <div className="bg-[var(--color-accent)] px-6 py-8 text-white sm:px-8">
           <CheckCircle2 size={30} aria-hidden="true" />
           <p className="mt-5 text-xs uppercase tracking-[0.2em] text-white/55">
             Your order has been saved
@@ -101,7 +101,7 @@ export default async function OrderConfirmationPage({
             >
               <item.icon
                 size={17}
-                className="text-[#1D49B4]"
+                className="text-[var(--color-accent)]"
                 aria-hidden="true"
               />
               <p className="mt-4 text-[10px] uppercase tracking-widest text-black/30">
@@ -155,7 +155,7 @@ export default async function OrderConfirmationPage({
         <div className="mt-6 border-t border-black/8 pt-5">
           <Link
             href={`/account/orders/${encodeURIComponent(order.order_number)}`}
-            className="text-sm font-semibold text-[#1D49B4] hover:underline"
+            className="text-sm font-semibold text-[var(--color-accent)] hover:underline"
           >
             View order details
           </Link>

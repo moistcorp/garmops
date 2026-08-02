@@ -94,7 +94,7 @@ export default function GarmentPreview({
       )}
 
       <div className="pointer-events-none absolute inset-x-4 bottom-2 z-20 flex flex-col items-center gap-2">
-        {quality.metadata && <p className="text-[11px] text-[#111111]/50">File check: {quality.metadata}</p>}
+        {quality.metadata && <p className="text-[11px] text-[var(--text-primary)]/50">File check: {quality.metadata}</p>}
         <div className="pointer-events-auto">
           <ViewTabs
             activeView={activeView}

@@ -61,7 +61,7 @@ export default function DurablePaymentResult({
           }`}
           aria-hidden="true"
         />
-        <p className="mt-6 text-xs uppercase tracking-[0.2em] text-[#1D49B4]">
+        <p className="mt-6 text-xs uppercase tracking-[0.2em] text-[var(--color-accent)]">
           Durable PayU result
         </p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight">
@@ -129,7 +129,7 @@ export default function DurablePaymentResult({
         <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
           <Link
             href={`/account/orders/${encodeURIComponent(result.orderNumber)}`}
-            className="rounded-[4px] bg-[#1D49B4] px-5 py-3 text-sm font-semibold text-white"
+            className="rounded-[4px] bg-[var(--color-accent)] px-5 py-3 text-sm font-semibold text-white"
           >
             View order
           </Link>

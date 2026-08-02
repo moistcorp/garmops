@@ -116,11 +116,11 @@ export default function HomeClient() {
                   {i.image ? (
                     <Image src={i.image} alt={i.alt} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
-                    <span className="text-xs text-[#111111]/20 uppercase tracking-widest">{i.name}</span>
+                    <span className="text-xs text-[var(--text-primary)]/20 uppercase tracking-widest">{i.name}</span>
                   )}
                   {/* Pill tag overlay, Nugget-style */}
                   <div className="absolute top-4 left-4 z-10">
-                    <span className="techpack-chip rounded-[4px] px-3.5 py-1.5 text-xs font-medium text-[#111111]">
+                    <span className="techpack-chip rounded-[4px] px-3.5 py-1.5 text-xs font-medium text-[var(--text-primary)]">
                       {i.name}
                     </span>
                   </div>
@@ -132,7 +132,7 @@ export default function HomeClient() {
                   </div>
                 </div>
                 <div className="p-5 flex flex-col gap-1.5">
-                  <h3 className="text-sm font-semibold text-[#111111]">{i.name}</h3>
+                  <h3 className="text-sm font-semibold text-[var(--text-primary)]">{i.name}</h3>
                   <p className="text-xs text-[#4a4a4a] leading-relaxed">{i.desc}</p>
                   <span className="mt-2 text-xs font-medium text-[var(--color-accent-dark)]">
                     {i.href ? `Explore ${i.name.toLowerCase()}` : 'Custom apparel for this sector'}
@@ -180,7 +180,7 @@ export default function HomeClient() {
                   href={category.href}
                   className="techpack-panel group flex h-full flex-col rounded-[4px] border p-5 transition-transform hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45"
                 >
-                  <h3 className="text-base font-semibold text-[#111111]">{category.title}</h3>
+                  <h3 className="text-base font-semibold text-[var(--text-primary)]">{category.title}</h3>
                   <p className="mt-2 flex-1 text-sm leading-6 text-[#4a4a4a]">{category.description}</p>
                   <span className="mt-5 text-sm font-medium text-[var(--color-accent-dark)] group-hover:underline">
                     {category.label}
@@ -260,7 +260,7 @@ export default function HomeClient() {
                       aria-controls={`homepage-faq-panel-${i}`}
                       className="flex w-full items-center justify-between gap-4 py-5 text-left sm:gap-6 sm:py-6"
                     >
-                      <span className="text-base font-semibold text-[#111111]">{item.q}</span>
+                      <span className="text-base font-semibold text-[var(--text-primary)]">{item.q}</span>
                       <svg
                         aria-hidden="true"
                         className={`w-4 h-4 shrink-0 transition-all duration-300 ${openFaq === i ? 'rotate-45 text-[var(--color-accent)]' : 'text-[#555555]'}`}

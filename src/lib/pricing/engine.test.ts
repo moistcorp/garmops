@@ -32,6 +32,7 @@ const design = (configuration: Partial<CloudDesignSnapshot["configuration"]> = {
   configId: "regular-fit-tee-200gsm",
   savedAt: "2026-08-02T10:00:00+05:30",
   configuration: {
+    // Domain fixture: preserve the saved garment colour rather than substituting a CSS token.
     colour: { type: "signature", name: "Navy", hex: "#16212B", confirmed: true },
     artwork: {},
     steps: [

@@ -59,12 +59,12 @@ export function AccordionItem({
         >
           <span className="flex min-w-0 flex-1 flex-col">
             <span className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-semibold leading-tight text-[#111111]">{title}</span>
-              <span className={`rounded-[4px] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${optional ? "bg-[#F2F0EA] text-[#111111]/55" : "bg-[var(--color-accent)]/10 text-[var(--color-accent-dark)]"}`}>
+              <span className="text-sm font-semibold leading-tight text-[var(--text-primary)]">{title}</span>
+              <span className={`rounded-[4px] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${optional ? "bg-[#F2F0EA] text-[var(--text-primary)]/55" : "bg-[var(--color-accent)]/10 text-[var(--color-accent-dark)]"}`}>
                 {optional ? "Optional" : "Required"}
               </span>
             </span>
-            <span className="mt-1 line-clamp-2 break-words text-xs font-medium leading-snug text-[#111111]/55">
+            <span className="mt-1 line-clamp-2 break-words text-xs font-medium leading-snug text-[var(--text-primary)]/55">
               {summary ?? (optional ? "Not added — you can skip this step" : "Choose an option to continue")}
             </span>
           </span>
@@ -77,7 +77,7 @@ export function AccordionItem({
             ) : (
               <span className="flex h-8 w-8 items-center justify-center rounded-[4px] bg-[var(--color-cream-soft)]" aria-hidden="true"><Plus size={17} strokeWidth={2.2} /></span>
             )}
-            <ChevronDown size={16} strokeWidth={2.1} className={`text-[#111111]/45 transition-transform ${expanded ? "rotate-180" : ""}`} />
+            <ChevronDown size={16} strokeWidth={2.1} className={`text-[var(--text-primary)]/45 transition-transform ${expanded ? "rotate-180" : ""}`} />
           </span>
         </button>
 
@@ -97,7 +97,7 @@ export function AccordionItem({
         <div role="alertdialog" aria-label={`Remove ${title} selection`} className="flex items-center justify-between gap-3 border-t border-[#F3D9D9] bg-[#FDF3F3] px-4 py-2.5">
           <p className="text-xs font-medium text-[#8A2E2E]">Remove this {title.toLowerCase()} selection?</p>
           <span className="flex shrink-0 items-center gap-1.5">
-            <button ref={cancelButtonRef} type="button" onClick={() => setConfirmingDelete(false)} className="techpack-control flex h-8 items-center gap-1 rounded-[4px] border px-2.5 text-xs font-semibold text-[#111111]/70"><X size={13} /> Cancel</button>
+            <button ref={cancelButtonRef} type="button" onClick={() => setConfirmingDelete(false)} className="techpack-control flex h-8 items-center gap-1 rounded-[4px] border px-2.5 text-xs font-semibold text-[var(--text-primary)]/70"><X size={13} /> Cancel</button>
             <button type="button" onClick={() => { setConfirmingDelete(false); onDelete(); }} className="flex h-8 items-center gap-1 rounded-[4px] bg-[#C62828] px-2.5 text-xs font-semibold text-white"><Trash2 size={13} /> Remove</button>
           </span>
         </div>

@@ -12,8 +12,8 @@ export default function ProcessSteps({
   return (
     <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
       <div className="max-w-3xl">
-        <p className="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-[#111111]/45">Process</p>
-        <h2 className="text-3xl font-bold tracking-tight text-[#111111] sm:text-4xl">{title}</h2>
+        <p className="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-[var(--text-primary)]/45">Process</p>
+        <h2 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl">{title}</h2>
         {introduction && <p className="mt-4 max-w-2xl text-sm leading-7 text-[#3f3f3f] sm:text-base">{introduction}</p>}
       </div>
       <ol className="mt-8 grid gap-4 md:grid-cols-2">
@@ -23,7 +23,7 @@ export default function ProcessSteps({
               {String(index + 1).padStart(2, '0')}
             </span>
             <div>
-              <h3 className="text-base font-semibold text-[#111111]">{step.title}</h3>
+              <h3 className="text-base font-semibold text-[var(--text-primary)]">{step.title}</h3>
               <p className="mt-2 text-sm leading-6 text-[#3f3f3f]">{step.description}</p>
             </div>
           </li>

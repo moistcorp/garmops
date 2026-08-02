@@ -1076,7 +1076,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
 
   return (
     <ArtworkPositionProvider activeView={activeView}>
-      <div className="techpack-studio-bg flex h-dvh min-h-0 flex-col overflow-hidden text-[#111111]">
+      <div className="techpack-studio-bg flex h-dvh min-h-0 flex-col overflow-hidden text-[var(--text-primary)]">
         <ConfiguratorTopBar
           currentStep={JOURNEY_STEP_FOR_CUSTOMISATION[activeCustomisationStepId]}
           backHref="/configurator"
@@ -1093,7 +1093,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                   ? "text-amber-950"
                   : cloudSaveStatus === "error"
                     ? "text-rose-900"
-                    : "text-[#1D49B4]"
+                    : "text-[var(--color-accent)]"
               }`}
             >
               {cloudSaveStatus === "saving" ? (
@@ -1107,16 +1107,16 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
 
               {cloudSaveStatus === "conflict" ? (
                 <div className="flex shrink-0 items-center gap-1.5">
-                  <button type="button" onClick={handleUseThisDevice} className="rounded-[4px] bg-[#1D49B4] px-3 py-1.5 font-semibold text-white hover:bg-[#173A91]">Use this device</button>
+                  <button type="button" onClick={handleUseThisDevice} className="rounded-[4px] bg-[var(--color-accent)] px-3 py-1.5 font-semibold text-white hover:bg-[var(--color-accent-dark)]">Use this device</button>
                   <button type="button" onClick={handleUseCloudVersion} className="rounded-[4px] border border-amber-900/20 bg-white/70 px-3 py-1.5 font-semibold hover:bg-white">Use saved version</button>
                   <button type="button" onClick={handleCreateCloudCopy} className="rounded-[4px] border border-amber-900/20 bg-white/70 px-3 py-1.5 font-semibold hover:bg-white">Create a copy</button>
                 </div>
               ) : cloudSaveStatus !== "saving" ? (
                 <div className="flex shrink-0 items-center gap-1.5">
                   {cloudLink ? (
-                    <button type="button" onClick={() => router.push(`/account/designs/${encodeURIComponent(cloudLink.designId)}`)} className="rounded-[4px] border border-[#1D49B4]/20 bg-white/70 px-3 py-1.5 font-semibold hover:bg-white">View saved design</button>
+                    <button type="button" onClick={() => router.push(`/account/designs/${encodeURIComponent(cloudLink.designId)}`)} className="rounded-[4px] border border-[var(--color-accent)]/20 bg-white/70 px-3 py-1.5 font-semibold hover:bg-white">View saved design</button>
                   ) : null}
-                  <button type="button" onClick={handleSaveToAccount} disabled={!savedDesignsEnabled} title={!savedDesignsEnabled ? "Saving designs is not available right now" : undefined} className="rounded-[4px] bg-[#1D49B4] px-3 py-1.5 font-semibold text-white hover:bg-[#173A91]">
+                  <button type="button" onClick={handleSaveToAccount} disabled={!savedDesignsEnabled} title={!savedDesignsEnabled ? "Saving designs is not available right now" : undefined} className="rounded-[4px] bg-[var(--color-accent)] px-3 py-1.5 font-semibold text-white hover:bg-[var(--color-accent-dark)]">
                     {!savedDesignsEnabled ? "Save design unavailable" : cloudLink ? "Save now" : "Save design"}
                   </button>
                 </div>
@@ -1129,13 +1129,13 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         />
 
         {nameDialogOpen ? (
-          <div className="fixed inset-0 z-[75] flex items-center justify-center bg-[#16212B]/45 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setNameDialogOpen(false); }}>
+          <div className="fixed inset-0 z-[75] flex items-center justify-center bg-[var(--color-navy)]/45 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setNameDialogOpen(false); }}>
             <div className="w-full max-w-md rounded-[4px] border border-black/10 bg-white p-6" role="dialog" aria-modal="true" aria-labelledby="save-design-title">
               <h2 id="save-design-title" className="text-xl font-semibold">Save design</h2>
               <p className="mt-2 text-sm text-black/55">Give this design a name so you can find it later.</p>
               <label htmlFor="design-name" className="mt-5 block text-sm font-medium">Design name</label>
-              <input id="design-name" autoFocus value={designTitle} onChange={(event) => setDesignTitle(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void handleNamedSave(); }} maxLength={160} className="mt-2 w-full rounded border border-black/15 px-3 py-2.5 outline-none focus:border-[#1D49B4]" />
-              <div className="mt-5 flex justify-end gap-2"><button type="button" onClick={() => setNameDialogOpen(false)} className="rounded border border-black/10 px-4 py-2 text-sm">Cancel</button><button type="button" onClick={() => void handleNamedSave()} className="rounded bg-[#1D49B4] px-4 py-2 text-sm font-semibold text-white">Save design</button></div>
+              <input id="design-name" autoFocus value={designTitle} onChange={(event) => setDesignTitle(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void handleNamedSave(); }} maxLength={160} className="mt-2 w-full rounded border border-black/15 px-3 py-2.5 outline-none focus:border-[var(--color-accent)]" />
+              <div className="mt-5 flex justify-end gap-2"><button type="button" onClick={() => setNameDialogOpen(false)} className="rounded border border-black/10 px-4 py-2 text-sm">Cancel</button><button type="button" onClick={() => void handleNamedSave()} className="rounded bg-[var(--color-accent)] px-4 py-2 text-sm font-semibold text-white">Save design</button></div>
             </div>
           </div>
         ) : null}
@@ -1221,9 +1221,9 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
                 aria-controls="customisation-drawer-content"
                 className="flex h-14 shrink-0 items-center justify-between gap-3 px-4 text-left hover:bg-white/30 lg:hidden"
               >
-                <span className="min-w-0 truncate text-sm font-medium text-[#111111]">
+                <span className="min-w-0 truncate text-sm font-medium text-[var(--text-primary)]">
                   {activeDrawerStepLabel}
-                  <span className="font-normal text-[#111111]/50">
+                  <span className="font-normal text-[var(--text-primary)]/50">
                     {" · "}
                     {activeDrawerStep.summary ?? "Not added yet"}
                   </span>

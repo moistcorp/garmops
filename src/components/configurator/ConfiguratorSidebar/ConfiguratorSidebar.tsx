@@ -128,15 +128,15 @@ export function ConfiguratorSidebar({
     <section className="flex h-full min-h-0 flex-col overflow-hidden bg-transparent">
       <div className="shrink-0 border-b border-[#DCE1E6] bg-white px-4 py-3">
         <div className="min-w-0">
-          <h2 className="text-sm font-semibold text-[#111111]">{activeStepTitle}</h2>
-          <p className="mt-0.5 truncate text-xs text-[#111111]/55" title={activeStepSummary}>
+          <h2 className="text-sm font-semibold text-[var(--text-primary)]">{activeStepTitle}</h2>
+          <p className="mt-0.5 truncate text-xs text-[var(--text-primary)]/55" title={activeStepSummary}>
             {activeStepSummary ?? activeStep.summary ?? "Not added yet"}
           </p>
         </div>
       </div>
 
       {draftRestored && (
-        <div className="techpack-subtle flex shrink-0 items-center justify-between gap-2 border-x-0 border-t-0 px-4 py-2 text-xs text-[#1D49B4]">
+        <div className="techpack-subtle flex shrink-0 items-center justify-between gap-2 border-x-0 border-t-0 px-4 py-2 text-xs text-[var(--color-accent)]">
           <span>Restored your saved progress.</span>
           <button
             type="button"
