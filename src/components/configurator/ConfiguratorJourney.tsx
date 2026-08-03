@@ -107,7 +107,14 @@ export function ConfiguratorJourney({
                 ))}
                 {(previousStepHandler || previousStepHref) && <span className="hidden font-mono text-[10px] uppercase tracking-[0.06em] text-[var(--text-primary)]/45 sm:inline">Back</span>}
                 <div className="flex min-w-0 items-center gap-3 border-l border-[var(--color-rule)] pl-3">
-                  <GarmopsLogo className="h-3.5 w-auto shrink-0" />
+                  <Link
+  href="/"
+  aria-label="Go to Garmops homepage"
+  title="Garmops homepage"
+  className="shrink-0 rounded-[2px] transition-opacity hover:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-accent)]"
+>
+  <GarmopsLogo className="h-3.5 w-auto" />
+</Link>
                   {productName && (
                     <>
                       <span
