@@ -44,11 +44,12 @@ import CanvasRenderer from "../GarmentPreview/CanvasRenderer";
 import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionContext";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 import { ActionFeedback } from "../ActionFeedback";
-import { prepareAndSubmitDurableOrder } from "@/lib/orders/client";
+import { prepareCustomCheckoutPayment } from "@/lib/orders/client";
 
 export interface ConfirmationStepProps {
   cartId: string;
   organizationId: string;
+  paymentOutcome?: "failure" | "pending";
 }
 
 function joinAddress(address: Address): string {
@@ -67,6 +68,7 @@ function joinAddress(address: Address): string {
 export function ConfirmationStep({
   cartId,
   organizationId,
+  paymentOutcome,
 }: ConfirmationStepProps) {
   const router = useRouter();
   const [draft, setDraft] = useState(() => createDraft(cartId));
@@ -120,6 +122,14 @@ export function ConfirmationStep({
     return () => window.clearTimeout(loadDraft);
   }, [cartId, router]);
 
+  useEffect(() => {
+    if (paymentOutcome === "failure") {
+      setPaymentError("The reservation payment was not completed. No order was created. You can try again safely.");
+    } else if (paymentOutcome === "pending") {
+      setPaymentError("PayU is still verifying this payment. Please wait before trying another payment.");
+    }
+  }, [paymentOutcome]);
+
   const { subtotal, volumeDiscount, shippingFee, gst, delivery, orderTotal } =
     useMemo(() => {
       const totals = calculateTotals(draft.items, draft.deliveryType);
@@ -137,14 +147,15 @@ export function ConfirmationStep({
     }, [draft]);
 
   const savedBillingAddress = draft.billingInformation.sameAsCompanyAddress
-    ? draft.companyInformation.address
+    ? draft.shippingInformation.address
     : draft.billingInformation.address;
   const billingAddress = isAddressValid(savedBillingAddress)
     ? savedBillingAddress
     : draft.shippingInformation.address;
   const projectContact = draft.projectContact;
   const billingEntity =
-    draft.billingInformation.entity || draft.companyInformation.name;
+    draft.billingInformation.entity ||
+    `${projectContact.firstName} ${projectContact.lastName}`.trim();
   const billingEmail =
     draft.billingInformation.accountsPayableEmail || projectContact.email;
   const billingUsesDeliveryAddress =
@@ -202,17 +213,19 @@ export function ConfirmationStep({
     setIsProcessing(true);
 
     try {
-      const result = await prepareAndSubmitDurableOrder({
+      const result = await prepareCustomCheckoutPayment({
         cartId,
         organizationId,
         draft,
       });
       if (result.ok) {
-        trackConfiguratorEvent("durable_order_submitted", {
-          cart_id: cartId,
-          order_number: result.order.orderNumber,
-        });
-        window.location.assign(result.order.confirmationUrl);
+        if (result.kind === "already_finalized") {
+          trackConfiguratorEvent("durable_order_submitted", {
+            cart_id: cartId,
+            order_number: result.order.orderNumber,
+          });
+          window.location.assign(result.order.confirmationUrl);
+        }
         return;
       }
       if (result.kind === "unauthorized") {
@@ -302,21 +315,18 @@ export function ConfirmationStep({
           <div className="grid gap-5 text-sm text-[var(--text-primary)]/75 md:grid-cols-2">
             <div className="space-y-1">
               <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/45">
-                Company and contact
+                Customer and contact
               </p>
               <p className="font-medium text-[var(--text-primary)]">
-                {draft.companyInformation.name}
-              </p>
-              <p>
                 {projectContact.firstName} {projectContact.lastName}
                 {projectContact.department
                   ? ` · ${projectContact.department}`
                   : ""}
               </p>
               <p>{projectContact.email} · {projectContact.phone}</p>
-              {draft.companyInformation.gstin && (
+              {draft.billingInformation.gstin && (
                 <p className="text-xs text-[var(--text-primary)]/55">
-                  GSTIN: {draft.companyInformation.gstin}
+                  GSTIN: {draft.billingInformation.gstin}
                 </p>
               )}
             </div>
@@ -342,13 +352,6 @@ export function ConfirmationStep({
                 </span>{" "}
                 · {billingEmail}
               </p>
-              {draft.billingInformation.gstin &&
-                draft.billingInformation.gstin !==
-                  draft.companyInformation.gstin && (
-                  <p className="text-xs text-[var(--text-primary)]/55">
-                    Billing GSTIN: {draft.billingInformation.gstin}
-                  </p>
-                )}
               {billingUsesDeliveryAddress ? (
                 <p className="text-xs text-[var(--text-primary)]/55">
                   Billing address is the same as the delivery address.
@@ -420,7 +423,7 @@ export function ConfirmationStep({
               </div>
               <div className="mt-4 flex items-center gap-2 border-t border-[var(--color-accent)]/20 pt-3 text-xs font-medium text-[var(--text-primary)]/65">
                 <CreditCard size={15} className="text-[var(--color-accent-dark)]" />
-                Your order number and immutable specification are saved before PayU opens.
+                Your order is created only after PayU verifies a successful reservation payment.
               </div>
             </div>
           </div>
@@ -468,13 +471,13 @@ export function ConfirmationStep({
           >
             {isProcessing && <LoaderCircle size={16} className="animate-spin" />}
             {isProcessing
-              ? "Creating your order…"
-              : `Lock spec & review payment — ${formatInr(RESERVATION_FEE)}`}
+              ? "Opening secure PayU checkout…"
+              : `Pay reservation fee — ${formatInr(RESERVATION_FEE)}`}
           </button>
           {!termsAccepted && (
             <p className="text-center text-xs text-[var(--text-primary)]/55">Accept the reservation terms to continue.</p>
           )}
-          {paymentError && <ActionFeedback tone="error" title="Payment could not be opened" detail={`${paymentError} Your project details are safe.`} actionLabel="Try payment again" onAction={handlePayment} onDismiss={() => setPaymentError("")} />}
+          {paymentError && <ActionFeedback tone="error" title="Reservation payment" detail={`${paymentError} Your configurator details are safe.`} actionLabel={paymentError.includes("still verifying") ? undefined : "Try payment again"} onAction={paymentError.includes("still verifying") ? undefined : handlePayment} onDismiss={() => setPaymentError("")} />}
         </div>
       </div>
     </>

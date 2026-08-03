@@ -4,6 +4,7 @@ import type { CartDraft } from "@/components/configurator/cart/cartDraft";
 import type { CartItem } from "@/components/configurator/cart/OrderReviewStep";
 import type { BuildDraft } from "@/lib/configurator/buildDraft";
 import { CUSTOM_ORDER_TERMS_VERSION } from "@/lib/orders/terms";
+import { submitPayuCheckout } from "@/lib/payuClient";
 import {
   readCloudDesignLink,
   saveBuildDraftToCloud,
@@ -23,6 +24,11 @@ type PreparedOrder = {
 type SubmissionResult =
   | {
       ok: true;
+      kind: "payment_redirected";
+    }
+  | {
+      ok: true;
+      kind: "already_finalized";
       order: {
         id: string;
         orderNumber: string;
@@ -203,7 +209,7 @@ function localDateInIndia(value: string): string {
   }).format(new Date(value));
 }
 
-export async function prepareAndSubmitDurableOrder(input: {
+export async function prepareCustomCheckoutPayment(input: {
   cartId: string;
   organizationId: string;
   draft: CartDraft;
@@ -216,14 +222,11 @@ export async function prepareAndSubmitDurableOrder(input: {
         "Durable checkout currently accepts one configured product per order. Move additional products to a separate cart.",
     };
   }
-  if (
-    !input.draft.selectedDeliveryDateIso ||
-    !input.draft.deliveryType
-  ) {
+  if (!input.draft.selectedDeliveryDateIso || !input.draft.deliveryType) {
     return {
       ok: false,
       kind: "validation",
-      message: "Choose a delivery option and requested date before submission.",
+      message: "Choose a delivery option and requested date before payment.",
     };
   }
 
@@ -277,29 +280,32 @@ export async function prepareAndSubmitDurableOrder(input: {
     };
     writePreparedOrder(input.cartId, prepared);
   }
+
   const company = input.draft.companyInformation;
   const contact = input.draft.projectContact;
   const billing = input.draft.billingInformation;
+  const fullName = `${contact.firstName} ${contact.lastName}`.trim();
   const billingAddress = billing.sameAsCompanyAddress
-    ? company.address
+    ? input.draft.shippingInformation.address
     : billing.address;
-  const response = await fetch("/api/orders/custom/submit", {
+  const returnPath = `/configurator/cart/${encodeURIComponent(input.cartId)}/confirmation`;
+  const response = await fetch("/api/orders/custom/prepare", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
+      cartId: input.cartId,
+      returnPath,
       designProjectId: prepared.designProjectId,
       designVersion: prepared.designVersion,
       organizationId: input.organizationId,
       sizeQuantities: item.sizeQuantities,
       deliveryType: input.draft.deliveryType,
-      requestedDeliveryDate: localDateInIndia(
-        input.draft.selectedDeliveryDateIso,
-      ),
+      requestedDeliveryDate: localDateInIndia(input.draft.selectedDeliveryDateIso),
       projectName:
         input.draft.projectName.trim() || `${item.productName} project`,
       company: {
-        name: company.name,
-        gstin: company.gstin,
+        name: fullName,
+        gstin: billing.gstin || company.gstin,
         industry: company.industry,
         website: company.website,
         poNumber: company.poNumber,
@@ -308,11 +314,10 @@ export async function prepareAndSubmitDurableOrder(input: {
       contact,
       shipping: input.draft.shippingInformation,
       billing: {
-        entity: billing.entity || company.name,
+        entity: billing.entity || fullName,
         address: billingAddress,
-        accountsPayableEmail:
-          billing.accountsPayableEmail || contact.email,
-        gstin: billing.gstin,
+        accountsPayableEmail: billing.accountsPayableEmail || contact.email,
+        gstin: billing.gstin || company.gstin,
       },
       orderNotes: input.draft.projectPreferences.orderNotes,
       receiveEmails: input.draft.projectPreferences.receiveEmails,
@@ -323,9 +328,15 @@ export async function prepareAndSubmitDurableOrder(input: {
   });
   const body = (await response.json().catch(() => ({}))) as {
     error?: string;
-    order?: SubmissionResult extends { ok: true; order: infer T } ? T : never;
+    checkout?: {
+      checkoutPaymentAttemptId: string | null;
+      alreadyFinalized: boolean;
+      orderNumber?: string;
+      orderId?: string;
+      paymentAttemptId?: string;
+    };
   };
-  if (!response.ok || !body.order) {
+  if (!response.ok || !body.checkout) {
     return {
       ok: false,
       kind:
@@ -336,8 +347,56 @@ export async function prepareAndSubmitDurableOrder(input: {
             : response.status === 409
               ? "conflict"
               : "validation",
-      message: body.error ?? "Order could not be submitted",
+      message: body.error ?? "Checkout could not be prepared",
     };
   }
-  return { ok: true, order: body.order };
+
+  if (body.checkout.alreadyFinalized && body.checkout.orderNumber) {
+    return {
+      ok: true,
+      kind: "already_finalized",
+      order: {
+        id: body.checkout.orderId ?? "",
+        orderNumber: body.checkout.orderNumber,
+        submittedAt: new Date().toISOString(),
+        paymentAttemptId: body.checkout.paymentAttemptId ?? "",
+        confirmationUrl: `/account/orders/${encodeURIComponent(body.checkout.orderNumber)}/confirmation`,
+      },
+    };
+  }
+  if (!body.checkout.checkoutPaymentAttemptId) {
+    return {
+      ok: false,
+      kind: "unavailable",
+      message: "Payment attempt could not be prepared",
+    };
+  }
+
+  const paymentResponse = await fetch("/api/payments/payu/initiate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      checkoutPaymentAttemptId: body.checkout.checkoutPaymentAttemptId,
+    }),
+  });
+  const paymentBody = (await paymentResponse.json().catch(() => ({}))) as {
+    error?: string;
+    checkoutUrl?: string;
+    fields?: Record<string, string>;
+  };
+  if (!paymentResponse.ok || !paymentBody.fields || !paymentBody.checkoutUrl) {
+    return {
+      ok: false,
+      kind:
+        paymentResponse.status === 401
+          ? "unauthorized"
+          : paymentResponse.status === 409
+            ? "conflict"
+            : "unavailable",
+      message: paymentBody.error ?? "Secure payment could not be started",
+    };
+  }
+
+  submitPayuCheckout(paymentBody.fields, paymentBody.checkoutUrl);
+  return { ok: true, kind: "payment_redirected" };
 }

@@ -33,9 +33,16 @@ export async function createReservationInvoice(invoiceId: string) {
   const { data: payment, error: paymentError } = await admin.from("payment_attempts").select("id, status, amount_paise, customer_email, customer_name").eq("id", invoice.payment_attempt_id ?? "00000000-0000-0000-0000-000000000000").single();
   if (paymentError || !payment || payment.status !== "paid") throw new Error("A verified payment is required before generating an invoice");
   const organization = Array.isArray(order.organizations) ? order.organizations[0] : order.organizations;
-  const buyerAddress = address(record(order.billing_snapshot).address) || address(record(order.shipping_snapshot).address);
-  const buyerState = record(record(order.billing_snapshot).address).state ?? record(record(order.shipping_snapshot).address).state;
-  const isGstInvoice = Boolean(organization?.gstin);
+  const billingSnapshot = record(order.billing_snapshot);
+  const buyerAddress = address(billingSnapshot.address) || address(record(order.shipping_snapshot).address);
+  const buyerState = record(billingSnapshot.address).state ?? record(record(order.shipping_snapshot).address).state;
+  const submittedGstin = typeof billingSnapshot.gstin === "string" && billingSnapshot.gstin.trim()
+    ? billingSnapshot.gstin.trim().toUpperCase()
+    : organization?.gstin ?? null;
+  const submittedEntity = typeof billingSnapshot.entity === "string" && billingSnapshot.entity.trim()
+    ? billingSnapshot.entity.trim()
+    : null;
+  const isGstInvoice = Boolean(submittedGstin);
   const { data: number, error: numberError } = await (admin.rpc as unknown as (name: string, args: Record<string, unknown>) => Promise<{ data: string | null; error: { message: string } | null }>)("assign_invoice_number", { p_invoice_id: invoice.id });
   if (numberError || !number) throw new Error(numberError?.message ?? "Invoice number could not be allocated");
   const issuedAt = invoice.issue_date ? `${invoice.issue_date}T00:00:00+05:30` : new Date().toISOString();
@@ -46,7 +53,7 @@ export async function createReservationInvoice(invoiceId: string) {
     totalPaise: item.line_total_paise ?? Math.round(payment.amount_paise * item.quantity / Math.max(1, items.reduce((total, entry) => total + entry.quantity, 0))),
     hsnCode: hsnCodeForProduct(item.product_name, env.INVOICE_DEFAULT_HSN_CODE),
   }));
-  const generated = buildInvoicePdf({ number, issuedAt, isGstInvoice, seller: { legalName: env.INVOICE_SELLER_LEGAL_NAME, address: env.INVOICE_SELLER_ADDRESS, gstin: env.INVOICE_SELLER_GSTIN, state: env.INVOICE_SELLER_STATE }, buyer: { name: organization?.legal_name || organization?.display_name || payment.customer_name, address: buyerAddress || "Address not provided", gstin: organization?.gstin, state: typeof buyerState === "string" ? buyerState : null }, lines, totalPaise: payment.amount_paise, gstRateBasisPoints: env.INVOICE_GST_RATE_BASIS_POINTS });
+  const generated = buildInvoicePdf({ number, issuedAt, isGstInvoice, seller: { legalName: env.INVOICE_SELLER_LEGAL_NAME, address: env.INVOICE_SELLER_ADDRESS, gstin: env.INVOICE_SELLER_GSTIN, state: env.INVOICE_SELLER_STATE }, buyer: { name: submittedEntity || organization?.legal_name || organization?.display_name || payment.customer_name, address: buyerAddress || "Address not provided", gstin: submittedGstin, state: typeof buyerState === "string" ? buyerState : null }, lines, totalPaise: payment.amount_paise, gstRateBasisPoints: env.INVOICE_GST_RATE_BASIS_POINTS });
   let pdfFileId = invoice.pdf_file_id;
   if (!pdfFileId) {
     const objectKey = `organizations/${order.organization_id}/orders/${order.id}/invoices/${invoice.id}/${generated.filename}`;

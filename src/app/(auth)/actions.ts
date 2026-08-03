@@ -10,6 +10,7 @@ import {
   type AuthActionState,
 } from "@/lib/auth/constants";
 import { authCallbackUrl, safeInternalPath } from "@/lib/auth/redirects";
+import { ensurePersonalCustomerAccount } from "@/lib/auth/ensurePersonalCustomerAccount";
 import {
   consumeAuthRateLimit,
   requestIpAddress,
@@ -134,7 +135,8 @@ async function destinationAfterLogin(
     .limit(1)
     .maybeSingle();
 
-  return membership ? safeInternalPath(requestedNext, "/account") : "/account/onboarding";
+  if (!membership) await ensurePersonalCustomerAccount(supabase);
+  return safeInternalPath(requestedNext, "/account");
 }
 
 export async function loginAction(
@@ -229,18 +231,22 @@ export async function verifyCustomerOtpAction(
   });
   if (error || !data.user) return actionError("That sign-in code is invalid or expired.");
 
-  const destination = await destinationAfterLogin(
-    supabase,
-    data.user.id,
-    parsed.data.next ?? "/account/orders",
-    "customer",
-  );
+  let destination: string;
+  try {
+    destination = await destinationAfterLogin(
+      supabase,
+      data.user.id,
+      parsed.data.next ?? "/account/orders",
+      "customer",
+    );
+  } catch {
+    return actionError("We could not create your customer workspace. Please try again.");
+  }
   if (destination.startsWith("/auth/error")) {
     return actionError("Use the staff sign-in page to access a staff account.");
   }
   return actionSuccess("Signed in.", {
     destination: safeInternalPath(destination, "/account/orders"),
-    requiresOnboarding: destination === "/account/onboarding",
   });
 }
 

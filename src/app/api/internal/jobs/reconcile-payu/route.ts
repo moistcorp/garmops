@@ -3,7 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getServerEnvironment } from "@/lib/config/env";
 import { durableOrdersAvailable } from "@/lib/orders/api";
-import { reconcilePayuAttempt } from "@/lib/domain/payments/processPayuEvent";
+import {
+  reconcileCustomCheckoutPayuAttempt,
+  reconcilePayuAttempt,
+} from "@/lib/domain/payments/processPayuEvent";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -57,6 +60,21 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  const customAdmin = admin as unknown as { from: (table: string) => any };
+  const { data: customData, error: customError } = await customAdmin
+    .from("custom_checkout_payment_attempts")
+    .select("id")
+    .in("status", ["initiated", "pending", "paid"])
+    .lt("updated_at", staleBefore)
+    .gte("created_at", createdAfter)
+    .order("updated_at")
+    .limit(Math.min(environment.JOB_BATCH_SIZE, 50));
+  if (customError) {
+    console.error("Custom checkout PayU reconciliation query failed", {
+      error: customError.message,
+    });
+  }
+
   const summary = {
     checked: 0,
     success: 0,
@@ -76,6 +94,25 @@ export async function GET(request: NextRequest) {
       summary.errors += 1;
       console.error("PayU reconciliation failed", {
         attemptId: attempt.id,
+        error:
+          reconcileError instanceof Error
+            ? reconcileError.message
+            : "unknown",
+      });
+    }
+  }
+
+  for (const attempt of customData ?? []) {
+    summary.checked += 1;
+    try {
+      const result = await reconcileCustomCheckoutPayuAttempt(attempt.id);
+      if (result.outcome === "success") summary.success += 1;
+      else if (result.outcome === "failure") summary.failure += 1;
+      else summary.pending += 1;
+    } catch (reconcileError) {
+      summary.errors += 1;
+      console.error("Custom checkout PayU reconciliation failed", {
+        checkoutAttemptId: attempt.id,
         error:
           reconcileError instanceof Error
             ? reconcileError.message

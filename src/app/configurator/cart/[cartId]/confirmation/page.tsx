@@ -7,10 +7,15 @@ import { isFeatureEnabled } from "@/lib/config/featureFlags";
 
 interface ConfirmationPageProps {
   params: Promise<{ cartId: string }>;
+  searchParams: Promise<{ payment?: string }>;
 }
 
-export default async function ConfirmationPage({ params }: ConfirmationPageProps) {
-  const { cartId } = await params;
+export default async function ConfirmationPage({ params, searchParams }: ConfirmationPageProps) {
+  const [{ cartId }, query] = await Promise.all([params, searchParams]);
+  const paymentOutcome =
+    query.payment === "failure" || query.payment === "pending"
+      ? query.payment
+      : undefined;
 
   if (!isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED")) {
     return (
@@ -59,6 +64,7 @@ export default async function ConfirmationPage({ params }: ConfirmationPageProps
         <ConfirmationStep
           cartId={cartId}
           organizationId={membership.organization_id}
+          paymentOutcome={paymentOutcome}
         />
       </div>
     </main>

@@ -92,10 +92,14 @@ function addressFields(
   }));
 }
 
-export function getCompanyMissingFields(company: CompanyInformation): MissingCheckoutField[] {
-  const missing: MissingCheckoutField[] = [];
-  if (!company.name.trim()) missing.push({ key: "company.name", label: "company name", section: "company" });
-  return missing;
+export function isGstinValid(value: string): boolean {
+  return /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(
+    value.trim().toUpperCase(),
+  );
+}
+
+export function getCompanyMissingFields(_company: CompanyInformation): MissingCheckoutField[] {
+  return [];
 }
 
 export function getContactMissingFields(contact: ProjectContact): MissingCheckoutField[] {
@@ -116,6 +120,19 @@ export function getShippingMissingFields(shipping: ShippingInformation): Missing
   return missing;
 }
 
+export function getBillingMissingFields(
+  billing: BillingInformation,
+): MissingCheckoutField[] {
+  const missing: MissingCheckoutField[] = [];
+  if (!billing.sameAsCompanyAddress) {
+    missing.push(...addressFields(billing.address, "billing", "billing.address"));
+  }
+  if (billing.gstin.trim() && !isGstinValid(billing.gstin)) {
+    missing.push({ key: "billing.gstin", label: "valid GSTIN", section: "billing" });
+  }
+  return missing;
+}
+
 export function getProcurementMissingFields(details: {
   company: CompanyInformation;
   contact: ProjectContact;
@@ -126,5 +143,6 @@ export function getProcurementMissingFields(details: {
     ...getCompanyMissingFields(details.company),
     ...getContactMissingFields(details.contact),
     ...getShippingMissingFields(details.shipping),
+    ...getBillingMissingFields(details.billing),
   ];
 }

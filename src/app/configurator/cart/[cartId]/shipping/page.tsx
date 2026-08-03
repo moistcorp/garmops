@@ -28,7 +28,7 @@ export default async function ShippingPage({ params }: ShippingPageProps) {
       await Promise.all([
         supabase
           .from("organizations")
-          .select("legal_name, display_name, gstin, billing_email")
+          .select("gstin, billing_email")
           .eq("id", membership.organization_id)
           .maybeSingle(),
         supabase
@@ -51,11 +51,9 @@ export default async function ShippingPage({ params }: ShippingPageProps) {
       ]);
 
     accountDefaults = {
-      companyName:
-        organization?.legal_name ?? organization?.display_name ?? "",
       gstin: organization?.gstin ?? "",
       firstName: profile?.first_name ?? "",
-      lastName: profile?.last_name ?? "",
+      lastName: profile?.last_name === "Account" ? "" : profile?.last_name ?? "",
       email: user.email ?? "",
       phone: profile?.phone?.replace(/^\+91/, "") ?? "",
       billingEmail: organization?.billing_email ?? user.email ?? "",

@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import { MapPin, UserRound } from "lucide-react";
+import { MapPin, ReceiptText, UserRound } from "lucide-react";
 import { DeliveryDatePicker } from "@/components/configurator/cart/DeliveryDatePicker";
 import {
   AddressForm,
@@ -25,6 +25,8 @@ import {
 } from "@/components/configurator/ConfiguratorTopBar";
 import {
   getProcurementMissingFields,
+  isGstinValid,
+  type BillingInformation,
   type CompanyInformation,
   type ProjectContact,
   type ShippingInformation,
@@ -51,7 +53,6 @@ export interface BillingShippingStepProps {
 }
 
 export type CheckoutAccountDefaults = Readonly<{
-  companyName: string;
   gstin: string;
   firstName: string;
   lastName: string;
@@ -89,12 +90,12 @@ function formatIndianPhone(value: string): string {
 }
 
 const FIELD_ID_MAP: Record<string, string> = {
-  "company.name": "company-name",
   "contact.firstName": "contact-first-name",
   "contact.lastName": "contact-last-name",
   "contact.email": "contact-email",
   "contact.phone": "contact-phone",
   "shipping.recipientName": "contact-first-name",
+  "billing.gstin": "billing-gstin",
 };
 
 function sectionHeading(
@@ -133,22 +134,25 @@ function withInferredCheckoutDetails(
     ...draft.shippingInformation,
     recipientName: contactName,
   };
-  const savedBillingAddress = accountDefaults?.billingAddress;
-  const billingAddress = savedBillingAddress?.addressLine1.trim()
-    ? savedBillingAddress
-    : shippingInformation.address;
+  const billingAddress = draft.billingInformation.sameAsCompanyAddress
+    ? shippingInformation.address
+    : draft.billingInformation.address;
+  const gstin =
+    draft.billingInformation.gstin || draft.companyInformation.gstin;
   const companyInformation = {
     ...draft.companyInformation,
+    name: contactName,
+    gstin,
     address: billingAddress,
   };
   const billingInformation = {
     ...draft.billingInformation,
-    sameAsCompanyAddress: true,
-    entity: companyInformation.name,
-    address: billingAddress,
+    entity: contactName,
     accountsPayableEmail:
-      accountDefaults?.billingEmail || draft.projectContact.email,
-    gstin: companyInformation.gstin,
+      draft.billingInformation.accountsPayableEmail ||
+      accountDefaults?.billingEmail ||
+      draft.projectContact.email,
+    gstin,
   };
 
   return {
@@ -167,12 +171,12 @@ function withAccountDefaults(
   const value = (current: string, fallback: string) =>
     current.trim() ? current : fallback;
   const shippingAddress = draft.shippingInformation.address;
+  const billingAddress = draft.billingInformation.address;
 
   return {
     ...draft,
     companyInformation: {
       ...draft.companyInformation,
-      name: value(draft.companyInformation.name, defaults.companyName),
       gstin: value(draft.companyInformation.gstin, defaults.gstin),
     },
     projectContact: {
@@ -199,6 +203,31 @@ function withAccountDefaults(
         state: value(
           shippingAddress.state ?? "",
           defaults.shippingAddress.state ?? "",
+        ),
+      },
+    },
+    billingInformation: {
+      ...draft.billingInformation,
+      accountsPayableEmail: value(
+        draft.billingInformation.accountsPayableEmail,
+        defaults.billingEmail || defaults.email,
+      ),
+      gstin: value(draft.billingInformation.gstin, defaults.gstin),
+      address: {
+        country: value(billingAddress.country, defaults.billingAddress.country),
+        addressLine1: value(
+          billingAddress.addressLine1,
+          defaults.billingAddress.addressLine1,
+        ),
+        addressLine2: value(
+          billingAddress.addressLine2 ?? "",
+          defaults.billingAddress.addressLine2 ?? "",
+        ),
+        zip: value(billingAddress.zip, defaults.billingAddress.zip),
+        city: value(billingAddress.city, defaults.billingAddress.city),
+        state: value(
+          billingAddress.state ?? "",
+          defaults.billingAddress.state ?? "",
         ),
       },
     },
@@ -318,6 +347,13 @@ export function BillingShippingStep({
     [updateDraft]
   );
 
+  const updateBilling = useCallback(
+    (billingInformation: BillingInformation) => {
+      updateDraft({ billingInformation });
+    },
+    [updateDraft]
+  );
+
   const deliveryLabel = useMemo(
     () => formatDeliveryLabel(draft.deliveryType, selectedDeliveryDate),
     [selectedDeliveryDate, draft.deliveryType]
@@ -365,9 +401,11 @@ export function BillingShippingStep({
     const addressKey = first?.key.split(".").at(-1);
     const targetId = first?.key.startsWith("shipping.address")
       ? `shipping-address-${addressKey}`
-      : first
-        ? FIELD_ID_MAP[first.key]
-        : "delivery-target";
+      : first?.key.startsWith("billing.address")
+        ? `billing-address-${addressKey}`
+        : first
+          ? FIELD_ID_MAP[first.key]
+          : "delivery-target";
 
     if (!targetId) return;
     const element = document.getElementById(targetId);
@@ -438,8 +476,8 @@ export function BillingShippingStep({
               Delivery details
             </h1>
             <p className="mt-1 max-w-2xl text-sm leading-relaxed text-[var(--text-primary)]/55">
-              Just the essentials for your reservation. Invoice and procurement
-              details can be shared after our team reviews the order.
+              Confirm your contact, delivery and billing details. Saved account
+              information is filled automatically and updated when you continue.
             </p>
           </div>
 
@@ -481,23 +519,6 @@ export function BillingShippingStep({
               "Who should receive order updates and coordinate the delivery?"
             )}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="sm:col-span-2">
-                <label htmlFor="company-name" className={LABEL_CLASS}>
-                  Company name *
-                </label>
-                <input
-                  id="company-name"
-                  autoComplete="organization"
-                  className={INPUT_CLASS}
-                  value={draft.companyInformation.name}
-                  onChange={(event) =>
-                    updateCompany({
-                      ...draft.companyInformation,
-                      name: event.target.value,
-                    })
-                  }
-                />
-              </div>
               <div>
                 <label htmlFor="contact-first-name" className={LABEL_CLASS}>
                   First name *
@@ -604,6 +625,81 @@ export function BillingShippingStep({
                 updateShipping({ ...draft.shippingInformation, address })
               }
             />
+          </section>
+
+          <section
+            id="billing-information"
+            className="techpack-panel scroll-mt-16 rounded-[4px] border p-5"
+          >
+            {sectionHeading(
+              "04",
+              <ReceiptText size={18} />,
+              "Billing & GST",
+              "GSTIN is optional. Add it when you need a GST invoice; it will be saved to your account."
+            )}
+            <div className="space-y-5">
+              <div>
+                <label htmlFor="billing-gstin" className={LABEL_CLASS}>
+                  GSTIN <span className="font-normal text-[var(--text-primary)]/45">(optional)</span>
+                </label>
+                <input
+                  id="billing-gstin"
+                  autoComplete="off"
+                  className={`${INPUT_CLASS} uppercase`}
+                  maxLength={15}
+                  placeholder="22AAAAA0000A1Z5"
+                  value={draft.billingInformation.gstin}
+                  onChange={(event) => {
+                    const gstin = event.target.value
+                      .toUpperCase()
+                      .replace(/[^0-9A-Z]/g, "")
+                      .slice(0, 15);
+                    updateBilling({ ...draft.billingInformation, gstin });
+                    updateCompany({ ...draft.companyInformation, gstin });
+                  }}
+                />
+                {draft.billingInformation.gstin &&
+                  !isGstinValid(draft.billingInformation.gstin) && (
+                    <p className="mt-1 text-xs text-red-600">
+                      Enter a valid 15-character GSTIN.
+                    </p>
+                  )}
+              </div>
+
+              <label className="flex cursor-pointer items-start gap-3 rounded-[4px] border border-[var(--color-rule)] p-3 text-sm text-[var(--text-primary)]/75">
+                <input
+                  type="checkbox"
+                  checked={draft.billingInformation.sameAsCompanyAddress}
+                  onChange={(event) =>
+                    updateBilling({
+                      ...draft.billingInformation,
+                      sameAsCompanyAddress: event.target.checked,
+                    })
+                  }
+                  className="mt-0.5 h-4 w-4 accent-[var(--color-accent)]"
+                />
+                <span>
+                  <strong className="block font-medium text-[var(--text-primary)]">
+                    Billing address same as delivery address
+                  </strong>
+                  <span className="mt-0.5 block text-xs leading-relaxed text-[var(--text-primary)]/50">
+                    Uncheck this to enter a different billing address.
+                  </span>
+                </span>
+              </label>
+
+              {!draft.billingInformation.sameAsCompanyAddress && (
+                <AddressForm
+                  compact
+                  showCountry={false}
+                  idPrefix="billing-address"
+                  value={draft.billingInformation.address}
+                  onChange={(address) =>
+                    updateBilling({ ...draft.billingInformation, address })
+                  }
+                />
+              )}
+            </div>
           </section>
         </div>
 

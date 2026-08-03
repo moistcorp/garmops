@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getServerEnvironment } from "@/lib/config/env";
+import { finalizeCustomCheckoutPayment } from "@/lib/orders/service";
 import {
   paymentEventFingerprint,
   parseRupeesToPaise,
@@ -17,11 +18,12 @@ import type { Json } from "@/types/database.generated";
 type IncomingSource = "callback" | "webhook";
 type PaymentOutcome = "success" | "failure" | "pending";
 
-type ProcessResult = {
+export type ProcessResult = {
   outcome: PaymentOutcome;
   attemptId: string;
-  orderNumber: string;
+  orderNumber?: string;
   duplicate: boolean;
+  redirectPath?: string;
 };
 
 type PaymentAttemptForProcessing = {
@@ -32,6 +34,28 @@ type PaymentAttemptForProcessing = {
   provider_merchant_txn_id: string;
   purpose: string;
   created_at?: string;
+};
+
+type CustomCheckoutAttempt = {
+  id: string;
+  checkout_session_id: string;
+  amount_paise: number;
+  currency: string;
+  provider_merchant_txn_id: string;
+  expected_product_info: string;
+  customer_email: string;
+  customer_name: string;
+  status: string;
+  provider_payment_id: string | null;
+  raw_verified_snapshot: Record<string, unknown> | null;
+  custom_checkout_sessions: {
+    id: string;
+    cart_id: string;
+    return_path: string;
+    status: string;
+    final_order_number: string | null;
+    final_payment_attempt_id: string | null;
+  };
 };
 
 function storedPayload(fields: PayuIncomingFields): Record<string, unknown> {
@@ -50,9 +74,7 @@ function storedPayload(fields: PayuIncomingFields): Record<string, unknown> {
   };
 }
 
-function fingerprintPayload(
-  fields: PayuIncomingFields,
-): Record<string, unknown> {
+function fingerprintPayload(fields: PayuIncomingFields): Record<string, unknown> {
   return {
     key: fields.key,
     txnid: fields.txnid,
@@ -76,7 +98,7 @@ function fingerprintPayload(
 }
 
 function outcomeFromAttemptStatus(status: string | undefined): PaymentOutcome {
-  if (status === "paid") return "success";
+  if (status === "paid" || status === "completed") return "success";
   if (status === "failed" || status === "cancelled") return "failure";
   return "pending";
 }
@@ -202,10 +224,289 @@ async function persistVerificationEvent(
   if (error) throw new Error(error.message);
 }
 
+function checkoutAdmin() {
+  return createAdminClient() as unknown as { from: (table: string) => any };
+}
+
+function customReturnPath(
+  attempt: CustomCheckoutAttempt,
+  outcome: PaymentOutcome,
+): string {
+  const separator = attempt.custom_checkout_sessions.return_path.includes("?")
+    ? "&"
+    : "?";
+  return `${attempt.custom_checkout_sessions.return_path}${separator}payment=${outcome}&checkoutAttempt=${encodeURIComponent(attempt.id)}`;
+}
+
+async function persistCustomVerificationEvent(
+  attemptId: string,
+  source: "verify_api" | "reconciliation",
+  verification: PayuVerificationResult,
+) {
+  const admin = checkoutAdmin();
+  const fingerprint = paymentEventFingerprint(source, {
+    txnid: verification.merchantTransactionId,
+    ...verification.snapshot,
+  });
+  const { error } = await admin
+    .from("custom_checkout_payment_events")
+    .upsert(
+      {
+        checkout_payment_attempt_id: attemptId,
+        provider: "payu",
+        event_source: source,
+        provider_event_id: verification.providerPaymentId,
+        event_fingerprint: fingerprint,
+        event_type: verification.status,
+        authentic: true,
+        processed: true,
+        processed_at: new Date().toISOString(),
+        payload: verification.snapshot,
+      },
+      {
+        onConflict: "provider,event_fingerprint",
+        ignoreDuplicates: true,
+      },
+    );
+  if (error) throw new Error(error.message);
+}
+
+async function applyCustomVerification(
+  attempt: CustomCheckoutAttempt,
+  verification: PayuVerificationResult,
+): Promise<ProcessResult> {
+  const admin = checkoutAdmin();
+  if (
+    verification.amountPaise !== null &&
+    verification.amountPaise !== attempt.amount_paise
+  ) {
+    throw new Error("Verified PayU amount does not match the checkout payment");
+  }
+
+  if (verification.status === "success") {
+    if (!verification.providerPaymentId || verification.amountPaise === null) {
+      throw new Error("PayU success response is incomplete");
+    }
+    const finalized = await finalizeCustomCheckoutPayment({
+      checkoutPaymentAttemptId: attempt.id,
+      providerPaymentId: verification.providerPaymentId,
+      verifiedAmountPaise: verification.amountPaise,
+      verifiedSnapshot: verification.snapshot,
+    });
+    return {
+      outcome: "success",
+      attemptId: finalized.paymentAttemptId,
+      orderNumber: finalized.orderNumber,
+      duplicate: finalized.alreadyFinalized,
+    };
+  }
+
+  const failed = verification.status === "failed";
+  const status = failed ? "failed" : "pending";
+  const now = new Date().toISOString();
+  const { error: attemptError } = await admin
+    .from("custom_checkout_payment_attempts")
+    .update({
+      status,
+      provider_payment_id: verification.providerPaymentId,
+      failure_code: verification.failureCode,
+      failure_message: verification.failureMessage,
+      raw_verified_snapshot: verification.snapshot,
+      failed_at: failed ? now : null,
+    })
+    .eq("id", attempt.id)
+    .not("status", "in", "(paid,completed)");
+  if (attemptError) throw new Error(attemptError.message);
+  const { error: sessionError } = await admin
+    .from("custom_checkout_sessions")
+    .update({ status: failed ? "failed" : "payment_pending" })
+    .eq("id", attempt.checkout_session_id)
+    .neq("status", "finalized");
+  if (sessionError) throw new Error(sessionError.message);
+
+  return {
+    outcome: failed ? "failure" : "pending",
+    attemptId: attempt.id,
+    duplicate: false,
+    redirectPath: customReturnPath(attempt, failed ? "failure" : "pending"),
+  };
+}
+
+async function readCustomAttemptByTransaction(
+  transactionId: string,
+): Promise<CustomCheckoutAttempt | null> {
+  const admin = checkoutAdmin();
+  const { data, error } = await admin
+    .from("custom_checkout_payment_attempts")
+    .select(
+      "id, checkout_session_id, amount_paise, currency, provider_merchant_txn_id, expected_product_info, customer_email, customer_name, status, provider_payment_id, raw_verified_snapshot, custom_checkout_sessions!inner(id, cart_id, return_path, status, final_order_number, final_payment_attempt_id)",
+    )
+    .eq("provider_merchant_txn_id", transactionId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return (data as CustomCheckoutAttempt | null) ?? null;
+}
+
+async function processCustomCheckoutPayuEvent(
+  source: IncomingSource,
+  fields: PayuIncomingFields,
+): Promise<ProcessResult | null> {
+  const attempt = await readCustomAttemptByTransaction(fields.txnid);
+  if (!attempt) return null;
+
+  const admin = checkoutAdmin();
+  const environment = getServerEnvironment();
+  const fingerprint = paymentEventFingerprint(source, fingerprintPayload(fields));
+  const { data: inserted, error: insertError } = await admin
+    .from("custom_checkout_payment_events")
+    .insert({
+      checkout_payment_attempt_id: attempt.id,
+      provider: "payu",
+      event_source: source,
+      provider_event_id: fields.mihpayid || null,
+      event_fingerprint: fingerprint,
+      event_type: fields.status || "unknown",
+      authentic: false,
+      processed: false,
+      payload: storedPayload(fields),
+    })
+    .select("id")
+    .maybeSingle();
+
+  if (insertError?.code === "23505") {
+    const refreshed = await readCustomAttemptByTransaction(fields.txnid);
+    if (!refreshed) throw new Error("Checkout payment attempt disappeared");
+    if (
+      refreshed.status === "paid" &&
+      refreshed.provider_payment_id &&
+      refreshed.raw_verified_snapshot
+    ) {
+      const finalized = await finalizeCustomCheckoutPayment({
+        checkoutPaymentAttemptId: refreshed.id,
+        providerPaymentId: refreshed.provider_payment_id,
+        verifiedAmountPaise: refreshed.amount_paise,
+        verifiedSnapshot: refreshed.raw_verified_snapshot,
+      });
+      return {
+        outcome: "success",
+        attemptId: finalized.paymentAttemptId,
+        orderNumber: finalized.orderNumber,
+        duplicate: true,
+      };
+    }
+    const outcome = outcomeFromAttemptStatus(refreshed.status);
+    return {
+      outcome,
+      attemptId: refreshed.id,
+      orderNumber:
+        refreshed.custom_checkout_sessions.final_order_number ?? undefined,
+      duplicate: true,
+      redirectPath:
+        outcome === "success" ? undefined : customReturnPath(refreshed, outcome),
+    };
+  }
+  if (insertError || !inserted) {
+    throw new Error("Checkout payment event could not be persisted");
+  }
+
+  let responseAuthentic = false;
+  try {
+    if (
+      !environment.PAYU_MERCHANT_KEY ||
+      !environment.PAYU_SALT ||
+      fields.key !== environment.PAYU_MERCHANT_KEY ||
+      !verifyPaymentResponseHash(fields, environment.PAYU_SALT)
+    ) {
+      throw new Error("Invalid PayU response hash");
+    }
+
+    const expectedAmount = parseRupeesToPaise(fields.amount);
+    const expectedFirstName =
+      attempt.customer_name.trim().split(/\s+/)[0]?.slice(0, 60) || "Customer";
+    if (
+      expectedAmount !== attempt.amount_paise ||
+      fields.productinfo !== attempt.expected_product_info ||
+      fields.email.toLowerCase() !== attempt.customer_email.toLowerCase() ||
+      fields.firstname !== expectedFirstName ||
+      fields.udf1 !== attempt.id ||
+      fields.udf2 !== "" ||
+      fields.udf3 !== "" ||
+      fields.udf4 !== "" ||
+      fields.udf5 !== ""
+    ) {
+      throw new Error("PayU response does not match the checkout payment");
+    }
+
+    responseAuthentic = true;
+    const { error: authenticError } = await admin
+      .from("custom_checkout_payment_events")
+      .update({ authentic: true })
+      .eq("id", inserted.id);
+    if (authenticError) throw new Error(authenticError.message);
+
+    const verification = await verifyPayuPayment(fields.txnid);
+    await persistCustomVerificationEvent(attempt.id, "verify_api", verification);
+    const result = await applyCustomVerification(attempt, verification);
+
+    const { error: processedError } = await admin
+      .from("custom_checkout_payment_events")
+      .update({
+        processed: true,
+        processed_at: new Date().toISOString(),
+        processing_error: null,
+      })
+      .eq("id", inserted.id);
+    if (processedError) throw new Error(processedError.message);
+    return result;
+  } catch (processingError) {
+    const message =
+      processingError instanceof Error
+        ? processingError.message
+        : "Checkout payment processing failed";
+    await admin
+      .from("custom_checkout_payment_events")
+      .update({
+        processed: true,
+        processed_at: new Date().toISOString(),
+        processing_error: message.slice(0, 1000),
+      })
+      .eq("id", inserted.id);
+
+    if (responseAuthentic) {
+      await admin
+        .from("custom_checkout_payment_attempts")
+        .update({
+          status: "pending",
+          provider_payment_id: fields.mihpayid || null,
+          failure_code: "VERIFICATION_PENDING",
+          failure_message:
+            "PayU responded authentically, but order finalisation requires reconciliation",
+        })
+        .eq("id", attempt.id)
+        .not("status", "in", "(paid,completed)");
+      await admin
+        .from("custom_checkout_sessions")
+        .update({ status: "payment_pending" })
+        .eq("id", attempt.checkout_session_id)
+        .neq("status", "finalized");
+      return {
+        outcome: "pending",
+        attemptId: attempt.id,
+        duplicate: false,
+        redirectPath: customReturnPath(attempt, "pending"),
+      };
+    }
+    throw processingError;
+  }
+}
+
 export async function processPayuEvent(
   source: IncomingSource,
   fields: PayuIncomingFields,
 ): Promise<ProcessResult> {
+  const customResult = await processCustomCheckoutPayuEvent(source, fields);
+  if (customResult) return customResult;
+
   const admin = createAdminClient();
   const environment = getServerEnvironment();
 
@@ -221,10 +522,7 @@ export async function processPayuEvent(
   const orderNumber = (
     attempt.orders as unknown as { order_number: string }
   ).order_number;
-  const fingerprint = paymentEventFingerprint(
-    source,
-    fingerprintPayload(fields),
-  );
+  const fingerprint = paymentEventFingerprint(source, fingerprintPayload(fields));
   const { data: inserted, error: insertError } = await admin
     .from("payment_events")
     .insert({
@@ -271,8 +569,7 @@ export async function processPayuEvent(
 
     const expectedAmount = parseRupeesToPaise(fields.amount);
     const expectedFirstName =
-      attempt.customer_name.trim().split(/\s+/)[0]?.slice(0, 60) ||
-      "Customer";
+      attempt.customer_name.trim().split(/\s+/)[0]?.slice(0, 60) || "Customer";
     if (
       expectedAmount !== attempt.amount_paise ||
       fields.productinfo !== attempt.expected_product_info ||
@@ -399,4 +696,42 @@ export async function reconcilePayuAttempt(
     orderNumber,
     duplicate: false,
   };
+}
+
+export async function reconcileCustomCheckoutPayuAttempt(
+  checkoutAttemptId: string,
+): Promise<ProcessResult> {
+  const admin = checkoutAdmin();
+  const { data, error } = await admin
+    .from("custom_checkout_payment_attempts")
+    .select(
+      "id, checkout_session_id, amount_paise, currency, provider_merchant_txn_id, expected_product_info, customer_email, customer_name, status, provider_payment_id, raw_verified_snapshot, created_at, custom_checkout_sessions!inner(id, cart_id, return_path, status, final_order_number, final_payment_attempt_id)",
+    )
+    .eq("id", checkoutAttemptId)
+    .single();
+  if (error || !data) throw new Error("Checkout payment attempt not found");
+  const attempt = data as CustomCheckoutAttempt & { created_at?: string };
+  const providerVerification = await verifyPayuPayment(
+    attempt.provider_merchant_txn_id,
+  );
+  const attemptAgeMs = attempt.created_at
+    ? Date.now() - new Date(attempt.created_at).getTime()
+    : 0;
+  const verification: PayuVerificationResult =
+    providerVerification.status === "unknown" &&
+    attemptAgeMs >= 2 * 60 * 60 * 1000
+      ? {
+          ...providerVerification,
+          status: "failed",
+          failureCode: "PAYU_TRANSACTION_NOT_FOUND",
+          failureMessage:
+            "PayU did not return a transaction after the reconciliation grace period",
+          snapshot: {
+            ...providerVerification.snapshot,
+            reconciliation_classification: "abandoned_after_grace_period",
+          },
+        }
+      : providerVerification;
+  await persistCustomVerificationEvent(attempt.id, "reconciliation", verification);
+  return applyCustomVerification(attempt, verification);
 }

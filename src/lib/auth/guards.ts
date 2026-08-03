@@ -3,6 +3,7 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { safeInternalPath } from "@/lib/auth/redirects";
+import { ensurePersonalCustomerAccount } from "@/lib/auth/ensurePersonalCustomerAccount";
 import type { StaffRole } from "@/lib/auth/constants";
 import type { StaffPermission } from "@/lib/staff/permissions";
 
@@ -26,7 +27,7 @@ export async function requireVerifiedUser(next = "/account") {
 
 export async function requireOrganizationMember(next = "/account") {
   const context = await requireVerifiedUser(next);
-  const { data, error } = await context.supabase
+  let { data, error } = await context.supabase
     .from("organization_members")
     .select("organization_id, role, status")
     .eq("user_id", context.user.id)
@@ -36,7 +37,24 @@ export async function requireOrganizationMember(next = "/account") {
     .maybeSingle();
 
   if (error) redirect("/auth/error?code=ACCOUNT_ACCESS_FAILED");
-  if (!data) redirect("/account/onboarding");
+  if (!data) {
+    try {
+      await ensurePersonalCustomerAccount(context.supabase);
+      const retry = await context.supabase
+        .from("organization_members")
+        .select("organization_id, role, status")
+        .eq("user_id", context.user.id)
+        .eq("status", "active")
+        .order("created_at")
+        .limit(1)
+        .maybeSingle();
+      data = retry.data;
+      error = retry.error;
+    } catch {
+      redirect("/auth/error?code=ACCOUNT_ACCESS_FAILED");
+    }
+  }
+  if (error || !data) redirect("/auth/error?code=ACCOUNT_ACCESS_FAILED");
   return { ...context, membership: data };
 }
 

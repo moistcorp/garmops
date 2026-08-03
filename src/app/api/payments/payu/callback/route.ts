@@ -74,6 +74,12 @@ export async function POST(request: NextRequest) {
 
   try {
     const result = await processPayuEvent("callback", await readForm(request));
+    if (result.redirectPath) {
+      return NextResponse.redirect(
+        new URL(result.redirectPath, getServerEnvironment().NEXT_PUBLIC_APP_URL),
+        303,
+      );
+    }
     const path =
       result.outcome === "failure"
         ? "/payment/failure"
