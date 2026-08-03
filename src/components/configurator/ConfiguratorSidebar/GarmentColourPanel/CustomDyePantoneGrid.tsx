@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { PantoneColour } from "@/lib/configurator/colours";
+import type { PantoneColour } from "@/lib/configurator/pantoneLibrary";
 
 interface CustomDyePantoneGridProps {
   colours: PantoneColour[];

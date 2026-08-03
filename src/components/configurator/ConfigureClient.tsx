@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
+import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronUp, Cloud, CloudAlert, LoaderCircle } from "lucide-react";
 import type { GarmentView } from "@/lib/configurator/types/garment";
@@ -31,7 +32,7 @@ import {
   buildPricingBreakdown,
   getConfiguredPricingSummary,
 } from "@/lib/configurator/pricing";
-import { CUSTOM_DYE_MOQ_UNITS } from "@/lib/configurator/colours";
+import { CUSTOM_DYE_MOQ_UNITS } from "@/lib/configurator/colourRules";
 import {
   readDraft,
   totalUnits,
@@ -50,10 +51,8 @@ import {
   restoreConfigurationUploads,
   revokeObjectUrl,
 } from "@/lib/configurator/objectUrls";
-import { generateApprovalPdf } from "@/lib/configurator/approvalPdf";
 import { RESERVATION_FEE } from "@/lib/configurator/reservation";
 import { ActionFeedback, type ActionFeedbackTone } from "./ActionFeedback";
-import CustomerAuthDialog from "@/components/auth/CustomerAuthDialog";
 import { useCustomerSession } from "@/components/auth/useCustomerSession";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 import { readPreferredQuantity } from "@/lib/configurator/clientPreferences";
@@ -69,6 +68,10 @@ import {
   type CloudSaveConflict,
 } from "@/lib/designs/client";
 
+const CustomerAuthDialog = dynamic(
+  () => import("@/components/auth/CustomerAuthDialog"),
+  { loading: () => null },
+);
 
 interface FeedbackState {
   tone: ActionFeedbackTone;
@@ -992,6 +995,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         previewDataUrl = undefined;
       }
       setFeedback({ tone: "loading", title: "Adding commercial and production details…" });
+      const { generateApprovalPdf } = await import("@/lib/configurator/approvalPdf");
       await generateApprovalPdf({
         projectReference: configId,
         documentTitle: "Merch Design Summary",
@@ -1101,7 +1105,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
           </div>
         ) : null}
 
-        {accountsEnabled ? (
+        {accountsEnabled && authDialogOpen ? (
           <CustomerAuthDialog
             open={authDialogOpen}
             onClose={() => setAuthDialogOpen(false)}

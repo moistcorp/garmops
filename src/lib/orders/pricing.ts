@@ -1,4 +1,4 @@
-import { CUSTOM_DYE_MOQ_UNITS } from "../configurator/colours";
+import { CUSTOM_DYE_MOQ_UNITS } from "../configurator/colourRules";
 import {
   getConfiguredUnitPrice,
   getVolumeDiscountPercent,

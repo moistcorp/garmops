@@ -40,7 +40,7 @@ import {
   formatDeliveryLabel,
   isDeliverySelectionValid,
 } from "@/lib/configurator/delivery";
-import { CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS } from "@/lib/configurator/colours";
+import { CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS } from "@/lib/configurator/colourRules";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 import { ActionFeedback } from "@/components/configurator/ActionFeedback";
 import { formatSpecCode } from "@/lib/orders/format";

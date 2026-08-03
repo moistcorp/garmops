@@ -1,6 +1,6 @@
 "use client";
 
-import type { SignatureColour } from "@/lib/configurator/colours";
+import type { SignatureColour } from "@/lib/configurator/colourRules";
 
 interface SignatureColourGridProps {
   colours: SignatureColour[];

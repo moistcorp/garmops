@@ -24,7 +24,7 @@ import {
   type CartDraft,
 } from './cartDraft';
 import { formatInr } from '@/lib/configurator/pricing';
-import { CUSTOM_DYE_MOQ_UNITS } from '@/lib/configurator/colours';
+import { CUSTOM_DYE_MOQ_UNITS } from '@/lib/configurator/colourRules';
 import { getSizeChart } from '@/lib/sizecharts';
 import { getProduct } from '@/lib/configurator/products';
 import CanvasRenderer from '../GarmentPreview/CanvasRenderer';
@@ -32,7 +32,6 @@ import { NECK_PREVIEW_CANVAS_CLASS } from '../GarmentPreview/GarmentPreview';
 import ViewTabs from '../GarmentPreview/ViewTabs';
 import { ArtworkPositionProvider } from '@/lib/configurator/ArtworkPositionContext';
 import { restoreConfigurationUploads } from '@/lib/configurator/objectUrls';
-import { generateApprovalPdf } from '@/lib/configurator/approvalPdf';
 import { RESERVATION_FEE } from '@/lib/configurator/reservation';
 import { ActionFeedback, type ActionFeedbackTone } from '../ActionFeedback';
 import { trackConfiguratorEvent } from '@/lib/configurator/analytics';
@@ -242,6 +241,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
           previewDataUrls[item.id] = undefined;
         }
       });
+      const { generateApprovalPdf } = await import('@/lib/configurator/approvalPdf');
       await generateApprovalPdf({
         projectReference: cartId,
         documentTitle: draft.projectName.trim() || 'Merch Approval Proposal',

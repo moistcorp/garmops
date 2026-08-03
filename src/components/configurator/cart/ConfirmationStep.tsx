@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import {
   isAddressValid,
-  normalizeIndianPhone,
   type Address,
 } from "./AddressForm";
 import { CartSummarySidebar } from "./CartSummarySidebar";
@@ -38,23 +37,18 @@ import { getPaymentJourneyStep } from "@/lib/configurator/journey";
 import {
   CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS,
   CUSTOM_DYE_MOQ_UNITS,
-} from "@/lib/configurator/colours";
+} from "@/lib/configurator/colourRules";
 import { getProduct } from "@/lib/configurator/products";
-import {
-  RESERVATION_FEE,
-  RESERVATION_PRODUCT_INFO,
-} from "@/lib/configurator/reservation";
+import { RESERVATION_FEE } from "@/lib/configurator/reservation";
 import CanvasRenderer from "../GarmentPreview/CanvasRenderer";
 import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionContext";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 import { ActionFeedback } from "../ActionFeedback";
-import { submitPayuCheckout } from "@/lib/payuClient";
 import { prepareAndSubmitDurableOrder } from "@/lib/orders/client";
 
 export interface ConfirmationStepProps {
   cartId: string;
-  durableCheckoutEnabled: boolean;
-  organizationId?: string;
+  organizationId: string;
 }
 
 function joinAddress(address: Address): string {
@@ -72,7 +66,6 @@ function joinAddress(address: Address): string {
 
 export function ConfirmationStep({
   cartId,
-  durableCheckoutEnabled,
   organizationId,
 }: ConfirmationStepProps) {
   const router = useRouter();
@@ -188,9 +181,6 @@ export function ConfirmationStep({
       deliveryBaseDate,
       extraLeadTimeDays
     );
-    const firstname = projectContact.firstName.trim();
-    const email = projectContact.email.trim();
-
     if (!hasValidItems || procurementMissing.length > 0 || !deliveryComplete) {
       trackConfiguratorEvent("checkout_validation_error", {
         cart_id: cartId,
@@ -211,13 +201,7 @@ export function ConfirmationStep({
     });
     setIsProcessing(true);
 
-    if (durableCheckoutEnabled) {
-      if (!organizationId) {
-        setPaymentError("Your organization could not be loaded.");
-        setIsProcessing(false);
-        return;
-      }
-
+    try {
       const result = await prepareAndSubmitDurableOrder({
         cartId,
         organizationId,
@@ -244,146 +228,17 @@ export function ConfirmationStep({
         cart_id: cartId,
         error: result.message,
       });
-      return;
-    }
-
-    const randomSuffix = crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
-    const txnid = `MF${Date.now().toString(36)}${randomSuffix}`;
-    const amount = RESERVATION_FEE.toFixed(2);
-    const productinfo = RESERVATION_PRODUCT_INFO;
-    const payuPhone = normalizeIndianPhone(projectContact.phone);
-
-    try {
-      const response = await fetch("/api/payu/hash", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ txnid, amount, productinfo, firstname, email }),
-      });
-
-      const payment = await response.json();
-      if (
-        !response.ok ||
-        payment.amount !== amount ||
-        typeof payment.productinfo !== "string" ||
-        typeof payment.udf1 !== "string"
-      ) {
-        throw new Error(payment.error || "Unable to start payment");
-      }
-      if (!payment.mockPayment && (!payment.hash || !payment.key)) {
-        throw new Error("PayU returned an invalid payment response");
-      }
-
-      const shippingAddress = draft.shippingInformation.address;
-      const purchaseOrder = draft.billingInformation.purchaseOrder;
-      window.localStorage.setItem(
-        "mf_pending_order",
-        JSON.stringify({
-          kind: "configurator",
-          mockPayment: Boolean(payment.mockPayment),
-          txnid,
-          name: `${projectContact.firstName} ${projectContact.lastName}`.trim(),
-          email,
-          amount,
-          projectName: draft.projectName,
-          companyName: draft.companyInformation.name,
-          companyGstin: draft.companyInformation.gstin,
-          companyWebsite: draft.companyInformation.website,
-          industry: draft.companyInformation.industry,
-          department: projectContact.department,
-          phone: projectContact.phone,
-          billingEntity,
-          accountsPayableEmail: billingEmail,
-          billingGstin: draft.billingInformation.gstin,
-          billingAddress: joinAddress(billingAddress),
-          poNumber: draft.companyInformation.poNumber,
-          costCentre: draft.companyInformation.costCentre,
-          poFileKey: purchaseOrder?.fileKey,
-          poFileName: purchaseOrder?.fileName,
-          poFileType: purchaseOrder?.fileType,
-          orderNotes: draft.projectPreferences.orderNotes,
-          multipleLocations: draft.shippingInformation.multipleLocations,
-          multipleLocationsNotes: draft.shippingInformation.multipleLocationsNotes,
-          targetDelivery: delivery,
-          product: draft.items.map((item) => item.productName).join(", "),
-          color: draft.items.map((item) => item.colour.name || "Bright White").join(", "),
-          technique: draft.items
-            .flatMap((item) => [item.artwork.front?.technique, item.artwork.back?.technique])
-            .filter(Boolean)
-            .join(", ") || "To be reviewed",
-          placements: draft.items
-            .map((item) =>
-              [item.artwork.front?.fileUrl && "Front", item.artwork.back?.fileUrl && "Back"]
-                .filter(Boolean)
-                .join(" + ")
-            )
-            .filter(Boolean)
-            .join(", "),
-          neckLabel: draft.items.some((item) => item.neckLabel?.fileUrl)
-            ? "Added"
-            : "Not added",
-          totalQty: draft.items.reduce(
-            (sum, item) => sum + totalUnits(item.sizeQuantities),
-            0
-          ),
-          sizeBreakdown: draft.items
-            .map((item) => {
-              const sizes = getProduct(item.productId)?.sizes ?? Object.keys(item.sizeQuantities);
-              return `${item.productName}: ${sizes
-                .map((size) => `${size}: ${item.sizeQuantities[size] ?? 0}`)
-                .join(", ")}`;
-            })
-            .join(" | "),
-          estimatedTotal: formatInr(orderTotal),
-          retryHref: `/configurator/cart/${encodeURIComponent(cartId)}/confirmation`,
-          shipping: {
-            recipientName:
-              draft.shippingInformation.recipientName ||
-              `${projectContact.firstName} ${projectContact.lastName}`.trim(),
-            addressLine1: shippingAddress.addressLine1,
-            addressLine2: shippingAddress.addressLine2,
-            city: shippingAddress.city,
-            state: shippingAddress.state,
-            pincode: shippingAddress.zip,
-            country: shippingAddress.country,
-          },
-        })
-      );
-
-      if (payment.mockPayment) {
-        window.location.assign(`/api/payu/callback?token=${encodeURIComponent(payment.udf1)}`);
-        return;
-      }
-
-      const fields: Record<string, string> = {
-        key: payment.key,
-        txnid,
-        amount,
-        productinfo: payment.productinfo,
-        firstname,
-        lastname: projectContact.lastName,
-        email,
-        phone: payuPhone,
-        address1: billingAddress.addressLine1,
-        address2: billingAddress.addressLine2 ?? "",
-        city: billingAddress.city,
-        state: billingAddress.state ?? "",
-        zipcode: billingAddress.zip,
-        country: billingAddress.country,
-        hash: payment.hash,
-        udf1: payment.udf1,
-        surl: `${window.location.origin}/api/payu/callback`,
-        furl: `${window.location.origin}/api/payu/callback`,
-      };
-
-      submitPayuCheckout(fields);
     } catch (error) {
-      setPaymentError(
+      const message =
         error instanceof Error
           ? error.message
-          : "Could not start PayU payment. Please try again."
-      );
+          : "Your order could not be created. Please try again.";
+      setPaymentError(message);
       setIsProcessing(false);
-      trackConfiguratorEvent("payment_failed", { cart_id: cartId, error: error instanceof Error ? error.message : "unknown" });
+      trackConfiguratorEvent("durable_order_failed", {
+        cart_id: cartId,
+        error: message,
+      });
     }
   };
 
@@ -565,9 +420,7 @@ export function ConfirmationStep({
               </div>
               <div className="mt-4 flex items-center gap-2 border-t border-[var(--color-accent)]/20 pt-3 text-xs font-medium text-[var(--text-primary)]/65">
                 <CreditCard size={15} className="text-[var(--color-accent-dark)]" />
-                {durableCheckoutEnabled
-                  ? "Your order number and immutable specification are saved before PayU opens."
-                  : "Secure payment through PayU using UPI, card or net banking."}
+                Your order number and immutable specification are saved before PayU opens.
               </div>
             </div>
           </div>
@@ -615,12 +468,8 @@ export function ConfirmationStep({
           >
             {isProcessing && <LoaderCircle size={16} className="animate-spin" />}
             {isProcessing
-              ? durableCheckoutEnabled
-                ? "Creating your order…"
-                : "Opening secure payment…"
-              : durableCheckoutEnabled
-                ? `Lock spec & review payment — ${formatInr(RESERVATION_FEE)}`
-                : `Lock spec & reserve review — ${formatInr(RESERVATION_FEE)}`}
+              ? "Creating your order…"
+              : `Lock spec & review payment — ${formatInr(RESERVATION_FEE)}`}
           </button>
           {!termsAccepted && (
             <p className="text-center text-xs text-[var(--text-primary)]/55">Accept the reservation terms to continue.</p>

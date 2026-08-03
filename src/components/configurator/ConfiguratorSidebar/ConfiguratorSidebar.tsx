@@ -1,14 +1,32 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState } from "react";
 import { X } from "lucide-react";
 import GarmentColourPanel from "./GarmentColourPanel/GarmentColourPanel";
-import ArtworkPanel from "./ArtworkPanel/ArtworkPanel";
-import NeckLabelPanel from "./NeckLabelPanel/NeckLabelPanel";
 import type { GarmentColour, Artwork, NeckLabel } from "@/lib/configurator/types/configurator";
-import { SIGNATURE_COLOURS } from "@/lib/configurator/colours";
+import { SIGNATURE_COLOURS } from "@/lib/configurator/colourRules";
 import { revokeArtworkObjectUrls, revokeNeckLabelObjectUrl } from "@/lib/configurator/objectUrls";
 import type { GarmentView } from "@/lib/configurator/types/garment";
+
+function PanelLoading() {
+  return (
+    <div className="space-y-3" role="status" aria-live="polite">
+      <div className="h-16 animate-pulse rounded-[4px] bg-black/5" />
+      <div className="h-24 animate-pulse rounded-[4px] bg-black/5" />
+      <span className="sr-only">Loading configurator panel</span>
+    </div>
+  );
+}
+
+const ArtworkPanel = dynamic(
+  () => import("./ArtworkPanel/ArtworkPanel"),
+  { loading: PanelLoading },
+);
+const NeckLabelPanel = dynamic(
+  () => import("./NeckLabelPanel/NeckLabelPanel"),
+  { loading: PanelLoading },
+);
 
 export type AccordionStepId = "garment-colour" | "artwork" | "neck-label";
 

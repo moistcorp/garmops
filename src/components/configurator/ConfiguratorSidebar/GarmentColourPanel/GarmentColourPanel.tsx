@@ -1,15 +1,28 @@
 "use client";
 
+import dynamic from "next/dynamic";
+import { useState } from "react";
+
 import type { GarmentColour } from "@/lib/configurator/types/configurator";
 import {
   SIGNATURE_COLOURS,
-  PANTONE_COLOURS,
   CUSTOM_DYE_MOQ_UNITS,
   CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS,
-} from "@/lib/configurator/colours";
+} from "@/lib/configurator/colourRules";
+import type { PantoneColour } from "@/lib/configurator/pantoneLibrary";
 import { CUSTOM_DYE_UNIT_INCREASE_PERCENT, formatInr } from "@/lib/configurator/pricing";
 import SignatureColourGrid from "./SignatureColourGrid";
-import CustomDyePantoneGrid from "./CustomDyePantoneGrid";
+
+const CustomDyePantoneGrid = dynamic(
+  () => import("./CustomDyePantoneGrid"),
+  {
+    loading: () => (
+      <div className="techpack-subtle rounded-[4px] p-4 text-sm text-[var(--text-primary)]/55">
+        Preparing the Pantone browser…
+      </div>
+    ),
+  },
+);
 
 interface GarmentColourPanelProps {
   value: GarmentColour;
@@ -20,6 +33,9 @@ interface GarmentColourPanelProps {
 }
 
 export default function GarmentColourPanel({ value, onChange, unitBasePrice }: GarmentColourPanelProps) {
+  const [pantoneColours, setPantoneColours] = useState<PantoneColour[] | null>(null);
+  const [isLoadingPantones, setIsLoadingPantones] = useState(false);
+  const [pantoneError, setPantoneError] = useState("");
   const customDyeDeltaLabel =
     unitBasePrice !== undefined
       ? `+${formatInr((unitBasePrice * CUSTOM_DYE_UNIT_INCREASE_PERCENT) / 100)}/unit`
@@ -43,9 +59,23 @@ export default function GarmentColourPanel({ value, onChange, unitBasePrice }: G
     });
   }
 
+  async function loadPantoneLibrary() {
+    if (pantoneColours || isLoadingPantones) return;
+
+    setIsLoadingPantones(true);
+    setPantoneError("");
+    try {
+      const module = await import("@/lib/configurator/pantoneLibrary");
+      setPantoneColours(module.PANTONE_COLOURS);
+    } catch {
+      setPantoneError("The Pantone library could not be loaded. Please try again.");
+    } finally {
+      setIsLoadingPantones(false);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6">
-      {/* Section A — Signature */}
       <div className="flex flex-col gap-3">
         <div className="techpack-subtle flex items-center justify-between gap-2 rounded-[4px] px-3 py-2">
           <div>
@@ -65,7 +95,6 @@ export default function GarmentColourPanel({ value, onChange, unitBasePrice }: G
         />
       </div>
 
-      {/* Section B — Custom Dye */}
       <div className="flex flex-col gap-3 border-t border-white/55 pt-6">
         <div className="techpack-subtle flex items-center justify-between gap-2 rounded-[4px] px-3 py-2">
           <div>
@@ -86,11 +115,35 @@ export default function GarmentColourPanel({ value, onChange, unitBasePrice }: G
         <p className="text-xs leading-relaxed text-[var(--text-primary)]/55">
           Screen swatches are previews only. The final shade is confirmed using a physical lab dip before production.
         </p>
-        <CustomDyePantoneGrid
-          colours={PANTONE_COLOURS}
-          selectedCode={value.type === "custom_dye" ? value.name : null}
-          onSelect={handlePantoneSelect}
-        />
+
+        {pantoneColours ? (
+          <CustomDyePantoneGrid
+            colours={pantoneColours}
+            selectedCode={value.type === "custom_dye" ? value.name : null}
+            onSelect={handlePantoneSelect}
+          />
+        ) : (
+          <div className="techpack-subtle rounded-[4px] border border-dashed p-4">
+            {value.type === "custom_dye" ? (
+              <p className="mb-3 text-xs font-medium text-[var(--text-primary)]/70">
+                Current selection: {value.name}
+              </p>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => void loadPantoneLibrary()}
+              disabled={isLoadingPantones}
+              className="techpack-control w-full rounded-[4px] border px-4 py-2.5 text-sm font-semibold hover:!border-[var(--color-accent)]/45 hover:!bg-white/60 disabled:cursor-wait disabled:opacity-60"
+            >
+              {isLoadingPantones ? "Loading Pantone library…" : value.type === "custom_dye" ? "Change Pantone colour" : "Browse Pantone library"}
+            </button>
+            {pantoneError ? (
+              <p className="mt-2 text-xs text-red-700" role="alert">
+                {pantoneError}
+              </p>
+            ) : null}
+          </div>
+        )}
       </div>
     </div>
   );
