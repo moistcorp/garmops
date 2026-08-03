@@ -365,7 +365,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             <section key={item.id} className="techpack-panel rounded-[4px] border p-5">
               <div className="flex flex-col gap-5 md:flex-row">
                 <div className="w-full shrink-0 md:w-44">
-                  <div className="relative aspect-[3/4] overflow-hidden rounded-[4px] bg-[#F7F7F7]">
+                  <div className="relative isolate aspect-[3/4] overflow-hidden rounded-[4px] bg-[#F7F7F7]">
                     <div className="absolute inset-0 flex items-center justify-center">
                       <ArtworkPositionProvider activeView={selectedView}>
                         <CanvasRenderer
@@ -383,7 +383,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                         />
                       </ArtworkPositionProvider>
                     </div>
-                    <div className="absolute bottom-2 left-1/2 z-30 -translate-x-1/2">
+                    <div className="absolute bottom-2 left-1/2 z-10 -translate-x-1/2">
                       <ViewTabs
                         activeView={selectedView}
                         onChange={(view) =>

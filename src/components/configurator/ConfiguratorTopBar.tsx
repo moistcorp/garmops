@@ -71,7 +71,7 @@ export function ConfiguratorTopBar({
 }: ConfiguratorTopBarProps) {
   return (
     <div
-      className={`sticky top-0 z-30 ml-[calc(50%-50dvw)] w-dvw shrink-0 bg-(--color-studio-bg) px-4 py-3 sm:py-4 ${className}`}
+      className={`sticky top-0 z-40 ml-[calc(50%-50dvw)] w-dvw shrink-0 bg-(--color-studio-bg) px-4 py-3 sm:py-4 ${className}`}
     >
       <header className="overflow-hidden rounded-md border border-(--color-control-border) bg-white">
         <NetworkStatusBanner />
