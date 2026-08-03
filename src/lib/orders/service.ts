@@ -37,7 +37,7 @@ type SubmitCustomOrderRpcArgs = {
   p_design_version_id: string;
   p_file_ids: string[];
   p_customer_reference: string;
-  p_po_number: string | null;
+  p_po_number?: string;
   p_requested_delivery_date: string;
   p_expires_at: string;
 };
@@ -53,14 +53,19 @@ export type PreparedCustomOrder = {
 };
 
 function stableJson(value: unknown): string {
-  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (Array.isArray(value)) {
+    return `[${value.map(stableJson).join(",")}]`;
+  }
+
   if (value && typeof value === "object") {
     const object = value as Record<string, unknown>;
+
     return `{${Object.keys(object)
       .sort()
       .map((key) => `${JSON.stringify(key)}:${stableJson(object[key])}`)
       .join(",")}}`;
   }
+
   return JSON.stringify(value);
 }
 
@@ -70,12 +75,14 @@ export function hashOrderRequest(value: unknown): string {
 
 function phoneE164(value: string): string {
   const digits = value.replace(/\D/g, "");
+
   const national =
     digits.length === 12 && digits.startsWith("91")
       ? digits.slice(2)
       : digits.length === 11 && digits.startsWith("0")
         ? digits.slice(1)
         : digits;
+
   return `+91${national}`;
 }
 
@@ -108,15 +115,22 @@ async function saveDefaultAddress(input: {
   const admin = input.admin as unknown as {
     from: (table: string) => any;
   };
+
   const flag =
-    input.kind === "shipping" ? "is_default_shipping" : "is_default_billing";
+    input.kind === "shipping"
+      ? "is_default_shipping"
+      : "is_default_billing";
+
   const { data: existing, error: readError } = await admin
     .from("addresses")
     .select("id")
     .eq("organization_id", input.organizationId)
     .eq(flag, true)
     .maybeSingle();
-  if (readError) throw new Error(readError.message);
+
+  if (readError) {
+    throw new Error(readError.message);
+  }
 
   const values = {
     organization_id: input.organizationId,
@@ -135,9 +149,15 @@ async function saveDefaultAddress(input: {
   };
 
   const result = existing
-    ? await admin.from("addresses").update(values).eq("id", existing.id)
+    ? await admin
+        .from("addresses")
+        .update(values)
+        .eq("id", existing.id)
     : await admin.from("addresses").insert(values);
-  if (result.error) throw new Error(result.error.message);
+
+  if (result.error) {
+    throw new Error(result.error.message);
+  }
 }
 
 async function persistCheckoutAccountDetails(input: {
@@ -147,9 +167,16 @@ async function persistCheckoutAccountDetails(input: {
   const admin = createAdminClient() as unknown as {
     from: (table: string) => any;
   };
+
   const { user, request } = input;
-  const fullName = `${request.contact.firstName} ${request.contact.lastName}`.trim();
-  const gstin = request.billing.gstin || request.company.gstin || null;
+
+  const fullName =
+    `${request.contact.firstName} ${request.contact.lastName}`.trim();
+
+  const gstin =
+    request.billing.gstin ||
+    request.company.gstin ||
+    null;
 
   const { error: profileError } = await admin
     .from("profiles")
@@ -161,7 +188,10 @@ async function persistCheckoutAccountDetails(input: {
       onboarding_completed_at: new Date().toISOString(),
     })
     .eq("id", user.id);
-  if (profileError) throw new Error(profileError.message);
+
+  if (profileError) {
+    throw new Error(profileError.message);
+  }
 
   const { error: organizationError } = await admin
     .from("organizations")
@@ -171,10 +201,14 @@ async function persistCheckoutAccountDetails(input: {
       phone: phoneE164(request.contact.phone),
     })
     .eq("id", request.organizationId);
+
   if (organizationError) {
     if (organizationError.code === "23505") {
-      throw new Error("This GSTIN is already linked to another customer account");
+      throw new Error(
+        "This GSTIN is already linked to another customer account",
+      );
     }
+
     throw new Error(organizationError.message);
   }
 
@@ -186,6 +220,7 @@ async function persistCheckoutAccountDetails(input: {
     contactName: request.shipping.recipientName || fullName,
     phone: request.contact.phone,
   });
+
   await saveDefaultAddress({
     admin: createAdminClient(),
     organizationId: request.organizationId,
@@ -203,6 +238,7 @@ export async function prepareCustomOrder(input: {
   request: SubmitCustomOrderRequest;
 }): Promise<PreparedCustomOrder> {
   const { request, user, supabase } = input;
+
   const [
     membershipResult,
     projectResult,
@@ -218,23 +254,33 @@ export async function prepareCustomOrder(input: {
       .eq("status", "active")
       .in("role", ["owner", "buyer"])
       .maybeSingle(),
+
     supabase
       .from("design_projects")
-      .select("id, organization_id, status, schema_version, draft_revision, title")
+      .select(
+        "id, organization_id, status, schema_version, draft_revision, title",
+      )
       .eq("id", request.designProjectId)
       .eq("organization_id", request.organizationId)
       .maybeSingle(),
+
     supabase
       .from("design_project_versions")
-      .select("id, version_number, configuration_snapshot, created_at")
+      .select(
+        "id, version_number, configuration_snapshot, created_at",
+      )
       .eq("design_project_id", request.designProjectId)
       .eq("version_number", request.designVersion)
       .maybeSingle(),
+
     supabase
       .from("profiles")
-      .select("first_name, last_name, phone, job_title, department")
+      .select(
+        "first_name, last_name, phone, job_title, department",
+      )
       .eq("id", user.id)
       .maybeSingle(),
+
     supabase
       .from("organizations")
       .select(
@@ -245,8 +291,11 @@ export async function prepareCustomOrder(input: {
   ]);
 
   if (membershipResult.error || !membershipResult.data) {
-    throw new Error("Active owner or buyer access is required");
+    throw new Error(
+      "Active owner or buyer access is required",
+    );
   }
+
   if (
     projectResult.error ||
     !projectResult.data ||
@@ -254,12 +303,21 @@ export async function prepareCustomOrder(input: {
   ) {
     throw new Error("Design project is unavailable");
   }
+
   if (versionResult.error || !versionResult.data) {
-    throw new Error("Immutable design version is unavailable");
+    throw new Error(
+      "Immutable design version is unavailable",
+    );
   }
-  if (profileResult.error || !profileResult.data || !user.email) {
+
+  if (
+    profileResult.error ||
+    !profileResult.data ||
+    !user.email
+  ) {
     throw new Error("Customer profile is incomplete");
   }
+
   if (
     organizationResult.error ||
     !organizationResult.data ||
@@ -271,48 +329,71 @@ export async function prepareCustomOrder(input: {
   const snapshot = cloudDesignSnapshotSchema.parse(
     versionResult.data.configuration_snapshot,
   );
+
   const priced = priceCustomOrder({
     snapshot,
     sizeQuantities: request.sizeQuantities,
     deliveryType: request.deliveryType,
   });
+
   const fileIds = [
     ...priced.fileIds,
-    ...(request.purchaseOrderFileId ? [request.purchaseOrderFileId] : []),
+    ...(request.purchaseOrderFileId
+      ? [request.purchaseOrderFileId]
+      : []),
   ];
+
   const uniqueFileIds = [...new Set(fileIds)];
 
   if (uniqueFileIds.length) {
-    const { data: files, error: filesError } = await supabase
-      .from("order_files")
-      .select(
-        "id, design_project_id, uploaded_by, kind, visibility, upload_status, scan_status, deleted_at",
-      )
-      .in("id", uniqueFileIds);
+    const { data: files, error: filesError } =
+      await supabase
+        .from("order_files")
+        .select(
+          "id, design_project_id, uploaded_by, kind, visibility, upload_status, scan_status, deleted_at",
+        )
+        .in("id", uniqueFileIds);
+
     if (
       filesError ||
       !files ||
       files.length !== uniqueFileIds.length ||
       files.some(
         (file) =>
-          file.design_project_id !== request.designProjectId ||
+          file.design_project_id !==
+            request.designProjectId ||
           file.uploaded_by !== user.id ||
           file.visibility !== "customer" ||
           file.upload_status !== "finalized" ||
           file.deleted_at !== null ||
-          !["customer_artwork", "purchase_order"].includes(file.kind) ||
-          !["manual_review", "clean", "not_required"].includes(file.scan_status),
+          ![
+            "customer_artwork",
+            "purchase_order",
+          ].includes(file.kind) ||
+          ![
+            "manual_review",
+            "clean",
+            "not_required",
+          ].includes(file.scan_status),
       )
     ) {
-      throw new Error("A submitted file is unavailable or not finalized");
+      throw new Error(
+        "A submitted file is unavailable or not finalized",
+      );
     }
   }
 
-  const customerName = `${request.contact.firstName} ${request.contact.lastName}`.trim();
-  const submittedGstin = request.billing.gstin || request.company.gstin;
+  const customerName =
+    `${request.contact.firstName} ${request.contact.lastName}`.trim();
+
+  const submittedGstin =
+    request.billing.gstin ||
+    request.company.gstin;
+
   const billingSnapshot = {
     entity: request.billing.entity || customerName,
-    accountsPayableEmail: request.billing.accountsPayableEmail,
+    accountsPayableEmail:
+      request.billing.accountsPayableEmail,
     gstin: submittedGstin ?? null,
     address: addressSnapshot(
       request.billing.address,
@@ -320,6 +401,7 @@ export async function prepareCustomOrder(input: {
       request.contact.phone,
     ),
   };
+
   const shippingSnapshot = {
     recipientName: request.shipping.recipientName,
     address: addressSnapshot(
@@ -327,9 +409,12 @@ export async function prepareCustomOrder(input: {
       request.shipping.recipientName,
       request.contact.phone,
     ),
-    multipleLocations: request.shipping.multipleLocations,
-    multipleLocationsNotes: request.shipping.multipleLocationsNotes ?? null,
+    multipleLocations:
+      request.shipping.multipleLocations,
+    multipleLocationsNotes:
+      request.shipping.multipleLocationsNotes ?? null,
   };
+
   const customerSnapshot = {
     userId: user.id,
     accountEmail: user.email.toLowerCase(),
@@ -338,104 +423,165 @@ export async function prepareCustomOrder(input: {
     firstName: request.contact.firstName,
     lastName: request.contact.lastName,
     phone: phoneE164(request.contact.phone),
-    department: request.contact.department ?? null,
+    department:
+      request.contact.department ?? null,
   };
+
   const organization = organizationResult.data;
+
   const companySnapshot = {
     organizationId: organization.id,
     legalName: organization.legal_name,
     displayName: organization.display_name,
-    gstin: submittedGstin ?? organization.gstin,
+    gstin:
+      submittedGstin ??
+      organization.gstin,
     pan: organization.pan,
-    billingEmail: request.billing.accountsPayableEmail,
+    billingEmail:
+      request.billing.accountsPayableEmail,
     phone: phoneE164(request.contact.phone),
-    submittedName: request.company.name || customerName,
-    submittedGstin: submittedGstin ?? null,
-    industry: request.company.industry ?? organization.industry,
-    website: request.company.website ?? organization.website,
-    costCentre: request.company.costCentre ?? null,
+    submittedName:
+      request.company.name || customerName,
+    submittedGstin:
+      submittedGstin ?? null,
+    industry:
+      request.company.industry ??
+      organization.industry,
+    website:
+      request.company.website ??
+      organization.website,
+    costCentre:
+      request.company.costCentre ?? null,
   };
+
   const termsSnapshot = {
     accepted: true,
     version: request.acceptedTermsVersion,
     acceptedAtServer: new Date().toISOString(),
     reservationCreditedToFinalInvoice:
-      getServerEnvironment().RESERVATION_CREDITED_TO_FINAL_INVOICE,
+      getServerEnvironment()
+        .RESERVATION_CREDITED_TO_FINAL_INVOICE,
     orderNotes: request.orderNotes ?? null,
     receiveEmails: request.receiveEmails,
-    requestedDeliveryDate: request.requestedDeliveryDate,
+    requestedDeliveryDate:
+      request.requestedDeliveryDate,
     deliveryType: request.deliveryType,
-    designVersionCreatedAt: versionResult.data.created_at,
+    designVersionCreatedAt:
+      versionResult.data.created_at,
   };
 
   const requestHash = hashOrderRequest({
     ...request,
-    immutableDesignVersionId: versionResult.data.id,
+    immutableDesignVersionId:
+      versionResult.data.id,
     canonicalPrice: {
       subtotalPaise: priced.subtotalPaise,
       shippingPaise: priced.shippingPaise,
-      taxEstimatePaise: priced.taxEstimatePaise,
+      taxEstimatePaise:
+        priced.taxEstimatePaise,
     },
   });
-  const environment = getServerEnvironment();
-  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1_000).toISOString();
 
-  await persistCheckoutAccountDetails({ user, request });
+  const environment = getServerEnvironment();
+
+  const expiresAt = new Date(
+    Date.now() + 24 * 60 * 60 * 1_000,
+  ).toISOString();
+
+  await persistCheckoutAccountDetails({
+    user,
+    request,
+  });
 
   return {
     requestHash,
-    estimatedTotalPaise: priced.estimatedTotalPaise,
-    reservationAmountPaise: environment.RESERVATION_AMOUNT_PAISE,
+    estimatedTotalPaise:
+      priced.estimatedTotalPaise,
+    reservationAmountPaise:
+      environment.RESERVATION_AMOUNT_PAISE,
     customerName,
     customerEmail: request.contact.email,
-    customerPhone: phoneE164(request.contact.phone),
+    customerPhone: phoneE164(
+      request.contact.phone,
+    ),
     rpcArgs: {
-      p_idempotency_key: request.idempotencyKey,
+      p_idempotency_key:
+        request.idempotencyKey,
       p_request_hash: requestHash,
-      p_organization_id: request.organizationId,
+      p_organization_id:
+        request.organizationId,
       p_customer_user_id: user.id,
-      p_subtotal_paise: priced.subtotalPaise,
-      p_shipping_paise: priced.shippingPaise,
-      p_tax_estimate_paise: priced.taxEstimatePaise,
-      p_reservation_amount_paise: environment.RESERVATION_AMOUNT_PAISE,
-      p_pricing_version: CUSTOM_ORDER_PRICING_VERSION,
-      p_configuration_schema_version: snapshot.schemaVersion,
-      p_billing_snapshot: billingSnapshot as Json,
-      p_shipping_snapshot: shippingSnapshot as Json,
-      p_customer_snapshot: customerSnapshot as Json,
-      p_company_snapshot: companySnapshot as Json,
-      p_terms_snapshot: termsSnapshot as Json,
+      p_subtotal_paise:
+        priced.subtotalPaise,
+      p_shipping_paise:
+        priced.shippingPaise,
+      p_tax_estimate_paise:
+        priced.taxEstimatePaise,
+      p_reservation_amount_paise:
+        environment.RESERVATION_AMOUNT_PAISE,
+      p_pricing_version:
+        CUSTOM_ORDER_PRICING_VERSION,
+      p_configuration_schema_version:
+        snapshot.schemaVersion,
+      p_billing_snapshot:
+        billingSnapshot as Json,
+      p_shipping_snapshot:
+        shippingSnapshot as Json,
+      p_customer_snapshot:
+        customerSnapshot as Json,
+      p_company_snapshot:
+        companySnapshot as Json,
+      p_terms_snapshot:
+        termsSnapshot as Json,
       p_items: [priced.item] as Json,
-      p_design_project_id: request.designProjectId,
-      p_design_version_id: versionResult.data.id,
+      p_design_project_id:
+        request.designProjectId,
+      p_design_version_id:
+        versionResult.data.id,
       p_file_ids: uniqueFileIds,
-      p_customer_reference: request.projectName,
-      p_po_number: request.company.poNumber ?? null,
-      p_requested_delivery_date: request.requestedDeliveryDate,
+      p_customer_reference:
+        request.projectName,
+      p_po_number:
+        request.company.poNumber,
+      p_requested_delivery_date:
+        request.requestedDeliveryDate,
       p_expires_at: expiresAt,
     },
   };
 }
 
-export async function submitPreparedCustomOrder(prepared: PreparedCustomOrder) {
+export async function submitPreparedCustomOrder(
+  prepared: PreparedCustomOrder,
+) {
   const admin = createAdminClient();
+
   const { data, error } = await admin.rpc(
     "submit_custom_order",
     prepared.rpcArgs,
   );
+
   const result = data?.[0];
+
   if (error || !result) {
-    throw new Error(error?.message ?? "Order could not be submitted");
+    throw new Error(
+      error?.message ??
+        "Order could not be submitted",
+    );
   }
+
   return {
     ...result,
-    estimatedTotalPaise: prepared.estimatedTotalPaise,
-    reservationAmountPaise: prepared.reservationAmountPaise,
+    estimatedTotalPaise:
+      prepared.estimatedTotalPaise,
+    reservationAmountPaise:
+      prepared.reservationAmountPaise,
   };
 }
 
 function checkoutTables(admin: AdminClient) {
-  return admin as unknown as { from: (table: string) => any };
+  return admin as unknown as {
+    from: (table: string) => any;
+  };
 }
 
 async function createCheckoutAttempt(input: {
@@ -443,27 +589,46 @@ async function createCheckoutAttempt(input: {
   attemptNumber: number;
   prepared: PreparedCustomOrder;
 }) {
-  const admin = checkoutTables(createAdminClient());
+  const admin = checkoutTables(
+    createAdminClient(),
+  );
+
   const id = randomUUID();
-  const merchantTransactionId = `G${id.replace(/-/g, "").slice(0, 22)}`;
+
+  const merchantTransactionId =
+    `G${id.replace(/-/g, "").slice(0, 22)}`;
+
   const { data, error } = await admin
     .from("custom_checkout_payment_attempts")
     .insert({
       id,
       checkout_session_id: input.sessionId,
       attempt_number: input.attemptNumber,
-      provider_merchant_txn_id: merchantTransactionId,
-      amount_paise: input.prepared.reservationAmountPaise,
+      provider_merchant_txn_id:
+        merchantTransactionId,
+      amount_paise:
+        input.prepared.reservationAmountPaise,
       currency: "INR",
       status: "created",
-      expected_product_info: "Garmops reservation fee",
-      customer_email: input.prepared.customerEmail,
-      customer_name: input.prepared.customerName,
-      customer_phone: input.prepared.customerPhone,
+      expected_product_info:
+        "Garmops reservation fee",
+      customer_email:
+        input.prepared.customerEmail,
+      customer_name:
+        input.prepared.customerName,
+      customer_phone:
+        input.prepared.customerPhone,
     })
     .select("id, status")
     .single();
-  if (error || !data) throw new Error(error?.message ?? "Payment attempt could not be prepared");
+
+  if (error || !data) {
+    throw new Error(
+      error?.message ??
+        "Payment attempt could not be prepared",
+    );
+  }
+
   return data;
 }
 
@@ -474,184 +639,350 @@ export async function prepareCustomCheckout(input: {
   cartId: string;
   returnPath: string;
 }) {
-  const prepared = await prepareCustomOrder(input);
-  const admin = checkoutTables(createAdminClient());
-  let { data: session, error: sessionReadError } = await admin
-    .from("custom_checkout_sessions")
-    .select("id, request_hash, status, final_order_id, final_order_number, final_payment_attempt_id, expires_at")
-    .eq("customer_user_id", input.user.id)
-    .eq("idempotency_key", input.request.idempotencyKey)
-    .maybeSingle();
-  if (sessionReadError) throw new Error(sessionReadError.message);
+  const prepared = await prepareCustomOrder(
+    input,
+  );
 
-  if (session && session.request_hash !== prepared.requestHash) {
-    throw new Error("Checkout details changed. Return to Delivery and try again.");
+  const admin = checkoutTables(
+    createAdminClient(),
+  );
+
+  let {
+    data: session,
+    error: sessionReadError,
+  } = await admin
+    .from("custom_checkout_sessions")
+    .select(
+      "id, request_hash, status, final_order_id, final_order_number, final_payment_attempt_id, expires_at",
+    )
+    .eq(
+      "customer_user_id",
+      input.user.id,
+    )
+    .eq(
+      "idempotency_key",
+      input.request.idempotencyKey,
+    )
+    .maybeSingle();
+
+  if (sessionReadError) {
+    throw new Error(sessionReadError.message);
   }
+
+  if (
+    session &&
+    session.request_hash !==
+      prepared.requestHash
+  ) {
+    throw new Error(
+      "Checkout details changed. Return to Delivery and try again.",
+    );
+  }
+
   if (session?.status === "finalized") {
     return {
       checkoutSessionId: session.id,
       checkoutPaymentAttemptId: null,
       alreadyFinalized: true,
-      orderNumber: session.final_order_number as string,
-      orderId: session.final_order_id as string,
-      paymentAttemptId: session.final_payment_attempt_id as string,
+      orderNumber:
+        session.final_order_number as string,
+      orderId:
+        session.final_order_id as string,
+      paymentAttemptId:
+        session.final_payment_attempt_id as string,
     };
   }
 
   if (!session) {
     const id = randomUUID();
+
     const insert = await admin
       .from("custom_checkout_sessions")
       .insert({
         id,
-        organization_id: input.request.organizationId,
+        organization_id:
+          input.request.organizationId,
         customer_user_id: input.user.id,
         cart_id: input.cartId,
-        idempotency_key: input.request.idempotencyKey,
-        request_hash: prepared.requestHash,
+        idempotency_key:
+          input.request.idempotencyKey,
+        request_hash:
+          prepared.requestHash,
         status: "prepared",
-        rpc_payload: prepared as unknown as Json,
-        estimated_total_paise: prepared.estimatedTotalPaise,
-        reservation_amount_paise: prepared.reservationAmountPaise,
+        rpc_payload:
+          prepared as unknown as Json,
+        estimated_total_paise:
+          prepared.estimatedTotalPaise,
+        reservation_amount_paise:
+          prepared.reservationAmountPaise,
         currency: "INR",
         return_path: input.returnPath,
-        expires_at: prepared.rpcArgs.p_expires_at,
+        expires_at:
+          prepared.rpcArgs.p_expires_at,
       })
-      .select("id, request_hash, status, expires_at")
+      .select(
+        "id, request_hash, status, expires_at",
+      )
       .single();
+
     if (insert.error || !insert.data) {
       if (insert.error?.code === "23505") {
         const retry = await admin
           .from("custom_checkout_sessions")
-          .select("id, request_hash, status, final_order_id, final_order_number, final_payment_attempt_id, expires_at")
-          .eq("customer_user_id", input.user.id)
-          .eq("idempotency_key", input.request.idempotencyKey)
+          .select(
+            "id, request_hash, status, final_order_id, final_order_number, final_payment_attempt_id, expires_at",
+          )
+          .eq(
+            "customer_user_id",
+            input.user.id,
+          )
+          .eq(
+            "idempotency_key",
+            input.request.idempotencyKey,
+          )
           .single();
-        if (retry.error || !retry.data) throw new Error(retry.error?.message ?? "Checkout could not be prepared");
+
+        if (retry.error || !retry.data) {
+          throw new Error(
+            retry.error?.message ??
+              "Checkout could not be prepared",
+          );
+        }
+
         session = retry.data;
       } else {
-        throw new Error(insert.error?.message ?? "Checkout could not be prepared");
+        throw new Error(
+          insert.error?.message ??
+            "Checkout could not be prepared",
+        );
       }
     } else {
       session = insert.data;
     }
   } else {
-    const refreshable = ["prepared", "failed", "expired"].includes(
-      session.status,
-    );
+    const refreshable = [
+      "prepared",
+      "failed",
+      "expired",
+    ].includes(session.status);
+
     if (refreshable) {
-      const { error: refreshError } = await admin
-        .from("custom_checkout_sessions")
-        .update({
-          status: "prepared",
-          rpc_payload: prepared as unknown as Json,
-          estimated_total_paise: prepared.estimatedTotalPaise,
-          reservation_amount_paise: prepared.reservationAmountPaise,
-          return_path: input.returnPath,
-          expires_at: prepared.rpcArgs.p_expires_at,
-        })
-        .eq("id", session.id)
-        .in("status", ["prepared", "failed", "expired"]);
-      if (refreshError) throw new Error(refreshError.message);
+      const { error: refreshError } =
+        await admin
+          .from("custom_checkout_sessions")
+          .update({
+            status: "prepared",
+            rpc_payload:
+              prepared as unknown as Json,
+            estimated_total_paise:
+              prepared.estimatedTotalPaise,
+            reservation_amount_paise:
+              prepared.reservationAmountPaise,
+            return_path: input.returnPath,
+            expires_at:
+              prepared.rpcArgs.p_expires_at,
+          })
+          .eq("id", session.id)
+          .in("status", [
+            "prepared",
+            "failed",
+            "expired",
+          ]);
+
+      if (refreshError) {
+        throw new Error(
+          refreshError.message,
+        );
+      }
+
       session = {
         ...session,
         status: "prepared",
-        expires_at: prepared.rpcArgs.p_expires_at,
+        expires_at:
+          prepared.rpcArgs.p_expires_at,
       };
     }
   }
 
-  if (!session) throw new Error("Checkout could not be prepared");
-  if (new Date(session.expires_at).getTime() <= Date.now()) {
-    throw new Error("This checkout has expired. Return to Delivery and try again.");
+  if (!session) {
+    throw new Error(
+      "Checkout could not be prepared",
+    );
   }
 
-  const { data: latest, error: latestError } = await admin
+  if (
+    new Date(session.expires_at).getTime() <=
+    Date.now()
+  ) {
+    throw new Error(
+      "This checkout has expired. Return to Delivery and try again.",
+    );
+  }
+
+  const {
+    data: latest,
+    error: latestError,
+  } = await admin
     .from("custom_checkout_payment_attempts")
-    .select("id, attempt_number, status, amount_paise, provider_payment_id, raw_verified_snapshot")
-    .eq("checkout_session_id", session.id)
-    .order("attempt_number", { ascending: false })
+    .select(
+      "id, attempt_number, status, amount_paise, provider_payment_id, raw_verified_snapshot",
+    )
+    .eq(
+      "checkout_session_id",
+      session.id,
+    )
+    .order("attempt_number", {
+      ascending: false,
+    })
     .limit(1)
     .maybeSingle();
-  if (latestError) throw new Error(latestError.message);
+
+  if (latestError) {
+    throw new Error(latestError.message);
+  }
 
   if (
     latest?.status === "paid" &&
     latest.provider_payment_id &&
     latest.raw_verified_snapshot
   ) {
-    const finalized = await finalizeCustomCheckoutPayment({
-      checkoutPaymentAttemptId: latest.id,
-      providerPaymentId: latest.provider_payment_id,
-      verifiedAmountPaise: latest.amount_paise,
-      verifiedSnapshot: latest.raw_verified_snapshot as Record<string, unknown>,
-    });
+    const finalized =
+      await finalizeCustomCheckoutPayment({
+        checkoutPaymentAttemptId:
+          latest.id,
+        providerPaymentId:
+          latest.provider_payment_id,
+        verifiedAmountPaise:
+          latest.amount_paise,
+        verifiedSnapshot:
+          latest.raw_verified_snapshot as Record<
+            string,
+            unknown
+          >,
+      });
+
     return {
       checkoutSessionId: session.id,
       checkoutPaymentAttemptId: null,
       alreadyFinalized: true,
-      orderNumber: finalized.orderNumber,
+      orderNumber:
+        finalized.orderNumber,
       orderId: finalized.orderId,
-      paymentAttemptId: finalized.paymentAttemptId,
+      paymentAttemptId:
+        finalized.paymentAttemptId,
     };
   }
 
-  if (latest && ["created", "initiated", "pending"].includes(latest.status)) {
+  if (
+    latest &&
+    [
+      "created",
+      "initiated",
+      "pending",
+    ].includes(latest.status)
+  ) {
     return {
       checkoutSessionId: session.id,
-      checkoutPaymentAttemptId: latest.id,
+      checkoutPaymentAttemptId:
+        latest.id,
       alreadyFinalized: false,
     };
   }
 
-  const nextAttempt = await createCheckoutAttempt({
-    sessionId: session.id,
-    attemptNumber: (latest?.attempt_number ?? 0) + 1,
-    prepared,
-  });
+  const nextAttempt =
+    await createCheckoutAttempt({
+      sessionId: session.id,
+      attemptNumber:
+        (latest?.attempt_number ?? 0) +
+        1,
+      prepared,
+    });
+
   await admin
     .from("custom_checkout_sessions")
-    .update({ status: "prepared" })
+    .update({
+      status: "prepared",
+    })
     .eq("id", session.id);
 
   return {
     checkoutSessionId: session.id,
-    checkoutPaymentAttemptId: nextAttempt.id,
+    checkoutPaymentAttemptId:
+      nextAttempt.id,
     alreadyFinalized: false,
   };
 }
 
-export async function finalizeCustomCheckoutPayment(input: {
-  checkoutPaymentAttemptId: string;
-  providerPaymentId: string;
-  verifiedAmountPaise: number;
-  verifiedSnapshot: Record<string, unknown>;
-}) {
+export async function finalizeCustomCheckoutPayment(
+  input: {
+    checkoutPaymentAttemptId: string;
+    providerPaymentId: string;
+    verifiedAmountPaise: number;
+    verifiedSnapshot: Record<
+      string,
+      unknown
+    >;
+  },
+) {
   const adminClient = createAdminClient();
-  const admin = checkoutTables(adminClient);
-  const { data: attempt, error: attemptError } = await admin
+
+  const admin =
+    checkoutTables(adminClient);
+
+  const {
+    data: attempt,
+    error: attemptError,
+  } = await admin
     .from("custom_checkout_payment_attempts")
-    .select("id, checkout_session_id, amount_paise, currency, provider_merchant_txn_id, status, custom_checkout_sessions!inner(id, status, rpc_payload, final_order_id, final_order_number, final_payment_attempt_id)")
-    .eq("id", input.checkoutPaymentAttemptId)
+    .select(
+      "id, checkout_session_id, amount_paise, currency, provider_merchant_txn_id, status, custom_checkout_sessions!inner(id, status, rpc_payload, final_order_id, final_order_number, final_payment_attempt_id)",
+    )
+    .eq(
+      "id",
+      input.checkoutPaymentAttemptId,
+    )
     .single();
-  if (attemptError || !attempt) throw new Error(attemptError?.message ?? "Checkout payment attempt was not found");
-  if (attempt.amount_paise !== input.verifiedAmountPaise || attempt.currency !== "INR") {
-    throw new Error("Verified PayU amount does not match the checkout");
+
+  if (attemptError || !attempt) {
+    throw new Error(
+      attemptError?.message ??
+        "Checkout payment attempt was not found",
+    );
   }
 
-  const session = attempt.custom_checkout_sessions as {
-    id: string;
-    status: string;
-    rpc_payload: PreparedCustomOrder;
-    final_order_id: string | null;
-    final_order_number: string | null;
-    final_payment_attempt_id: string | null;
-  };
-  if (session.status === "finalized" && session.final_order_number && session.final_payment_attempt_id) {
+  if (
+    attempt.amount_paise !==
+      input.verifiedAmountPaise ||
+    attempt.currency !== "INR"
+  ) {
+    throw new Error(
+      "Verified PayU amount does not match the checkout",
+    );
+  }
+
+  const session =
+    attempt.custom_checkout_sessions as {
+      id: string;
+      status: string;
+      rpc_payload: PreparedCustomOrder;
+      final_order_id: string | null;
+      final_order_number: string | null;
+      final_payment_attempt_id:
+        | string
+        | null;
+    };
+
+  if (
+    session.status === "finalized" &&
+    session.final_order_number &&
+    session.final_payment_attempt_id
+  ) {
     return {
       orderId: session.final_order_id!,
-      orderNumber: session.final_order_number,
-      paymentAttemptId: session.final_payment_attempt_id,
+      orderNumber:
+        session.final_order_number,
+      paymentAttemptId:
+        session.final_payment_attempt_id,
       alreadyFinalized: true,
     };
   }
@@ -660,67 +991,122 @@ export async function finalizeCustomCheckoutPayment(input: {
     .from("custom_checkout_payment_attempts")
     .update({
       status: "paid",
-      provider_payment_id: input.providerPaymentId,
+      provider_payment_id:
+        input.providerPaymentId,
       paid_at: new Date().toISOString(),
-      raw_verified_snapshot: input.verifiedSnapshot,
+      raw_verified_snapshot:
+        input.verifiedSnapshot,
       failure_code: null,
       failure_message: null,
     })
     .eq("id", attempt.id)
-    .in("status", ["created", "initiated", "pending", "failed", "paid"]);
+    .in("status", [
+      "created",
+      "initiated",
+      "pending",
+      "failed",
+      "paid",
+    ]);
+
   await admin
     .from("custom_checkout_sessions")
     .update({
       status: "payment_verified",
-      provider_payment_id: input.providerPaymentId,
-      verified_snapshot: input.verifiedSnapshot,
+      provider_payment_id:
+        input.providerPaymentId,
+      verified_snapshot:
+        input.verifiedSnapshot,
     })
     .eq("id", session.id)
     .neq("status", "finalized");
 
-  const prepared = session.rpc_payload;
-  const order = await submitPreparedCustomOrder(prepared);
+  const prepared =
+    session.rpc_payload;
 
-  const { error: txnUpdateError } = await adminClient
-    .from("payment_attempts")
-    .update({ provider_merchant_txn_id: attempt.provider_merchant_txn_id })
-    .eq("id", order.payment_attempt_id);
-  if (txnUpdateError) throw new Error(txnUpdateError.message);
+  const order =
+    await submitPreparedCustomOrder(
+      prepared,
+    );
 
-  const { error: finalizeError } = await adminClient.rpc(
-    "finalize_verified_payment",
-    {
-      p_payment_attempt_id: order.payment_attempt_id,
-      p_provider_payment_id: input.providerPaymentId,
-      p_verified_amount_paise: input.verifiedAmountPaise,
-      p_currency: "INR",
-      p_verified_snapshot: input.verifiedSnapshot as Json,
-      p_invoice_kind: "reservation_invoice",
-    },
-  );
-  if (finalizeError) throw new Error(finalizeError.message);
+  const { error: txnUpdateError } =
+    await adminClient
+      .from("payment_attempts")
+      .update({
+        provider_merchant_txn_id:
+          attempt.provider_merchant_txn_id,
+      })
+      .eq(
+        "id",
+        order.payment_attempt_id,
+      );
 
-  const finalizedAt = new Date().toISOString();
-  const { error: sessionUpdateError } = await admin
+  if (txnUpdateError) {
+    throw new Error(
+      txnUpdateError.message,
+    );
+  }
+
+  const { error: finalizeError } =
+    await adminClient.rpc(
+      "finalize_verified_payment",
+      {
+        p_payment_attempt_id:
+          order.payment_attempt_id,
+        p_provider_payment_id:
+          input.providerPaymentId,
+        p_verified_amount_paise:
+          input.verifiedAmountPaise,
+        p_currency: "INR",
+        p_verified_snapshot:
+          input.verifiedSnapshot as Json,
+        p_invoice_kind:
+          "reservation_invoice",
+      },
+    );
+
+  if (finalizeError) {
+    throw new Error(
+      finalizeError.message,
+    );
+  }
+
+  const finalizedAt =
+    new Date().toISOString();
+
+  const {
+    error: sessionUpdateError,
+  } = await admin
     .from("custom_checkout_sessions")
     .update({
       status: "finalized",
       final_order_id: order.order_id,
-      final_order_number: order.order_number,
-      final_payment_attempt_id: order.payment_attempt_id,
+      final_order_number:
+        order.order_number,
+      final_payment_attempt_id:
+        order.payment_attempt_id,
       finalized_at: finalizedAt,
     })
     .eq("id", session.id);
-  if (sessionUpdateError) throw new Error(sessionUpdateError.message);
+
+  if (sessionUpdateError) {
+    throw new Error(
+      sessionUpdateError.message,
+    );
+  }
+
   await admin
     .from("custom_checkout_payment_attempts")
-    .update({ status: "completed", completed_at: finalizedAt })
+    .update({
+      status: "completed",
+      completed_at: finalizedAt,
+    })
     .eq("id", attempt.id);
 
   return {
     orderId: order.order_id,
     orderNumber: order.order_number,
-    paymentAttemptId: order.payment_attempt_id,
+    paymentAttemptId:
+      order.payment_attempt_id,
     alreadyFinalized: false,
   };
 }
@@ -731,19 +1117,32 @@ export async function retryOrderPayment(input: {
   idempotencyKey: string;
 }) {
   const admin = createAdminClient();
+
   const requestHash = hashOrderRequest({
     orderId: input.orderId,
     userId: input.userId,
   });
-  const { data, error } = await admin.rpc("retry_order_payment", {
-    p_order_id: input.orderId,
-    p_customer_user_id: input.userId,
-    p_idempotency_key: input.idempotencyKey,
-    p_request_hash: requestHash,
-  });
+
+  const { data, error } = await admin.rpc(
+    "retry_order_payment",
+    {
+      p_order_id: input.orderId,
+      p_customer_user_id:
+        input.userId,
+      p_idempotency_key:
+        input.idempotencyKey,
+      p_request_hash: requestHash,
+    },
+  );
+
   const result = data?.[0];
+
   if (error || !result) {
-    throw new Error(error?.message ?? "Payment retry could not be prepared");
+    throw new Error(
+      error?.message ??
+        "Payment retry could not be prepared",
+    );
   }
+
   return result;
 }
