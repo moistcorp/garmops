@@ -28,20 +28,18 @@ export default function DurablePaymentResult({
   const success = result.outcome === "success";
   const pending = result.outcome === "pending";
   const sampleOrder = result.orderType === "sample_purchase";
-  const reviewRequired = result.paymentStatus === "disputed";
+  const reviewRequired = result.paymentStatus === "duplicate_success" || result.paymentStatus === "disputed";
   const Icon = success ? CheckCircle2 : pending ? Clock3 : XCircle;
   const invoice = result.invoiceNumber
     ? result.invoiceNumber
     : reviewRequired
       ? "Payment review pending"
-      : sampleOrder && result.invoiceStatus === "not_required"
-        ? "Automation not enabled"
+      : result.invoiceStatus === "completed"
+        ? "Available in your account"
         : result.invoiceStatus
           ? "Being generated"
           : success
-            ? sampleOrder
-              ? "Available when sample invoicing is enabled"
-              : "Queued"
+            ? "Queued"
             : "Not started";
 
   return (
@@ -68,7 +66,7 @@ export default function DurablePaymentResult({
           {success
             ? sampleOrder
               ? "Sample order confirmed"
-              : "Reservation confirmed"
+              : "Order confirmed"
             : reviewRequired
               ? "Payment requires review"
               : pending
@@ -77,12 +75,12 @@ export default function DurablePaymentResult({
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-black/55">
           {success
-            ? `PayU verified the ${sampleOrder ? "full sample" : "reservation"} payment and your saved order has been updated.`
+            ? `PayU verified the full payment and created order ${result.orderNumber}.`
             : reviewRequired
-              ? `Your order is safe. PayU reported another successful attempt for the same ${sampleOrder ? "sample order" : "reservation"}, so do not pay again while our team reviews it.`
+              ? "PayU reported a duplicate successful payment. Do not pay again; the Founder will review the duplicate for refund."
               : pending
-                ? "Your order is safe. We are reconciling the transaction with PayU; do not make another payment yet."
-                : "Your order remains saved and can be retried safely from the order page."}
+                ? "We are reconciling the transaction with PayU. Do not make another payment yet."
+                : "No confirmed order was created. You can retry the prepared checkout safely."}
         </p>
 
         <dl className="mt-7 grid gap-3 rounded-[4px] border border-black/7 bg-white p-5 text-left sm:grid-cols-2">
@@ -102,7 +100,7 @@ export default function DurablePaymentResult({
           </div>
           <div>
             <dt className="text-[10px] uppercase tracking-wider text-black/35">
-              {sampleOrder ? "Full sample payment" : "Reservation"}
+              Full merchandise payment
             </dt>
             <dd className="mt-1 font-semibold">
               {formatMoneyPaise(result.amountPaise)}

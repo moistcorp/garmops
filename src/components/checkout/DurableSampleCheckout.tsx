@@ -19,8 +19,6 @@ const SAMPLE_CHECKOUT_IDEMPOTENCY_KEY =
   "garmops-durable-sample-checkout-idempotency";
 
 export type SampleCheckoutDefaults = Readonly<{
-  organizationId: string;
-  organizationName: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -31,13 +29,13 @@ export type SampleCheckoutDefaults = Readonly<{
 type SubmitResponse = {
   error?: string;
   order?: {
-    orderId: string;
-    orderNumber: string;
-    paymentAttemptId: string;
-    submittedAt: string;
+    checkoutPaymentAttemptId: string | null;
+    alreadyFinalized: boolean;
+    orderId?: string | null;
+    orderNumber?: string | null;
     subtotalPaise: number;
-    shippingPaise: number;
-    estimatedTotalPaise: number;
+    taxPaise: number;
+    totalPaise: number;
   };
 };
 
@@ -114,8 +112,8 @@ export default function DurableSampleCheckout({
 }) {
   const { items, total, hasHydrated, clearCart } = useCartStore();
   const cartTotalRupees = total();
-  const shippingRupees = cartTotalRupees >= 2_000 ? 0 : 99;
-  const displayedTotalPaise = (cartTotalRupees + shippingRupees) * 100;
+  const taxPaise = Math.round(cartTotalRupees * 100 * 0.05);
+  const displayedTotalPaise = cartTotalRupees * 100 + taxPaise;
 
   const idempotencyKey = useRef<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -172,7 +170,6 @@ export default function DurableSampleCheckout({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          organizationId: defaults.organizationId,
           items: items.map((item) => ({
             productId: item.id,
             size: item.size,
@@ -200,29 +197,36 @@ export default function DurableSampleCheckout({
       }
 
       setSavedOrder(body.order);
-      try {
-        window.sessionStorage.removeItem(SAMPLE_CHECKOUT_IDEMPOTENCY_KEY);
-      } catch {
-        // The saved database order is authoritative even if cleanup is blocked.
+      if (body.order.alreadyFinalized && body.order.orderNumber) {
+        window.location.assign(`/account/orders/${encodeURIComponent(body.order.orderNumber)}`);
+        return;
       }
-      clearCart();
-
+      if (!body.order.checkoutPaymentAttemptId) {
+        throw new Error("Secure payment could not be prepared.");
+      }
       const paymentResponse = await fetch("/api/payments/payu/initiate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          paymentAttemptId: body.order.paymentAttemptId,
+          checkoutPaymentAttemptId: body.order.checkoutPaymentAttemptId,
         }),
       });
       const payment = (await paymentResponse.json()) as InitiateResponse;
       if (!paymentResponse.ok || !payment.checkoutUrl || !payment.fields) {
         throw new Error(
           payment.error ??
-            "The order is saved, but secure payment could not be opened.",
+            "The checkout is prepared, but secure payment could not be opened.",
         );
       }
+      try {
+        window.sessionStorage.removeItem(SAMPLE_CHECKOUT_IDEMPOTENCY_KEY);
+      } catch {
+        // The prepared database checkout is authoritative even if cleanup is blocked.
+      }
+      clearCart();
       submitPayuCheckout(payment.fields, payment.checkoutUrl);
     } catch (submissionError) {
+      setSavedOrder(null);
       setError(
         submissionError instanceof Error
           ? submissionError.message
@@ -252,8 +256,7 @@ export default function DurableSampleCheckout({
         <div className="techpack-surface w-full max-w-lg rounded-[4px] border p-8">
           <h1 className="text-3xl font-bold tracking-tight">Nothing to checkout</h1>
           <p className="mt-3 text-sm leading-relaxed text-black/50">
-            Add catalogue samples first. Once submitted, the order will be saved
-            to your account before PayU opens.
+            Add catalogue samples first. Your checkout will be prepared securely before PayU opens, and the order will be created only after verified payment.
           </p>
           <Link
             href="/products"
@@ -277,8 +280,7 @@ export default function DurableSampleCheckout({
             Catalogue sample order
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-black/50">
-            Your order number, products, prices, delivery address, and payment
-            attempt are saved before you leave for PayU.
+            Your products, prices, delivery address, and payment attempt are saved before you leave for PayU. The order number is created only after PayU verifies full payment.
           </p>
         </div>
 
@@ -295,10 +297,6 @@ export default function DurableSampleCheckout({
               <p className="mb-5 text-xs font-medium uppercase tracking-widest text-[var(--text-primary)]/40">
                 Account and contact
               </p>
-              <div className="mb-5 rounded-[4px] border border-black/7 bg-white/45 px-4 py-3 text-sm">
-                <span className="text-black/45">Ordering for </span>
-                <strong>{defaults.organizationName}</strong>
-              </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label htmlFor="sample-first-name" className={labelClass}>
@@ -387,8 +385,7 @@ export default function DurableSampleCheckout({
                   Delivery address
                 </p>
                 <p className="mt-1 text-xs text-[var(--text-primary)]/50">
-                  This address is saved as the immutable delivery and provisional
-                  billing snapshot for this sample purchase.
+                  This address becomes the immutable delivery and billing snapshot for this sample purchase. Shipping is quoted separately by staff.
                 </p>
               </div>
               <AddressForm
@@ -441,10 +438,10 @@ export default function DurableSampleCheckout({
                 {savedOrder ? (
                   <div className="mt-3">
                     <Link
-                      href={`/account/orders/${encodeURIComponent(savedOrder.orderNumber)}/confirmation`}
+                      href={savedOrder.orderNumber ? `/account/orders/${encodeURIComponent(savedOrder.orderNumber)}` : "/account/orders"}
                       className="font-semibold underline"
                     >
-                      Open saved order {savedOrder.orderNumber}
+                      Open saved order {savedOrder.orderNumber ?? "order"}
                     </Link>
                   </div>
                 ) : null}
@@ -476,27 +473,20 @@ export default function DurableSampleCheckout({
                   <span>{rupees(cartTotalRupees * 100)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[var(--text-primary)]/50">Shipping</span>
-                  <span>
-                    {shippingRupees === 0
-                      ? "Free"
-                      : rupees(shippingRupees * 100)}
-                  </span>
+                  <span className="text-[var(--text-primary)]/50">GST (5%)</span>
+                  <span>{rupees(taxPaise)}</span>
                 </div>
-                {shippingRupees ? (
-                  <p className="text-xs text-[var(--text-primary)]/40">
-                    Add {rupees((2_000 - cartTotalRupees) * 100)} more for free
-                    shipping.
-                  </p>
-                ) : null}
+                <div className="flex justify-between">
+                  <span className="text-[var(--text-primary)]/50">Shipping</span>
+                  <span>Quoted separately</span>
+                </div>
               </div>
               <div className="flex justify-between border-t border-[#ECE7DF] pt-4 text-base font-bold">
                 <span>Total</span>
                 <span>{rupees(displayedTotalPaise)}</span>
               </div>
               <p className="text-xs leading-relaxed text-black/40">
-                The server validates every product, size, quantity, price, and
-                shipping charge before creating the order.
+                The server validates every product, size, quantity, price, and GST amount. Staff will issue a separate PayU shipping link.
               </p>
               <button
                 type="submit"
@@ -507,8 +497,8 @@ export default function DurableSampleCheckout({
                 {loading
                   ? savedOrder
                     ? "Opening secure payment…"
-                    : "Saving order…"
-                  : `Save order and pay ${rupees(displayedTotalPaise)}`}
+                    : "Preparing payment…"
+                  : `Pay ${rupees(displayedTotalPaise)}`}
               </button>
               <p className="text-center text-xs text-[var(--text-primary)]/40">
                 Full payment through PayU. Card details are never stored by

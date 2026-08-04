@@ -26,6 +26,6 @@ export function getConfiguratorCtaLabel(
 
 export function getPaymentJourneyStep(
   isProcessing: boolean,
-): "review" | "reserve" {
-  return isProcessing ? "reserve" : "review";
+): "review" | "payment" {
+  return isProcessing ? "payment" : "review";
 }

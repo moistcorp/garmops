@@ -1,123 +1,89 @@
-import { formatInr, GST_PERCENT } from "@/lib/configurator/pricing";
-import { RESERVATION_FEE } from "@/lib/configurator/reservation";
+import { ArrowRight, CalendarDays } from "lucide-react";
+import { formatInr } from "@/lib/configurator/pricing";
 
 interface CartSummarySidebarProps {
   subtotal: number;
   volumeDiscount: number;
-  shippingFee?: number;
-  gst?: number;
-  rushDelivery?: boolean;
+  shippingFee: number;
+  gst: number;
   delivery: string;
   total: number;
   onNext?: () => void;
   nextLabel?: string;
   nextDisabled?: boolean;
   disabledMessage?: string;
-  sticky?: boolean;
   onDisabledNext?: () => void;
+  sticky?: boolean;
 }
 
 export function CartSummarySidebar({
   subtotal,
   volumeDiscount,
-  shippingFee = 0,
-  gst = 0,
-  rushDelivery = false,
+  gst,
   delivery,
   total,
   onNext,
-  nextLabel = "Next",
+  nextLabel = "Continue",
   nextDisabled = false,
   disabledMessage,
-  sticky = true,
   onDisabledNext,
+  sticky = true,
 }: CartSummarySidebarProps) {
-  const balanceDue = Math.max(0, total - RESERVATION_FEE);
-
   return (
-    <aside className={`techpack-surface w-full shrink-0 self-start rounded-[4px] border border-[var(--color-rule)] p-5 lg:w-80 ${sticky ? "lg:sticky lg:top-6" : ""}`}>
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/50">
-          Price summary
-        </p>
-        <h2 className="mt-1 text-lg font-semibold text-[var(--text-primary)]">Estimated total</h2>
-      </div>
-
-      <div className="mt-5 space-y-3 text-sm text-[var(--text-primary)]">
-        <div className="flex justify-between">
-          <span>Merchandise subtotal</span>
-          <span className="font-mono">{formatInr(subtotal)}</span>
-        </div>
-        {volumeDiscount > 0 && (
-          <div className="flex justify-between rounded-[4px] border border-white/55 bg-[#EAF7EA]/65 px-2 py-1.5 font-medium text-[#1B7F36] ">
-            <span>Volume discount</span>
-            <span className="font-mono">-{formatInr(volumeDiscount)}</span>
-          </div>
-        )}
-        {shippingFee > 0 && (
-          <div className="flex justify-between text-[var(--text-primary)]/70">
-            <span>Rush delivery</span>
-            <span className="font-mono">{formatInr(shippingFee)}</span>
-          </div>
-        )}
-        {rushDelivery && shippingFee === 0 && (
-          <div className="flex justify-between text-[var(--text-primary)]/70">
-            <span>Rush delivery</span>
-            <span>Included in unit price</span>
-          </div>
-        )}
-        <div className="flex justify-between text-[var(--text-primary)]/70">
-          <span>GST ({GST_PERCENT}%)</span>
-          <span className="font-mono">{formatInr(gst)}</span>
-        </div>
-        <div className="flex justify-between text-[var(--text-primary)]/70">
-          <span>Delivery</span>
-          <span className="max-w-[150px] text-right font-mono">{delivery}</span>
-        </div>
-        <div className="flex justify-between border-t border-[#E5E5E5] pt-3 text-base font-semibold">
-          <span>Estimated total</span>
-          <span className="font-mono">{formatInr(total)}</span>
-        </div>
-      </div>
-
-      <div className="techpack-panel mt-4 rounded-[4px] border !border-[var(--color-accent)]/25 p-3">
-        <div className="flex items-center justify-between gap-3">
-          <span className="text-xs font-semibold text-[var(--text-primary)]">Due today</span>
-          <span className="font-mono text-lg font-bold text-[var(--color-accent-dark)]">
-            {formatInr(RESERVATION_FEE)}
-          </span>
-        </div>
-        <div className="mt-1 flex items-center justify-between gap-3 text-[11px] text-[var(--text-primary)]/60">
-          <span>Estimated balance later</span>
-          <span className="font-mono">{formatInr(balanceDue)}</span>
-        </div>
-        <p className="mt-2 text-[11px] leading-relaxed text-[var(--text-primary)]/60">
-          Credited against the final invoice after artwork, shipping and production feasibility are reviewed.
-        </p>
-      </div>
-
-      <p className="mt-3 text-[11px] text-[var(--text-primary)]/60">
-        Prices include {GST_PERCENT}% GST. Shipping is confirmed after address and feasibility review.
+    <aside className={`techpack-panel rounded-[4px] border p-5 ${sticky ? "lg:sticky lg:top-36" : ""}`}>
+      <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">
+        Order value
       </p>
+      <div className="mt-4 space-y-3 text-sm">
+        <SummaryRow label="Configured merchandise" value={formatInr(subtotal)} />
+        {volumeDiscount > 0 && (
+          <SummaryRow label="Volume discount" value={`− ${formatInr(volumeDiscount)}`} />
+        )}
+        <SummaryRow label="GST (5%)" value={formatInr(gst)} />
+        <div className="border-t border-[var(--color-rule)] pt-3">
+          <SummaryRow label="Payable now" value={formatInr(total)} strong />
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-[4px] bg-[#F7F7F7] p-3 text-xs leading-relaxed text-[var(--text-primary)]/65">
+        <div className="flex items-start gap-2">
+          <CalendarDays size={15} className="mt-0.5 shrink-0 text-[var(--color-accent-dark)]" />
+          <div>
+            <p className="font-medium text-[var(--text-primary)]">Target: {delivery}</p>
+            <p className="mt-1">Shipping is excluded. Operations will review the destination and share a separate PayU link.</p>
+          </div>
+        </div>
+      </div>
 
       {onNext && (
         <>
-        <button
-          type="button"
-          onClick={() => {
-            if (nextDisabled) { onDisabledNext?.(); return; }
-            onNext();
-          }}
-          aria-disabled={nextDisabled}
-          className={`mt-5 w-full rounded-[4px] py-3 font-mono text-xs font-semibold uppercase tracking-[0.05em] ${nextDisabled ? "bg-[#E5E5E5] text-[var(--text-primary)]/40" : "bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-dark)]"}`}
-        >
-          {nextLabel}
-        </button>
-        {nextDisabled && disabledMessage && (
-          <p className="mt-2 text-center text-xs leading-relaxed text-[var(--text-primary)]/55">{disabledMessage}</p>
-        )}
+          <button
+            type="button"
+            aria-disabled={nextDisabled}
+            onClick={nextDisabled ? onDisabledNext : onNext}
+            className={`mt-5 flex w-full items-center justify-center gap-2 rounded-[4px] px-4 py-3 text-sm font-semibold transition-colors ${
+              nextDisabled
+                ? "bg-[#E5E5E5] text-[var(--text-primary)]/45"
+                : "bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-dark)]"
+            }`}
+          >
+            {nextLabel}
+            <ArrowRight size={16} />
+          </button>
+          {nextDisabled && disabledMessage && (
+            <p className="mt-2 text-center text-xs text-[var(--text-primary)]/50">{disabledMessage}</p>
+          )}
         </>
       )}
     </aside>
+  );
+}
+
+function SummaryRow({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
+  return (
+    <div className={`flex items-center justify-between gap-4 ${strong ? "font-semibold text-[var(--text-primary)]" : "text-[var(--text-primary)]/65"}`}>
+      <span>{label}</span>
+      <span className="font-mono tabular-nums">{value}</span>
+    </div>
   );
 }

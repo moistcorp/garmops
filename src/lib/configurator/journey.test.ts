@@ -40,8 +40,8 @@ describe("configurator journey labels", () => {
     ).toBe("Continue to sizes");
   });
 
-  it("activates Reservation while payment is being prepared", () => {
+  it("activates Payment while payment is being prepared", () => {
     expect(getPaymentJourneyStep(false)).toBe("review");
-    expect(getPaymentJourneyStep(true)).toBe("reserve");
+    expect(getPaymentJourneyStep(true)).toBe("payment");
   });
 });

@@ -12,7 +12,7 @@ import {
   cloudDesignSnapshotSchema,
   type CloudDesignSnapshot,
 } from "@/lib/designs/schema";
-import { requireOrganizationMember } from "@/lib/auth/guards";
+import { requireCustomer } from "@/lib/auth/guards";
 import { formatOrderTimestamp } from "@/lib/orders/format";
 
 export const dynamic = "force-dynamic";
@@ -28,7 +28,7 @@ export default async function SavedDesignsPage({
   searchParams: Promise<{ filter?: string; q?: string }>;
 }) {
   const { filter = "active", q = "" } = await searchParams;
-  const { supabase, user } = await requireOrganizationMember("/account/designs");
+  const { supabase, user } = await requireCustomer("/account/designs");
 
   if (!isFeatureEnabled("CLOUD_DESIGNS_ENABLED")) {
     return (

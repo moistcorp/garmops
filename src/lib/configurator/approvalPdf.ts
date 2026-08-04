@@ -22,8 +22,6 @@ export interface ApprovalPdfTotals {
   volumeDiscount: number;
   gst: number;
   total: number;
-  reservationFee: number;
-  balanceDue: number;
 }
 
 export interface GenerateApprovalPdfOptions {
@@ -300,15 +298,15 @@ function buildOverviewPage(
   });
 
   page.commands.push(roundedRect(MARGIN, 230, 511, 72, [0.965, 0.985, 0.985], [0.75, 0.88, 0.88]));
-  page.commands.push(pdfText("DUE TODAY TO RESERVE SLOT", 58, 278, 8, true, [0.06, 0.38, 0.39]));
-  page.commands.push(pdfText(formatInr(options.totals.reservationFee), 58, 250, 22, true, [0.06, 0.38, 0.39]));
-  page.commands.push(pdfText(`Estimated balance later: ${formatInr(options.totals.balanceDue)}`, 310, 258, 9, true));
-  page.commands.push(pdfText("The reservation fee is credited in full against the final invoice.", 310, 242, 7.5, false, [0.35, 0.35, 0.35]));
+  page.commands.push(pdfText("FULL MERCHANDISE PAYMENT", 58, 278, 8, true, [0.06, 0.38, 0.39]));
+  page.commands.push(pdfText(formatInr(options.totals.total), 58, 250, 22, true, [0.06, 0.38, 0.39]));
+  page.commands.push(pdfText("Includes configured merchandise and GST.", 310, 258, 9, true));
+  page.commands.push(pdfText("Shipping is reviewed and charged separately through PayU.", 310, 242, 7.5, false, [0.35, 0.35, 0.35]));
 
   let disclaimerY = 196;
   disclaimerY = addWrappedText(
     page.commands,
-    "This document is a dated configuration and approval snapshot. Final pricing, shipping, production technique and delivery feasibility are confirmed after Garmops reviews the artwork and order requirements.",
+    "This document is a dated configuration and approval snapshot. Shipping, production feasibility and target dates are confirmed after Garmops reviews the artwork and order requirements.",
     MARGIN,
     disclaimerY,
     105,
@@ -422,7 +420,7 @@ function buildApprovalPage(
   addHeader(page, "Internal Approval", options.projectReference, generatedLabel);
 
   page.commands.push(pdfText("Recommended approval statement", MARGIN, 704, 13, true));
-  const statement = `I approve the merchandise configuration and estimated commercial value shown in this document for ${options.companyName || "our company"}. I understand that final pricing, shipping and production feasibility will be confirmed by Garmops before production begins.`;
+  const statement = `I approve the merchandise configuration and estimated commercial value shown in this document for ${options.companyName || "our company"}. I understand that shipping and production feasibility will be confirmed by Garmops before production begins.`;
   addWrappedText(page.commands, statement, MARGIN, 678, 105, 10, 15, false, [0.25, 0.25, 0.25]);
 
   page.commands.push(roundedRect(MARGIN, 470, 511, 120, [0.985, 0.985, 0.985]));
@@ -430,7 +428,7 @@ function buildApprovalPage(
   page.commands.push(pdfText(`Configured products: ${options.items.length}`, 58, 542, 9));
   page.commands.push(pdfText(`Total units: ${options.items.reduce((sum, item) => sum + totalUnits(item), 0)}`, 58, 522, 9));
   page.commands.push(pdfText(`Estimated order total: ${formatInr(options.totals.total)}`, 58, 502, 9, true));
-  page.commands.push(pdfText(`Reservation due today: ${formatInr(options.totals.reservationFee)}`, 310, 542, 9, true, [0.06, 0.38, 0.39]));
+  page.commands.push(pdfText(`Merchandise payment: ${formatInr(options.totals.total)}`, 310, 542, 9, true, [0.06, 0.38, 0.39]));
   page.commands.push(pdfText(`Target delivery date: ${options.deliveryLabel || "To be confirmed"}`, 310, 522, 9));
   page.commands.push(pdfText(`Project contact: ${options.contactName || "Not provided"}`, 310, 502, 9));
 

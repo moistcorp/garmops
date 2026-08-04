@@ -9,14 +9,13 @@ import {
   actionSuccess,
   type AuthActionState,
 } from "@/lib/auth/constants";
+import { ensureCustomerAccount } from "@/lib/auth/ensurePersonalCustomerAccount";
 import { authCallbackUrl, safeInternalPath } from "@/lib/auth/redirects";
-import { ensurePersonalCustomerAccount } from "@/lib/auth/ensurePersonalCustomerAccount";
-import {
-  consumeAuthRateLimit,
-  requestIpAddress,
-} from "@/lib/auth/rateLimit";
+import { consumeAuthRateLimit, requestIpAddress } from "@/lib/auth/rateLimit";
 import { verifyTurnstile } from "@/lib/auth/turnstile";
+import { isStaffSurface } from "@/lib/config/appSurface";
 import { isFeatureEnabled } from "@/lib/config/featureFlags";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 const email = z.string().trim().email().max(320).transform((value) => value.toLowerCase());
@@ -29,30 +28,20 @@ const loginSchema = z.object({
   next: z.string().optional(),
   portal: z.literal("staff"),
 });
-
-const optionalCompanyField = z.preprocess(
-  (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
-  z.string().trim().max(200).optional(),
-);
 const emailSchema = z.object({ email });
 const emailOtpSchema = z.object({
   email,
   token: z.string().trim().regex(/^\d{6}$/, "Enter the 6-digit code"),
   next: z.string().optional(),
-  portal: z.enum(["customer", "staff"]).default("customer"),
 });
 const minimalOnboardingSchema = z.object({
   firstName: name,
   lastName: name,
-  companyName: optionalCompanyField,
   consent: z.literal("on"),
   next: z.string().optional(),
 });
 const resetSchema = z
-  .object({
-    password,
-    confirmPassword: password,
-  })
+  .object({ password, confirmPassword: password })
   .refine((data) => data.password === data.confirmPassword, {
     path: ["confirmPassword"],
     message: "Passwords do not match",
@@ -63,13 +52,9 @@ function fields(formData: FormData) {
 }
 
 function validationError(error: z.ZodError) {
-  return actionError("Check the highlighted fields and try again.", error.flatten().fieldErrors);
-}
-
-function authEnabled() {
-  return (
-    isFeatureEnabled("NEXT_PUBLIC_ACCOUNTS_ENABLED") ||
-    isFeatureEnabled("STAFF_PORTAL_ENABLED")
+  return actionError(
+    "Check the highlighted fields and try again.",
+    error.flatten().fieldErrors,
   );
 }
 
@@ -85,65 +70,55 @@ async function passPublicProtection(
     ip,
   );
   if (!verified) return false;
-  const rate = await consumeAuthRateLimit(scope, subject);
-  return rate.allowed;
+  return (await consumeAuthRateLimit(scope, subject)).allowed;
 }
 
-async function destinationAfterLogin(
+async function principalForEmail(normalizedEmail: string) {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("account_principals")
+    .select("account_type, active, user_id")
+    .eq("normalized_email", normalizedEmail)
+    .maybeSingle();
+  return data as
+    | { account_type: "customer" | "staff"; active: boolean; user_id: string | null }
+    | null;
+}
+
+type StaffAccess = {
+  role: "founder" | "operations";
+  active: boolean;
+  must_use_mfa: boolean;
+  mfa_satisfied: boolean;
+};
+
+async function staffDestination(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  userId: string,
   requestedNext: string,
-  portal: "customer" | "staff",
 ) {
-  const { data: staff } = await supabase
-    .from("staff_members")
-    .select("active, invited_at, activated_at, deactivated_at")
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (staff) {
-    if (portal === "customer") {
-      const { data: customerMembership } = await supabase
-        .from("organization_members")
-        .select("organization_id")
-        .eq("user_id", userId)
-        .eq("status", "active")
-        .limit(1)
-        .maybeSingle();
-
-      if (customerMembership) return safeInternalPath(requestedNext, "/account");
-      await supabase.auth.signOut();
-      return "/auth/error?code=STAFF_LOGIN_REQUIRED";
-    }
-    if (staff.deactivated_at) {
-      await supabase.auth.signOut();
-      return "/auth/error?code=STAFF_ACCESS_DENIED";
-    }
-    if (!staff.active) {
-      await supabase.auth.signOut();
-      return "/auth/error?code=STAFF_ACCESS_DENIED";
-    }
-    await supabase.rpc("record_staff_login");
-    return "/staff/orders";
+  const rpc = supabase.rpc as unknown as (
+    name: string,
+  ) => Promise<{ data: StaffAccess[] | null; error: { message: string } | null }>;
+  const { data, error } = await rpc("get_staff_access_context");
+  const staff = data?.[0];
+  if (error || !staff?.active) {
+    await supabase.auth.signOut();
+    return "/auth/error?code=STAFF_ACCESS_DENIED";
   }
-
-  const { data: membership } = await supabase
-    .from("organization_members")
-    .select("organization_id")
-    .eq("user_id", userId)
-    .eq("status", "active")
-    .limit(1)
-    .maybeSingle();
-
-  if (!membership) await ensurePersonalCustomerAccount(supabase);
-  return safeInternalPath(requestedNext, "/account");
+  await supabase.rpc("record_staff_login");
+  const next = safeInternalPath(requestedNext, "/orders");
+  return staff.must_use_mfa && !staff.mfa_satisfied
+    ? `/settings/security?next=${encodeURIComponent(next)}`
+    : next;
 }
 
 export async function loginAction(
   _state: AuthActionState,
   formData: FormData,
 ): Promise<AuthActionState> {
-  if (!authEnabled()) return actionError("Account access is not enabled yet.");
+  if (!isFeatureEnabled("STAFF_PORTAL_ENABLED") || !isStaffSurface()) {
+    return actionError("Staff access is not enabled on this application.");
+  }
   const parsed = loginSchema.safeParse(fields(formData));
   if (!parsed.success) return validationError(parsed.error);
 
@@ -155,31 +130,31 @@ export async function loginAction(
     return actionError("Sign in is temporarily unavailable. Please try again.");
   }
 
+  const principal = await principalForEmail(parsed.data.email);
+  if (!principal || principal.account_type !== "staff" || !principal.active) {
+    return actionError("Unable to sign in with those staff credentials.");
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithPassword({
     email: parsed.data.email,
     password: parsed.data.password,
   });
   if (error || !data.user) {
-    return actionError("Unable to sign in with those credentials.");
+    return actionError("Unable to sign in with those staff credentials.");
   }
 
-  const destination = await destinationAfterLogin(
-    supabase,
-    data.user.id,
-    parsed.data.next ?? "/account",
-    parsed.data.portal,
-  );
-  redirect(destination);
+  redirect(await staffDestination(supabase, parsed.data.next ?? "/orders"));
 }
 
-/** Customer-only email OTP request. Staff uses password sign-in. */
+/** Customer-only email OTP. Staff-reserved emails receive the same generic UI
+ * response but no customer OTP is sent. */
 export async function requestCustomerOtpAction(
   _state: AuthActionState,
   formData: FormData,
 ): Promise<AuthActionState> {
-  if (!isFeatureEnabled("NEXT_PUBLIC_ACCOUNTS_ENABLED")) {
-    return actionError("Account access is not enabled yet.");
+  if (!isFeatureEnabled("NEXT_PUBLIC_ACCOUNTS_ENABLED") || isStaffSurface()) {
+    return actionError("Customer account access is not enabled here.");
   }
   const parsed = emailSchema.safeParse(fields(formData));
   if (!parsed.success) return validationError(parsed.error);
@@ -192,35 +167,47 @@ export async function requestCustomerOtpAction(
     return actionError("Sign in is temporarily unavailable. Please try again.");
   }
 
+  const success = actionSuccess(
+    "If that email can receive customer sign-in codes, one is on its way.",
+    { verificationEmail: parsed.data.email },
+  );
+  const principal = await principalForEmail(parsed.data.email);
+  if (principal?.account_type === "staff") return success;
+
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithOtp({
     email: parsed.data.email,
     options: {
       shouldCreateUser: true,
-      emailRedirectTo: authCallbackUrl(safeInternalPath(formData.get("next"), "/account/orders")),
+      emailRedirectTo: authCallbackUrl(
+        safeInternalPath(formData.get("next"), "/account/orders"),
+      ),
     },
   });
-  if (error) return actionError("We could not send a sign-in code. Please try again.");
-  return actionSuccess("If that email can receive sign-in codes, one is on its way.", {
-    verificationEmail: parsed.data.email,
-  });
+  return error ? actionError("We could not send a sign-in code. Please try again.") : success;
 }
 
 export async function verifyCustomerOtpAction(
   _state: AuthActionState,
   formData: FormData,
 ): Promise<AuthActionState> {
-  if (!isFeatureEnabled("NEXT_PUBLIC_ACCOUNTS_ENABLED")) {
-    return actionError("Account access is not enabled yet.");
+  if (!isFeatureEnabled("NEXT_PUBLIC_ACCOUNTS_ENABLED") || isStaffSurface()) {
+    return actionError("Customer account access is not enabled here.");
   }
-  const parsed = emailOtpSchema.safeParse({ ...fields(formData), portal: "customer" });
+  const parsed = emailOtpSchema.safeParse(fields(formData));
   if (!parsed.success) return validationError(parsed.error);
 
   try {
-    const rate = await consumeAuthRateLimit("login", parsed.data.email);
-    if (!rate.allowed) return actionError("Too many code attempts. Please wait before trying again.");
+    if (!(await consumeAuthRateLimit("login", parsed.data.email)).allowed) {
+      return actionError("Too many code attempts. Please wait before trying again.");
+    }
   } catch {
     return actionError("Code verification is temporarily unavailable.");
+  }
+
+  const principal = await principalForEmail(parsed.data.email);
+  if (principal?.account_type === "staff") {
+    return actionError("That email is reserved for Foundry staff access.");
   }
 
   const supabase = await createClient();
@@ -231,22 +218,14 @@ export async function verifyCustomerOtpAction(
   });
   if (error || !data.user) return actionError("That sign-in code is invalid or expired.");
 
-  let destination: string;
   try {
-    destination = await destinationAfterLogin(
-      supabase,
-      data.user.id,
-      parsed.data.next ?? "/account/orders",
-      "customer",
-    );
+    await ensureCustomerAccount(supabase);
   } catch {
-    return actionError("We could not create your customer workspace. Please try again.");
-  }
-  if (destination.startsWith("/auth/error")) {
-    return actionError("Use the staff sign-in page to access a staff account.");
+    await supabase.auth.signOut();
+    return actionError("That email cannot be used for customer access.");
   }
   return actionSuccess("Signed in.", {
-    destination: safeInternalPath(destination, "/account/orders"),
+    destination: safeInternalPath(parsed.data.next, "/account/orders"),
   });
 }
 
@@ -254,30 +233,29 @@ export async function forgotPasswordAction(
   _state: AuthActionState,
   formData: FormData,
 ): Promise<AuthActionState> {
-  if (!authEnabled()) return actionError("Account access is not enabled yet.");
+  if (!isFeatureEnabled("STAFF_PORTAL_ENABLED") || !isStaffSurface()) {
+    return actionError("Password recovery is available only for Foundry staff.");
+  }
   const parsed = emailSchema.safeParse(fields(formData));
   if (!parsed.success) return validationError(parsed.error);
 
   try {
-    if (
-      !(await passPublicProtection(
-        "forgot_password",
-        parsed.data.email,
-        formData,
-      ))
-    ) {
+    if (!(await passPublicProtection("forgot_password", parsed.data.email, formData))) {
       return actionError("Security verification failed. Please try again.");
     }
   } catch {
     return actionError("Password recovery is temporarily unavailable.");
   }
 
-  const supabase = await createClient();
-  await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    redirectTo: authCallbackUrl("/reset-password"),
-  });
+  const principal = await principalForEmail(parsed.data.email);
+  if (principal?.account_type === "staff" && principal.active) {
+    const supabase = await createClient();
+    await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+      redirectTo: authCallbackUrl("/reset-password"),
+    });
+  }
   return actionSuccess(
-    "If an account exists for that email, a recovery link is on its way.",
+    "If an active staff account exists for that email, a recovery link is on its way.",
   );
 }
 
@@ -285,40 +263,15 @@ export async function resendVerificationAction(
   _state: AuthActionState,
   formData: FormData,
 ): Promise<AuthActionState> {
-  if (!authEnabled()) return actionError("Account access is not enabled yet.");
   const parsed = emailSchema.safeParse(fields(formData));
   if (!parsed.success) return validationError(parsed.error);
-
-  try {
-    if (
-      !(await passPublicProtection(
-        "resend_verification",
-        parsed.data.email,
-        formData,
-      ))
-    ) {
-      return actionError("Security verification failed. Please try again.");
-    }
-  } catch {
-    return actionError("Email verification is temporarily unavailable.");
-  }
-
-  const supabase = await createClient();
-  await supabase.auth.resend({
-    type: "signup",
-    email: parsed.data.email,
-    options: { emailRedirectTo: authCallbackUrl("/account/onboarding") },
-  });
-  return actionSuccess(
-    "If verification is pending, a fresh link has been sent.",
-  );
+  return actionSuccess("Use a fresh login code from the customer sign-in screen.");
 }
 
 export async function resetPasswordAction(
   _state: AuthActionState,
   formData: FormData,
 ): Promise<AuthActionState> {
-  if (!authEnabled()) return actionError("Account access is not enabled yet.");
   const parsed = resetSchema.safeParse(fields(formData));
   if (!parsed.success) return validationError(parsed.error);
 
@@ -326,50 +279,41 @@ export async function resetPasswordAction(
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return actionError("This recovery link is no longer valid.");
 
-  const { error } = await supabase.auth.updateUser({
-    password: parsed.data.password,
-  });
+  const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
   if (error) return actionError("We could not update your password.");
 
-  const destination = await destinationAfterLogin(
-    supabase,
-    userData.user.id,
-    "/account",
-    "customer",
-  );
-  redirect(destination);
+  if (isStaffSurface()) {
+    redirect(await staffDestination(supabase, "/orders"));
+  }
+  try {
+    await ensureCustomerAccount(supabase);
+  } catch {
+    await supabase.auth.signOut();
+    redirect("/auth/error?code=CUSTOMER_ACCESS_DENIED");
+  }
+  redirect("/account/orders");
 }
 
 export async function completeMinimalCustomerOnboardingAction(
   _state: AuthActionState,
   formData: FormData,
 ): Promise<AuthActionState> {
-  if (!isFeatureEnabled("NEXT_PUBLIC_ACCOUNTS_ENABLED")) {
-    return actionError("Customer accounts are not enabled yet.");
-  }
   const parsed = minimalOnboardingSchema.safeParse(fields(formData));
   if (!parsed.success) return validationError(parsed.error);
-
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user?.email_confirmed_at) {
     return actionError("Verify your email before continuing.");
   }
-  const generatedCompanyName = `${parsed.data.firstName} ${parsed.data.lastName}`.trim() + " customer";
   const { error } = await supabase.rpc("complete_customer_onboarding", {
     p_first_name: parsed.data.firstName,
     p_last_name: parsed.data.lastName,
     p_phone: "",
-    p_job_title: "",
     p_department: "",
-    p_company_name: parsed.data.companyName ?? generatedCompanyName,
-    p_website: "",
-    p_gstin: "",
-    p_industry: "",
     p_terms_version: TERMS_VERSION,
     p_privacy_version: PRIVACY_VERSION,
   });
-  if (error) return actionError("We could not finish setting up your account. Please try again.");
+  if (error) return actionError("We could not finish setting up your account.");
   return actionSuccess("Your account is ready.", {
     destination: safeInternalPath(parsed.data.next, "/account/orders"),
   });

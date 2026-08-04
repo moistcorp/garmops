@@ -14,9 +14,9 @@ export type ConfiguratorJourneyStep =
   | "artwork"
   | "neck-label"
   | "quantity"
-  | "company"
+  | "delivery"
   | "review"
-  | "reserve";
+  | "payment";
 
 interface ConfiguratorJourneyProps {
   currentStep: ConfiguratorJourneyStep;
@@ -43,9 +43,9 @@ const STEPS: Array<{
   { id: "artwork", label: "Artwork" },
   { id: "neck-label", label: "Custom label" },
   { id: "quantity", label: "Sizes & quantity" },
-  { id: "company", label: "Delivery" },
+  { id: "delivery", label: "Delivery" },
   { id: "review", label: "Review" },
-  { id: "reserve", label: "Reservation" },
+  { id: "payment", label: "Payment" },
 ];
 
 export function ConfiguratorJourney({

@@ -9,8 +9,34 @@ import {
   copySessionHeaders,
   refreshSupabaseSession,
 } from '@/lib/supabase/proxy'
+import {
+  isStaffSurface,
+  staffAppUrl,
+} from '@/lib/config/appSurface'
 
 const CONTENT_SIGNAL = 'ai-train=no, search=yes, ai-input=yes'
+const STAFF_AUTH_PATHS = new Set([
+  '/login',
+  '/forgot-password',
+  '/reset-password',
+  '/auth/callback',
+  '/auth/error',
+])
+const STAFF_API_PREFIXES = [
+  '/api/uploads',
+  '/api/files',
+  '/api/internal',
+  '/api/health',
+]
+
+const STAFF_PORTAL_PREFIXES = [
+  '/orders',
+  '/artwork-review',
+  '/payments',
+  '/quotes',
+  '/staff-management',
+  '/settings',
+]
 
 function markdownRewrite(request: NextRequest, sourcePath: string) {
   const destination = request.nextUrl.clone()
@@ -28,9 +54,36 @@ function markdownRewrite(request: NextRequest, sourcePath: string) {
   return response
 }
 
+function staffPathFromLegacy(pathname: string): string {
+  if (pathname === '/staff' || pathname === '/staff/') return '/orders'
+  if (pathname === '/staff/login') return '/login'
+  if (pathname.startsWith('/staff/orders')) {
+    return pathname.slice('/staff'.length) || '/orders'
+  }
+  return '/orders'
+}
+
+function isStaffPortalPath(pathname: string): boolean {
+  return STAFF_PORTAL_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  )
+}
+
+function redirectWithSession(
+  sessionResponse: NextResponse,
+  destination: URL,
+) {
+  return copySessionHeaders(
+    sessionResponse,
+    NextResponse.redirect(destination),
+  )
+}
+
 export async function proxy(request: NextRequest) {
   const pathname = normalizeAgentPath(request.nextUrl.pathname)
-  if (request.method === 'GET' || request.method === 'HEAD') {
+  const staffSurface = isStaffSurface()
+
+  if (!staffSurface && (request.method === 'GET' || request.method === 'HEAD')) {
     const fallbackSource = sourcePathFromMarkdownPath(pathname)
 
     if (fallbackSource) {
@@ -47,6 +100,72 @@ export async function proxy(request: NextRequest) {
 
   const session = await refreshSupabaseSession(request)
 
+  if (staffSurface) {
+    if (pathname.startsWith('/staff')) {
+      const destination = request.nextUrl.clone()
+      destination.pathname = staffPathFromLegacy(pathname)
+      destination.search = request.nextUrl.search
+      return redirectWithSession(session.response, destination)
+    }
+
+    if (pathname === '/') {
+      const destination = request.nextUrl.clone()
+      destination.pathname = session.authenticated ? '/orders' : '/login'
+      destination.search = ''
+      return redirectWithSession(session.response, destination)
+    }
+
+    if (
+      !session.authenticated &&
+      isStaffPortalPath(pathname)
+    ) {
+      const loginUrl = request.nextUrl.clone()
+      loginUrl.pathname = '/login'
+      loginUrl.search = ''
+      loginUrl.searchParams.set(
+        'next',
+        `${request.nextUrl.pathname}${request.nextUrl.search}`,
+      )
+      return redirectWithSession(session.response, loginUrl)
+    }
+
+    if (pathname.startsWith('/api/') && !STAFF_API_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))) {
+      return NextResponse.json({ error: 'Route is unavailable on the Foundry deployment' }, { status: 404 })
+    }
+
+    // The Foundry deployment is intentionally not a second public storefront.
+    // Unknown GET/HEAD paths are sent to the operations root instead of exposing
+    // customer or marketing screens under foundry.garmops.com.
+    if (
+      (request.method === 'GET' || request.method === 'HEAD') &&
+      !STAFF_AUTH_PATHS.has(pathname) &&
+      !isStaffPortalPath(pathname) &&
+      !pathname.startsWith('/api/') &&
+      !pathname.startsWith('/payment/')
+    ) {
+      const destination = request.nextUrl.clone()
+      destination.pathname = session.authenticated ? '/orders' : '/login'
+      destination.search = ''
+      return redirectWithSession(session.response, destination)
+    }
+
+    return session.response
+  }
+
+  if (
+    pathname.startsWith('/staff') ||
+    isStaffPortalPath(pathname)
+  ) {
+    const destination = new URL(
+      pathname.startsWith('/staff')
+        ? staffPathFromLegacy(pathname)
+        : pathname,
+      staffAppUrl(),
+    )
+    destination.search = request.nextUrl.search
+    return redirectWithSession(session.response, destination)
+  }
+
   if (
     (pathname === '/account' || pathname.startsWith('/account/')) &&
     !session.authenticated
@@ -58,24 +177,7 @@ export async function proxy(request: NextRequest) {
       'next',
       `${request.nextUrl.pathname}${request.nextUrl.search}`,
     )
-    return copySessionHeaders(session.response, NextResponse.redirect(loginUrl))
-  }
-
-  if (
-    (pathname === '/staff/login')
-  ) {
-    return session.response
-  }
-
-  if (
-    (pathname === '/staff' || pathname.startsWith('/staff/')) &&
-    !session.authenticated
-  ) {
-    const loginUrl = request.nextUrl.clone()
-    loginUrl.pathname = '/login'
-    loginUrl.search = ''
-    loginUrl.searchParams.set('next', '/staff')
-    return copySessionHeaders(session.response, NextResponse.redirect(loginUrl))
+    return redirectWithSession(session.response, loginUrl)
   }
 
   if (
@@ -99,6 +201,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|agent-content|favicon.ico|robots.txt|sitemap.xml).*)',
+    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)',
   ],
 }

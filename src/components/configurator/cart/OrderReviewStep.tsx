@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Copy, Plus } from 'lucide-react';
 import type { ProductId } from '@/lib/configurator/pricing';
 import type { GarmentColour, Artwork, NeckLabel } from '@/lib/configurator/types/configurator';
 import type { GarmentView } from '@/lib/configurator/types/garment';
@@ -32,7 +31,6 @@ import { NECK_PREVIEW_CANVAS_CLASS } from '../GarmentPreview/GarmentPreview';
 import ViewTabs from '../GarmentPreview/ViewTabs';
 import { ArtworkPositionProvider } from '@/lib/configurator/ArtworkPositionContext';
 import { restoreConfigurationUploads } from '@/lib/configurator/objectUrls';
-import { RESERVATION_FEE } from '@/lib/configurator/reservation';
 import { ActionFeedback, type ActionFeedbackTone } from '../ActionFeedback';
 import { trackConfiguratorEvent } from '@/lib/configurator/analytics';
 import { formatSpecCode } from '@/lib/orders/format';
@@ -173,27 +171,6 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
     setPendingDeleteItemId(null);
   }
 
-  function handleDuplicate(item: CartItem) {
-    const duplicate: CartItem = {
-      ...item,
-      id: typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${item.id}-copy-${Date.now()}`,
-      productName: `${item.productName} (Copy)`,
-      sizeQuantities: { ...item.sizeQuantities },
-      artwork: {
-        front: item.artwork.front ? { ...item.artwork.front } : undefined,
-        back: item.artwork.back ? { ...item.artwork.back } : undefined,
-      },
-      neckLabel: item.neckLabel ? { ...item.neckLabel } : undefined,
-    };
-    updateDraft((previous) => ({
-      ...previous,
-      items: [...previous.items, duplicate],
-    }));
-    setActiveView((previous) => ({ ...previous, [duplicate.id]: "front" }));
-    setFeedback({ tone: "success", title: "Product duplicated", detail: "Adjust the copy without rebuilding the design from scratch." });
-    trackConfiguratorEvent("cart_item_duplicated", { cart_id: cartId, product_id: item.productId });
-  }
-
   function handleRemoveArtworkSide(itemId: string, side: "front" | "back") {
     updateDraft((previous) => {
       const nextItems = previous.items.map((item) => {
@@ -227,7 +204,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
   async function handleDownloadApprovalPdf() {
     if (!items.length) return;
     setIsDownloadingPdf(true);
-    setFeedback({ tone: 'loading', title: 'Preparing approval PDF…', detail: 'Adding previews, sizes, pricing and reservation details.' });
+    setFeedback({ tone: 'loading', title: 'Preparing approval PDF…', detail: 'Adding previews, sizes, pricing and payment details.' });
     trackConfiguratorEvent('approval_pdf_started', { source: 'cart', cart_id: cartId });
     try {
       const previewDataUrls: Record<string, string | undefined> = {};
@@ -260,10 +237,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
           volumeDiscount: totals.volumeDiscount,
           gst: totals.gst,
           total: totals.total,
-          reservationFee: RESERVATION_FEE,
-          balanceDue: totals.balanceDue,
         },
-        companyName: draft.companyInformation.name || undefined,
         contactName: `${draft.projectContact.firstName} ${draft.projectContact.lastName}`.trim() || undefined,
         deliveryLabel: draft.selectedDeliveryDateIso
           ? new Date(draft.selectedDeliveryDateIso).toLocaleDateString('en-IN', {
@@ -319,18 +293,8 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             </p>
             <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Sizes &amp; quantity</h1>
             <p className="mt-1 text-sm text-[var(--text-primary)]/55">
-              Confirm the final size allocation for each configured product.
+              Confirm the final size allocation for this configured product.
             </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={handleAddAnotherProduct}
-              className="inline-flex items-center gap-2 rounded-[4px] border border-[#E5E5E5] px-4 py-2 text-sm font-medium text-[var(--text-primary)]/75 hover:border-[var(--color-accent)] hover:text-[var(--text-primary)]"
-            >
-              <Plus size={16} strokeWidth={2.2} />
-              Add another product
-            </button>
           </div>
         </div>
 
@@ -433,7 +397,6 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                       >
                         Edit design
                       </button>
-                      <button type="button" onClick={() => handleDuplicate(item)} className="inline-flex items-center gap-1 rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 text-xs text-[var(--text-primary)]/70 hover:border-[var(--color-accent)]"><Copy size={13} /> Duplicate</button>
                       {item.artwork.front && <button type="button" onClick={() => handleRemoveArtworkSide(item.id, "front")} className="rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 text-xs text-[var(--text-primary)]/70 hover:border-[var(--color-accent)]">Remove front print</button>}
                       {item.artwork.back && <button type="button" onClick={() => handleRemoveArtworkSide(item.id, "back")} className="rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 text-xs text-[var(--text-primary)]/70 hover:border-[var(--color-accent)]">Remove back print</button>}
                       {pendingDeleteItemId === item.id ? (

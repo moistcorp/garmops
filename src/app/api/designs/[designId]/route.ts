@@ -164,18 +164,17 @@ export async function DELETE(
     return designJsonError("Invalid design request", 400);
   }
 
-  const { data, error } = await archiveCloudDesign(
+  const { data: archived, error } = await archiveCloudDesign(
     auth.supabase,
     id.data,
     parsed.data.expectedRevision,
   );
-  const result = data?.[0];
-  if (error || !result) {
+  if (error) {
     return designJsonError("Design could not be archived", 403);
   }
-  if (result.conflict) {
+  if (!archived) {
     return designJsonError("Design has newer cloud changes", 409, {
-      conflict: { draftRevision: result.draft_revision },
+      conflict: { draftRevision: parsed.data.expectedRevision },
     });
   }
 
@@ -183,8 +182,8 @@ export async function DELETE(
     design: {
       id: id.data,
       status: "archived",
-      draftRevision: result.draft_revision,
-      archivedAt: result.archived_at,
+      draftRevision: parsed.data.expectedRevision + 1,
+      archivedAt: new Date().toISOString(),
     },
   });
 }

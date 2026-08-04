@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import {
   CheckCircle2,
   CreditCard,
-  FileText,
   LoaderCircle,
   MapPin,
   ShieldCheck,
@@ -39,7 +38,6 @@ import {
   CUSTOM_DYE_MOQ_UNITS,
 } from "@/lib/configurator/colourRules";
 import { getProduct } from "@/lib/configurator/products";
-import { RESERVATION_FEE } from "@/lib/configurator/reservation";
 import CanvasRenderer from "../GarmentPreview/CanvasRenderer";
 import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionContext";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
@@ -48,7 +46,6 @@ import { prepareCustomCheckoutPayment } from "@/lib/orders/client";
 
 export interface ConfirmationStepProps {
   cartId: string;
-  organizationId: string;
   paymentOutcome?: "failure" | "pending";
 }
 
@@ -67,7 +64,6 @@ function joinAddress(address: Address): string {
 
 export function ConfirmationStep({
   cartId,
-  organizationId,
   paymentOutcome,
 }: ConfirmationStepProps) {
   const router = useRouter();
@@ -75,7 +71,13 @@ export function ConfirmationStep({
   const [isDraftReady, setIsDraftReady] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [paymentError, setPaymentError] = useState("");
+  const [paymentError, setPaymentError] = useState(() =>
+    paymentOutcome === "failure"
+      ? "The payment was not completed. No order was created. You can try again safely."
+      : paymentOutcome === "pending"
+        ? "PayU is still verifying this payment. Please wait before trying another payment."
+        : "",
+  );
 
   useEffect(() => {
     const loadDraft = window.setTimeout(() => {
@@ -87,7 +89,6 @@ export function ConfirmationStep({
 
       const procurementComplete =
         getProcurementMissingFields({
-          company: savedDraft.companyInformation,
           contact: savedDraft.projectContact,
           shipping: savedDraft.shippingInformation,
           billing: savedDraft.billingInformation,
@@ -122,13 +123,6 @@ export function ConfirmationStep({
     return () => window.clearTimeout(loadDraft);
   }, [cartId, router]);
 
-  useEffect(() => {
-    if (paymentOutcome === "failure") {
-      setPaymentError("The reservation payment was not completed. No order was created. You can try again safely.");
-    } else if (paymentOutcome === "pending") {
-      setPaymentError("PayU is still verifying this payment. Please wait before trying another payment.");
-    }
-  }, [paymentOutcome]);
 
   const { subtotal, volumeDiscount, shippingFee, gst, delivery, orderTotal } =
     useMemo(() => {
@@ -172,7 +166,6 @@ export function ConfirmationStep({
         return totalUnits(item.sizeQuantities) >= minimum;
       });
     const procurementMissing = getProcurementMissingFields({
-      company: draft.companyInformation,
       contact: draft.projectContact,
       shipping: draft.shippingInformation,
       billing: draft.billingInformation,
@@ -207,7 +200,7 @@ export function ConfirmationStep({
 
     trackConfiguratorEvent("payment_started", {
       cart_id: cartId,
-      reservation_fee: RESERVATION_FEE,
+      amount: orderTotal,
       item_count: draft.items.length,
     });
     setIsProcessing(true);
@@ -215,7 +208,6 @@ export function ConfirmationStep({
     try {
       const result = await prepareCustomCheckoutPayment({
         cartId,
-        organizationId,
         draft,
       });
       if (result.ok) {
@@ -373,16 +365,11 @@ export function ConfirmationStep({
               </p>
               <p className="mt-1">
                 {draft.shippingInformation.multipleLocationsNotes ||
-                  "The detailed split will be confirmed after reservation."}
+                  "The detailed split and shipping charge will be confirmed by our operations team."}
               </p>
             </div>
           )}
-          {draft.billingInformation.purchaseOrder && (
-            <div className="mt-3 flex items-center gap-2 rounded-[4px] bg-[#F7F7F7] p-3 text-xs text-[var(--text-primary)]/65">
-              <FileText size={16} className="shrink-0 text-[var(--color-accent-dark)]" />
-              <span>Purchase order attached: <strong className="text-[var(--text-primary)]">{draft.billingInformation.purchaseOrder.fileName}</strong></span>
-            </div>
-          )}
+
         </ReviewSection>
 
         {(draft.projectPreferences.orderNotes || draft.projectPreferences.receiveEmails) && (
@@ -411,26 +398,26 @@ export function ConfirmationStep({
           <div className="flex items-start gap-3">
             <span className="rounded-[4px] bg-white p-2 text-[var(--color-accent-dark)]"><ShieldCheck size={18} /></span>
             <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-semibold text-[var(--text-primary)]">What happens after reservation?</h3>
+              <h3 className="text-sm font-semibold text-[var(--text-primary)]">What happens after payment?</h3>
               <div className="mt-3 grid gap-2 text-xs leading-relaxed text-[var(--text-primary)]/65 sm:grid-cols-2">
                 {[
                   "A merch specialist checks artwork and production feasibility.",
-                  "Final pricing and shipping are confirmed before the balance is due.",
-                  "Production starts only after your final approval and agreed payment terms.",
+                  "Shipping is reviewed separately and a PayU shipping-payment link is shared by staff.",
+                  "Production starts after artwork approval and operational review.",
                 ].map((item) => (
                   <p key={item} className="flex items-start gap-2"><CheckCircle2 size={14} className="mt-0.5 shrink-0 text-[var(--color-accent-dark)]" />{item}</p>
                 ))}
               </div>
               <div className="mt-4 flex items-center gap-2 border-t border-[var(--color-accent)]/20 pt-3 text-xs font-medium text-[var(--text-primary)]/65">
                 <CreditCard size={15} className="text-[var(--color-accent-dark)]" />
-                Your order is created only after PayU verifies a successful reservation payment.
+                Your order is created only after PayU verifies the complete merchandise payment.
               </div>
             </div>
           </div>
         </section>
 
         <section className="techpack-panel rounded-[4px] border p-5">
-          <p className="mb-3 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">04 / Reservation authorisation</p>
+          <p className="mb-3 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">04 / Payment authorisation</p>
           <label className="flex cursor-pointer items-start gap-3 text-sm text-[var(--text-primary)]">
             <input
               type="checkbox"
@@ -438,13 +425,10 @@ export function ConfirmationStep({
               onChange={(event) => setTermsAccepted(event.target.checked)}
               className="mt-0.5 h-4 w-4 accent-[var(--color-accent)]"
             />
-            I agree to the reservation terms: {formatInr(RESERVATION_FEE)} is
-            charged today and credited against the final invoice.
+            I agree to the order terms, privacy notice and full merchandise payment shown in this checkout.
           </label>
           <p className="mt-3 text-xs leading-relaxed text-[var(--text-primary)]/60">
-            The final invoice, including confirmed shipping, is shared after
-            feasibility review. Production starts only after final approval and
-            the agreed payment terms.
+            The amount paid now includes the configured merchandise and 5% GST. Shipping is excluded and will be quoted separately by our operations team through a secure PayU payment link.
           </p>
         </section>
         </div>
@@ -472,12 +456,12 @@ export function ConfirmationStep({
             {isProcessing && <LoaderCircle size={16} className="animate-spin" />}
             {isProcessing
               ? "Opening secure PayU checkout…"
-              : `Pay reservation fee — ${formatInr(RESERVATION_FEE)}`}
+              : `Pay full amount — ${formatInr(orderTotal)}`}
           </button>
           {!termsAccepted && (
-            <p className="text-center text-xs text-[var(--text-primary)]/55">Accept the reservation terms to continue.</p>
+            <p className="text-center text-xs text-[var(--text-primary)]/55">Accept the order terms to continue.</p>
           )}
-          {paymentError && <ActionFeedback tone="error" title="Reservation payment" detail={`${paymentError} Your configurator details are safe.`} actionLabel={paymentError.includes("still verifying") ? undefined : "Try payment again"} onAction={paymentError.includes("still verifying") ? undefined : handlePayment} onDismiss={() => setPaymentError("")} />}
+          {paymentError && <ActionFeedback tone="error" title="Order payment" detail={`${paymentError} Your configurator details are safe.`} actionLabel={paymentError.includes("still verifying") ? undefined : "Try payment again"} onAction={paymentError.includes("still verifying") ? undefined : handlePayment} onDismiss={() => setPaymentError("")} />}
         </div>
       </div>
     </>

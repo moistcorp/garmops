@@ -65,8 +65,8 @@ export default function GarmentColourPanel({ value, onChange, unitBasePrice }: G
     setIsLoadingPantones(true);
     setPantoneError("");
     try {
-      const module = await import("@/lib/configurator/pantoneLibrary");
-      setPantoneColours(module.PANTONE_COLOURS);
+      const pantoneLibrary = await import("@/lib/configurator/pantoneLibrary");
+      setPantoneColours(pantoneLibrary.PANTONE_COLOURS);
     } catch {
       setPantoneError("The Pantone library could not be loaded. Please try again.");
     } finally {

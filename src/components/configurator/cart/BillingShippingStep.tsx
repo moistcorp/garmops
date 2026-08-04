@@ -27,7 +27,6 @@ import {
   getProcurementMissingFields,
   isGstinValid,
   type BillingInformation,
-  type CompanyInformation,
   type ProjectContact,
   type ShippingInformation,
 } from "./checkoutDetails";
@@ -134,33 +133,16 @@ function withInferredCheckoutDetails(
     ...draft.shippingInformation,
     recipientName: contactName,
   };
-  const billingAddress = draft.billingInformation.sameAsCompanyAddress
-    ? shippingInformation.address
-    : draft.billingInformation.address;
-  const gstin =
-    draft.billingInformation.gstin || draft.companyInformation.gstin;
-  const companyInformation = {
-    ...draft.companyInformation,
-    name: contactName,
-    gstin,
-    address: billingAddress,
-  };
   const billingInformation = {
     ...draft.billingInformation,
-    entity: contactName,
+    entity: draft.billingInformation.entity || contactName,
     accountsPayableEmail:
       draft.billingInformation.accountsPayableEmail ||
       accountDefaults?.billingEmail ||
       draft.projectContact.email,
-    gstin,
   };
 
-  return {
-    ...draft,
-    companyInformation,
-    shippingInformation,
-    billingInformation,
-  };
+  return { ...draft, shippingInformation, billingInformation };
 }
 
 function withAccountDefaults(
@@ -175,10 +157,6 @@ function withAccountDefaults(
 
   return {
     ...draft,
-    companyInformation: {
-      ...draft.companyInformation,
-      gstin: value(draft.companyInformation.gstin, defaults.gstin),
-    },
     projectContact: {
       ...draft.projectContact,
       firstName: value(draft.projectContact.firstName, defaults.firstName),
@@ -326,13 +304,6 @@ export function BillingShippingStep({
     [accountDefaults, markFormStarted, persistCartDraft]
   );
 
-  const updateCompany = useCallback(
-    (companyInformation: CompanyInformation) => {
-      updateDraft({ companyInformation });
-    },
-    [updateDraft]
-  );
-
   const updateContact = useCallback(
     (projectContact: ProjectContact) => {
       updateDraft({ projectContact });
@@ -366,7 +337,6 @@ export function BillingShippingStep({
     extraLeadTimeDays
   );
   const procurementMissing = getProcurementMissingFields({
-    company: draft.companyInformation,
     contact: draft.projectContact,
     shipping: draft.shippingInformation,
     billing: draft.billingInformation,
@@ -437,7 +407,7 @@ export function BillingShippingStep({
   return (
     <>
       <ConfiguratorTopBar
-        currentStep="company"
+        currentStep="delivery"
         backHref={`/configurator/cart/${encodeURIComponent(cartId)}/review`}
         showCart
         productName={getCartProductLabel(draft.items)}
@@ -477,7 +447,7 @@ export function BillingShippingStep({
             </h1>
             <p className="mt-1 max-w-2xl text-sm leading-relaxed text-[var(--text-primary)]/55">
               Confirm your contact, delivery and billing details. Saved account
-              information is filled automatically and updated when you continue.
+              information is filled automatically. Checkout details are stored as an immutable order snapshot after payment.
             </p>
           </div>
 
@@ -635,7 +605,7 @@ export function BillingShippingStep({
               "04",
               <ReceiptText size={18} />,
               "Billing & GST",
-              "GSTIN is optional. Add it when you need a GST invoice; it will be saved to your account."
+              "GSTIN is optional. Add it when you need a GST invoice for this order."
             )}
             <div className="space-y-5">
               <div>
@@ -655,7 +625,6 @@ export function BillingShippingStep({
                       .replace(/[^0-9A-Z]/g, "")
                       .slice(0, 15);
                     updateBilling({ ...draft.billingInformation, gstin });
-                    updateCompany({ ...draft.companyInformation, gstin });
                   }}
                 />
                 {draft.billingInformation.gstin &&

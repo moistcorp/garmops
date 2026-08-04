@@ -1,9 +1,11 @@
 import "server-only";
 
+import { randomUUID } from "node:crypto";
 import type { User } from "@supabase/supabase-js";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { createClient } from "@/lib/supabase/server";
+import type { Json } from "@/types/database.generated";
 
 import { hashOrderRequest } from "./service";
 import {
@@ -12,37 +14,35 @@ import {
   priceSampleOrder,
 } from "./samplePricing";
 import type { SubmitSampleOrderRequest } from "./sampleSchema";
-import { currentSampleTermsEvidence } from "./terms";
+import {
+  CUSTOM_ORDER_PRIVACY_VERSION,
+  currentSampleTermsEvidence,
+} from "./terms";
 
 type SessionClient = Awaited<ReturnType<typeof createClient>>;
+function adminClient() {
+  return createAdminClient();
+}
+
+function normalizeEmail(value: string): string {
+  return value.trim().toLowerCase();
+}
 
 function phoneE164(value: string): string {
   const digits = value.replace(/\D/g, "");
-  const national =
-    digits.length === 12 && digits.startsWith("91")
-      ? digits.slice(2)
-      : digits.length === 11 && digits.startsWith("0")
-        ? digits.slice(1)
-        : digits;
+  const national = digits.length === 12 && digits.startsWith("91")
+    ? digits.slice(2)
+    : digits.length === 11 && digits.startsWith("0")
+      ? digits.slice(1)
+      : digits;
   return `+91${national}`;
 }
-
-type AddressSnapshot = Readonly<{
-  contactName: string;
-  phone: string;
-  line1: string;
-  line2: string | null;
-  city: string;
-  state: string;
-  postalCode: string;
-  countryCode: "IN";
-}>;
 
 function addressSnapshot(
   address: SubmitSampleOrderRequest["shipping"]["address"],
   contactName: string,
   phone: string,
-): AddressSnapshot {
+): Json {
   return {
     contactName,
     phone: phoneE164(phone),
@@ -55,193 +55,167 @@ function addressSnapshot(
   };
 }
 
+async function assertCustomer(user: User): Promise<void> {
+  if (!user.email || !user.email_confirmed_at) throw new Error("Verified customer login required");
+  const { data, error } = await adminClient().from("account_principals")
+    .select("account_type, active, normalized_email")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (error || !data || !data.active || data.account_type !== "customer") {
+    throw new Error("Customer account access is required");
+  }
+  if (normalizeEmail(data.normalized_email) !== normalizeEmail(user.email)) {
+    throw new Error("Customer account identity is inconsistent");
+  }
+}
+
 export async function submitSampleOrder(input: {
   supabase: SessionClient;
   user: User;
   request: SubmitSampleOrderRequest;
 }) {
-  const { request, user, supabase } = input;
-  if (!user.email) throw new Error("Customer email is unavailable");
-
-  const [
-    membershipResult,
-    profileResult,
-    organizationResult,
-    billingAddressResult,
-  ] = await Promise.all([
-    supabase
-      .from("organization_members")
-      .select("role, status")
-      .eq("organization_id", request.organizationId)
-      .eq("user_id", user.id)
-      .eq("status", "active")
-      .in("role", ["owner", "buyer"])
-      .maybeSingle(),
-    supabase
-      .from("profiles")
-      .select("first_name, last_name, phone, department")
-      .eq("id", user.id)
-      .maybeSingle(),
-    supabase
-      .from("organizations")
-      .select(
-        "id, legal_name, display_name, industry, website, gstin, pan, billing_email, phone, status",
-      )
-      .eq("id", request.organizationId)
-      .maybeSingle(),
-    supabase
-      .from("addresses")
-      .select("contact_name, phone, line1, line2, city, state, postal_code, country_code, gstin")
-      .eq("organization_id", request.organizationId)
-      .eq("is_default_billing", true)
-      .maybeSingle(),
-  ]);
-
-  if (membershipResult.error || !membershipResult.data) {
-    throw new Error("Active owner or buyer access is required");
-  }
-  if (profileResult.error || !profileResult.data) {
-    throw new Error("Customer profile is incomplete");
-  }
-  if (
-    organizationResult.error ||
-    !organizationResult.data ||
-    organizationResult.data.status !== "active"
-  ) {
-    throw new Error("Organization is unavailable");
+  const { request, user } = input;
+  await assertCustomer(user);
+  if (!user.email || normalizeEmail(request.contact.email) !== normalizeEmail(user.email)) {
+    throw new Error("Checkout email must match the logged-in customer email");
   }
 
   const priced = priceSampleOrder(request.items);
-  const organization = organizationResult.data;
-  const contactName = `${request.contact.firstName} ${request.contact.lastName ?? ""}`.trim();
+  const customerName = `${request.contact.firstName} ${request.contact.lastName ?? ""}`.trim();
   const shippingAddress = addressSnapshot(
     request.shipping.address,
     request.shipping.recipientName,
     request.contact.phone,
   );
-  const billingName = organization.legal_name || organization.display_name;
-  const savedBilling =
-    billingAddressResult.data?.country_code === "IN"
-      ? billingAddressResult.data
-      : null;
-  const billingAddress: AddressSnapshot = savedBilling
-    ? {
-        contactName: savedBilling.contact_name ?? billingName,
-        phone: savedBilling.phone ?? phoneE164(request.contact.phone),
-        line1: savedBilling.line1,
-        line2: savedBilling.line2,
-        city: savedBilling.city,
-        state: savedBilling.state,
-        postalCode: savedBilling.postal_code,
-        countryCode: "IN",
-      }
-    : {
-        ...shippingAddress,
-        contactName: billingName,
-      };
-  const billingSnapshot = {
-    entity: billingName,
-    accountsPayableEmail:
-      organization.billing_email ?? request.contact.email,
-    gstin: savedBilling?.gstin ?? organization.gstin,
-    address: billingAddress,
-    source: savedBilling
-      ? "organization_default_billing_address"
-      : "shipping_address_at_sample_checkout",
-  };
-  const shippingSnapshot = {
-    recipientName: request.shipping.recipientName,
-    address: shippingAddress,
-    multipleLocations: false,
-    multipleLocationsNotes: null,
-  };
-  const customerSnapshot = {
-    userId: user.id,
-    accountEmail: user.email.toLowerCase(),
-    email: request.contact.email,
-    name: contactName,
-    firstName: request.contact.firstName,
-    lastName: request.contact.lastName ?? null,
-    phone: phoneE164(request.contact.phone),
-    department: profileResult.data.department,
-  };
-  const companySnapshot = {
-    organizationId: organization.id,
-    legalName: organization.legal_name,
-    displayName: organization.display_name,
-    industry: organization.industry,
-    website: organization.website,
-    gstin: organization.gstin,
-    pan: organization.pan,
-    billingEmail: organization.billing_email,
-    phone: organization.phone,
-  };
-  const termsEvidence = currentSampleTermsEvidence();
-  const termsSnapshot = {
-    accepted: true,
-    version: termsEvidence.version,
-    documentHash: termsEvidence.documentHash,
-    acceptedAtServer: new Date().toISOString(),
-    checkoutKind: "catalogue_sample_purchase",
-    orderNotes: request.orderNotes ?? null,
-  };
-
-  const requestHash = hashOrderRequest({
-    organizationId: request.organizationId,
-    items: request.items,
-    contact: request.contact,
-    shipping: request.shipping,
-    orderNotes: request.orderNotes ?? null,
-    termsVersion: termsEvidence.version,
-    canonicalPrice: {
-      subtotalPaise: priced.subtotalPaise,
-      shippingPaise: priced.shippingPaise,
-      taxEstimatePaise: priced.taxEstimatePaise,
-      estimatedTotalPaise: priced.estimatedTotalPaise,
+  const terms = currentSampleTermsEvidence();
+  const payload: Json = {
+    orderType: "sample_purchase",
+    pricingVersion: SAMPLE_ORDER_PRICING_VERSION,
+    configurationSchemaVersion: SAMPLE_ORDER_SCHEMA_VERSION,
+    customerReference: "Catalogue samples",
+    billingSnapshot: {
+      entity: customerName,
+      email: normalizeEmail(request.contact.email),
+      gstin: null,
+      address: shippingAddress,
     },
+    shippingSnapshot: {
+      recipientName: request.shipping.recipientName,
+      address: shippingAddress,
+      pricing: "quoted_separately",
+    },
+    customerSnapshot: {
+      userId: user.id,
+      name: customerName,
+      firstName: request.contact.firstName,
+      lastName: request.contact.lastName ?? null,
+      email: normalizeEmail(request.contact.email),
+      phone: phoneE164(request.contact.phone),
+    },
+    businessSnapshot: {},
+    termsSnapshot: {
+      version: terms.version,
+      privacyVersion: CUSTOM_ORDER_PRIVACY_VERSION,
+      contentHash: terms.documentHash,
+      requestMetadata: { checkoutType: "catalogue_sample_full_payment" },
+    },
+    configurationSnapshot: {
+      sampleItems: request.items,
+      orderNotes: request.orderNotes ?? null,
+      commercialFieldsLockedAfterPayment: ["quantity", "garment"],
+    },
+    items: [...priced.items],
+    fileIds: [],
+    discountCode: null,
+  };
+  const requestHash = hashOrderRequest({
+    userId: user.id,
+    request,
+    pricingVersion: SAMPLE_ORDER_PRICING_VERSION,
+    subtotalPaise: priced.subtotalPaise,
+    taxPaise: priced.taxEstimatePaise,
+    totalPaise: priced.estimatedTotalPaise,
   });
 
-  const admin = createAdminClient();
-  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1_000).toISOString();
-  const rpc = admin.rpc as unknown as (
-    name: string,
-    args: Record<string, unknown>,
-  ) => Promise<{ data: Array<Record<string, unknown>> | null; error: { message: string } | null }>;
-  const { data, error } = await rpc("submit_order", {
-    p_idempotency_key: request.idempotencyKey,
-    p_request_hash: requestHash,
-    p_order_type: "sample_purchase",
-    p_organization_id: request.organizationId,
-    p_customer_user_id: user.id,
-    p_subtotal_paise: priced.subtotalPaise,
-    p_shipping_paise: priced.shippingPaise,
-    p_tax_estimate_paise: priced.taxEstimatePaise,
-    p_reservation_amount_paise: 0,
-    p_pricing_version: SAMPLE_ORDER_PRICING_VERSION,
-    p_configuration_schema_version: SAMPLE_ORDER_SCHEMA_VERSION,
-    p_billing_snapshot: billingSnapshot,
-    p_shipping_snapshot: shippingSnapshot,
-    p_customer_snapshot: customerSnapshot,
-    p_company_snapshot: companySnapshot,
-    p_terms_snapshot: termsSnapshot,
-    p_items: priced.items,
-    p_customer_reference: "Catalogue sample order",
-    p_po_number: null,
-    p_requested_delivery_date: null,
-    p_expires_at: expiresAt,
-  });
-  const result = data?.[0];
-  if (error || !result) {
-    throw new Error(error?.message ?? "Sample order could not be submitted");
+  const admin = adminClient();
+  const sessionResult = await admin.from("custom_checkout_sessions")
+    .select("id, request_hash, status, final_order_id, final_order_number, final_payment_attempt_id")
+    .eq("customer_user_id", user.id)
+    .eq("idempotency_key", request.idempotencyKey)
+    .maybeSingle();
+  let session = sessionResult.data;
+  if (sessionResult.error) throw new Error(sessionResult.error.message);
+  if (session && session.request_hash !== requestHash) throw new Error("IDEMPOTENCY_CONFLICT");
+  if (session?.status === "finalized") {
+    return {
+      checkoutSessionId: session.id,
+      checkoutPaymentAttemptId: null,
+      alreadyFinalized: true,
+      orderId: session.final_order_id,
+      orderNumber: session.final_order_number,
+      paymentAttemptId: session.final_payment_attempt_id,
+      subtotalPaise: priced.subtotalPaise,
+      taxPaise: priced.taxEstimatePaise,
+      totalPaise: priced.estimatedTotalPaise,
+    };
+  }
+
+  const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+  if (!session) {
+    const inserted = await admin.from("custom_checkout_sessions").insert({
+      customer_user_id: user.id,
+      cart_id: `sample:${request.idempotencyKey}`,
+      idempotency_key: request.idempotencyKey,
+      request_hash: requestHash,
+      status: "prepared",
+      rpc_payload: payload,
+      subtotal_paise: priced.subtotalPaise,
+      discount_paise: 0,
+      tax_paise: priced.taxEstimatePaise,
+      total_paise: priced.estimatedTotalPaise,
+      currency: "INR",
+      return_path: "/account/orders",
+      expires_at: expiresAt,
+    }).select("id, request_hash, status, final_order_id, final_order_number, final_payment_attempt_id").single();
+    if (inserted.error || !inserted.data) throw new Error(inserted.error?.message ?? "Checkout could not be prepared");
+    session = inserted.data;
+  }
+
+  if (!session) throw new Error("Checkout session could not be prepared");
+
+  const attempts = await admin.from("custom_checkout_payment_attempts")
+    .select("id, attempt_number, status")
+    .eq("checkout_session_id", session.id)
+    .order("attempt_number", { ascending: false })
+    .limit(1);
+  if (attempts.error) throw new Error(attempts.error.message);
+  const latest = attempts.data?.[0];
+  let checkoutPaymentAttemptId = latest?.id as string | undefined;
+  if (!latest || !["created", "initiated", "pending"].includes(latest.status)) {
+    const id = randomUUID();
+    const attempt = await admin.from("custom_checkout_payment_attempts").insert({
+      id,
+      checkout_session_id: session.id,
+      attempt_number: Number(latest?.attempt_number ?? 0) + 1,
+      provider_merchant_txn_id: `S${id.replace(/-/g, "").slice(0, 22)}`,
+      amount_paise: priced.estimatedTotalPaise,
+      currency: "INR",
+      status: "created",
+      expected_product_info: "Garmops catalogue sample order",
+      customer_email: normalizeEmail(request.contact.email),
+      customer_name: customerName,
+      customer_phone: phoneE164(request.contact.phone),
+    }).select("id").single();
+    if (attempt.error || !attempt.data) throw new Error(attempt.error?.message ?? "Payment attempt could not be prepared");
+    checkoutPaymentAttemptId = attempt.data.id;
   }
 
   return {
-    orderId: String(result.order_id),
-    orderNumber: String(result.order_number),
-    paymentAttemptId: String(result.payment_attempt_id),
-    submittedAt: String(result.submitted_at),
+    checkoutSessionId: session.id,
+    checkoutPaymentAttemptId,
+    alreadyFinalized: false,
     subtotalPaise: priced.subtotalPaise,
-    shippingPaise: priced.shippingPaise,
-    estimatedTotalPaise: priced.estimatedTotalPaise,
+    taxPaise: priced.taxEstimatePaise,
+    totalPaise: priced.estimatedTotalPaise,
   };
 }

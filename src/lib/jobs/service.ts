@@ -2,9 +2,9 @@ import "server-only";
 
 import { getServerEnvironment } from "@/lib/config/env";
 import {
-  createReservationInvoice,
-  markReservationInvoiceFailure,
-} from "@/lib/domain/invoices/createReservationInvoice";
+  createTaxInvoiceForOrder,
+  markTaxInvoiceFailure,
+} from "@/lib/domain/invoices/createTaxInvoice";
 import {
   EMAIL_THEME,
   escapeEmailHtml,
@@ -15,11 +15,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 type IntegrationJob = Readonly<{
   id: string;
   job_type: string;
-  aggregate_type: string;
-  aggregate_id: string;
   payload: unknown;
-  attempt_count: number;
-  max_attempts: number;
+  attempts: number;
 }>;
 
 type JobResult = Readonly<{
@@ -30,7 +27,7 @@ type JobResult = Readonly<{
 
 function record(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
+    ? value as Record<string, unknown>
     : {};
 }
 
@@ -44,7 +41,6 @@ async function sendResendEmail(input: {
   if (!environment.RESEND_API_KEY || !environment.RESEND_FROM_EMAIL) {
     throw Object.assign(new Error("Resend is not configured"), { retryable: false });
   }
-
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     cache: "no-store",
@@ -61,79 +57,63 @@ async function sendResendEmail(input: {
       html: input.html,
     }),
   });
-
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
-    const error = Object.assign(
+    throw Object.assign(
       new Error(`Resend request failed (${response.status}): ${detail.slice(0, 300)}`),
       { retryable: response.status === 408 || response.status === 429 || response.status >= 500 },
     );
-    throw error;
   }
 }
 
-async function sendPaymentConfirmation(job: IntegrationJob): Promise<void> {
+async function sendOrderConfirmation(job: IntegrationJob): Promise<void> {
   const payload = record(job.payload);
-  const paymentAttemptId = typeof payload.payment_attempt_id === "string"
-    ? payload.payment_attempt_id
-    : null;
-  if (!paymentAttemptId) {
-    throw Object.assign(new Error("Payment confirmation job has no payment attempt"), { retryable: false });
-  }
-
+  const orderId = typeof payload.orderId === "string" ? payload.orderId : null;
+  if (!orderId) throw Object.assign(new Error("Order confirmation job has no order"), { retryable: false });
   const admin = createAdminClient();
-  const { data: attempt, error } = await admin
-    .from("payment_attempts")
-    .select("id, status, amount_paise, customer_email, customer_name, purpose, orders!inner(order_number, order_type, customer_user_id, organization_id)")
-    .eq("id", paymentAttemptId)
-    .single();
-  if (error || !attempt) throw new Error(error?.message ?? "Payment attempt not found");
-  if (attempt.status !== "paid") {
-    throw Object.assign(new Error("Payment confirmation requires a paid attempt"), { retryable: false });
-  }
-  const order = attempt.orders as unknown as {
-    order_number: string;
-    order_type: string;
-    customer_user_id: string;
-    organization_id: string;
-  };
-  const sampleOrder = order.order_type === "sample_purchase" || attempt.purpose === "sample_full";
-  const { data: invoice } = await admin
-    .from("invoices")
-    .select("sync_status, document_number")
-    .eq("payment_attempt_id", attempt.id)
-    .maybeSingle();
-
-  const amount = new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-  }).format(attempt.amount_paise / 100);
-  const safeName = escapeEmailHtml(attempt.customer_name, 160);
-  const safeOrder = escapeEmailHtml(order.order_number, 100);
-  const invoiceMessage = invoice?.document_number
-    ? `Your invoice <strong>${escapeEmailHtml(invoice.document_number, 100)}</strong> is available in your account.`
-    : "Your invoice is being generated and will appear in your account shortly.";
+  const [{ data: order, error: orderError }, { data: payment, error: paymentError }, { data: invoice }] = await Promise.all([
+    admin.from("orders")
+      .select("id, order_number, order_type, customer_snapshot, total_paise")
+      .eq("id", orderId)
+      .single(),
+    admin.from("payment_attempts")
+      .select("id, status, amount_paise, customer_email, customer_name")
+      .eq("order_id", orderId)
+      .eq("purpose", "order_full")
+      .eq("status", "paid")
+      .maybeSingle(),
+    admin.from("invoices")
+      .select("invoice_number, status")
+      .eq("order_id", orderId)
+      .eq("kind", "tax_invoice")
+      .maybeSingle(),
+  ]);
+  if (orderError || !order) throw new Error(orderError?.message ?? "Order not found");
+  if (paymentError || !payment) throw new Error(paymentError?.message ?? "Verified payment not found");
+  const sampleOrder = order.order_type === "sample_purchase";
+  const amount = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(Number(payment.amount_paise) / 100);
   const orderUrl = new URL(
     `/account/orders/${encodeURIComponent(order.order_number)}`,
-    getServerEnvironment().NEXT_PUBLIC_APP_URL,
+    getServerEnvironment().NEXT_PUBLIC_CUSTOMER_APP_URL,
   ).toString();
-
+  const invoiceMessage = invoice?.invoice_number
+    ? `Tax invoice <strong>${escapeEmailHtml(invoice.invoice_number, 100)}</strong> is available in your account.`
+    : "Your GST tax invoice is being generated and will appear in your account shortly.";
   await sendResendEmail({
-    to: attempt.customer_email,
-    subject: `Payment confirmed for ${order.order_number}`,
-    idempotencyKey: `garmops-payment-confirmation-${attempt.id}`,
+    to: payment.customer_email,
+    subject: `Order ${order.order_number} confirmed`,
+    idempotencyKey: `garmops-order-confirmation-${order.id}`,
     html: renderBrandedEmail({
-      preheader: `Payment confirmed for order ${order.order_number}.`,
-      eyebrow: sampleOrder ? "Payment / sample order" : "Payment / reservation",
-      title: `${sampleOrder ? "Sample payment" : "Reservation payment"} confirmed`,
-      statusLabel: "Payment verified",
+      preheader: `Full payment confirmed for order ${order.order_number}.`,
+      eyebrow: sampleOrder ? "Catalogue samples" : "Custom order",
+      title: "Payment confirmed and order received",
+      statusLabel: "Full payment verified",
       statusTone: "success",
       action: { label: "View order", url: orderUrl },
-      footerNote:
-        "Generated from the verified PayU payment record. Never share payment credentials by email.",
+      footerNote: "Shipping is quoted separately by the Garmops operations team through a secure PayU payment link.",
       bodyHtml: `
-        <p style="margin: 0 0 10px;">Hi ${safeName},</p>
-        <p style="margin: 0 0 16px; color: ${EMAIL_THEME.muted};">We verified your <strong style="color: ${EMAIL_THEME.ink};">${escapeEmailHtml(amount, 100)}</strong> ${sampleOrder ? "full sample" : "reservation"} payment for order <strong style="color: ${EMAIL_THEME.ink};">${safeOrder}</strong>.</p>
+        <p style="margin: 0 0 10px;">Hi ${escapeEmailHtml(payment.customer_name, 160)},</p>
+        <p style="margin: 0 0 16px; color: ${EMAIL_THEME.muted};">We verified your full payment of <strong style="color: ${EMAIL_THEME.ink};">${escapeEmailHtml(amount, 100)}</strong> for order <strong style="color: ${EMAIL_THEME.ink};">${escapeEmailHtml(order.order_number, 100)}</strong>.</p>
         <div style="padding: 14px 16px; border: 1px solid ${EMAIL_THEME.line}; border-left: 3px solid ${EMAIL_THEME.accent}; border-radius: 4px; background: ${EMAIL_THEME.accentSoft}; color: ${EMAIL_THEME.accentDark};">${invoiceMessage}</div>
       `,
     }),
@@ -145,20 +125,15 @@ async function sendFinanceAlert(job: IntegrationJob, message: string): Promise<v
   if (!environment.FINANCE_ALERT_EMAIL || !environment.RESEND_API_KEY || !environment.RESEND_FROM_EMAIL) return;
   await sendResendEmail({
     to: environment.FINANCE_ALERT_EMAIL,
-    subject: `Garmops finance integration exception: ${job.job_type}`,
-    idempotencyKey: `garmops-finance-alert-${job.id}-${job.attempt_count}`,
+    subject: `Garmops finance exception: ${job.job_type}`,
+    idempotencyKey: `garmops-finance-alert-${job.id}-${job.attempts}`,
     html: renderBrandedEmail({
-      preheader: `Finance integration exception for ${job.job_type}.`,
+      preheader: `Finance exception for ${job.job_type}.`,
       eyebrow: "Finance / integration alert",
-      title: "Integration job requires attention",
+      title: "Manual review required",
       statusLabel: "Exception",
       statusTone: "danger",
-      bodyHtml: `
-        <table style="width: 100%; border-collapse: collapse; border: 1px solid ${EMAIL_THEME.line}; background: ${EMAIL_THEME.cream};">
-          <tr><td style="padding: 12px; border-bottom: 1px solid ${EMAIL_THEME.line}; color: ${EMAIL_THEME.muted};">Job</td><td style="padding: 12px; border-bottom: 1px solid ${EMAIL_THEME.line}; font-family: 'Courier New', Courier, monospace;">${escapeEmailHtml(job.id, 100)}</td></tr>
-          <tr><td style="padding: 12px; color: ${EMAIL_THEME.muted};">Detail</td><td style="padding: 12px;">${escapeEmailHtml(message, 1000)}</td></tr>
-        </table>
-      `,
+      bodyHtml: `<p style="margin:0;color:${EMAIL_THEME.muted};">Job <strong style="color:${EMAIL_THEME.ink};">${escapeEmailHtml(job.id, 100)}</strong>: ${escapeEmailHtml(message, 1000)}</p>`,
     }),
   }).catch(() => undefined);
 }
@@ -171,25 +146,50 @@ function retryableFrom(error: unknown): boolean {
 }
 
 async function handleJob(job: IntegrationJob): Promise<void> {
-  if (job.job_type === "create_reservation_invoice") {
+  const payload = record(job.payload);
+  if (job.job_type === "generate_tax_invoice") {
+    const orderId = typeof payload.orderId === "string" ? payload.orderId : null;
+    if (!orderId) throw Object.assign(new Error("Invoice job has no order"), { retryable: false });
     try {
-      await createAdminClient()
-        .from("invoices")
-        .update({ attempt_count: job.attempt_count })
-        .eq("id", job.aggregate_id);
-      await createReservationInvoice(job.aggregate_id);
-      return;
+      await createTaxInvoiceForOrder(orderId);
     } catch (error) {
-      throw await markReservationInvoiceFailure(job.aggregate_id, error);
+      throw await markTaxInvoiceFailure(orderId, error);
     }
-  }
-  if (job.job_type === "send_payment_confirmation") {
-    await sendPaymentConfirmation(job);
     return;
   }
-  throw Object.assign(new Error(`Unsupported integration job type: ${job.job_type}`), {
-    retryable: false,
-  });
+  if (job.job_type === "send_order_confirmation") {
+    await sendOrderConfirmation(job);
+    return;
+  }
+  if (job.job_type === "finance_duplicate_payment") {
+    await sendFinanceAlert(job, "PayU verified more than one successful attempt for the same checkout. Review and refund the duplicate manually.");
+    return;
+  }
+  if (job.job_type === "send_staff_quote") {
+    // Quote email delivery is implemented by the staff quote route, which stores
+    // the one-time token URL in the job payload. Keeping it in the same queue
+    // makes retries idempotent and observable.
+    const to = typeof payload.customerEmail === "string" ? payload.customerEmail : null;
+    const quoteNumber = typeof payload.quoteNumber === "string" ? payload.quoteNumber : null;
+    const paymentUrl = typeof payload.paymentUrl === "string" ? payload.paymentUrl : null;
+    if (!to || !quoteNumber || !paymentUrl) throw Object.assign(new Error("Staff quote job is incomplete"), { retryable: false });
+    await sendResendEmail({
+      to,
+      subject: `Garmops quotation ${quoteNumber}`,
+      idempotencyKey: `garmops-staff-quote-${quoteNumber}`,
+      html: renderBrandedEmail({
+        preheader: `Review and pay quotation ${quoteNumber}.`,
+        eyebrow: "Quotation / payment link",
+        title: "Your Garmops quotation is ready",
+        statusLabel: "Secure link",
+        statusTone: "accent",
+        action: { label: "Review and pay", url: paymentUrl },
+        bodyHtml: `<p style="margin:0;color:${EMAIL_THEME.muted};">This link is tied to the quoted email address and expires automatically. The order is created only after full payment is verified.</p>`,
+      }),
+    });
+    return;
+  }
+  throw Object.assign(new Error(`Unsupported integration job type: ${job.job_type}`), { retryable: false });
 }
 
 export async function processIntegrationJobs(options?: {
@@ -208,8 +208,7 @@ export async function processIntegrationJobs(options?: {
   const batchSize = Math.min(options?.batchSize ?? environment.JOB_BATCH_SIZE, 100);
   const { data, error } = await admin.rpc("claim_integration_jobs", {
     p_worker_id: workerId,
-    p_batch_size: batchSize,
-    p_lock_timeout: "15 minutes",
+    p_limit: batchSize,
   });
   if (error) throw new Error(error.message);
 
@@ -218,30 +217,29 @@ export async function processIntegrationJobs(options?: {
   for (const job of jobs) {
     try {
       await handleJob(job);
-      const { error: completeError } = await admin.rpc("complete_integration_job", {
+      const { data: completed, error: completeError } = await admin.rpc("complete_integration_job", {
         p_job_id: job.id,
         p_worker_id: workerId,
       });
-      if (completeError) throw new Error(completeError.message);
+      if (completeError || !completed) throw new Error(completeError?.message ?? "Job completion lock was lost");
       results.push({ jobId: job.id, jobType: job.job_type, status: "completed" });
     } catch (jobError) {
       const retryable = retryableFrom(jobError);
       const summary = jobError instanceof Error ? jobError.message : "Unknown integration failure";
+      const delayMinutes = Math.min(60, Math.max(5, 2 ** Math.min(job.attempts, 5)));
       const { data: failed, error: failError } = await admin.rpc("fail_integration_job", {
         p_job_id: job.id,
         p_worker_id: workerId,
-        p_error: summary.slice(0, 2000),
-        p_retryable: retryable,
+        p_error: summary.slice(0, 4000),
+        p_retry_at: new Date(Date.now() + delayMinutes * 60_000).toISOString(),
+        p_permanent: !retryable || job.attempts >= 8,
       });
-      if (failError) {
-        console.error("Integration job failure could not be persisted", {
-          jobId: job.id,
-          error: failError.message,
-        });
+      if (failError || !failed) {
+        console.error("Integration job failure could not be persisted", { jobId: job.id, error: failError?.message });
         results.push({ jobId: job.id, jobType: job.job_type, status: "dead" });
         continue;
       }
-      const status = failed?.status === "retry" ? "retry" : "dead";
+      const status = !retryable || job.attempts >= 8 ? "dead" : "retry";
       results.push({ jobId: job.id, jobType: job.job_type, status });
       if (status === "dead") await sendFinanceAlert(job, summary);
     }

@@ -22,7 +22,7 @@ export default function ConfiguratorLayout({
           <p className="mt-3 text-sm leading-relaxed text-[var(--text-primary)]/60">
             The Garmops configurator is currently available on desktop only.
             Open this page on a screen at least 1024 px wide to customise your
-            products and reserve a production review.
+            products and continue to full-payment checkout.
           </p>
           <Link
             href="/"

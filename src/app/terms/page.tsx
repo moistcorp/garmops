@@ -26,7 +26,7 @@ const sections = [
     title: '3. Products, quotes and orders',
     paragraphs: [
       'Product images, colours, measurements, production times and prices shown online are provided for guidance and may change. A quote is an estimate until Garmops confirms the final specification, price, taxes, delivery details and payment terms in writing.',
-      'An order becomes binding when the final commercial terms are accepted and any required payment or reservation amount is received. The applicable order confirmation and terms for that order take priority over general website information.',
+      'An order becomes binding when the final commercial terms are accepted and full payment for the merchandise is verified. The applicable order confirmation and terms for that order take priority over general website information.',
       'Production depends on the approved artwork, garment specification, quantities and delivery information supplied by you. You are responsible for checking those details before approval.',
     ],
   },

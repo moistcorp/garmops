@@ -13,10 +13,14 @@ import type {
 } from "@/lib/providers/payu/types";
 import { verifyPayuPayment } from "@/lib/providers/payu/verify";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { Json } from "@/types/database.generated";
+import type { Enums, Json } from "@/types/database.generated";
 
 type IncomingSource = "callback" | "webhook";
 type PaymentOutcome = "success" | "failure" | "pending";
+
+function toJson(value: unknown): Json {
+  return JSON.parse(JSON.stringify(value)) as Json;
+}
 
 export type ProcessResult = {
   outcome: PaymentOutcome;
@@ -32,7 +36,7 @@ type PaymentAttemptForProcessing = {
   amount_paise: number;
   currency: string;
   provider_merchant_txn_id: string;
-  purpose: string;
+  purpose: Enums<"payment_purpose">;
   created_at?: string;
 };
 
@@ -47,7 +51,7 @@ type CustomCheckoutAttempt = {
   customer_name: string;
   status: string;
   provider_payment_id: string | null;
-  raw_verified_snapshot: Record<string, unknown> | null;
+  raw_verified_snapshot: Json | null;
   custom_checkout_sessions: {
     id: string;
     cart_id: string;
@@ -58,7 +62,7 @@ type CustomCheckoutAttempt = {
   };
 };
 
-function storedPayload(fields: PayuIncomingFields): Record<string, unknown> {
+function storedPayload(fields: PayuIncomingFields): Json {
   return {
     txnid: fields.txnid,
     amount: fields.amount,
@@ -98,7 +102,7 @@ function fingerprintPayload(fields: PayuIncomingFields): Record<string, unknown>
 }
 
 function outcomeFromAttemptStatus(status: string | undefined): PaymentOutcome {
-  if (status === "paid" || status === "completed") return "success";
+  if (status === "paid" || status === "duplicate_success") return "success";
   if (status === "failed" || status === "cancelled") return "failure";
   return "pending";
 }
@@ -155,7 +159,7 @@ async function applyVerification(
       p_verified_amount_paise: verification.amountPaise,
       p_currency: attempt.currency,
       p_verified_snapshot: verification.snapshot as Json,
-      p_invoice_kind: "reservation_invoice",
+      p_invoice_kind: "tax_invoice",
     });
     if (error) {
       if (/another payment attempt already paid/i.test(error.message)) {
@@ -225,7 +229,7 @@ async function persistVerificationEvent(
 }
 
 function checkoutAdmin() {
-  return createAdminClient() as unknown as { from: (table: string) => any };
+  return createAdminClient();
 }
 
 function customReturnPath(
@@ -261,7 +265,7 @@ async function persistCustomVerificationEvent(
         authentic: true,
         processed: true,
         processed_at: new Date().toISOString(),
-        payload: verification.snapshot,
+        payload: toJson(verification.snapshot),
       },
       {
         onConflict: "provider,event_fingerprint",
@@ -291,13 +295,13 @@ async function applyCustomVerification(
       checkoutPaymentAttemptId: attempt.id,
       providerPaymentId: verification.providerPaymentId,
       verifiedAmountPaise: verification.amountPaise,
-      verifiedSnapshot: verification.snapshot,
+      verifiedSnapshot: toJson(verification.snapshot),
     });
     return {
       outcome: "success",
       attemptId: finalized.paymentAttemptId,
       orderNumber: finalized.orderNumber,
-      duplicate: finalized.alreadyFinalized,
+      duplicate: finalized.alreadyFinalized || finalized.duplicateSuccess,
     };
   }
 
@@ -311,11 +315,11 @@ async function applyCustomVerification(
       provider_payment_id: verification.providerPaymentId,
       failure_code: verification.failureCode,
       failure_message: verification.failureMessage,
-      raw_verified_snapshot: verification.snapshot,
+      raw_verified_snapshot: toJson(verification.snapshot),
       failed_at: failed ? now : null,
     })
     .eq("id", attempt.id)
-    .not("status", "in", "(paid,completed)");
+    .not("status", "in", "(paid,duplicate_success)");
   if (attemptError) throw new Error(attemptError.message);
   const { error: sessionError } = await admin
     .from("custom_checkout_sessions")
@@ -483,7 +487,7 @@ async function processCustomCheckoutPayuEvent(
             "PayU responded authentically, but order finalisation requires reconciliation",
         })
         .eq("id", attempt.id)
-        .not("status", "in", "(paid,completed)");
+        .not("status", "in", "(paid,duplicate_success)");
       await admin
         .from("custom_checkout_sessions")
         .update({ status: "payment_pending" })

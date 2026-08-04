@@ -33,7 +33,7 @@ export type ConfiguratorAnalyticsEvent =
   | "durable_order_failed"
   | "payment_started"
   | "payment_failed"
-  | "reservation_completed";
+  | "payment_completed";
 
 export interface ConfiguratorAnalyticsPayload {
   event: ConfiguratorAnalyticsEvent;

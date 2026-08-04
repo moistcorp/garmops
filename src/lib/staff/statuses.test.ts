@@ -6,51 +6,52 @@ import {
   PUBLIC_STATUS_BY_INTERNAL,
 } from "./statuses";
 
-describe("Phase 10 staff operations rules", () => {
-  it("does not expose arbitrary state changes", () => {
-    expect(ORDER_TRANSITIONS.reservation_paid).toEqual([
-      "submitted_for_review",
-      "cancelled",
+describe("production staff operations rules", () => {
+  it("uses the approved production transition graph", () => {
+    expect(ORDER_TRANSITIONS.payment_confirmed).toEqual([
+      "order_review",
       "on_hold",
+      "cancelled",
     ]);
-    expect(ORDER_TRANSITIONS.awaiting_payment).not.toContain("reservation_paid");
-    expect(ORDER_TRANSITIONS.awaiting_payment).not.toContain("payment_failed");
-    expect(ORDER_TRANSITIONS.payment_failed).not.toContain("awaiting_payment");
+    expect(ORDER_TRANSITIONS.artwork_approved).toEqual([
+      "production_approved",
+      "on_hold",
+      "cancelled",
+    ]);
     expect(ORDER_TRANSITIONS.delivered).toEqual([]);
   });
 
-  it("maps internal states to stable customer states", () => {
-    expect(PUBLIC_STATUS_BY_INTERNAL.commercial_review).toBe("under_review");
-    expect(PUBLIC_STATUS_BY_INTERNAL.production_queued).toBe("approved");
-    expect(PUBLIC_STATUS_BY_INTERNAL.packing).toBe("quality_check");
+  it("maps internal states to the simplified customer states", () => {
+    expect(PUBLIC_STATUS_BY_INTERNAL.order_review).toBe("order_received");
+    expect(PUBLIC_STATUS_BY_INTERNAL.production_approved).toBe(
+      "approved_for_production",
+    );
+    expect(PUBLIC_STATUS_BY_INTERNAL.packing).toBe(
+      "quality_check_and_packing",
+    );
   });
 
-  it("uses a fulfilment path for paid sample purchases without artwork approval", () => {
+  it("keeps cancellation and refunds out of normal status controls", () => {
     expect(
-      allowedNextStatusesForRole(
-        "submitted_for_review",
-        "production",
-        "sample_purchase",
-      ),
-    ).toEqual(["production_queued", "packing", "on_hold"]);
+      allowedNextStatusesForRole("payment_confirmed", "founder"),
+    ).toEqual(["order_review", "on_hold"]);
     expect(
-      allowedNextStatusesForRole(
-        "submitted_for_review",
-        "artwork",
-        "sample_purchase",
-      ),
-    ).toEqual(["needs_customer_action", "on_hold"]);
+      allowedNextStatusesForRole("payment_confirmed", "operations"),
+    ).toEqual(["order_review", "on_hold"]);
+    expect(
+      allowedNextStatusesForRole("cancelled", "operations"),
+    ).toEqual([]);
+    expect(
+      allowedNextStatusesForRole("cancelled", "founder"),
+    ).toEqual([]);
   });
 
-  it("filters transitions by staff role", () => {
+  it("allows Operations to progress normal production stages", () => {
     expect(
-      allowedNextStatusesForRole("submitted_for_review", "sales"),
-    ).toContain("commercial_review");
+      allowedNextStatusesForRole("printing_embroidery", "operations"),
+    ).toEqual(["stitching", "on_hold"]);
     expect(
-      allowedNextStatusesForRole("submitted_for_review", "production"),
-    ).toEqual(["on_hold"]);
-    expect(
-      allowedNextStatusesForRole("in_production", "dispatch"),
-    ).toEqual(["on_hold"]);
+      allowedNextStatusesForRole("ready_to_dispatch", "operations"),
+    ).toEqual(["dispatched", "packing", "on_hold"]);
   });
 });

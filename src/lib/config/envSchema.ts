@@ -36,11 +36,15 @@ const serverEnvironmentSchema = z
       .enum(["development", "staging", "production", "test"])
       .default("development"),
     APP_TIMEZONE: z.literal("Asia/Kolkata").default("Asia/Kolkata"),
+    APP_SURFACE: z.enum(["customer", "staff"]).default("customer"),
+    NEXT_PUBLIC_APP_SURFACE: z.enum(["customer", "staff"]).default("customer"),
     NEXT_PUBLIC_APP_URL: z
       .string()
       .trim()
       .url()
       .default("http://localhost:3000"),
+    NEXT_PUBLIC_CUSTOMER_APP_URL: z.string().trim().url().default("http://localhost:3000"),
+    NEXT_PUBLIC_STAFF_APP_URL: z.string().trim().url().default("http://localhost:3001"),
 
     NEXT_PUBLIC_SUPABASE_URL: optionalUrl,
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: optionalText(512),
@@ -70,12 +74,7 @@ const serverEnvironmentSchema = z
     INVOICE_DEFAULT_HSN_CODE: z.string().trim().min(1).max(40).default("CONFIGURE_HSN_CODE"),
     INVOICE_GST_RATE_BASIS_POINTS: positiveInteger(500, 10_000),
 
-    RESERVATION_AMOUNT_PAISE: positiveInteger(49_900, 100_000_000),
-    RESERVATION_CURRENCY: z.literal("INR").default("INR"),
-    RESERVATION_CREDITED_TO_FINAL_INVOICE: z
-      .enum(["true", "false"])
-      .default("true")
-      .transform((value) => value === "true"),
+    ORDER_CURRENCY: z.literal("INR").default("INR"),
     ESTIMATE_VALIDITY_DAYS: positiveInteger(7, 90),
 
     RESEND_API_KEY: optionalText(2048),
@@ -105,6 +104,44 @@ const serverEnvironmentSchema = z
   })
   .passthrough()
   .superRefine((environment, context) => {
+
+    if (environment.APP_SURFACE !== environment.NEXT_PUBLIC_APP_SURFACE) {
+      context.addIssue({
+        code: "custom",
+        path: ["NEXT_PUBLIC_APP_SURFACE"],
+        message: "APP_SURFACE and NEXT_PUBLIC_APP_SURFACE must match",
+      });
+    }
+
+    const currentOrigin = new URL(environment.NEXT_PUBLIC_APP_URL).origin;
+    const expectedOrigin = new URL(
+      environment.APP_SURFACE === "staff"
+        ? environment.NEXT_PUBLIC_STAFF_APP_URL
+        : environment.NEXT_PUBLIC_CUSTOMER_APP_URL,
+    ).origin;
+    if (currentOrigin !== expectedOrigin) {
+      context.addIssue({
+        code: "custom",
+        path: ["NEXT_PUBLIC_APP_URL"],
+        message: "NEXT_PUBLIC_APP_URL must match the selected application surface",
+      });
+    }
+
+    if (environment.APP_SURFACE === "customer" && environment.STAFF_PORTAL_ENABLED) {
+      context.addIssue({
+        code: "custom",
+        path: ["STAFF_PORTAL_ENABLED"],
+        message: "The customer deployment must not enable the staff portal",
+      });
+    }
+
+    if (environment.APP_SURFACE === "staff" && environment.NEXT_PUBLIC_ACCOUNTS_ENABLED) {
+      context.addIssue({
+        code: "custom",
+        path: ["NEXT_PUBLIC_ACCOUNTS_ENABLED"],
+        message: "The staff deployment must not expose customer accounts",
+      });
+    }
     const requireValues = (
       enabled: boolean,
       names: Array<keyof typeof environment>,
@@ -186,12 +223,13 @@ const serverEnvironmentSchema = z
 
     if (
       environment.R2_PRIVATE_UPLOADS_ENABLED &&
-      !environment.NEXT_PUBLIC_ACCOUNTS_ENABLED
+      !environment.NEXT_PUBLIC_ACCOUNTS_ENABLED &&
+      !environment.STAFF_PORTAL_ENABLED
     ) {
       context.addIssue({
         code: "custom",
-        path: ["NEXT_PUBLIC_ACCOUNTS_ENABLED"],
-        message: "Accounts must be enabled before private R2 uploads",
+        path: ["R2_PRIVATE_UPLOADS_ENABLED"],
+        message: "Private R2 uploads require a customer or staff authenticated surface",
       });
     }
 

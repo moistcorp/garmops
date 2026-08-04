@@ -8,7 +8,7 @@ import {
 } from "./samplePricing";
 
 describe("durable sample-order pricing", () => {
-  it("prices catalogue items and shipping from canonical server data", () => {
+  it("prices catalogue items with 5% GST and excludes shipping", () => {
     const result = priceSampleOrder([
       { productId: 1, size: "M", quantity: 2 },
       { productId: 7, size: "One Size", quantity: 1 },
@@ -16,8 +16,8 @@ describe("durable sample-order pricing", () => {
 
     expect(result.subtotalPaise).toBe(142_000);
     expect(result.shippingPaise).toBe(SAMPLE_STANDARD_SHIPPING_PAISE);
-    expect(result.taxEstimatePaise).toBe(0);
-    expect(result.estimatedTotalPaise).toBe(151_900);
+    expect(result.taxEstimatePaise).toBe(7_100);
+    expect(result.estimatedTotalPaise).toBe(149_100);
     expect(result.quantity).toBe(3);
     expect(result.items).toHaveLength(2);
     expect(
@@ -40,7 +40,7 @@ describe("durable sample-order pricing", () => {
     ).toEqual({ L: 3 });
   });
 
-  it("applies free shipping at the canonical threshold", () => {
+  it("always leaves shipping for the separate staff-issued payment link", () => {
     const result = priceSampleOrder([
       { productId: 1, size: "M", quantity: 4 },
     ]);

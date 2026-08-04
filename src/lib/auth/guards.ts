@@ -1,11 +1,11 @@
 import "server-only";
 
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { ensureCustomerAccount } from "@/lib/auth/ensurePersonalCustomerAccount";
 import { safeInternalPath } from "@/lib/auth/redirects";
-import { ensurePersonalCustomerAccount } from "@/lib/auth/ensurePersonalCustomerAccount";
 import type { StaffRole } from "@/lib/auth/constants";
 import type { StaffPermission } from "@/lib/staff/permissions";
+import { createClient } from "@/lib/supabase/server";
 
 export async function requireUser(next = "/account") {
   const supabase = await createClient();
@@ -25,59 +25,67 @@ export async function requireVerifiedUser(next = "/account") {
   return context;
 }
 
-export async function requireOrganizationMember(next = "/account") {
+export async function requireCustomer(next = "/account") {
   const context = await requireVerifiedUser(next);
-  let { data, error } = await context.supabase
-    .from("organization_members")
-    .select("organization_id, role, status")
+  const { data: principal, error } = await context.supabase
+    .from("account_principals")
+    .select("account_type, active")
     .eq("user_id", context.user.id)
-    .eq("status", "active")
-    .order("created_at")
-    .limit(1)
     .maybeSingle();
 
   if (error) redirect("/auth/error?code=ACCOUNT_ACCESS_FAILED");
-  if (!data) {
+  if (principal?.account_type === "staff") {
+    await context.supabase.auth.signOut();
+    redirect("/auth/error?code=CUSTOMER_ACCESS_DENIED");
+  }
+  if (!principal) {
     try {
-      await ensurePersonalCustomerAccount(context.supabase);
-      const retry = await context.supabase
-        .from("organization_members")
-        .select("organization_id, role, status")
-        .eq("user_id", context.user.id)
-        .eq("status", "active")
-        .order("created_at")
-        .limit(1)
-        .maybeSingle();
-      data = retry.data;
-      error = retry.error;
+      await ensureCustomerAccount(context.supabase);
     } catch {
+      await context.supabase.auth.signOut();
       redirect("/auth/error?code=ACCOUNT_ACCESS_FAILED");
     }
+  } else if (!principal.active) {
+    await context.supabase.auth.signOut();
+    redirect("/auth/error?code=ACCOUNT_ACCESS_DENIED");
   }
-  if (error || !data) redirect("/auth/error?code=ACCOUNT_ACCESS_FAILED");
-  return { ...context, membership: data };
+
+  return { ...context, account: { type: "customer" as const } };
 }
 
-export async function requireStaffRecord(options?: { allowInvited?: boolean }) {
-  const context = await requireVerifiedUser("/staff");
-  const { data: staff, error } = await context.supabase
-    .from("staff_members")
-    .select(
-      "user_id, role, team, active, invited_at, activated_at, deactivated_at",
-    )
-    .eq("user_id", context.user.id)
-    .maybeSingle();
+type StaffAccessContext = {
+  role: StaffRole;
+  active: boolean;
+  must_use_mfa: boolean;
+  mfa_satisfied: boolean;
+};
 
-  const invited =
-    Boolean(options?.allowInvited) &&
-    staff &&
-    !staff.active &&
-    Boolean(staff.invited_at) &&
-    !staff.activated_at &&
-    !staff.deactivated_at;
+export async function requireStaffRecord(options?: {
+  allowMfaPending?: boolean;
+  next?: string;
+}) {
+  const next = options?.next ?? "/orders";
+  const context = await requireVerifiedUser(next);
+  const rpc = context.supabase.rpc as unknown as (
+    name: string,
+    args?: Record<string, never>,
+  ) => Promise<{
+    data: StaffAccessContext[] | null;
+    error: { message: string } | null;
+  }>;
+  const { data, error } = await rpc("get_staff_access_context");
+  const staff = data?.[0];
 
-  if (error || !staff || staff.deactivated_at || (!staff.active && !invited)) {
+  if (error || !staff || !staff.active) {
+    await context.supabase.auth.signOut();
     redirect("/auth/error?code=STAFF_ACCESS_DENIED");
+  }
+  if (
+    staff.must_use_mfa &&
+    !staff.mfa_satisfied &&
+    !options?.allowMfaPending
+  ) {
+    redirect(`/settings/security?next=${encodeURIComponent(safeInternalPath(next, "/orders"))}`);
   }
 
   return { ...context, staff };
@@ -90,8 +98,8 @@ export async function requireStaff() {
 export async function requireStaffPermission(permission: StaffPermission) {
   const context = await requireStaff();
   const { data, error } = await context.supabase.rpc("staff_has_permission", {
-    p_permission_name: permission,
+    p_permission: permission,
   });
   if (error || !data) redirect("/auth/error?code=STAFF_PERMISSION_DENIED");
-  return { ...context, role: context.staff.role as StaffRole };
+  return { ...context, role: context.staff.role };
 }

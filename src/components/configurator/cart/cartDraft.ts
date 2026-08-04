@@ -1,6 +1,5 @@
 import {
   GST_PERCENT,
-  RUSH_DELIVERY_FEE_PER_UNIT,
   getConfiguredUnitPrice,
   getVolumeDiscountAmount,
   getVolumeDiscountPercent,
@@ -12,16 +11,13 @@ import type { CartItem } from "./OrderReviewStep";
 import type { Address } from "./AddressForm";
 import type {
   BillingInformation,
-  CompanyInformation,
   ProjectContact,
   ProjectPreferences,
-  PurchaseOrderAttachment,
   ShippingInformation,
 } from "./checkoutDetails";
 import type { Size } from "./SizeQuantityGrid";
 import { SIZES } from "./SizeQuantityGrid";
 import { scheduleUploadCleanup } from "@/lib/configurator/objectUrls";
-import { RESERVATION_FEE } from "@/lib/configurator/reservation";
 
 const STORAGE_PREFIX = "mf_configurator_cart:";
 const ACTIVE_CART_KEY = `${STORAGE_PREFIX}active`;
@@ -48,18 +44,6 @@ export const emptyAddress: Address = {
 
 function createEmptyAddress(): Address {
   return { ...emptyAddress };
-}
-
-function createEmptyCompany(): CompanyInformation {
-  return {
-    name: "",
-    gstin: "",
-    industry: "",
-    website: "",
-    poNumber: "",
-    costCentre: "",
-    address: createEmptyAddress(),
-  };
 }
 
 function createEmptyProjectContact(): ProjectContact {
@@ -101,7 +85,6 @@ function createEmptyPreferences(): ProjectPreferences {
 export interface CartDraft {
   items: CartItem[];
   projectName: string;
-  companyInformation: CompanyInformation;
   projectContact: ProjectContact;
   shippingInformation: ShippingInformation;
   billingInformation: BillingInformation;
@@ -121,7 +104,6 @@ export function createDraft(cartId: string): CartDraft {
   return {
     items: createCartItems(cartId),
     projectName: "",
-    companyInformation: createEmptyCompany(),
     projectContact: createEmptyProjectContact(),
     shippingInformation: createEmptyShipping(),
     billingInformation: createEmptyBilling(),
@@ -151,39 +133,6 @@ function normalizeAddress(value: unknown): Address {
     zip: asString(value.zip),
     city: asString(value.city),
     state: asOptionalString(value.state),
-  };
-}
-
-function normalizePurchaseOrder(value: unknown): PurchaseOrderAttachment | undefined {
-  if (!isRecord(value)) return undefined;
-  const fileKey = asString(value.fileKey);
-  const fileName = asString(value.fileName);
-  const fileType = asString(value.fileType);
-  const fileSize = Number(value.fileSize);
-  if (!fileKey || !fileName || !Number.isFinite(fileSize) || fileSize <= 0) return undefined;
-  return { fileKey, fileName, fileType, fileSize };
-}
-
-function normalizeCompany(value: unknown): CompanyInformation {
-  if (!isRecord(value)) return createEmptyCompany();
-  const industry = asString(value.industry);
-  const allowedIndustries = [
-    "Hotels & Restaurants",
-    "Music & Events",
-    "Sports & Fitness",
-    "Arts & Culture",
-    "Creative Studios",
-    "Companies & Startups",
-    "Other",
-  ];
-  return {
-    name: asString(value.name),
-    gstin: asString(value.gstin).toUpperCase(),
-    industry: (allowedIndustries.includes(industry) ? industry : "") as CompanyInformation["industry"],
-    website: asString(value.website),
-    poNumber: asString(value.poNumber),
-    costCentre: asString(value.costCentre),
-    address: normalizeAddress(value.address),
   };
 }
 
@@ -218,7 +167,6 @@ function normalizeBilling(value: unknown): BillingInformation {
     address: normalizeAddress(value.address),
     accountsPayableEmail: asString(value.accountsPayableEmail),
     gstin: asString(value.gstin).toUpperCase(),
-    purchaseOrder: normalizePurchaseOrder(value.purchaseOrder),
   };
 }
 
@@ -236,7 +184,7 @@ function legacyAddress(value: unknown): Record<string, unknown> {
 
 function migrateLegacyProcurementDetails(value: Record<string, unknown>): Pick<
   CartDraft,
-  "companyInformation" | "projectContact" | "shippingInformation" | "billingInformation" | "projectPreferences"
+  "projectContact" | "shippingInformation" | "billingInformation" | "projectPreferences"
 > {
   const shipping = legacyAddress(value.shippingAddress);
   const legacyBilling = legacyAddress(value.billingAddress);
@@ -245,18 +193,11 @@ function migrateLegacyProcurementDetails(value: Record<string, unknown>): Pick<
   const billingAddress = sameAsShipping ? shippingAddress : normalizeAddress(legacyBilling);
   const firstName = asString(shipping.firstName);
   const lastName = asString(shipping.lastName);
-  const companyName = asString(shipping.company);
+  const billingName = asString(shipping.company);
   const contactEmail = asString(shipping.email);
   const legacyGstin = asString(shipping.gstin).toUpperCase();
 
   return {
-    companyInformation: {
-      ...createEmptyCompany(),
-      name: companyName,
-      gstin: legacyGstin,
-      poNumber: asString(shipping.poNumber),
-      address: shippingAddress,
-    },
     projectContact: {
       ...createEmptyProjectContact(),
       firstName,
@@ -272,7 +213,7 @@ function migrateLegacyProcurementDetails(value: Record<string, unknown>): Pick<
     billingInformation: {
       ...createEmptyBilling(),
       sameAsCompanyAddress: sameAsShipping,
-      entity: asString(legacyBilling.company, companyName),
+      entity: asString(legacyBilling.company, billingName) || `${firstName} ${lastName}`.trim(),
       address: billingAddress,
       accountsPayableEmail: asString(legacyBilling.email, contactEmail),
       gstin: asString(legacyBilling.gstin, legacyGstin).toUpperCase(),
@@ -347,7 +288,7 @@ function normalizeCartItem(value: unknown): CartItem | null {
       colour,
       artwork,
       neckLabel,
-      rushDelivery
+      false
     );
   } catch {
     return null;
@@ -390,14 +331,12 @@ function normalizeDraft(value: unknown, cartId: string): CartDraft {
       : undefined;
 
   const hasStructuredDetails =
-    isRecord(value.companyInformation) ||
     isRecord(value.projectContact) ||
     isRecord(value.shippingInformation) ||
     isRecord(value.billingInformation);
 
   const procurement = hasStructuredDetails
     ? {
-        companyInformation: normalizeCompany(value.companyInformation),
         projectContact: normalizeProjectContact(value.projectContact),
         shippingInformation: normalizeShipping(value.shippingInformation),
         billingInformation: normalizeBilling(value.billingInformation),
@@ -486,14 +425,6 @@ export interface UpsertConfiguredCartItemOptions {
   itemId?: string;
 }
 
-function readActiveCartId(): string | null {
-  if (typeof window === "undefined") return null;
-  try {
-    return window.localStorage.getItem(ACTIVE_CART_ID_KEY);
-  } catch {
-    return null;
-  }
-}
 
 export function splitQuantityAcrossSizes(
   quantity: number,
@@ -541,7 +472,7 @@ export function upsertConfiguredCartItem(
   input: ConfiguredCartItemInput,
   options: UpsertConfiguredCartItemOptions = {}
 ): string | null {
-  const cartId = options.cartId ?? readActiveCartId() ?? suggestedCartId;
+  const cartId = options.cartId ?? suggestedCartId;
   const draft = readDraft(cartId);
   const product = getProduct(input.productId);
   const sizeQuantities = splitQuantityAcrossSizes(
@@ -553,7 +484,7 @@ export function upsertConfiguredCartItem(
     input.colour,
     input.artwork,
     input.neckLabel,
-    input.rushDelivery
+    false
   );
   const unitDiscount = getVolumeDiscountAmount(baseUnitPrice, input.quantity);
   const unitPrice = baseUnitPrice - unitDiscount;
@@ -571,18 +502,15 @@ export function upsertConfiguredCartItem(
     sizeQuantities,
     baseUnitPrice,
     unitPrice,
-    rushDelivery: input.rushDelivery,
+    rushDelivery: false,
   };
 
   const existingIndex = options.itemId
     ? draft.items.findIndex((item) => item.id === options.itemId)
     : -1;
-  const items =
-    existingIndex >= 0
-      ? draft.items.map((item, index) =>
-          index === existingIndex ? configuredItem : item
-        )
-      : [configuredItem, ...draft.items];
+  const items = existingIndex >= 0
+    ? draft.items.map((item, index) => index === existingIndex ? configuredItem : item).slice(0, 1)
+    : [configuredItem];
 
   const saved = writeDraft(cartId, { ...draft, items });
   return saved ? cartId : null;
@@ -605,7 +533,7 @@ export function getCartItemBaseUnitPrice(item: CartItem): number {
       item.colour,
       item.artwork,
       item.neckLabel,
-      item.rushDelivery
+      false
     )
   );
 }
@@ -622,32 +550,21 @@ export function getCartItemUnitPrice(item: CartItem): number {
 
 export function calculateTotals(
   items: CartItem[],
-  deliveryType?: CartDraft["deliveryType"]
+  deliveryType?: CartDraft["deliveryType"],
 ) {
+  void deliveryType;
   const garmentSubtotal = items.reduce(
     (sum, item) => sum + totalUnits(item.sizeQuantities) * getCartItemBaseUnitPrice(item),
-    0
+    0,
   );
-  const totalQuantity = items.reduce((sum, item) => sum + totalUnits(item.sizeQuantities), 0);
   const volumeDiscount = items.reduce((sum, item) => {
     const itemUnits = totalUnits(item.sizeQuantities);
     const unitDiscount = getCartItemBaseUnitPrice(item) - getCartItemUnitPrice(item);
     return sum + unitDiscount * itemUnits;
   }, 0);
-  // Units whose baseUnitPrice already has RUSH_DELIVERY_FEE_PER_UNIT baked in
-  // (see pricing.ts's getUnitPriceAdjustments) must not be charged again here.
-  const rushAlreadyPricedUnits = items.reduce(
-    (sum, item) => sum + (item.rushDelivery ? totalUnits(item.sizeQuantities) : 0),
-    0
-  );
-  const shippingFee =
-    deliveryType === "rush"
-      ? RUSH_DELIVERY_FEE_PER_UNIT * Math.max(0, totalQuantity - rushAlreadyPricedUnits)
-      : 0;
-  const hasRushDelivery =
-    deliveryType === "rush" || items.some((item) => item.rushDelivery === true);
   const subtotal = garmentSubtotal;
-  const taxableSubtotal = subtotal - volumeDiscount + shippingFee;
+  const shippingFee = 0;
+  const taxableSubtotal = Math.max(0, subtotal - volumeDiscount);
   const gst = (taxableSubtotal * GST_PERCENT) / 100;
   const total = taxableSubtotal + gst;
 
@@ -655,10 +572,9 @@ export function calculateTotals(
     subtotal,
     volumeDiscount,
     shippingFee,
-    hasRushDelivery,
+    hasRushDelivery: false,
     gst,
     taxableSubtotal,
     total,
-    balanceDue: Math.max(0, total - RESERVATION_FEE),
   };
 }

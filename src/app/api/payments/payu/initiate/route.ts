@@ -4,8 +4,6 @@ import { z } from "zod";
 import {
   authenticateOrderApi,
   durableCustomOrdersAvailable,
-  durableOrdersAvailable,
-  durableSampleOrdersAvailable,
   hasExpectedOrderOrigin,
   orderJson,
   orderJsonError,
@@ -13,53 +11,16 @@ import {
 } from "@/lib/orders/api";
 import { buildPayuCheckout } from "@/lib/providers/payu/client";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const schema = z.union([
-  z.object({ paymentAttemptId: z.string().uuid() }).strict(),
-  z.object({ checkoutPaymentAttemptId: z.string().uuid() }).strict(),
-]);
+const schema = z.object({ checkoutPaymentAttemptId: z.string().uuid() }).strict();
 
-type AttemptOrder = {
-  organization_id: string;
-  order_type: string;
-  status: string;
-  expires_at: string | null;
-  customer_snapshot: unknown;
-};
-
-function customerPhone(snapshot: unknown): string {
-  if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) {
-    return "";
-  }
-  const phone = (snapshot as Record<string, unknown>).phone;
-  return typeof phone === "string" ? phone : "";
-}
-
-type SessionClient = Awaited<ReturnType<typeof createClient>>;
-
-async function hasBuyerMembership(input: {
-  supabase: SessionClient;
-  organizationId: string;
-  userId: string;
-}) {
-  const { data } = await input.supabase
-    .from("organization_members")
-    .select("role")
-    .eq("organization_id", input.organizationId)
-    .eq("user_id", input.userId)
-    .eq("status", "active")
-    .in("role", ["owner", "buyer"])
-    .maybeSingle();
-  return Boolean(data);
-}
 
 export async function POST(request: NextRequest) {
-  if (!durableOrdersAvailable()) {
-    return orderJsonError("Durable checkout is unavailable", 503);
+  if (!durableCustomOrdersAvailable()) {
+    return orderJsonError("Custom checkout is unavailable", 503);
   }
   if (!hasExpectedOrderOrigin(request)) {
     return orderJsonError("Invalid request origin", 403);
@@ -67,170 +28,42 @@ export async function POST(request: NextRequest) {
 
   const auth = await authenticateOrderApi();
   if (!auth.ok) return auth.response;
-
   const body = await readOrderJson(request, 8 * 1024);
   if (!body.ok) return body.response;
-
   const parsed = schema.safeParse(body.value);
-  if (!parsed.success) {
-    return orderJsonError("Invalid payment initiation request", 400);
-  }
+  if (!parsed.success) return orderJsonError("Invalid payment initiation request", 400);
 
-  const adminClient = createAdminClient();
-
-  if ("checkoutPaymentAttemptId" in parsed.data) {
-    if (!durableCustomOrdersAvailable()) {
-      return orderJsonError("This checkout flow is unavailable", 503);
-    }
-    const admin = adminClient as unknown as { from: (table: string) => any };
-    const { data: attempt, error } = await admin
-      .from("custom_checkout_payment_attempts")
-      .select(
-        "id, checkout_session_id, status, amount_paise, currency, provider_merchant_txn_id, expected_product_info, customer_email, customer_name, customer_phone, custom_checkout_sessions!inner(organization_id, customer_user_id, status, expires_at)",
-      )
-      .eq("id", parsed.data.checkoutPaymentAttemptId)
-      .maybeSingle();
-    if (error || !attempt) {
-      return orderJsonError("Payment attempt not found", 404);
-    }
-    const session = attempt.custom_checkout_sessions as {
-      organization_id: string;
-      customer_user_id: string;
-      status: string;
-      expires_at: string;
-    };
-    if (
-      session.customer_user_id !== auth.user.id ||
-      !(await hasBuyerMembership({
-        supabase: auth.supabase,
-        organizationId: session.organization_id,
-        userId: auth.user.id,
-      }))
-    ) {
-      return orderJsonError("Payment attempt not found", 404);
-    }
-    if (new Date(session.expires_at).getTime() <= Date.now()) {
-      await admin
-        .from("custom_checkout_sessions")
-        .update({ status: "expired" })
-        .eq("id", attempt.checkout_session_id)
-        .neq("status", "finalized");
-      return orderJsonError("Checkout payment window has expired", 409);
-    }
-    if (session.status === "finalized" || ["paid", "completed"].includes(attempt.status)) {
-      return orderJsonError("Reservation payment is already complete", 409);
-    }
-    if (attempt.currency !== "INR") {
-      return orderJsonError("Unsupported payment currency", 409);
-    }
-    if (!["created", "initiated"].includes(attempt.status)) {
-      return orderJsonError(
-        attempt.status === "pending"
-          ? "Payment verification is pending"
-          : "Payment cannot be initiated",
-        409,
-      );
-    }
-
-    try {
-      const checkout = buildPayuCheckout({
-        merchantTransactionId: attempt.provider_merchant_txn_id,
-        paymentAttemptId: attempt.id,
-        amountPaise: attempt.amount_paise,
-        productInfo: attempt.expected_product_info,
-        customerName: attempt.customer_name,
-        customerEmail: attempt.customer_email,
-        customerPhone: attempt.customer_phone,
-      });
-
-      if (attempt.status === "created") {
-        const { data: initiated, error: updateError } = await admin
-          .from("custom_checkout_payment_attempts")
-          .update({
-            status: "initiated",
-            initiated_at: new Date().toISOString(),
-            failure_code: null,
-            failure_message: null,
-          })
-          .eq("id", attempt.id)
-          .eq("status", "created")
-          .select("id")
-          .maybeSingle();
-        if (updateError) throw new Error(updateError.message);
-        if (!initiated) {
-          const { data: current } = await admin
-            .from("custom_checkout_payment_attempts")
-            .select("status")
-            .eq("id", attempt.id)
-            .maybeSingle();
-          if (current?.status !== "initiated") {
-            return orderJsonError("Payment attempt state changed", 409);
-          }
-        }
-        await admin
-          .from("custom_checkout_sessions")
-          .update({ status: "payment_initiated" })
-          .eq("id", attempt.checkout_session_id)
-          .in("status", ["prepared", "failed"]);
-      }
-      return orderJson(checkout);
-    } catch (initiationError) {
-      console.error("PayU checkout initiation failed", {
-        checkoutAttemptId: attempt.id,
-        error:
-          initiationError instanceof Error
-            ? initiationError.message
-            : "unknown",
-      });
-      return orderJsonError("Secure payment could not be started", 503);
-    }
-  }
-
-  const { data: attempt, error } = await adminClient
-    .from("payment_attempts")
+  const admin = createAdminClient();
+  const { data: attempt, error } = await admin.from("custom_checkout_payment_attempts")
     .select(
-      "id, order_id, status, amount_paise, currency, provider_merchant_txn_id, expected_product_info, customer_email, customer_name, orders!inner(organization_id, order_type, status, expires_at, customer_snapshot)",
+      "id, checkout_session_id, status, amount_paise, currency, provider_merchant_txn_id, expected_product_info, customer_email, customer_name, customer_phone, custom_checkout_sessions!inner(customer_user_id, status, expires_at)",
     )
-    .eq("id", parsed.data.paymentAttemptId)
+    .eq("id", parsed.data.checkoutPaymentAttemptId)
     .maybeSingle();
-  if (error || !attempt) {
-    return orderJsonError("Payment attempt not found", 404);
-  }
+  if (error || !attempt) return orderJsonError("Payment attempt not found", 404);
 
-  const order = attempt.orders as unknown as AttemptOrder;
-  const flowEnabled =
-    order.order_type === "sample_purchase"
-      ? durableSampleOrdersAvailable()
-      : durableCustomOrdersAvailable();
-  if (!flowEnabled) {
-    return orderJsonError("This checkout flow is unavailable", 503);
-  }
-  if (
-    !(await hasBuyerMembership({
-      supabase: auth.supabase,
-      organizationId: order.organization_id,
-      userId: auth.user.id,
-    }))
-  ) {
+  const session = attempt.custom_checkout_sessions as {
+    customer_user_id: string;
+    status: string;
+    expires_at: string;
+  };
+  if (session.customer_user_id !== auth.user.id) {
     return orderJsonError("Payment attempt not found", 404);
   }
-  if (!["awaiting_payment", "payment_failed"].includes(order.status)) {
-    return orderJsonError("Order is not awaiting payment", 409);
+  if (new Date(session.expires_at).getTime() <= Date.now()) {
+    await admin.from("custom_checkout_sessions")
+      .update({ status: "expired" })
+      .eq("id", attempt.checkout_session_id)
+      .neq("status", "finalized");
+    return orderJsonError("Checkout payment window has expired", 409);
   }
-  if (order.expires_at && new Date(order.expires_at).getTime() <= Date.now()) {
-    return orderJsonError("Order payment window has expired", 409);
+  if (session.status === "finalized" || ["paid", "duplicate_success"].includes(attempt.status)) {
+    return orderJsonError("Order payment is already complete", 409);
   }
-  if (attempt.currency !== "INR") {
-    return orderJsonError("Unsupported payment currency", 409);
-  }
-  if (attempt.status === "paid") {
-    return orderJsonError("Order is already paid", 409);
-  }
+  if (attempt.currency !== "INR") return orderJsonError("Unsupported payment currency", 409);
   if (!["created", "initiated"].includes(attempt.status)) {
     return orderJsonError(
-      attempt.status === "pending"
-        ? "Payment verification is pending"
-        : "Payment cannot be initiated",
+      attempt.status === "pending" ? "Payment verification is pending" : "Payment cannot be initiated",
       409,
     );
   }
@@ -239,16 +72,15 @@ export async function POST(request: NextRequest) {
     const checkout = buildPayuCheckout({
       merchantTransactionId: attempt.provider_merchant_txn_id,
       paymentAttemptId: attempt.id,
-      amountPaise: attempt.amount_paise,
+      amountPaise: Number(attempt.amount_paise),
       productInfo: attempt.expected_product_info,
       customerName: attempt.customer_name,
       customerEmail: attempt.customer_email,
-      customerPhone: customerPhone(order.customer_snapshot),
+      customerPhone: attempt.customer_phone,
     });
 
     if (attempt.status === "created") {
-      const { data: initiated, error: updateError } = await adminClient
-        .from("payment_attempts")
+      const { data: initiated, error: updateError } = await admin.from("custom_checkout_payment_attempts")
         .update({
           status: "initiated",
           initiated_at: new Date().toISOString(),
@@ -260,25 +92,17 @@ export async function POST(request: NextRequest) {
         .select("id")
         .maybeSingle();
       if (updateError) throw new Error(updateError.message);
-      if (!initiated) {
-        const { data: current } = await adminClient
-          .from("payment_attempts")
-          .select("status")
-          .eq("id", attempt.id)
-          .maybeSingle();
-        if (current?.status !== "initiated") {
-          return orderJsonError("Payment attempt state changed", 409);
-        }
-      }
+      if (!initiated) return orderJsonError("Payment attempt state changed", 409);
+      await admin.from("custom_checkout_sessions")
+        .update({ status: "payment_initiated" })
+        .eq("id", attempt.checkout_session_id)
+        .in("status", ["prepared", "failed"]);
     }
     return orderJson(checkout);
   } catch (initiationError) {
-    console.error("PayU initiation failed", {
-      attemptId: attempt.id,
-      error:
-        initiationError instanceof Error
-          ? initiationError.message
-          : "unknown",
+    console.error("PayU checkout initiation failed", {
+      checkoutAttemptId: attempt.id,
+      error: initiationError instanceof Error ? initiationError.message : "unknown",
     });
     return orderJsonError("Secure payment could not be started", 503);
   }

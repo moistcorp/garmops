@@ -561,7 +561,7 @@ export const landingPages = {
     trustPoints: [
       'MOQ 50 pieces per style',
       'GST-compliant invoicing',
-      'Company purchase orders supported',
+      'Full-payment GST invoicing supported',
       'Product samples available',
       standardTimeline,
       rushTimeline,
@@ -599,7 +599,7 @@ export const landingPages = {
         title: 'Procurement information to confirm',
         features: [
           { title: 'MOQ and price basis', description: 'The minimum is 50 pieces per style. Compare garment, quantity, decoration, labels, samples, deadline, GST and shipping on like-for-like specifications.' },
-          { title: 'Commercial documents', description: 'GST-compliant invoices and company purchase orders are supported under the current stated payment terms.' },
+          { title: 'Commercial documents', description: 'GST-compliant invoices are generated after verified full payment. Shipping is quoted separately after staff review.' },
           { title: 'Artwork and approvals', description: 'Provide source artwork, physical dimensions, positions, colour references, an approver and an approval deadline.' },
           { title: 'Timeline and shipping', description: `The standard delivery target is ${DELIVERY_DAYS} days from confirmation. A ${RUSH_DELIVERY_DAYS}-day rush target is subject to order and destination feasibility. Shipping is confirmed separately.` },
         ],
@@ -634,7 +634,7 @@ export const landingPages = {
     faqs: [
       { question: 'What is the minimum corporate merchandise order?', answer: 'The minimum is 50 pieces per style. A mixed programme may contain several styles, with each style meeting its applicable minimum.' },
       { question: 'Which products can a company customise?', answer: 'The current catalogue includes regular and heavyweight T-shirts, polos, hoodies, sweatshirts, long-sleeve tees and canvas tote bags.' },
-      { question: 'Does Garmops provide GST invoices and accept company purchase orders?', answer: 'Yes. Garmops supports GST-compliant invoices with HSN codes and accepts company purchase orders under the stated payment terms.' },
+      { question: 'Does Garmops provide GST invoices?', answer: 'Yes. Garmops generates GST-compliant invoices with HSN codes after verified full payment. Shipping is quoted and collected separately.' },
       { question: 'Can employees choose different sizes?', answer: 'Yes. Allocate the quantity across the available sizes for the selected product, using its approved measurement chart.' },
       { question: 'Can we approve a sample before production?', answer: 'Yes. Catalogue samples can help compare base garments, and paid pre-production samples are available when the complete branded result requires physical approval.' },
       { question: 'How long should a company allow?', answer: `The current standard delivery target is ${DELIVERY_DAYS} days from order confirmation. A ${RUSH_DELIVERY_DAYS}-day rush option is subject to feasibility. Internal sizing, artwork and approval time must be planned before confirmation.` },

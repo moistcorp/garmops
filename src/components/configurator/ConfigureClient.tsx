@@ -51,7 +51,6 @@ import {
   restoreConfigurationUploads,
   revokeObjectUrl,
 } from "@/lib/configurator/objectUrls";
-import { RESERVATION_FEE } from "@/lib/configurator/reservation";
 import { ActionFeedback, type ActionFeedbackTone } from "./ActionFeedback";
 import { useCustomerSession } from "@/components/auth/useCustomerSession";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
@@ -171,9 +170,15 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   const editItemId = searchParams.get("itemId");
   const requestedStepParam = searchParams.get("step");
   const requestedDesignId = searchParams.get("designId");
+  const requestedDraftId = searchParams.get("draftId");
   const requestedCloudSave = searchParams.get("cloudSave") === "1";
   const requestedSaveTitle = searchParams.get("saveTitle") ?? "";
   const requestedEstimateId = searchParams.get("estimateId");
+  const designStorageKey = requestedDesignId
+    ? `design:${requestedDesignId}`
+    : editItemId
+      ? `cart-item:${editItemId}`
+      : `draft:${requestedDraftId ?? configId}`;
   const savedDesignsEnabled = process.env.NEXT_PUBLIC_CLOUD_DESIGNS_ENABLED === "true";
   const accountsEnabled = process.env.NEXT_PUBLIC_ACCOUNTS_ENABLED === "true";
   const customerSession = useCustomerSession(accountsEnabled);
@@ -227,6 +232,15 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   const cloudLinkRef = useRef<CloudDesignLink | null>(null);
   const cloudSaveTimer = useRef<number | null>(null);
   const cloudSaveInFlight = useRef(false);
+  const pendingCloudSaveRef = useRef<{
+    draft: BuildDraft;
+    options?: {
+      interactive?: boolean;
+      forceRevision?: number;
+      createCopy?: boolean;
+      title?: string;
+    };
+  } | null>(null);
   const cloudSaveIntentHandled = useRef(false);
 
   const pricingBreakdown = buildPricingBreakdown(productId, colour, artwork, neckLabel, quantity);
@@ -300,9 +314,9 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
     (next: CloudDesignLink | null) => {
       cloudLinkRef.current = next;
       setCloudLink(next);
-      if (next) writeCloudDesignLink(configId, next);
+      if (next) writeCloudDesignLink(designStorageKey, next);
     },
-    [configId, setCloudLink]
+    [designStorageKey, setCloudLink]
   );
 
   const applyRestoredConfiguration = useCallback(
@@ -358,80 +372,96 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         title?: string;
       }
     ) => {
-      if (cloudSaveInFlight.current) return;
+      pendingCloudSaveRef.current = { draft, options };
+      if (cloudSaveInFlight.current) {
+        setCloudSaveStatus("saving");
+        setCloudMessage("Saving your latest changes…");
+        return;
+      }
+
       cloudSaveInFlight.current = true;
-      setCloudSaveStatus("saving");
-      setCloudMessage(
-        options?.createCopy
-          ? "Creating a saved copy…"
-          : "Saving design and artwork securely…"
-      );
-
-      let result;
       try {
-        result = await saveBuildDraftToCloud({
-          configId,
-          productName,
-          draft,
-          existingLink: cloudLinkRef.current,
-          forceRevision: options?.forceRevision,
-          createCopy: options?.createCopy,
-          title: options?.title,
-        });
-      } catch {
-        cloudSaveInFlight.current = false;
-        setCloudSaveStatus("error");
-        setCloudMessage(
-          "This browser draft is safe, but cloud save could not connect."
-        );
-        return;
-      }
-      cloudSaveInFlight.current = false;
+        while (pendingCloudSaveRef.current) {
+          const pending = pendingCloudSaveRef.current;
+          pendingCloudSaveRef.current = null;
+          setCloudSaveStatus("saving");
+          setCloudMessage(
+            pending.options?.createCopy
+              ? "Creating a saved copy…"
+              : "Saving design and artwork securely…"
+          );
 
-      if (result.ok) {
-        setActiveCloudLink(result.link);
-        setCloudConflict(null);
-        setCloudSaveStatus("saved");
-        setCloudMessage(
-          "Saved to your account"
-        );
-        if (options?.interactive) {
-          setFeedback({
-            tone: "success",
-            title: options.createCopy
-              ? "Saved copy created"
-              : "Design saved to your account",
-            detail:
-              "Your browser draft remains available as a fallback, and this design can now be resumed from another device.",
-          });
+          let result;
+          try {
+            result = await saveBuildDraftToCloud({
+              configId,
+              storageKey: designStorageKey,
+              productName,
+              draft: pending.draft,
+              existingLink: cloudLinkRef.current,
+              forceRevision: pending.options?.forceRevision,
+              createCopy: pending.options?.createCopy,
+              title: pending.options?.title,
+            });
+          } catch {
+            pendingCloudSaveRef.current = null;
+            setCloudSaveStatus("error");
+            setCloudMessage(
+              "This browser draft is safe, but cloud save could not connect."
+            );
+            return;
+          }
+
+          if (result.ok) {
+            setActiveCloudLink(result.link);
+            setCloudConflict(null);
+            if (pending.options?.interactive) {
+              setFeedback({
+                tone: "success",
+                title: pending.options.createCopy
+                  ? "Saved copy created"
+                  : "Design saved to your account",
+                detail:
+                  "Your browser draft remains available as a fallback, and this design can now be resumed from another device.",
+              });
+            }
+            if (!pendingCloudSaveRef.current) {
+              setCloudSaveStatus("saved");
+              setCloudMessage("Saved to your account");
+            }
+            continue;
+          }
+
+          pendingCloudSaveRef.current = null;
+          if (result.kind === "conflict") {
+            setCloudConflict(result.conflict);
+            setCloudSaveStatus("conflict");
+            setCloudMessage("This design changed on another device.");
+            return;
+          }
+
+          setCloudSaveStatus("error");
+          setCloudMessage(result.message);
+          if (result.kind === "unauthorized" && pending.options?.interactive) {
+            const titleParam = pending.options.title
+              ? `&saveTitle=${encodeURIComponent(pending.options.title)}`
+              : "";
+            const next = `/configurator/build/${encodeURIComponent(configId)}?draftId=${encodeURIComponent(requestedDraftId ?? configId)}&cloudSave=1${titleParam}`;
+            router.push(`/login?next=${encodeURIComponent(next)}`);
+          }
+          return;
         }
-        return;
-      }
-
-      if (result.kind === "conflict") {
-        setCloudConflict(result.conflict);
-        setCloudSaveStatus("conflict");
-        setCloudMessage("This design changed on another device.");
-        return;
-      }
-
-      setCloudSaveStatus("error");
-      setCloudMessage(result.message);
-      if (result.kind === "unauthorized" && options?.interactive) {
-        const titleParam = options?.title ? `&saveTitle=${encodeURIComponent(options.title)}` : "";
-        const next = `/configurator/build/${encodeURIComponent(configId)}?cloudSave=1${titleParam}`;
-        router.push(`/login?next=${encodeURIComponent(next)}`);
+      } finally {
+        cloudSaveInFlight.current = false;
       }
     },
     [
       configId,
+      designStorageKey,
       productName,
+      requestedDraftId,
       router,
       setActiveCloudLink,
-      setCloudConflict,
-      setCloudMessage,
-      setCloudSaveStatus,
-      setFeedback,
     ]
   );
 
@@ -439,7 +469,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
     if (!savedDesignsEnabled) return;
     if (!cloudLinkRef.current) {
       if (!customerSession.email) {
-        writeBuildDraft(configId, {
+        writeBuildDraft(designStorageKey, {
           colour,
           artwork,
           neckLabel,
@@ -454,7 +484,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       return;
     }
     const draft = currentBuildDraft();
-    writeBuildDraft(configId, {
+    writeBuildDraft(designStorageKey, {
       colour: draft.colour,
       artwork: draft.artwork,
       neckLabel: draft.neckLabel,
@@ -466,7 +496,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
 
   async function handleNamedSave() {
     const draft = currentBuildDraft();
-    writeBuildDraft(configId, {
+    writeBuildDraft(designStorageKey, {
       colour: draft.colour,
       artwork: draft.artwork,
       neckLabel: draft.neckLabel,
@@ -565,8 +595,8 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
         }
       }
 
-      const localDraft = readBuildDraft(configId);
-      const storedLink = readCloudDesignLink(configId);
+      const localDraft = readBuildDraft(designStorageKey);
+      const storedLink = readCloudDesignLink(designStorageKey);
       const targetDesignId = requestedDesignId ?? storedLink?.designId;
 
       if (targetDesignId) {
@@ -706,6 +736,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
     };
   }, [
     configId,
+    designStorageKey,
     editCartId,
     editItemId,
     productId,
@@ -719,7 +750,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
     if (!hasHydrated.current) return;
     if (saveTimer.current) window.clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(() => {
-      const saved = writeBuildDraft(configId, { colour, artwork, neckLabel, steps, quantity });
+      const saved = writeBuildDraft(designStorageKey, { colour, artwork, neckLabel, steps, quantity });
       if (!saved && !autosaveErrorNotifiedRef.current) {
         autosaveErrorNotifiedRef.current = true;
         setFeedback({
@@ -730,7 +761,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       }
       if (saved) {
         autosaveErrorNotifiedRef.current = false;
-        const savedDraft = readBuildDraft(configId);
+        const savedDraft = readBuildDraft(designStorageKey);
         if (savedDraft && cloudLinkRef.current && !cloudConflict) {
           if (cloudSaveTimer.current) {
             window.clearTimeout(cloudSaveTimer.current);
@@ -747,7 +778,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       if (cloudSaveTimer.current) window.clearTimeout(cloudSaveTimer.current);
     };
   }, [
-    configId,
+    designStorageKey,
     colour,
     artwork,
     neckLabel,
@@ -775,7 +806,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       steps,
       quantity,
     };
-    writeBuildDraft(configId, {
+    writeBuildDraft(designStorageKey, {
       colour,
       artwork,
       neckLabel,
@@ -789,7 +820,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
   }, [
     artwork,
     colour,
-    configId,
+    designStorageKey,
     hydrationComplete,
     neckLabel,
     quantity,
@@ -857,7 +888,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
       quantity,
       rushDelivery: false,
     };
-    const targetCartId = upsertConfiguredCartItem(configId, cartInput, {
+    const targetCartId = upsertConfiguredCartItem(requestedDraftId ?? configId, cartInput, {
       cartId: editCartId ?? undefined,
       itemId: editItemId ?? undefined,
     });
@@ -874,7 +905,7 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
     }
 
     trackConfiguratorEvent("added_to_cart", { product_id: productId, quantity, editing: Boolean(editCartId) });
-    clearBuildDraft(configId);
+    clearBuildDraft(designStorageKey);
     router.push(`/configurator/cart/${encodeURIComponent(targetCartId)}/review`);
   }
 
@@ -1016,8 +1047,6 @@ export default function ConfigureClient({ configId }: ConfigureClientProps) {
           volumeDiscount: pricing.discountAmount,
           gst: pricing.gst,
           total: pricing.total,
-          reservationFee: RESERVATION_FEE,
-          balanceDue: Math.max(0, pricing.total - RESERVATION_FEE),
         },
         previewDataUrls: { [configId]: previewDataUrl },
         filename: `Garmops-Design-${configId}.pdf`,

@@ -5,16 +5,6 @@ import {
   type Address,
 } from "./AddressForm";
 
-export const INDUSTRIES = [
-  "Hotels & Restaurants",
-  "Music & Events",
-  "Sports & Fitness",
-  "Arts & Culture",
-  "Creative Studios",
-  "Companies & Startups",
-  "Other",
-] as const;
-
 export const PROJECT_DEPARTMENTS = [
   "HR",
   "Operations",
@@ -24,18 +14,7 @@ export const PROJECT_DEPARTMENTS = [
   "Other",
 ] as const;
 
-export type Industry = (typeof INDUSTRIES)[number] | "";
 export type ProjectDepartment = (typeof PROJECT_DEPARTMENTS)[number] | "";
-
-export interface CompanyInformation {
-  name: string;
-  gstin: string;
-  industry: Industry;
-  website: string;
-  poNumber: string;
-  costCentre: string;
-  address: Address;
-}
 
 export interface ProjectContact {
   firstName: string;
@@ -52,20 +31,12 @@ export interface ShippingInformation {
   multipleLocationsNotes: string;
 }
 
-export interface PurchaseOrderAttachment {
-  fileKey: string;
-  fileName: string;
-  fileType: string;
-  fileSize: number;
-}
-
 export interface BillingInformation {
   sameAsCompanyAddress: boolean;
   entity: string;
   address: Address;
   accountsPayableEmail: string;
   gstin: string;
-  purchaseOrder?: PurchaseOrderAttachment;
 }
 
 export interface ProjectPreferences {
@@ -76,18 +47,17 @@ export interface ProjectPreferences {
 export interface MissingCheckoutField {
   key: string;
   label: string;
-  section: "company" | "contact" | "shipping" | "billing";
+  section: "contact" | "shipping" | "billing";
 }
 
 function addressFields(
   address: Address,
   section: MissingCheckoutField["section"],
-  prefix: string
+  prefix: string,
 ): MissingCheckoutField[] {
-  const sectionLabel = section === "shipping" ? "shipping" : section === "billing" ? "billing" : "company";
   return getAddressMissingFields(address).map((field) => ({
     key: `${prefix}.${field.key}`,
-    label: `${sectionLabel} ${field.label}`,
+    label: `${section} ${field.label}`,
     section,
   }));
 }
@@ -96,10 +66,6 @@ export function isGstinValid(value: string): boolean {
   return /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(
     value.trim().toUpperCase(),
   );
-}
-
-export function getCompanyMissingFields(_company: CompanyInformation): MissingCheckoutField[] {
-  return [];
 }
 
 export function getContactMissingFields(contact: ProjectContact): MissingCheckoutField[] {
@@ -117,13 +83,18 @@ export function getShippingMissingFields(shipping: ShippingInformation): Missing
     missing.push({ key: "shipping.recipientName", label: "shipping recipient", section: "shipping" });
   }
   missing.push(...addressFields(shipping.address, "shipping", "shipping.address"));
+  if (shipping.multipleLocations && !shipping.multipleLocationsNotes.trim()) {
+    missing.push({ key: "shipping.multipleLocationsNotes", label: "multiple-location instructions", section: "shipping" });
+  }
   return missing;
 }
 
-export function getBillingMissingFields(
-  billing: BillingInformation,
-): MissingCheckoutField[] {
+export function getBillingMissingFields(billing: BillingInformation): MissingCheckoutField[] {
   const missing: MissingCheckoutField[] = [];
+  if (!billing.entity.trim()) missing.push({ key: "billing.entity", label: "billing name", section: "billing" });
+  if (!isEmailValid(billing.accountsPayableEmail)) {
+    missing.push({ key: "billing.accountsPayableEmail", label: "billing email", section: "billing" });
+  }
   if (!billing.sameAsCompanyAddress) {
     missing.push(...addressFields(billing.address, "billing", "billing.address"));
   }
@@ -134,13 +105,11 @@ export function getBillingMissingFields(
 }
 
 export function getProcurementMissingFields(details: {
-  company: CompanyInformation;
   contact: ProjectContact;
   shipping: ShippingInformation;
   billing: BillingInformation;
 }): MissingCheckoutField[] {
   return [
-    ...getCompanyMissingFields(details.company),
     ...getContactMissingFields(details.contact),
     ...getShippingMissingFields(details.shipping),
     ...getBillingMissingFields(details.billing),

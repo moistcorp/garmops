@@ -21,11 +21,11 @@ function safeSubmissionError(error: unknown): {
   code: string;
 } {
   const internal = error instanceof Error ? error.message : "";
-  if (/owner or buyer access|required|organization/i.test(internal)) {
+  if (/customer account access|required|identity/i.test(internal)) {
     return {
-      message: "Sample checkout is unavailable for this account",
+      message: "Customer login is required for sample checkout",
       status: 403,
-      code: "ORGANIZATION_ACCESS_DENIED",
+      code: "CUSTOMER_ACCESS_DENIED",
     };
   }
   if (/unavailable|quantity|items|size|price|subtotal/i.test(internal)) {

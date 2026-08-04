@@ -131,7 +131,7 @@ export const journalPosts: JournalPost[] = [
       {
         heading: 'A realistic production sequence',
         paragraphs: [
-          'A professional order moves through defined checkpoints: specification, quote, artwork review, payment or purchase order, sample approval where required, bulk production, finishing, quality control, packing and dispatch. The clock should start from a clearly defined confirmation point—not from the first enquiry.',
+          'A professional order moves through defined checkpoints: specification, quote, artwork review, verified full payment, sample approval where required, bulk production, finishing, quality control, packing and dispatch. The clock should start from a clearly defined confirmation point—not from the first enquiry.',
           'Build approval time into your deadline. Late size lists, replacement artwork and slow sample feedback can compress production even when the factory schedule has not changed. If the delivery is tied to an event, work backwards from the date the cartons must arrive and keep a buffer for transit.',
         ],
         bullets: [
@@ -150,7 +150,7 @@ export const journalPosts: JournalPost[] = [
       {
         heading: 'The final pre-order checklist',
         paragraphs: [
-          'Before paying an advance or issuing a purchase order, check that the written quote and approved visual describe the same product. Record the fabric, GSM, fit, colours, print dimensions, techniques, quantities, sizes, labels, packaging, delivery location and approval schedule in one place.',
+          'Before completing payment, check that the written quote and approved visual describe the same product. Record the fabric, GSM, fit, colours, print dimensions, techniques, quantities, sizes, labels, packaging, delivery location and approval schedule in one place.',
           'The cheapest quote is not always the lowest-cost outcome. A clear specification, realistic timeline and defined quality process reduce the expensive risks: an unusable size split, inconsistent print placement, a missed event date or hundreds of garments that do not match the approved product.',
         ],
       },
@@ -536,7 +536,7 @@ export const journalPosts: JournalPost[] = [
         heading: 'Build a budget that can survive approval',
         paragraphs: [
           'Set a target cost per recipient and separate essential from optional details. The core cost includes the garment, decoration and quantity. Multiple artwork locations, extra print colours, embroidery stitch count, custom labels, packaging, rush production, tax and shipping can add to it.',
-          'Ask for a GST-compliant quote that describes the complete specification. Garmops accepts company purchase orders with 50% advance on confirmation and the balance before dispatch. Our online estimator shows the product, quantity, volume discount, rush option and GST so a team can establish a working budget before the final production review.',
+          'Ask for a GST-compliant quote that describes the complete specification. Garmops collects the full merchandise amount including GST at checkout. Shipping is quoted and collected separately after staff review. Our online estimator shows the product, quantity, volume discount, rush option and GST so a team can establish a working budget before the final production review.',
         ],
         links: [
           { label: 'Estimate corporate apparel pricing', href: '/pricing' },
@@ -546,7 +546,7 @@ export const journalPosts: JournalPost[] = [
         heading: 'Work backwards from the must-arrive date',
         paragraphs: [
           'The important date is when merchandise must be at the venue, office or distribution point—not when it leaves the factory. Work backwards through transit, packing, quality control, production, sample approval, artwork review and size collection. Add a buffer for an event that cannot move.',
-          'Garmops plans standard delivery in 35 days from confirmation, with an 18-day rush service for feasible orders. The confirmation point should include approved artwork, final quantities and sizes, delivery details and the required payment or purchase order.',
+          'Garmops plans standard delivery in 35 days from confirmation, with an 18-day rush service for feasible orders. The confirmation point should include approved artwork, final quantities and sizes, delivery details and the required verified full payment.',
         ],
         bullets: [
           'Must-arrive date and full delivery address',
@@ -584,7 +584,7 @@ export const journalPosts: JournalPost[] = [
       },
       {
         q: 'Does Garmops provide GST invoices for corporate orders?',
-        a: 'Yes. Garmops provides GST-compliant invoices with HSN codes and accepts company purchase orders under the stated payment terms.',
+        a: 'Yes. Garmops provides GST-compliant invoices with HSN codes after verified full payment. Shipping is quoted separately after staff review.',
       },
     ],
     relatedLinks: [

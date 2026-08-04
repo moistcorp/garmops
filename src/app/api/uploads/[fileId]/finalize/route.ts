@@ -32,7 +32,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
   const { data: file, error } = await auth.supabase
     .from("order_files")
     .select(
-      "id, uploaded_by, bucket_name, object_key, byte_size, content_type, sha256, upload_status, upload_expires_at, scan_status, deleted_at",
+      "id, uploaded_by, kind, bucket_name, object_key, byte_size, content_type, sha256, upload_status, upload_expires_at, scan_status, deleted_at",
     )
     .eq("id", fileId)
     .maybeSingle();
@@ -96,6 +96,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
   return jsonPrivate({
     fileId: file.id,
     uploadStatus: "finalized",
-    scanStatus: "manual_review",
+    scanStatus: file.kind === "customer_artwork" ? "manual_review" : "not_required",
   });
 }

@@ -51,7 +51,7 @@ export function getCartJourneyLinks(
     artwork: buildStepHref("artwork"),
     "neck-label": buildStepHref("neck-label"),
     quantity: `/configurator/cart/${encodedCartId}/review`,
-    company: `/configurator/cart/${encodedCartId}/shipping`,
+    delivery: `/configurator/cart/${encodedCartId}/shipping`,
   };
 }
 

@@ -34,8 +34,7 @@ export default function AuthShell({
               </p>
             </div>
             <p className="text-xs leading-relaxed text-white/40">
-              Customer workspaces are organization-isolated. Staff access
-              is managed directly in Supabase.
+              Foundry is isolated from customer access. Every staff session requires an approved account and authenticator verification.
             </p>
           </aside>
           <section className="flex min-h-[640px] items-center p-5 sm:p-10 lg:p-14">

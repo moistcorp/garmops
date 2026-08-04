@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CreditCard } from "lucide-react";
 
 import { ConfirmationStep } from "@/components/configurator/cart/ConfirmationStep";
-import { requireOrganizationMember } from "@/lib/auth/guards";
+import { requireCustomer } from "@/lib/auth/guards";
 import { isFeatureEnabled } from "@/lib/config/featureFlags";
 
 interface ConfirmationPageProps {
@@ -54,18 +54,12 @@ export default async function ConfirmationPage({ params, searchParams }: Confirm
     );
   }
 
-  const { membership } = await requireOrganizationMember(
-    `/configurator/cart/${cartId}/confirmation`,
-  );
+  await requireCustomer(`/configurator/cart/${cartId}/confirmation`);
 
   return (
     <main className="techpack-cart-page techpack-studio-bg min-h-screen px-4 pb-8 sm:pb-10">
       <div className="mx-auto max-w-6xl">
-        <ConfirmationStep
-          cartId={cartId}
-          organizationId={membership.organization_id}
-          paymentOutcome={paymentOutcome}
-        />
+        <ConfirmationStep cartId={cartId} paymentOutcome={paymentOutcome} />
       </div>
     </main>
   );

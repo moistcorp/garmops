@@ -1,15 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import type { Database } from "@/types/database.generated";
-
-const mocks = vi.hoisted(() => ({
-  createAdminClient: vi.fn(),
-}));
-
-vi.mock("@/lib/supabase/admin", () => ({
-  createAdminClient: mocks.createAdminClient,
-}));
 
 import { getCustomerOrder } from "./dal";
 
@@ -31,7 +23,7 @@ function query(result: QueryResult) {
   return builder;
 }
 
-function customerClient() {
+function customerClient(paymentError: { message: string } | null = null) {
   const order = {
     id: "order-1",
     order_number: "GAR-2026-000001",
@@ -39,26 +31,30 @@ function customerClient() {
   const results: Record<string, QueryResult> = {
     orders: { data: order, error: null },
     order_items: { data: [{ id: "item-1" }], error: null },
-    order_status_history: { data: [{ id: "history-1" }], error: null },
+    invoices: { data: [{ id: "invoice-1" }], error: null },
   };
 
   return {
     from: (table: string) => query(results[table]),
+    rpc: (name: string) => {
+      if (name === "customer_order_history") {
+        return Promise.resolve({ data: [{ id: "history-1" }], error: null });
+      }
+      if (name === "customer_payment_summaries") {
+        return Promise.resolve({
+          data: paymentError ? null : [{ payment_attempt_id: "payment-1" }],
+          error: paymentError,
+        });
+      }
+      return Promise.resolve({ data: null, error: { message: "unknown rpc" } });
+    },
   } as unknown as SupabaseClient<Database>;
 }
 
 describe("getCustomerOrder", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mocks.createAdminClient.mockReturnValue({
-      from: () => query({ data: [{ id: "payment-1" }], error: null }),
-    });
-  });
-
-  it("loads the retained read-only order summary", async () => {
+  it("loads the private customer order summary", async () => {
     const result = await getCustomerOrder(
       customerClient(),
-      "organization-1",
       "user-1",
       "GAR-2026-000001",
     );
@@ -69,22 +65,20 @@ describe("getCustomerOrder", () => {
     });
     expect(result.items.data).toEqual([{ id: "item-1" }]);
     expect(result.history.data).toEqual([{ id: "history-1" }]);
-    expect(result.payments).toEqual([{ id: "payment-1" }]);
+    expect(result.payments.data).toEqual([
+      { payment_attempt_id: "payment-1" },
+    ]);
+    expect(result.invoices.data).toEqual([{ id: "invoice-1" }]);
   });
 
   it("keeps the order available when payment history cannot be loaded", async () => {
-    mocks.createAdminClient.mockReturnValue({
-      from: () => query({ data: null, error: { message: "payment unavailable" } }),
-    });
-
     const result = await getCustomerOrder(
-      customerClient(),
-      "organization-1",
+      customerClient({ message: "payment unavailable" }),
       "user-1",
       "GAR-2026-000001",
     );
 
     expect(result.order.data).toMatchObject({ id: "order-1" });
-    expect(result.payments).toEqual([]);
+    expect(result.payments.error).toEqual({ message: "payment unavailable" });
   });
 });

@@ -4,13 +4,11 @@ import {
   getVolumeDiscountPercent,
 } from "../configurator/pricing";
 import { getProduct } from "../configurator/products";
-import {
-  GST_PERCENT,
-  RUSH_DELIVERY_FEE_PER_UNIT,
-} from "../pricingRules";
+import { GST_PERCENT } from "../pricingRules";
 import type { Json } from "@/types/database.generated";
 
 import type { CloudDesignSnapshot } from "@/lib/designs/schema";
+import { hsnCodeForProduct } from "@/lib/invoices/hsn";
 import type {
   Artwork,
   ArtworkSide,
@@ -159,15 +157,10 @@ export function priceCustomOrder(input: {
     (configuredUnitPaise * (100 - discountPercent)) / 100,
   );
   const subtotalPaise = unitPricePaise * quantity;
-  const shippingPaise =
-    input.deliveryType === "rush"
-      ? RUSH_DELIVERY_FEE_PER_UNIT * 100 * quantity
-      : 0;
-  const taxEstimatePaise = Math.round(
-    ((subtotalPaise + shippingPaise) * GST_PERCENT) / 100,
-  );
-  const estimatedTotalPaise =
-    subtotalPaise + shippingPaise + taxEstimatePaise;
+  // Shipping is quoted and collected separately by staff after the order is reviewed.
+  const shippingPaise = 0;
+  const taxEstimatePaise = Math.round((subtotalPaise * GST_PERCENT) / 100);
+  const estimatedTotalPaise = subtotalPaise + taxEstimatePaise;
 
   const productSnapshot = {
     id: product.id,
@@ -190,6 +183,8 @@ export function priceCustomOrder(input: {
     configuredUnitPaise,
     discountPercent,
     pricingVersion: CUSTOM_ORDER_PRICING_VERSION,
+    hsnCode: hsnCodeForProduct(product.id),
+    gstRateBasisPoints: GST_PERCENT * 100,
   };
 
   const item = {

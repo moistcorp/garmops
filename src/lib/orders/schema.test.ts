@@ -16,12 +16,10 @@ function validSubmission() {
   return {
     designProjectId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
     designVersion: 2,
-    organizationId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
     sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 5, XXL: 5 },
     deliveryType: "standard" as const,
     requestedDeliveryDate: "2026-09-15",
     projectName: "Autumn team merchandise",
-    company: { name: "Alpha Events" },
     contact: {
       firstName: "Asha",
       lastName: "Mehta",
@@ -39,7 +37,8 @@ function validSubmission() {
       accountsPayableEmail: "accounts@example.com",
     },
     acceptedTerms: true as const,
-    acceptedTermsVersion: "reservation-v1",
+    acceptedTermsVersion: "terms-v1",
+    acceptedPrivacyVersion: "privacy-v1",
     idempotencyKey: "70000000-0000-4000-8000-000000000001",
   };
 }

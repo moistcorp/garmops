@@ -1,12 +1,13 @@
 import { products } from "@/lib/products";
+import { hsnCodeForProduct } from "@/lib/invoices/hsn";
 import type { Json } from "@/types/database.generated";
 
 import type { SampleOrderItemInput } from "./sampleSchema";
 
 export const SAMPLE_ORDER_PRICING_VERSION = "catalogue-samples-2026-01";
 export const SAMPLE_ORDER_SCHEMA_VERSION = 1;
-export const SAMPLE_FREE_SHIPPING_THRESHOLD_PAISE = 200_000;
-export const SAMPLE_STANDARD_SHIPPING_PAISE = 9_900;
+export const SAMPLE_FREE_SHIPPING_THRESHOLD_PAISE = 0;
+export const SAMPLE_STANDARD_SHIPPING_PAISE = 0;
 export const MAX_SAMPLE_LINES = 50;
 export const MAX_SAMPLE_QUANTITY_PER_LINE = 100;
 
@@ -93,6 +94,8 @@ export function priceSampleOrder(
         image: product.image,
         samplePricePaise: pricePaise,
         pricingVersion: SAMPLE_ORDER_PRICING_VERSION,
+        hsnCode: hsnCodeForProduct(product.slug),
+        gstRateBasisPoints: 500,
       },
       colour_snapshot: {},
       decoration_snapshot: {},
@@ -109,12 +112,9 @@ export function priceSampleOrder(
     throw new Error("Sample subtotal is invalid");
   }
 
-  const shippingPaise =
-    subtotalPaise >= SAMPLE_FREE_SHIPPING_THRESHOLD_PAISE
-      ? 0
-      : SAMPLE_STANDARD_SHIPPING_PAISE;
-  const taxEstimatePaise = 0;
-  const estimatedTotalPaise = subtotalPaise + shippingPaise;
+  const shippingPaise = 0;
+  const taxEstimatePaise = Math.round(subtotalPaise * 0.05);
+  const estimatedTotalPaise = subtotalPaise + taxEstimatePaise;
 
   return Object.freeze({
     subtotalPaise,

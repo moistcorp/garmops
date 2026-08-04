@@ -84,7 +84,7 @@ function homeMarkdown() {
 - Rush delivery target: ${RUSH_DELIVERY_DAYS} days when the order is feasible.
 - Current catalogue prices start at ₹${lowestPrice.toLocaleString('en-IN')} per piece before GST and shipping.
 - Location: ${siteConfig.address.locality}, ${siteConfig.address.region}, India.
-- GST-compliant invoicing and company purchase orders are supported.
+- GST-compliant invoicing follows verified full payment; shipping is quoted separately by staff.
 
 ## Products
 
@@ -433,7 +433,7 @@ Garmops produces bulk custom T-shirts, polos, hoodies, sweatshirts, long-sleeve 
 - Rush delivery target: ${RUSH_DELIVERY_DAYS} days for feasible orders.
 - Location: ${siteConfig.address.locality}, ${siteConfig.address.region}, India.
 - Shipping: pan-India and international options.
-- GST-compliant invoices and company purchase orders are supported.
+- GST-compliant invoicing follows verified full payment; shipping is quoted separately by staff.
 - Catalogue samples and paid custom pre-production samples are available.
 
 ## Useful resources

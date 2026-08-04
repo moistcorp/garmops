@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const customAdmin = admin as unknown as { from: (table: string) => any };
+  const customAdmin = admin;
   const { data: customData, error: customError } = await customAdmin
     .from("custom_checkout_payment_attempts")
     .select("id")

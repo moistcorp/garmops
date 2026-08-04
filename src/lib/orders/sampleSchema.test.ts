@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { submitSampleOrderRequestSchema } from "./sampleSchema";
 
 const validRequest = {
-  organizationId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
   items: [{ productId: 1, size: "M", quantity: 2 }],
   contact: {
     firstName: "Dhananjay",

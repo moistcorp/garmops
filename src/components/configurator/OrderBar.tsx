@@ -8,7 +8,6 @@ import {
   VOLUME_DISCOUNT_TIERS,
   type VolumeDiscountTier,
 } from "@/lib/pricingRules";
-import { RESERVATION_FEE } from "@/lib/configurator/reservation";
 
 export interface OrderBarProps {
   quantity: number;
@@ -261,7 +260,7 @@ export function OrderBar({
             Due today
           </div>
           <div className="mt-1 truncate font-mono text-sm font-semibold text-[var(--text-primary)]">
-            {formatInr(RESERVATION_FEE)}
+            {formatInr(pricingBreakdown.total)}
           </div>
         </div>
         <button

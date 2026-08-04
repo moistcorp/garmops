@@ -1,11 +1,11 @@
 import "server-only";
 
 import { createHash, randomUUID } from "node:crypto";
-
 import type { User } from "@supabase/supabase-js";
 
 import { getServerEnvironment } from "@/lib/config/env";
 import { cloudDesignSnapshotSchema } from "@/lib/designs/schema";
+import { currentCustomTermsEvidence } from "@/lib/orders/terms";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { createClient } from "@/lib/supabase/server";
 import type { Json } from "@/types/database.generated";
@@ -16,56 +16,16 @@ import type { SubmitCustomOrderRequest } from "./schema";
 type SessionClient = Awaited<ReturnType<typeof createClient>>;
 type AdminClient = ReturnType<typeof createAdminClient>;
 
-type SubmitCustomOrderRpcArgs = {
-  p_idempotency_key: string;
-  p_request_hash: string;
-  p_organization_id: string;
-  p_customer_user_id: string;
-  p_subtotal_paise: number;
-  p_shipping_paise: number;
-  p_tax_estimate_paise: number;
-  p_reservation_amount_paise: number;
-  p_pricing_version: string;
-  p_configuration_schema_version: number;
-  p_billing_snapshot: Json;
-  p_shipping_snapshot: Json;
-  p_customer_snapshot: Json;
-  p_company_snapshot: Json;
-  p_terms_snapshot: Json;
-  p_items: Json;
-  p_design_project_id: string;
-  p_design_version_id: string;
-  p_file_ids: string[];
-  p_customer_reference: string;
-  p_po_number?: string;
-  p_requested_delivery_date: string;
-  p_expires_at: string;
-};
-
-export type PreparedCustomOrder = {
-  requestHash: string;
-  rpcArgs: SubmitCustomOrderRpcArgs;
-  estimatedTotalPaise: number;
-  reservationAmountPaise: number;
-  customerName: string;
-  customerEmail: string;
-  customerPhone: string;
-};
+function adminClient(): AdminClient {
+  return createAdminClient();
+}
 
 function stableJson(value: unknown): string {
-  if (Array.isArray(value)) {
-    return `[${value.map(stableJson).join(",")}]`;
-  }
-
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
   if (value && typeof value === "object") {
     const object = value as Record<string, unknown>;
-
-    return `{${Object.keys(object)
-      .sort()
-      .map((key) => `${JSON.stringify(key)}:${stableJson(object[key])}`)
-      .join(",")}}`;
+    return `{${Object.keys(object).sort().map((key) => `${JSON.stringify(key)}:${stableJson(object[key])}`).join(",")}}`;
   }
-
   return JSON.stringify(value);
 }
 
@@ -73,16 +33,17 @@ export function hashOrderRequest(value: unknown): string {
   return createHash("sha256").update(stableJson(value)).digest("hex");
 }
 
+function normalizeEmail(value: string): string {
+  return value.trim().toLowerCase();
+}
+
 function phoneE164(value: string): string {
   const digits = value.replace(/\D/g, "");
-
-  const national =
-    digits.length === 12 && digits.startsWith("91")
-      ? digits.slice(2)
-      : digits.length === 11 && digits.startsWith("0")
-        ? digits.slice(1)
-        : digits;
-
+  const national = digits.length === 12 && digits.startsWith("91")
+    ? digits.slice(2)
+    : digits.length === 11 && digits.startsWith("0")
+      ? digits.slice(1)
+      : digits;
   return `+91${national}`;
 }
 
@@ -103,532 +64,251 @@ function addressSnapshot(
   };
 }
 
-async function saveDefaultAddress(input: {
-  admin: AdminClient;
-  organizationId: string;
-  kind: "shipping" | "billing";
-  address: SubmitCustomOrderRequest["billing"]["address"];
-  contactName: string;
-  phone: string;
-  gstin?: string;
-}) {
-  const admin = input.admin as unknown as {
-    from: (table: string) => any;
+function sellerSnapshot(): Json {
+  const env = getServerEnvironment();
+  return {
+    legalName: env.INVOICE_SELLER_LEGAL_NAME,
+    address: env.INVOICE_SELLER_ADDRESS,
+    gstin: env.INVOICE_SELLER_GSTIN,
+    state: env.INVOICE_SELLER_STATE,
+    countryCode: "IN",
   };
+}
 
-  const flag =
-    input.kind === "shipping"
-      ? "is_default_shipping"
-      : "is_default_billing";
+type PreparedCheckout = {
+  requestHash: string;
+  payload: Json;
+  subtotalPaise: number;
+  discountPaise: number;
+  taxPaise: number;
+  totalPaise: number;
+  discountCodeId: string | null;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  expiresAt: string;
+};
 
-  const { data: existing, error: readError } = await admin
-    .from("addresses")
-    .select("id")
-    .eq("organization_id", input.organizationId)
-    .eq(flag, true)
+async function assertCustomerPrincipal(user: User): Promise<void> {
+  if (!user.email || !user.email_confirmed_at) throw new Error("Verified customer login required");
+  const admin = adminClient();
+  const { data, error } = await admin.from("account_principals")
+    .select("account_type, active, normalized_email")
+    .eq("user_id", user.id)
     .maybeSingle();
-
-  if (readError) {
-    throw new Error(readError.message);
+  if (error) throw new Error(error.message);
+  if (!data || !data.active || data.account_type !== "customer") {
+    throw new Error("This email is not permitted to use the customer portal");
   }
-
-  const values = {
-    organization_id: input.organizationId,
-    label: input.kind === "shipping" ? "Delivery" : "Billing",
-    contact_name: input.contactName,
-    phone: phoneE164(input.phone),
-    line1: input.address.addressLine1,
-    line2: input.address.addressLine2 || null,
-    city: input.address.city,
-    state: input.address.state,
-    postal_code: input.address.zip,
-    country_code: "IN",
-    gstin: input.gstin || null,
-    is_default_shipping: input.kind === "shipping",
-    is_default_billing: input.kind === "billing",
-  };
-
-  const result = existing
-    ? await admin
-        .from("addresses")
-        .update(values)
-        .eq("id", existing.id)
-    : await admin.from("addresses").insert(values);
-
-  if (result.error) {
-    throw new Error(result.error.message);
+  if (normalizeEmail(data.normalized_email) !== normalizeEmail(user.email)) {
+    throw new Error("Account email does not match its reserved customer identity");
   }
 }
 
-async function persistCheckoutAccountDetails(input: {
-  user: User;
-  request: SubmitCustomOrderRequest;
+async function validateDesignFiles(input: {
+  admin: AdminClient;
+  userId: string;
+  designProjectId: string;
+  fileIds: string[];
 }) {
-  const admin = createAdminClient() as unknown as {
-    from: (table: string) => any;
-  };
+  if (input.fileIds.length > 10) throw new Error("A design can contain at most 10 uploaded files");
+  if (input.fileIds.length === 0) return;
 
-  const { user, request } = input;
+  const { data, error } = await input.admin.from("order_files")
+    .select("id, byte_size, upload_status, deleted_at, uploaded_by, design_project_id")
+    .in("id", input.fileIds);
+  if (error) throw new Error(error.message);
+  if (!data || data.length !== input.fileIds.length) throw new Error("One or more artwork files are unavailable");
 
-  const fullName =
-    `${request.contact.firstName} ${request.contact.lastName}`.trim();
-
-  const gstin =
-    request.billing.gstin ||
-    request.company.gstin ||
-    null;
-
-  const { error: profileError } = await admin
-    .from("profiles")
-    .update({
-      first_name: request.contact.firstName,
-      last_name: request.contact.lastName,
-      phone: phoneE164(request.contact.phone),
-      department: request.contact.department || null,
-      onboarding_completed_at: new Date().toISOString(),
-    })
-    .eq("id", user.id);
-
-  if (profileError) {
-    throw new Error(profileError.message);
-  }
-
-  const { error: organizationError } = await admin
-    .from("organizations")
-    .update({
-      gstin,
-      billing_email: request.billing.accountsPayableEmail,
-      phone: phoneE164(request.contact.phone),
-    })
-    .eq("id", request.organizationId);
-
-  if (organizationError) {
-    if (organizationError.code === "23505") {
-      throw new Error(
-        "This GSTIN is already linked to another customer account",
-      );
+  let totalBytes = 0;
+  for (const file of data) {
+    if (
+      file.uploaded_by !== input.userId ||
+      file.design_project_id !== input.designProjectId ||
+      file.upload_status !== "finalized" ||
+      file.deleted_at
+    ) {
+      throw new Error("Artwork file ownership or upload state is invalid");
     }
-
-    throw new Error(organizationError.message);
+    totalBytes += Number(file.byte_size);
   }
-
-  await saveDefaultAddress({
-    admin: createAdminClient(),
-    organizationId: request.organizationId,
-    kind: "shipping",
-    address: request.shipping.address,
-    contactName: request.shipping.recipientName || fullName,
-    phone: request.contact.phone,
-  });
-
-  await saveDefaultAddress({
-    admin: createAdminClient(),
-    organizationId: request.organizationId,
-    kind: "billing",
-    address: request.billing.address,
-    contactName: request.billing.entity || fullName,
-    phone: request.contact.phone,
-    gstin: gstin || undefined,
-  });
+  if (totalBytes > 250 * 1024 * 1024) throw new Error("Artwork files exceed the 250 MB order limit");
 }
 
-export async function prepareCustomOrder(input: {
+async function prepareCustomOrder(input: {
   supabase: SessionClient;
   user: User;
   request: SubmitCustomOrderRequest;
-}): Promise<PreparedCustomOrder> {
+}): Promise<PreparedCheckout> {
   const { request, user, supabase } = input;
+  await assertCustomerPrincipal(user);
+  if (normalizeEmail(request.contact.email) !== normalizeEmail(user.email ?? "")) {
+    throw new Error("Checkout email must match the logged-in customer email");
+  }
 
-  const [
-    membershipResult,
-    projectResult,
-    versionResult,
-    profileResult,
-    organizationResult,
-  ] = await Promise.all([
-    supabase
-      .from("organization_members")
-      .select("role, status")
-      .eq("organization_id", request.organizationId)
-      .eq("user_id", user.id)
-      .eq("status", "active")
-      .in("role", ["owner", "buyer"])
-      .maybeSingle(),
-
-    supabase
-      .from("design_projects")
-      .select(
-        "id, organization_id, status, schema_version, draft_revision, title",
-      )
+  const [{ data: project, error: projectError }, { data: version, error: versionError }] = await Promise.all([
+    supabase.from("design_projects")
+      .select("id, created_by, title, status, schema_version")
       .eq("id", request.designProjectId)
-      .eq("organization_id", request.organizationId)
+      .eq("created_by", user.id)
       .maybeSingle(),
-
-    supabase
-      .from("design_project_versions")
-      .select(
-        "id, version_number, configuration_snapshot, created_at",
-      )
+    supabase.from("design_project_versions")
+      .select("id, design_project_id, version_number, configuration_snapshot")
       .eq("design_project_id", request.designProjectId)
       .eq("version_number", request.designVersion)
       .maybeSingle(),
-
-    supabase
-      .from("profiles")
-      .select(
-        "first_name, last_name, phone, job_title, department",
-      )
-      .eq("id", user.id)
-      .maybeSingle(),
-
-    supabase
-      .from("organizations")
-      .select(
-        "id, legal_name, display_name, industry, website, gstin, pan, billing_email, phone, status",
-      )
-      .eq("id", request.organizationId)
-      .maybeSingle(),
   ]);
+  if (projectError) throw new Error(projectError.message);
+  if (versionError) throw new Error(versionError.message);
+  if (!project || !version || version.design_project_id !== project.id) throw new Error("Saved design version is unavailable");
 
-  if (membershipResult.error || !membershipResult.data) {
-    throw new Error(
-      "Active owner or buyer access is required",
-    );
-  }
-
-  if (
-    projectResult.error ||
-    !projectResult.data ||
-    projectResult.data.status === "archived"
-  ) {
-    throw new Error("Design project is unavailable");
-  }
-
-  if (versionResult.error || !versionResult.data) {
-    throw new Error(
-      "Immutable design version is unavailable",
-    );
-  }
-
-  if (
-    profileResult.error ||
-    !profileResult.data ||
-    !user.email
-  ) {
-    throw new Error("Customer profile is incomplete");
-  }
-
-  if (
-    organizationResult.error ||
-    !organizationResult.data ||
-    organizationResult.data.status !== "active"
-  ) {
-    throw new Error("Organization is unavailable");
-  }
-
-  const snapshot = cloudDesignSnapshotSchema.parse(
-    versionResult.data.configuration_snapshot,
-  );
-
+  const snapshot = cloudDesignSnapshotSchema.parse(version.configuration_snapshot);
   const priced = priceCustomOrder({
     snapshot,
     sizeQuantities: request.sizeQuantities,
     deliveryType: request.deliveryType,
   });
+  const admin = adminClient();
+  await validateDesignFiles({ admin, userId: user.id, designProjectId: project.id, fileIds: priced.fileIds });
 
-  const fileIds = [
-    ...priced.fileIds,
-    ...(request.purchaseOrderFileId
-      ? [request.purchaseOrderFileId]
-      : []),
-  ];
-
-  const uniqueFileIds = [...new Set(fileIds)];
-
-  if (uniqueFileIds.length) {
-    const { data: files, error: filesError } =
-      await supabase
-        .from("order_files")
-        .select(
-          "id, design_project_id, uploaded_by, kind, visibility, upload_status, scan_status, deleted_at",
-        )
-        .in("id", uniqueFileIds);
-
-    if (
-      filesError ||
-      !files ||
-      files.length !== uniqueFileIds.length ||
-      files.some(
-        (file) =>
-          file.design_project_id !==
-            request.designProjectId ||
-          file.uploaded_by !== user.id ||
-          file.visibility !== "customer" ||
-          file.upload_status !== "finalized" ||
-          file.deleted_at !== null ||
-          ![
-            "customer_artwork",
-            "purchase_order",
-          ].includes(file.kind) ||
-          ![
-            "manual_review",
-            "clean",
-            "not_required",
-          ].includes(file.scan_status),
-      )
-    ) {
-      throw new Error(
-        "A submitted file is unavailable or not finalized",
-      );
-    }
+  let discountCodeId: string | null = null;
+  let normalizedDiscountCode: string | null = null;
+  let discountPaise = 0;
+  if (request.discountCode) {
+    const { data, error } = await admin.rpc("validate_discount_code", {
+      p_code: request.discountCode,
+      p_customer_user_id: user.id,
+      p_subtotal_paise: priced.subtotalPaise,
+    });
+    const result = data?.[0];
+    if (error || !result) throw new Error("Discount code is invalid or unavailable");
+    discountCodeId = result.discount_code_id;
+    normalizedDiscountCode = result.normalized_code;
+    discountPaise = Number(result.discount_paise);
   }
 
-  const customerName =
-    `${request.contact.firstName} ${request.contact.lastName}`.trim();
+  const taxablePaise = priced.subtotalPaise - discountPaise;
+  const taxRateBasisPoints = getServerEnvironment().INVOICE_GST_RATE_BASIS_POINTS;
+  const taxPaise = Math.round((taxablePaise * taxRateBasisPoints) / 10_000);
+  const totalPaise = taxablePaise + taxPaise;
+  if (totalPaise <= 0) throw new Error("Order total must be greater than zero");
 
-  const submittedGstin =
-    request.billing.gstin ||
-    request.company.gstin;
-
-  const billingSnapshot = {
-    entity: request.billing.entity || customerName,
-    accountsPayableEmail:
-      request.billing.accountsPayableEmail,
-    gstin: submittedGstin ?? null,
-    address: addressSnapshot(
-      request.billing.address,
-      request.billing.entity || customerName,
-      request.contact.phone,
-    ),
+  const customerName = `${request.contact.firstName} ${request.contact.lastName}`.trim();
+  const billingSnapshot: Json = {
+    entity: request.billing.entity,
+    email: request.billing.accountsPayableEmail,
+    gstin: request.billing.gstin ?? null,
+    address: addressSnapshot(request.billing.address, request.billing.entity, request.contact.phone),
   };
-
-  const shippingSnapshot = {
+  const shippingSnapshot: Json = {
     recipientName: request.shipping.recipientName,
-    address: addressSnapshot(
-      request.shipping.address,
-      request.shipping.recipientName,
-      request.contact.phone,
-    ),
-    multipleLocations:
-      request.shipping.multipleLocations,
-    multipleLocationsNotes:
-      request.shipping.multipleLocationsNotes ?? null,
+    address: addressSnapshot(request.shipping.address, request.shipping.recipientName, request.contact.phone),
+    multipleLocations: request.shipping.multipleLocations,
+    multipleLocationsNotes: request.shipping.multipleLocationsNotes ?? null,
+    pricing: "quoted_separately",
   };
-
-  const customerSnapshot = {
+  const customerSnapshot: Json = {
     userId: user.id,
-    accountEmail: user.email.toLowerCase(),
-    email: request.contact.email,
-    name: customerName,
     firstName: request.contact.firstName,
     lastName: request.contact.lastName,
+    name: customerName,
+    email: normalizeEmail(request.contact.email),
     phone: phoneE164(request.contact.phone),
-    department:
-      request.contact.department ?? null,
-  };
-
-  const organization = organizationResult.data;
-
-  const companySnapshot = {
-    organizationId: organization.id,
-    legalName: organization.legal_name,
-    displayName: organization.display_name,
-    gstin:
-      submittedGstin ??
-      organization.gstin,
-    pan: organization.pan,
-    billingEmail:
-      request.billing.accountsPayableEmail,
-    phone: phoneE164(request.contact.phone),
-    submittedName:
-      request.company.name || customerName,
-    submittedGstin:
-      submittedGstin ?? null,
-    industry:
-      request.company.industry ??
-      organization.industry,
-    website:
-      request.company.website ??
-      organization.website,
-    costCentre:
-      request.company.costCentre ?? null,
-  };
-
-  const termsSnapshot = {
-    accepted: true,
-    version: request.acceptedTermsVersion,
-    acceptedAtServer: new Date().toISOString(),
-    reservationCreditedToFinalInvoice:
-      getServerEnvironment()
-        .RESERVATION_CREDITED_TO_FINAL_INVOICE,
-    orderNotes: request.orderNotes ?? null,
+    department: request.contact.department ?? null,
     receiveEmails: request.receiveEmails,
-    requestedDeliveryDate:
-      request.requestedDeliveryDate,
-    deliveryType: request.deliveryType,
-    designVersionCreatedAt:
-      versionResult.data.created_at,
   };
+  const terms = currentCustomTermsEvidence();
+  if (
+    request.acceptedTermsVersion !== terms.version ||
+    request.acceptedPrivacyVersion !== terms.privacyVersion
+  ) {
+    throw new Error("Terms have changed. Review and accept the latest version");
+  }
+
+  const configurationSnapshot: Json = {
+    design: snapshot,
+    sizeQuantities: request.sizeQuantities,
+    deliveryType: request.deliveryType,
+    requestedDeliveryDate: request.requestedDeliveryDate,
+    orderNotes: request.orderNotes ?? null,
+    commercialFieldsLockedAfterPayment: ["quantity", "garment", "printingTechnique"],
+  };
+  const payload = {
+    orderType: "custom_bulk",
+    designProjectId: project.id,
+    designVersionId: version.id,
+    pricingVersion: CUSTOM_ORDER_PRICING_VERSION,
+    configurationSchemaVersion: snapshot.schemaVersion,
+    customerReference: request.projectName,
+    requestedDeliveryDate: request.requestedDeliveryDate,
+    billingSnapshot,
+    shippingSnapshot,
+    customerSnapshot,
+    businessSnapshot: request.billing.gstin
+      ? { legalBusinessName: request.billing.entity, gstin: request.billing.gstin }
+      : {},
+    termsSnapshot: {
+      version: terms.version,
+      privacyVersion: terms.privacyVersion,
+      contentHash: terms.documentHash,
+      requestMetadata: { checkoutType: "full_payment" },
+    },
+    configurationSnapshot,
+    items: [priced.item],
+    fileIds: priced.fileIds,
+    discountCode: normalizedDiscountCode,
+    saveShippingToAccount: request.saveShippingToAccount,
+    saveBillingToAccount: request.saveBillingToAccount,
+  } satisfies Json;
 
   const requestHash = hashOrderRequest({
-    ...request,
-    immutableDesignVersionId:
-      versionResult.data.id,
-    canonicalPrice: {
-      subtotalPaise: priced.subtotalPaise,
-      shippingPaise: priced.shippingPaise,
-      taxEstimatePaise:
-        priced.taxEstimatePaise,
-    },
-  });
-
-  const environment = getServerEnvironment();
-
-  const expiresAt = new Date(
-    Date.now() + 24 * 60 * 60 * 1_000,
-  ).toISOString();
-
-  await persistCheckoutAccountDetails({
-    user,
+    userId: user.id,
     request,
+    versionId: version.id,
+    pricingVersion: CUSTOM_ORDER_PRICING_VERSION,
+    subtotalPaise: priced.subtotalPaise,
+    discountPaise,
+    taxPaise,
+    totalPaise,
   });
 
   return {
     requestHash,
-    estimatedTotalPaise:
-      priced.estimatedTotalPaise,
-    reservationAmountPaise:
-      environment.RESERVATION_AMOUNT_PAISE,
+    payload,
+    subtotalPaise: priced.subtotalPaise,
+    discountPaise,
+    taxPaise,
+    totalPaise,
+    discountCodeId,
     customerName,
-    customerEmail: request.contact.email,
-    customerPhone: phoneE164(
-      request.contact.phone,
-    ),
-    rpcArgs: {
-      p_idempotency_key:
-        request.idempotencyKey,
-      p_request_hash: requestHash,
-      p_organization_id:
-        request.organizationId,
-      p_customer_user_id: user.id,
-      p_subtotal_paise:
-        priced.subtotalPaise,
-      p_shipping_paise:
-        priced.shippingPaise,
-      p_tax_estimate_paise:
-        priced.taxEstimatePaise,
-      p_reservation_amount_paise:
-        environment.RESERVATION_AMOUNT_PAISE,
-      p_pricing_version:
-        CUSTOM_ORDER_PRICING_VERSION,
-      p_configuration_schema_version:
-        snapshot.schemaVersion,
-      p_billing_snapshot:
-        billingSnapshot as Json,
-      p_shipping_snapshot:
-        shippingSnapshot as Json,
-      p_customer_snapshot:
-        customerSnapshot as Json,
-      p_company_snapshot:
-        companySnapshot as Json,
-      p_terms_snapshot:
-        termsSnapshot as Json,
-      p_items: [priced.item] as Json,
-      p_design_project_id:
-        request.designProjectId,
-      p_design_version_id:
-        versionResult.data.id,
-      p_file_ids: uniqueFileIds,
-      p_customer_reference:
-        request.projectName,
-      p_po_number:
-        request.company.poNumber,
-      p_requested_delivery_date:
-        request.requestedDeliveryDate,
-      p_expires_at: expiresAt,
-    },
-  };
-}
-
-export async function submitPreparedCustomOrder(
-  prepared: PreparedCustomOrder,
-) {
-  const admin = createAdminClient();
-
-  const { data, error } = await admin.rpc(
-    "submit_custom_order",
-    prepared.rpcArgs,
-  );
-
-  const result = data?.[0];
-
-  if (error || !result) {
-    throw new Error(
-      error?.message ??
-        "Order could not be submitted",
-    );
-  }
-
-  return {
-    ...result,
-    estimatedTotalPaise:
-      prepared.estimatedTotalPaise,
-    reservationAmountPaise:
-      prepared.reservationAmountPaise,
-  };
-}
-
-function checkoutTables(admin: AdminClient) {
-  return admin as unknown as {
-    from: (table: string) => any;
+    customerEmail: normalizeEmail(request.contact.email),
+    customerPhone: phoneE164(request.contact.phone),
+    expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
   };
 }
 
 async function createCheckoutAttempt(input: {
   sessionId: string;
   attemptNumber: number;
-  prepared: PreparedCustomOrder;
+  prepared: PreparedCheckout;
 }) {
-  const admin = checkoutTables(
-    createAdminClient(),
-  );
-
+  const admin = adminClient();
   const id = randomUUID();
-
-  const merchantTransactionId =
-    `G${id.replace(/-/g, "").slice(0, 22)}`;
-
-  const { data, error } = await admin
-    .from("custom_checkout_payment_attempts")
-    .insert({
-      id,
-      checkout_session_id: input.sessionId,
-      attempt_number: input.attemptNumber,
-      provider_merchant_txn_id:
-        merchantTransactionId,
-      amount_paise:
-        input.prepared.reservationAmountPaise,
-      currency: "INR",
-      status: "created",
-      expected_product_info:
-        "Garmops reservation fee",
-      customer_email:
-        input.prepared.customerEmail,
-      customer_name:
-        input.prepared.customerName,
-      customer_phone:
-        input.prepared.customerPhone,
-    })
-    .select("id, status")
-    .single();
-
-  if (error || !data) {
-    throw new Error(
-      error?.message ??
-        "Payment attempt could not be prepared",
-    );
-  }
-
+  const merchantTransactionId = `G${id.replace(/-/g, "").slice(0, 22)}`;
+  const { data, error } = await admin.from("custom_checkout_payment_attempts").insert({
+    id,
+    checkout_session_id: input.sessionId,
+    attempt_number: input.attemptNumber,
+    provider_merchant_txn_id: merchantTransactionId,
+    amount_paise: input.prepared.totalPaise,
+    currency: "INR",
+    status: "created",
+    expected_product_info: "Garmops custom garment order",
+    customer_email: input.prepared.customerEmail,
+    customer_name: input.prepared.customerName,
+    customer_phone: input.prepared.customerPhone,
+  }).select("id, status").single();
+  if (error || !data) throw new Error(error?.message ?? "Payment attempt could not be prepared");
   return data;
 }
 
@@ -639,510 +319,105 @@ export async function prepareCustomCheckout(input: {
   cartId: string;
   returnPath: string;
 }) {
-  const prepared = await prepareCustomOrder(
-    input,
-  );
-
-  const admin = checkoutTables(
-    createAdminClient(),
-  );
-
-  let {
-    data: session,
-    error: sessionReadError,
-  } = await admin
-    .from("custom_checkout_sessions")
-    .select(
-      "id, request_hash, status, final_order_id, final_order_number, final_payment_attempt_id, expires_at",
-    )
-    .eq(
-      "customer_user_id",
-      input.user.id,
-    )
-    .eq(
-      "idempotency_key",
-      input.request.idempotencyKey,
-    )
+  const prepared = await prepareCustomOrder(input);
+  const admin = adminClient();
+  const sessionResult = await admin.from("custom_checkout_sessions")
+    .select("id, request_hash, status, final_order_id, final_order_number, final_payment_attempt_id, expires_at")
+    .eq("customer_user_id", input.user.id)
+    .eq("idempotency_key", input.request.idempotencyKey)
     .maybeSingle();
+  if (sessionResult.error) throw new Error(sessionResult.error.message);
+  let session = sessionResult.data;
 
-  if (sessionReadError) {
-    throw new Error(sessionReadError.message);
+  if (session && session.request_hash !== prepared.requestHash) {
+    throw new Error("Checkout details changed. Return to delivery details and start payment again");
   }
-
-  if (
-    session &&
-    session.request_hash !==
-      prepared.requestHash
-  ) {
-    throw new Error(
-      "Checkout details changed. Return to Delivery and try again.",
-    );
-  }
-
   if (session?.status === "finalized") {
     return {
       checkoutSessionId: session.id,
       checkoutPaymentAttemptId: null,
       alreadyFinalized: true,
-      orderNumber:
-        session.final_order_number as string,
-      orderId:
-        session.final_order_id as string,
-      paymentAttemptId:
-        session.final_payment_attempt_id as string,
+      orderNumber: session.final_order_number,
+      orderId: session.final_order_id,
+      paymentAttemptId: session.final_payment_attempt_id,
     };
   }
 
   if (!session) {
-    const id = randomUUID();
-
-    const insert = await admin
-      .from("custom_checkout_sessions")
-      .insert({
-        id,
-        organization_id:
-          input.request.organizationId,
-        customer_user_id: input.user.id,
-        cart_id: input.cartId,
-        idempotency_key:
-          input.request.idempotencyKey,
-        request_hash:
-          prepared.requestHash,
-        status: "prepared",
-        rpc_payload:
-          prepared as unknown as Json,
-        estimated_total_paise:
-          prepared.estimatedTotalPaise,
-        reservation_amount_paise:
-          prepared.reservationAmountPaise,
-        currency: "INR",
-        return_path: input.returnPath,
-        expires_at:
-          prepared.rpcArgs.p_expires_at,
-      })
-      .select(
-        "id, request_hash, status, expires_at",
-      )
-      .single();
-
-    if (insert.error || !insert.data) {
-      if (insert.error?.code === "23505") {
-        const retry = await admin
-          .from("custom_checkout_sessions")
-          .select(
-            "id, request_hash, status, final_order_id, final_order_number, final_payment_attempt_id, expires_at",
-          )
-          .eq(
-            "customer_user_id",
-            input.user.id,
-          )
-          .eq(
-            "idempotency_key",
-            input.request.idempotencyKey,
-          )
-          .single();
-
-        if (retry.error || !retry.data) {
-          throw new Error(
-            retry.error?.message ??
-              "Checkout could not be prepared",
-          );
-        }
-
-        session = retry.data;
-      } else {
-        throw new Error(
-          insert.error?.message ??
-            "Checkout could not be prepared",
-        );
-      }
-    } else {
-      session = insert.data;
-    }
-  } else {
-    const refreshable = [
-      "prepared",
-      "failed",
-      "expired",
-    ].includes(session.status);
-
-    if (refreshable) {
-      const { error: refreshError } =
-        await admin
-          .from("custom_checkout_sessions")
-          .update({
-            status: "prepared",
-            rpc_payload:
-              prepared as unknown as Json,
-            estimated_total_paise:
-              prepared.estimatedTotalPaise,
-            reservation_amount_paise:
-              prepared.reservationAmountPaise,
-            return_path: input.returnPath,
-            expires_at:
-              prepared.rpcArgs.p_expires_at,
-          })
-          .eq("id", session.id)
-          .in("status", [
-            "prepared",
-            "failed",
-            "expired",
-          ]);
-
-      if (refreshError) {
-        throw new Error(
-          refreshError.message,
-        );
-      }
-
-      session = {
-        ...session,
-        status: "prepared",
-        expires_at:
-          prepared.rpcArgs.p_expires_at,
-      };
-    }
-  }
-
-  if (!session) {
-    throw new Error(
-      "Checkout could not be prepared",
-    );
-  }
-
-  if (
-    new Date(session.expires_at).getTime() <=
-    Date.now()
-  ) {
-    throw new Error(
-      "This checkout has expired. Return to Delivery and try again.",
-    );
-  }
-
-  const {
-    data: latest,
-    error: latestError,
-  } = await admin
-    .from("custom_checkout_payment_attempts")
-    .select(
-      "id, attempt_number, status, amount_paise, provider_payment_id, raw_verified_snapshot",
-    )
-    .eq(
-      "checkout_session_id",
-      session.id,
-    )
-    .order("attempt_number", {
-      ascending: false,
-    })
-    .limit(1)
-    .maybeSingle();
-
-  if (latestError) {
-    throw new Error(latestError.message);
-  }
-
-  if (
-    latest?.status === "paid" &&
-    latest.provider_payment_id &&
-    latest.raw_verified_snapshot
-  ) {
-    const finalized =
-      await finalizeCustomCheckoutPayment({
-        checkoutPaymentAttemptId:
-          latest.id,
-        providerPaymentId:
-          latest.provider_payment_id,
-        verifiedAmountPaise:
-          latest.amount_paise,
-        verifiedSnapshot:
-          latest.raw_verified_snapshot as Record<
-            string,
-            unknown
-          >,
-      });
-
-    return {
-      checkoutSessionId: session.id,
-      checkoutPaymentAttemptId: null,
-      alreadyFinalized: true,
-      orderNumber:
-        finalized.orderNumber,
-      orderId: finalized.orderId,
-      paymentAttemptId:
-        finalized.paymentAttemptId,
-    };
-  }
-
-  if (
-    latest &&
-    [
-      "created",
-      "initiated",
-      "pending",
-    ].includes(latest.status)
-  ) {
-    return {
-      checkoutSessionId: session.id,
-      checkoutPaymentAttemptId:
-        latest.id,
-      alreadyFinalized: false,
-    };
-  }
-
-  const nextAttempt =
-    await createCheckoutAttempt({
-      sessionId: session.id,
-      attemptNumber:
-        (latest?.attempt_number ?? 0) +
-        1,
-      prepared,
-    });
-
-  await admin
-    .from("custom_checkout_sessions")
-    .update({
+    const { data: inserted, error: insertError } = await admin.from("custom_checkout_sessions").insert({
+      customer_user_id: input.user.id,
+      cart_id: input.cartId,
+      idempotency_key: input.request.idempotencyKey,
+      request_hash: prepared.requestHash,
       status: "prepared",
-    })
-    .eq("id", session.id);
-
-  return {
-    checkoutSessionId: session.id,
-    checkoutPaymentAttemptId:
-      nextAttempt.id,
-    alreadyFinalized: false,
-  };
-}
-
-export async function finalizeCustomCheckoutPayment(
-  input: {
-    checkoutPaymentAttemptId: string;
-    providerPaymentId: string;
-    verifiedAmountPaise: number;
-    verifiedSnapshot: Record<
-      string,
-      unknown
-    >;
-  },
-) {
-  const adminClient = createAdminClient();
-
-  const admin =
-    checkoutTables(adminClient);
-
-  const {
-    data: attempt,
-    error: attemptError,
-  } = await admin
-    .from("custom_checkout_payment_attempts")
-    .select(
-      "id, checkout_session_id, amount_paise, currency, provider_merchant_txn_id, status, custom_checkout_sessions!inner(id, status, rpc_payload, final_order_id, final_order_number, final_payment_attempt_id)",
-    )
-    .eq(
-      "id",
-      input.checkoutPaymentAttemptId,
-    )
-    .single();
-
-  if (attemptError || !attempt) {
-    throw new Error(
-      attemptError?.message ??
-        "Checkout payment attempt was not found",
-    );
+      rpc_payload: prepared.payload,
+      subtotal_paise: prepared.subtotalPaise,
+      discount_paise: prepared.discountPaise,
+      tax_paise: prepared.taxPaise,
+      total_paise: prepared.totalPaise,
+      discount_code_id: prepared.discountCodeId,
+      currency: "INR",
+      return_path: input.returnPath,
+      expires_at: prepared.expiresAt,
+    }).select("id, request_hash, status, final_order_id, final_order_number, final_payment_attempt_id, expires_at").single();
+    if (insertError || !inserted) throw new Error(insertError?.message ?? "Checkout could not be prepared");
+    session = inserted;
+  } else if (["prepared", "failed", "expired"].includes(session.status)) {
+    const { error: refreshError } = await admin.from("custom_checkout_sessions").update({
+      status: "prepared",
+      rpc_payload: prepared.payload,
+      subtotal_paise: prepared.subtotalPaise,
+      discount_paise: prepared.discountPaise,
+      tax_paise: prepared.taxPaise,
+      total_paise: prepared.totalPaise,
+      discount_code_id: prepared.discountCodeId,
+      return_path: input.returnPath,
+      expires_at: prepared.expiresAt,
+    }).eq("id", session.id);
+    if (refreshError) throw new Error(refreshError.message);
   }
 
-  if (
-    attempt.amount_paise !==
-      input.verifiedAmountPaise ||
-    attempt.currency !== "INR"
-  ) {
-    throw new Error(
-      "Verified PayU amount does not match the checkout",
-    );
+  if (!session) throw new Error("Checkout session could not be prepared");
+
+  const { data: attempts, error: attemptsError } = await admin.from("custom_checkout_payment_attempts")
+    .select("id, attempt_number, status")
+    .eq("checkout_session_id", session.id)
+    .order("attempt_number", { ascending: false })
+    .limit(1);
+  if (attemptsError) throw new Error(attemptsError.message);
+  const latest = attempts?.[0];
+  if (latest && ["created", "initiated", "pending"].includes(latest.status)) {
+    return { checkoutSessionId: session.id, checkoutPaymentAttemptId: latest.id, alreadyFinalized: false };
   }
-
-  const session =
-    attempt.custom_checkout_sessions as {
-      id: string;
-      status: string;
-      rpc_payload: PreparedCustomOrder;
-      final_order_id: string | null;
-      final_order_number: string | null;
-      final_payment_attempt_id:
-        | string
-        | null;
-    };
-
-  if (
-    session.status === "finalized" &&
-    session.final_order_number &&
-    session.final_payment_attempt_id
-  ) {
-    return {
-      orderId: session.final_order_id!,
-      orderNumber:
-        session.final_order_number,
-      paymentAttemptId:
-        session.final_payment_attempt_id,
-      alreadyFinalized: true,
-    };
-  }
-
-  await admin
-    .from("custom_checkout_payment_attempts")
-    .update({
-      status: "paid",
-      provider_payment_id:
-        input.providerPaymentId,
-      paid_at: new Date().toISOString(),
-      raw_verified_snapshot:
-        input.verifiedSnapshot,
-      failure_code: null,
-      failure_message: null,
-    })
-    .eq("id", attempt.id)
-    .in("status", [
-      "created",
-      "initiated",
-      "pending",
-      "failed",
-      "paid",
-    ]);
-
-  await admin
-    .from("custom_checkout_sessions")
-    .update({
-      status: "payment_verified",
-      provider_payment_id:
-        input.providerPaymentId,
-      verified_snapshot:
-        input.verifiedSnapshot,
-    })
-    .eq("id", session.id)
-    .neq("status", "finalized");
-
-  const prepared =
-    session.rpc_payload;
-
-  const order =
-    await submitPreparedCustomOrder(
-      prepared,
-    );
-
-  const { error: txnUpdateError } =
-    await adminClient
-      .from("payment_attempts")
-      .update({
-        provider_merchant_txn_id:
-          attempt.provider_merchant_txn_id,
-      })
-      .eq(
-        "id",
-        order.payment_attempt_id,
-      );
-
-  if (txnUpdateError) {
-    throw new Error(
-      txnUpdateError.message,
-    );
-  }
-
-  const { error: finalizeError } =
-    await adminClient.rpc(
-      "finalize_verified_payment",
-      {
-        p_payment_attempt_id:
-          order.payment_attempt_id,
-        p_provider_payment_id:
-          input.providerPaymentId,
-        p_verified_amount_paise:
-          input.verifiedAmountPaise,
-        p_currency: "INR",
-        p_verified_snapshot:
-          input.verifiedSnapshot as Json,
-        p_invoice_kind:
-          "reservation_invoice",
-      },
-    );
-
-  if (finalizeError) {
-    throw new Error(
-      finalizeError.message,
-    );
-  }
-
-  const finalizedAt =
-    new Date().toISOString();
-
-  const {
-    error: sessionUpdateError,
-  } = await admin
-    .from("custom_checkout_sessions")
-    .update({
-      status: "finalized",
-      final_order_id: order.order_id,
-      final_order_number:
-        order.order_number,
-      final_payment_attempt_id:
-        order.payment_attempt_id,
-      finalized_at: finalizedAt,
-    })
-    .eq("id", session.id);
-
-  if (sessionUpdateError) {
-    throw new Error(
-      sessionUpdateError.message,
-    );
-  }
-
-  await admin
-    .from("custom_checkout_payment_attempts")
-    .update({
-      status: "completed",
-      completed_at: finalizedAt,
-    })
-    .eq("id", attempt.id);
-
-  return {
-    orderId: order.order_id,
-    orderNumber: order.order_number,
-    paymentAttemptId:
-      order.payment_attempt_id,
-    alreadyFinalized: false,
-  };
-}
-
-export async function retryOrderPayment(input: {
-  orderId: string;
-  userId: string;
-  idempotencyKey: string;
-}) {
-  const admin = createAdminClient();
-
-  const requestHash = hashOrderRequest({
-    orderId: input.orderId,
-    userId: input.userId,
+  const nextAttempt = await createCheckoutAttempt({
+    sessionId: session.id,
+    attemptNumber: (latest?.attempt_number ?? 0) + 1,
+    prepared,
   });
+  return { checkoutSessionId: session.id, checkoutPaymentAttemptId: nextAttempt.id, alreadyFinalized: false };
+}
 
-  const { data, error } = await admin.rpc(
-    "retry_order_payment",
-    {
-      p_order_id: input.orderId,
-      p_customer_user_id:
-        input.userId,
-      p_idempotency_key:
-        input.idempotencyKey,
-      p_request_hash: requestHash,
-    },
-  );
-
+export async function finalizeCustomCheckoutPayment(input: {
+  checkoutPaymentAttemptId: string;
+  providerPaymentId: string;
+  verifiedAmountPaise: number;
+  verifiedSnapshot: Json;
+}) {
+  const admin = adminClient();
+  const { data, error } = await admin.rpc("finalize_custom_checkout_full_payment", {
+    p_checkout_payment_attempt_id: input.checkoutPaymentAttemptId,
+    p_provider_payment_id: input.providerPaymentId,
+    p_verified_amount_paise: input.verifiedAmountPaise,
+    p_verified_snapshot: input.verifiedSnapshot,
+    p_seller_snapshot: sellerSnapshot(),
+  });
   const result = data?.[0];
-
-  if (error || !result) {
-    throw new Error(
-      error?.message ??
-        "Payment retry could not be prepared",
-    );
-  }
-
-  return result;
+  if (error || !result) throw new Error(error?.message ?? "Verified checkout could not be finalized");
+  return {
+    orderId: result.order_id,
+    orderNumber: result.order_number,
+    paymentAttemptId: result.payment_attempt_id,
+    alreadyFinalized: Boolean(result.already_finalized),
+    duplicateSuccess: Boolean(result.duplicate_success),
+  };
 }

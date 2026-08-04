@@ -357,6 +357,7 @@ function draftWithFileIds(
 
 export async function saveBuildDraftToCloud(input: {
   configId: string;
+  storageKey?: string;
   productName: string;
   draft: BuildDraft;
   existingLink?: CloudDesignLink | null;
@@ -365,12 +366,13 @@ export async function saveBuildDraftToCloud(input: {
   operationKey?: string;
   title?: string;
 }): Promise<CloudSaveResult> {
+  const storageKey = input.storageKey ?? input.configId;
   let link = input.createCopy
     ? null
-    : input.existingLink ?? readCloudDesignLink(input.configId);
+    : input.existingLink ?? readCloudDesignLink(storageKey);
 
   if (!link) {
-    const operationKey = input.operationKey ?? input.configId;
+    const operationKey = input.operationKey ?? storageKey;
     const importId = replaySafeImportId(operationKey);
     const createResponse = await fetch("/api/designs", {
       method: "POST",
@@ -404,14 +406,14 @@ export async function saveBuildDraftToCloud(input: {
       uploadFileIds: {},
       needsImportVersion: uploadReferences(input.draft).length > 0,
     };
-    writeCloudDesignLink(input.configId, link);
+    writeCloudDesignLink(storageKey, link);
     clearPendingImportId(operationKey);
   }
 
   try {
     link = await ensureCloudUploads(input.configId, input.draft, link);
   } catch (error) {
-    writeCloudDesignLink(input.configId, link);
+    writeCloudDesignLink(storageKey, link);
     return {
       ok: false,
       kind: "error",
@@ -486,7 +488,7 @@ export async function saveBuildDraftToCloud(input: {
     }
   }
 
-  writeCloudDesignLink(input.configId, link);
+  writeCloudDesignLink(storageKey, link);
   return { ok: true, link, uploadedDraft };
 }
 

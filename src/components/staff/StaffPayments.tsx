@@ -1,0 +1,10 @@
+import TechpackPageHeader from "@/components/portal/TechpackPageHeader";
+import { requireStaffPermission } from "@/lib/auth/guards";
+import { formatMoneyPaise, formatOrderTimestamp } from "@/lib/orders/format";
+type StaffPaymentRow = { payment_attempt_id: string; order_number: string; purpose: string; amount_paise: number; status: string; provider_payment_id: string | null; provider_merchant_txn_id: string | null; paid_at: string | null; failure_message: string | null };
+export default async function StaffPayments() {
+  const context = await requireStaffPermission("view_all_orders");
+  const result = await context.supabase.rpc("staff_payment_summaries");
+  const rows = (result.data ?? []) as unknown as StaffPaymentRow[];
+  return <div className="space-y-5"><TechpackPageHeader eyebrow="Foundry" reference="Sanitised register" title="Payments" description={context.role === "founder" ? "Founder access includes provider references; raw payloads remain outside this operational register." : "Operations sees only safe payment status, amount, timing, and failure summaries."} />{result.error ? <div className="techpack-notice p-5" data-tone="error">{result.error.message}</div> : <section className="techpack-surface overflow-hidden rounded border"><div className="divide-y divide-black/10">{rows.length ? rows.map((row) => <div key={row.payment_attempt_id} className="grid gap-2 px-5 py-4 sm:grid-cols-[1fr_0.8fr_0.8fr_1fr]"><div><p className="font-semibold">{row.order_number}</p><p className="text-xs capitalize text-black/45">{String(row.purpose).replaceAll("_", " ")}</p></div><div><p className="text-sm font-semibold">{formatMoneyPaise(row.amount_paise)}</p><p className="text-xs uppercase text-black/40">{row.status}</p></div><p className="text-xs text-black/50">{row.provider_payment_id || row.provider_merchant_txn_id || "Awaiting provider reference"}</p><p className="text-xs text-black/45">{row.paid_at ? formatOrderTimestamp(row.paid_at) : row.failure_message || "Not completed"}</p></div>) : <div className="p-12 text-center text-sm text-black/45">No payment attempts yet.</div>}</div></section>}</div>;
+}

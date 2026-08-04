@@ -1,18 +1,7 @@
 export const TERMS_VERSION = "2026-07-29";
 export const PRIVACY_VERSION = "2026-07-29";
 
-export const STAFF_ROLES = [
-  "super_admin",
-  "operations_admin",
-  "sales",
-  "production",
-  "artwork",
-  "finance",
-  "qc",
-  "dispatch",
-  "support",
-  "read_only",
-] as const;
+export const STAFF_ROLES = ["founder", "operations"] as const;
 
 export type StaffRole = (typeof STAFF_ROLES)[number];
 
