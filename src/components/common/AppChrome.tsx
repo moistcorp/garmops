@@ -11,7 +11,10 @@ export default function AppChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isWithin = (route: string) =>
     pathname === route || pathname.startsWith(`${route}/`);
+  const isFoundryLogin =
+    process.env.NEXT_PUBLIC_APP_SURFACE === "staff" && pathname === "/login";
   const hasDedicatedChrome =
+    isFoundryLogin ||
     isWithin("/configurator") ||
     isWithin("/account") ||
     isWithin("/staff") ||

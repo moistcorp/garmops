@@ -1,5 +1,5 @@
 import AuthActionForm from "@/components/auth/AuthActionForm";
-import AuthShell from "@/components/auth/AuthShell";
+import StaffLoginShell from "@/components/auth/StaffLoginShell";
 import CustomerAuthFlow from "@/components/auth/CustomerAuthFlow";
 import CustomerAuthShell from "@/components/auth/CustomerAuthShell";
 import { safeInternalPath } from "@/lib/auth/redirects";
@@ -13,13 +13,13 @@ export default async function LoginPage({
   const { next } = await searchParams;
   if (isStaffSurface()) {
     return (
-      <AuthShell
-        eyebrow="Garmops Foundry"
-        title="Staff sign in"
-        description="Use your approved staff email and password. Customer accounts cannot enter Foundry."
-      >
-        <AuthActionForm variant="login" portal="staff" next={safeInternalPath(next, "/orders")} />
-      </AuthShell>
+      <StaffLoginShell>
+        <AuthActionForm
+          variant="login"
+          portal="staff"
+          next={safeInternalPath(next, "/orders")}
+        />
+      </StaffLoginShell>
     );
   }
 
