@@ -556,8 +556,8 @@ export function upsertConfiguredCartItem(
     ? draft.items.findIndex((item) => item.id === options.itemId)
     : -1;
   const items = existingIndex >= 0
-    ? draft.items.map((item, index) => index === existingIndex ? configuredItem : item).slice(0, 1)
-    : [configuredItem];
+    ? draft.items.map((item, index) => index === existingIndex ? configuredItem : item)
+    : [...draft.items, configuredItem];
 
   const saved = writeDraft(cartId, { ...draft, items });
   return saved ? cartId : null;
