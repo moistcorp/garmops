@@ -221,8 +221,8 @@ export function ConfirmationStep({
         return;
       }
       if (result.kind === "unauthorized") {
-        router.push(
-          `/login?next=${encodeURIComponent(`/configurator/cart/${cartId}/confirmation`)}`,
+        window.location.assign(
+          `/configurator/cart/${encodeURIComponent(cartId)}/confirmation`,
         );
         return;
       }

@@ -59,10 +59,22 @@ export async function verifyTurnstile(
       environment.NEXT_PUBLIC_APP_URL,
     ).hostname.toLowerCase();
     const result = (await response.json()) as TurnstileResponse;
+    const receivedHostname = result.hostname?.trim().toLowerCase();
+    const allowedHostnames = new Set([expectedHostname]);
+
+    // Cloudflare reports the browser hostname, not NEXT_PUBLIC_APP_URL.
+    // Permit local development hosts without weakening production checks.
+    if (environment.APP_ENV !== "production") {
+      allowedHostnames.add("localhost");
+      allowedHostnames.add("127.0.0.1");
+      allowedHostnames.add("0.0.0.0");
+      allowedHostnames.add("dummy-key-pass");
+    }
+
     const accepted =
       result.success === true &&
       result.action === expectedAction &&
-      result.hostname?.toLowerCase() === expectedHostname;
+      Boolean(receivedHostname && allowedHostnames.has(receivedHostname));
 
     if (!accepted) {
       console.warn("[turnstile] verification rejected", {
@@ -70,7 +82,7 @@ export async function verifyTurnstile(
         action: result.action,
         expectedAction,
         hostname: result.hostname,
-        expectedHostname,
+        allowedHostnames: [...allowedHostnames],
         errorCodes: result["error-codes"],
       });
     }

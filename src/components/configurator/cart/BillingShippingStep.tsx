@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import { MapPin, ReceiptText, UserRound } from "lucide-react";
+import { CheckCircle2, MapPin, ReceiptText, ShieldCheck, UserRound } from "lucide-react";
 import { DeliveryDatePicker } from "@/components/configurator/cart/DeliveryDatePicker";
 import {
   AddressForm,
@@ -44,11 +44,12 @@ import {
 import { CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS } from "@/lib/configurator/colourRules";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 import { ActionFeedback } from "@/components/configurator/ActionFeedback";
+import CustomerAuthFlow from "@/components/auth/CustomerAuthFlow";
 import { formatSpecCode } from "@/lib/orders/format";
 
 export interface BillingShippingStepProps {
   cartId: string;
-  accountDefaults?: CheckoutAccountDefaults;
+  accountContext?: CheckoutAccountContext;
 }
 
 export type CheckoutAccountDefaults = Readonly<{
@@ -58,6 +59,8 @@ export type CheckoutAccountDefaults = Readonly<{
   email: string;
   phone: string;
   billingEmail: string;
+  billingEntity: string;
+  billingSameAsShipping: boolean;
   billingAddress: Readonly<{
     country: string;
     addressLine1: string;
@@ -74,6 +77,12 @@ export type CheckoutAccountDefaults = Readonly<{
     city: string;
     state?: string;
   }>;
+}>;
+
+export type CheckoutAccountContext = Readonly<{
+  authenticatedEmail: string;
+  hasSavedDetails: boolean;
+  defaults: CheckoutAccountDefaults;
 }>;
 
 const INPUT_CLASS =
@@ -127,101 +136,149 @@ function withInferredCheckoutDetails(
   draft: CartDraft,
   accountDefaults?: CheckoutAccountDefaults,
 ): CartDraft {
-  const contactName =
-    `${draft.projectContact.firstName} ${draft.projectContact.lastName}`.trim();
-  const shippingInformation = {
-    ...draft.shippingInformation,
-    recipientName: contactName,
-  };
-  const billingInformation = {
-    ...draft.billingInformation,
-    entity: draft.billingInformation.entity || contactName,
-    accountsPayableEmail:
-      draft.billingInformation.accountsPayableEmail ||
-      accountDefaults?.billingEmail ||
-      draft.projectContact.email,
-  };
-
-  return { ...draft, shippingInformation, billingInformation };
-}
-
-function withAccountDefaults(
-  draft: CartDraft,
-  defaults?: CheckoutAccountDefaults,
-): CartDraft {
-  if (!defaults) return draft;
-  const value = (current: string, fallback: string) =>
-    current.trim() ? current : fallback;
-  const shippingAddress = draft.shippingInformation.address;
-  const billingAddress = draft.billingInformation.address;
-
+  const contactName = `${draft.projectContact.firstName} ${draft.projectContact.lastName}`.trim();
   return {
     ...draft,
-    projectContact: {
-      ...draft.projectContact,
-      firstName: value(draft.projectContact.firstName, defaults.firstName),
-      lastName: value(draft.projectContact.lastName, defaults.lastName),
-      email: value(draft.projectContact.email, defaults.email),
-      phone: value(draft.projectContact.phone, defaults.phone),
-    },
     shippingInformation: {
       ...draft.shippingInformation,
-      address: {
-        country: value(shippingAddress.country, defaults.shippingAddress.country),
-        addressLine1: value(
-          shippingAddress.addressLine1,
-          defaults.shippingAddress.addressLine1,
-        ),
-        addressLine2: value(
-          shippingAddress.addressLine2 ?? "",
-          defaults.shippingAddress.addressLine2 ?? "",
-        ),
-        zip: value(shippingAddress.zip, defaults.shippingAddress.zip),
-        city: value(shippingAddress.city, defaults.shippingAddress.city),
-        state: value(
-          shippingAddress.state ?? "",
-          defaults.shippingAddress.state ?? "",
-        ),
-      },
+      recipientName: contactName,
     },
     billingInformation: {
       ...draft.billingInformation,
-      accountsPayableEmail: value(
-        draft.billingInformation.accountsPayableEmail,
-        defaults.billingEmail || defaults.email,
-      ),
-      gstin: value(draft.billingInformation.gstin, defaults.gstin),
-      address: {
-        country: value(billingAddress.country, defaults.billingAddress.country),
-        addressLine1: value(
-          billingAddress.addressLine1,
-          defaults.billingAddress.addressLine1,
-        ),
-        addressLine2: value(
-          billingAddress.addressLine2 ?? "",
-          defaults.billingAddress.addressLine2 ?? "",
-        ),
-        zip: value(billingAddress.zip, defaults.billingAddress.zip),
-        city: value(billingAddress.city, defaults.billingAddress.city),
-        state: value(
-          billingAddress.state ?? "",
-          defaults.billingAddress.state ?? "",
-        ),
-      },
+      entity: draft.billingInformation.entity || accountDefaults?.billingEntity || contactName,
+      accountsPayableEmail:
+        draft.billingInformation.accountsPayableEmail ||
+        accountDefaults?.billingEmail ||
+        draft.projectContact.email,
     },
   };
+}
+
+type DefaultsMode = "fill-empty" | "replace";
+
+function withAccountDefaults(
+  draft: CartDraft,
+  defaults: CheckoutAccountDefaults,
+  mode: DefaultsMode,
+): CartDraft {
+  const value = (current: string | undefined, fallback: string) =>
+    mode === "replace" ? fallback : current?.trim() ? current : fallback;
+  const shippingAddress = draft.shippingInformation.address;
+  const billingAddress = draft.billingInformation.address;
+
+  return withInferredCheckoutDetails(
+    {
+      ...draft,
+      projectContact: {
+        ...draft.projectContact,
+        firstName: value(draft.projectContact.firstName, defaults.firstName),
+        lastName: value(draft.projectContact.lastName, defaults.lastName),
+        email: defaults.email,
+        phone: formatIndianPhone(value(draft.projectContact.phone, defaults.phone)),
+      },
+      shippingInformation: {
+        ...draft.shippingInformation,
+        address: {
+          country: "India",
+          addressLine1: value(shippingAddress.addressLine1, defaults.shippingAddress.addressLine1),
+          addressLine2: value(shippingAddress.addressLine2, defaults.shippingAddress.addressLine2 ?? ""),
+          zip: value(shippingAddress.zip, defaults.shippingAddress.zip),
+          city: value(shippingAddress.city, defaults.shippingAddress.city),
+          state: value(shippingAddress.state, defaults.shippingAddress.state ?? ""),
+        },
+      },
+      billingInformation: {
+        ...draft.billingInformation,
+        sameAsCompanyAddress:
+          mode === "replace"
+            ? defaults.billingSameAsShipping
+            : draft.billingInformation.sameAsCompanyAddress,
+        entity: value(draft.billingInformation.entity, defaults.billingEntity),
+        accountsPayableEmail: defaults.email,
+        gstin: value(draft.billingInformation.gstin, defaults.gstin),
+        address: {
+          country: "India",
+          addressLine1: value(billingAddress.addressLine1, defaults.billingAddress.addressLine1),
+          addressLine2: value(billingAddress.addressLine2, defaults.billingAddress.addressLine2 ?? ""),
+          zip: value(billingAddress.zip, defaults.billingAddress.zip),
+          city: value(billingAddress.city, defaults.billingAddress.city),
+          state: value(billingAddress.state, defaults.billingAddress.state ?? ""),
+        },
+      },
+    },
+    defaults,
+  );
+}
+
+function hasEnteredCheckoutDetails(draft: CartDraft): boolean {
+  const contact = draft.projectContact;
+  const shipping = draft.shippingInformation.address;
+  const billing = draft.billingInformation;
+  return Boolean(
+    contact.firstName.trim() ||
+      contact.lastName.trim() ||
+      contact.phone.trim() ||
+      shipping.addressLine1.trim() ||
+      shipping.zip.trim() ||
+      shipping.city.trim() ||
+      shipping.state?.trim() ||
+      billing.gstin.trim() ||
+      (!billing.sameAsCompanyAddress && billing.address.addressLine1.trim()),
+  );
+}
+
+function checkoutDetailsDiffer(draft: CartDraft, defaults: CheckoutAccountDefaults): boolean {
+  const normalized = (value: string | undefined) =>
+    (value ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+  const phone = (value: string) => digitsOnly(value).slice(-10);
+  const shipping = draft.shippingInformation.address;
+  const billing = draft.billingInformation.address;
+  return [
+    normalized(draft.projectContact.firstName) !== normalized(defaults.firstName),
+    normalized(draft.projectContact.lastName) !== normalized(defaults.lastName),
+    phone(draft.projectContact.phone) !== phone(defaults.phone),
+    normalized(shipping.addressLine1) !== normalized(defaults.shippingAddress.addressLine1),
+    normalized(shipping.addressLine2) !== normalized(defaults.shippingAddress.addressLine2),
+    normalized(shipping.zip) !== normalized(defaults.shippingAddress.zip),
+    normalized(shipping.city) !== normalized(defaults.shippingAddress.city),
+    normalized(shipping.state) !== normalized(defaults.shippingAddress.state),
+    normalized(draft.billingInformation.gstin) !== normalized(defaults.gstin),
+    normalized(draft.billingInformation.entity) !== normalized(defaults.billingEntity),
+    draft.billingInformation.sameAsCompanyAddress !== defaults.billingSameAsShipping,
+    !draft.billingInformation.sameAsCompanyAddress &&
+      normalized(billing.addressLine1) !== normalized(defaults.billingAddress.addressLine1),
+  ].some(Boolean);
+}
+
+function useAuthenticatedEmail(draft: CartDraft, authenticatedEmail: string): CartDraft {
+  const previousEmail = draft.projectContact.email.trim().toLowerCase();
+  const billingEmail = draft.billingInformation.accountsPayableEmail.trim().toLowerCase();
+  return withInferredCheckoutDetails({
+    ...draft,
+    projectContact: { ...draft.projectContact, email: authenticatedEmail },
+    billingInformation: {
+      ...draft.billingInformation,
+      accountsPayableEmail:
+        !billingEmail || billingEmail === previousEmail
+          ? authenticatedEmail
+          : draft.billingInformation.accountsPayableEmail,
+    },
+  });
 }
 
 export function BillingShippingStep({
   cartId,
-  accountDefaults,
+  accountContext,
 }: BillingShippingStepProps) {
   const router = useRouter();
+  const accountDefaults = accountContext?.defaults;
+  const authenticatedEmail = accountContext?.authenticatedEmail;
   const [draft, setDraft] = useState<CartDraft>(() => createDraft(cartId));
   const [isDraftReady, setIsDraftReady] = useState(false);
-  const [validationFeedback, setValidationFeedback] = useState<string | null>(
-    null
-  );
+  const [needsDetailsChoice, setNeedsDetailsChoice] = useState(false);
+  const [saveDetailsToAccount, setSaveDetailsToAccount] = useState(true);
+  const [isSavingAccount, setIsSavingAccount] = useState(false);
+  const [validationFeedback, setValidationFeedback] = useState<string | null>(null);
   const [storageSaveError, setStorageSaveError] = useState<string | null>(null);
   const formStartedRef = useRef(false);
 
@@ -229,23 +286,36 @@ export function BillingShippingStep({
     const loadDraft = window.setTimeout(() => {
       const savedDraft = readDraft(cartId);
       if (savedDraft.items.length === 0) {
-        router.replace(
-          `/configurator/cart/${encodeURIComponent(cartId)}/review`
-        );
+        router.replace(`/configurator/cart/${encodeURIComponent(cartId)}/review`);
         return;
       }
 
-      const preparedDraft = withInferredCheckoutDetails(
-        withAccountDefaults(savedDraft, accountDefaults),
-        accountDefaults,
-      );
+      let preparedDraft = withInferredCheckoutDetails(savedDraft);
+      if (accountContext) {
+        const hasEnteredDetails = hasEnteredCheckoutDetails(savedDraft);
+        const shouldChoose =
+          accountContext.hasSavedDetails &&
+          hasEnteredDetails &&
+          checkoutDetailsDiffer(savedDraft, accountContext.defaults);
+        const defaultsMode =
+          accountContext.hasSavedDetails && !hasEnteredDetails
+            ? "replace"
+            : "fill-empty";
+        preparedDraft = shouldChoose
+          ? useAuthenticatedEmail(preparedDraft, accountContext.authenticatedEmail)
+          : useAuthenticatedEmail(
+              withAccountDefaults(preparedDraft, accountContext.defaults, defaultsMode),
+              accountContext.authenticatedEmail,
+            );
+        setNeedsDetailsChoice(shouldChoose);
+      }
+
       setDraft(preparedDraft);
       writeDraft(cartId, preparedDraft);
       setIsDraftReady(true);
     }, 0);
-
     return () => window.clearTimeout(loadDraft);
-  }, [accountDefaults, cartId, router]);
+  }, [accountContext, cartId, router]);
 
   const selectedDeliveryDate = useMemo(
     () =>
@@ -325,6 +395,27 @@ export function BillingShippingStep({
     [updateDraft]
   );
 
+  const useSavedAccountDetails = useCallback(() => {
+    if (!accountContext) return;
+    const next = useAuthenticatedEmail(
+      withAccountDefaults(draft, accountContext.defaults, "replace"),
+      accountContext.authenticatedEmail,
+    );
+    setDraft(next);
+    persistCartDraft(next);
+    setNeedsDetailsChoice(false);
+    setValidationFeedback(null);
+  }, [accountContext, draft, persistCartDraft]);
+
+  const keepEnteredDetails = useCallback(() => {
+    if (!authenticatedEmail) return;
+    const next = useAuthenticatedEmail(draft, authenticatedEmail);
+    setDraft(next);
+    persistCartDraft(next);
+    setNeedsDetailsChoice(false);
+    setValidationFeedback(null);
+  }, [authenticatedEmail, draft, persistCartDraft]);
+
   const deliveryLabel = useMemo(
     () => formatDeliveryLabel(draft.deliveryType, selectedDeliveryDate),
     [selectedDeliveryDate, draft.deliveryType]
@@ -350,6 +441,9 @@ export function BillingShippingStep({
   }, [deliveryOk, procurementMissing]);
   const isValid =
     isDraftReady &&
+    Boolean(accountContext) &&
+    !needsDetailsChoice &&
+    !isSavingAccount &&
     draft.items.length > 0 &&
     procurementMissing.length === 0 &&
     deliveryOk;
@@ -385,11 +479,9 @@ export function BillingShippingStep({
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!isValid) {
-      setValidationFeedback(
-        missingMessage ?? "Complete the required fields to continue."
-      );
+      setValidationFeedback(missingMessage ?? "Complete the required fields to continue.");
       trackConfiguratorEvent("checkout_validation_error", {
         cart_id: cartId,
         missing_count: missingLabels.length,
@@ -399,25 +491,110 @@ export function BillingShippingStep({
       return;
     }
 
-    router.push(
-      `/configurator/cart/${encodeURIComponent(cartId)}/confirmation`
-    );
+    if (saveDetailsToAccount || !accountContext?.hasSavedDetails) {
+      setIsSavingAccount(true);
+      setValidationFeedback(null);
+      try {
+        const response = await fetch("/api/account/checkout-defaults", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contact: draft.projectContact,
+            shipping: { address: draft.shippingInformation.address },
+            billing: {
+              sameAsCompanyAddress: draft.billingInformation.sameAsCompanyAddress,
+              entity: draft.billingInformation.entity,
+              address: draft.billingInformation.sameAsCompanyAddress
+                ? draft.shippingInformation.address
+                : draft.billingInformation.address,
+              gstin: draft.billingInformation.gstin,
+            },
+          }),
+        });
+        const result = (await response.json().catch(() => null)) as
+          | { ok?: boolean; message?: string }
+          | null;
+        if (!response.ok || !result?.ok) {
+          throw new Error(result?.message ?? "Your account details could not be saved.");
+        }
+      } catch (error) {
+        setValidationFeedback(
+          error instanceof Error ? error.message : "Your account details could not be saved.",
+        );
+        setIsSavingAccount(false);
+        return;
+      }
+    }
+
+    router.push(`/configurator/cart/${encodeURIComponent(cartId)}/confirmation`);
   };
+
+  const topBar = (
+    <ConfiguratorTopBar
+      currentStep="delivery"
+      backHref={`/configurator/cart/${encodeURIComponent(cartId)}/review`}
+      showCart
+      productName={getCartProductLabel(draft.items)}
+      specReference={`CART-${cartId}`}
+      links={getCartJourneyLinks(cartId, draft.items[0]?.productId, draft.items[0]?.id)}
+    />
+  );
+
+  if (!isDraftReady) {
+    return <>{topBar}<div className="flex min-h-[360px] items-center justify-center text-sm text-[var(--text-primary)]/50">Loading delivery details…</div></>;
+  }
+
+  if (!accountContext) {
+    const deliveryPath = `/configurator/cart/${encodeURIComponent(cartId)}/shipping`;
+    const initialEmail = draft.projectContact.email.trim().toLowerCase();
+    const lockEmail = isEmailValid(initialEmail);
+    return (
+      <>
+        {topBar}
+        <div className="mx-auto flex max-w-xl items-start justify-center py-8 sm:py-12">
+          <section className="techpack-surface w-full rounded-[4px] border p-6 sm:p-8">
+            <div className="mb-6 text-center">
+              <span className="mx-auto flex size-11 items-center justify-center rounded-full bg-[var(--color-accent)]/10 text-[var(--color-accent)]"><ShieldCheck size={22} aria-hidden="true" /></span>
+              <p className="mt-4 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">06 / Delivery access</p>
+              <h1 className="mt-2 text-2xl font-semibold text-[var(--text-primary)]">Sign in/Register</h1>
+            </div>
+            <CustomerAuthFlow
+              next={deliveryPath}
+              initialEmail={initialEmail}
+              emailLocked={lockEmail}
+              allowGoogle={!lockEmail}
+              onAuthenticated={() => window.location.assign(deliveryPath)}
+            />
+          </section>
+        </div>
+      </>
+    );
+  }
+
+  if (needsDetailsChoice) {
+    return (
+      <>
+        {topBar}
+        <div className="mx-auto flex max-w-2xl items-start justify-center py-8 sm:py-12">
+          <section className="techpack-surface w-full rounded-[4px] border p-6 sm:p-8">
+            <span className="flex size-11 items-center justify-center rounded-full bg-[var(--color-accent)]/10 text-[var(--color-accent)]"><CheckCircle2 size={22} aria-hidden="true" /></span>
+            <p className="mt-4 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">Saved account details found</p>
+            <h1 className="mt-2 text-2xl font-semibold text-[var(--text-primary)]">Which delivery details should we use?</h1>
+            <p className="mt-2 text-sm leading-relaxed text-[var(--text-primary)]/55">You entered checkout details before signing in, and this account already has saved defaults. Nothing will be overwritten until you choose.</p>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <button type="button" onClick={useSavedAccountDetails} className="rounded-[4px] bg-[var(--color-accent)] px-5 py-3 text-sm font-semibold text-white">Use saved account details</button>
+              <button type="button" onClick={keepEnteredDetails} className="rounded-[4px] border border-[var(--color-rule)] bg-white px-5 py-3 text-sm font-semibold text-[var(--text-primary)]">Keep details I entered</button>
+            </div>
+            <p className="mt-4 text-xs text-[var(--text-primary)]/45">Signed in as {accountContext.authenticatedEmail}</p>
+          </section>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
-      <ConfiguratorTopBar
-        currentStep="delivery"
-        backHref={`/configurator/cart/${encodeURIComponent(cartId)}/review`}
-        showCart
-        productName={getCartProductLabel(draft.items)}
-        specReference={`CART-${cartId}`}
-        links={getCartJourneyLinks(
-          cartId,
-          draft.items[0]?.productId,
-          draft.items[0]?.id
-        )}
-      />
+      {topBar}
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-6">
@@ -449,6 +626,11 @@ export function BillingShippingStep({
               Confirm your contact, delivery and billing details. Saved account
               information is filled automatically. Checkout details are stored as an immutable order snapshot after payment.
             </p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-[4px] border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/5 px-4 py-3 text-sm">
+            <div className="flex items-center gap-2"><CheckCircle2 size={16} className="text-[var(--color-accent)]" aria-hidden="true" /><span className="text-[var(--text-primary)]/65">Signed in as <strong className="text-[var(--text-primary)]">{accountContext.authenticatedEmail}</strong></span></div>
+            <span className="text-xs text-[var(--text-primary)]/45">Saved account details are available for this checkout.</span>
           </div>
 
           <section
@@ -531,15 +713,12 @@ export function BillingShippingStep({
                   id="contact-email"
                   type="email"
                   autoComplete="email"
-                  className={INPUT_CLASS}
+                  className={`${INPUT_CLASS} bg-black/[0.025]`}
                   value={draft.projectContact.email}
-                  onChange={(event) =>
-                    updateContact({
-                      ...draft.projectContact,
-                      email: event.target.value,
-                    })
-                  }
+                  readOnly
+                  aria-describedby="verified-email-note"
                 />
+                <p id="verified-email-note" className="mt-1 text-xs text-[var(--text-primary)]/45">Verified account email. Order access and payment will be linked to this address.</p>
                 {draft.projectContact.email &&
                   !isEmailValid(draft.projectContact.email) && (
                     <p className="mt-1 text-xs text-red-600">
@@ -670,6 +849,22 @@ export function BillingShippingStep({
               )}
             </div>
           </section>
+
+          <section className="techpack-panel rounded-[4px] border p-5">
+            <label className="flex items-start gap-3 text-sm text-[var(--text-primary)]/75">
+              <input
+                type="checkbox"
+                checked={saveDetailsToAccount || !accountContext.hasSavedDetails}
+                disabled={!accountContext.hasSavedDetails}
+                onChange={(event) => setSaveDetailsToAccount(event.target.checked)}
+                className="mt-0.5 h-4 w-4 accent-[var(--color-accent)]"
+              />
+              <span>
+                <strong className="block font-medium text-[var(--text-primary)]">{accountContext.hasSavedDetails ? "Save these details to my account" : "Save these details to my new account"}</strong>
+                <span className="mt-0.5 block text-xs leading-relaxed text-[var(--text-primary)]/50">{accountContext.hasSavedDetails ? "Keep this checked to update your default contact, shipping and optional GST billing details. Uncheck it to use these details for this order only." : "Your first completed delivery details become the defaults for future orders. The paid order will still keep its own immutable snapshot."}</span>
+              </span>
+            </label>
+          </section>
         </div>
 
         <div className="lg:sticky lg:top-36 lg:self-start">
@@ -681,7 +876,7 @@ export function BillingShippingStep({
             delivery={deliveryLabel}
             total={totals.total}
             onNext={handleNext}
-            nextLabel="Confirm spec · review & payment"
+            nextLabel={isSavingAccount ? "Saving account details…" : "Continue to review"}
             nextDisabled={!isValid}
             disabledMessage={missingMessage}
             onDisabledNext={handleNext}

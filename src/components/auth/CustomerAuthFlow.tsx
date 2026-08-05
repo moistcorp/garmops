@@ -83,13 +83,19 @@ function GoogleMark() {
 export default function CustomerAuthFlow({
   next = "/account/orders",
   onAuthenticated,
+  initialEmail = "",
+  emailLocked = false,
+  allowGoogle = true,
 }: {
   next?: string;
   onAuthenticated?: (destination: string) => void;
+  initialEmail?: string;
+  emailLocked?: boolean;
+  allowGoogle?: boolean;
 }) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("email");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => initialEmail.trim().toLowerCase());
   const [resendAvailableAt, setResendAvailableAt] = useState(0);
   const [now, setNow] = useState(0);
   const [googlePending, setGooglePending] = useState(false);
@@ -212,13 +218,15 @@ export default function CustomerAuthFlow({
             {cooldown > 0 ? `Resend OTP in ${cooldown}s` : "Resend OTP"}
           </button>
         </form>
-        <button
-          type="button"
-          onClick={() => setStep("email")}
-          className="min-h-11 text-sm text-[var(--color-accent)] hover:underline"
-        >
-          Change email or use Google
-        </button>
+        {!emailLocked ? (
+          <button
+            type="button"
+            onClick={() => setStep("email")}
+            className="min-h-11 text-sm text-[var(--color-accent)] hover:underline"
+          >
+            {allowGoogle ? "Change email or use Google" : "Change email"}
+          </button>
+        ) : null}
       </div>
     );
   }
@@ -226,23 +234,27 @@ export default function CustomerAuthFlow({
   return (
     <div>
       <AuthProgress step="email" />
-      <button
-        type="button"
-        onClick={signInWithGoogle}
-        disabled={googlePending || requesting}
-        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-[4px] border border-[var(--color-rule)] bg-white px-6 py-3 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--color-accent)] disabled:opacity-60"
-      >
-        <GoogleMark />
-        {googlePending ? "Opening Google…" : "Continue with Google"}
-      </button>
+      {allowGoogle ? (
+        <>
+          <button
+            type="button"
+            onClick={signInWithGoogle}
+            disabled={googlePending || requesting}
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-[4px] border border-[var(--color-rule)] bg-white px-6 py-3 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--color-accent)] disabled:opacity-60"
+          >
+            <GoogleMark />
+            {googlePending ? "Opening Google…" : "Continue with Google"}
+          </button>
 
-      <div className="my-5 flex items-center gap-3" aria-hidden="true">
-        <span className="h-px flex-1 bg-[var(--color-rule)]" />
-        <span className="font-mono text-[9px] uppercase tracking-[0.1em] text-black/35">
-          or use email OTP
-        </span>
-        <span className="h-px flex-1 bg-[var(--color-rule)]" />
-      </div>
+          <div className="my-5 flex items-center gap-3" aria-hidden="true">
+            <span className="h-px flex-1 bg-[var(--color-rule)]" />
+            <span className="font-mono text-[9px] uppercase tracking-[0.1em] text-black/35">
+              or use email OTP
+            </span>
+            <span className="h-px flex-1 bg-[var(--color-rule)]" />
+          </div>
+        </>
+      ) : null}
 
       <form
         action={requestAction}
@@ -258,9 +270,10 @@ export default function CustomerAuthFlow({
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
+            readOnly={emailLocked}
             required
             autoComplete="email"
-            autoFocus
+            autoFocus={!emailLocked}
             placeholder="name@company.com"
           />
         </label>

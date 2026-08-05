@@ -92,9 +92,6 @@ export function getShippingMissingFields(shipping: ShippingInformation): Missing
 export function getBillingMissingFields(billing: BillingInformation): MissingCheckoutField[] {
   const missing: MissingCheckoutField[] = [];
   if (!billing.entity.trim()) missing.push({ key: "billing.entity", label: "billing name", section: "billing" });
-  if (!isEmailValid(billing.accountsPayableEmail)) {
-    missing.push({ key: "billing.accountsPayableEmail", label: "billing email", section: "billing" });
-  }
   if (!billing.sameAsCompanyAddress) {
     missing.push(...addressFields(billing.address, "billing", "billing.address"));
   }
