@@ -6,6 +6,8 @@ import { z } from "zod";
 import { requireStaffPermission } from "@/lib/auth/guards";
 import { customerAppUrl, staffAppUrl } from "@/lib/config/appSurface";
 import { getServerEnvironment } from "@/lib/config/env";
+import { calculateTaxPaise } from "@/lib/tax";
+import { configuredGstRateBasisPoints } from "@/lib/tax.server";
 import { cloudDesignSnapshotSchema } from "@/lib/designs/schema";
 import { CUSTOM_ORDER_PRICING_VERSION, priceCustomOrder } from "@/lib/orders/pricing";
 import {
@@ -352,8 +354,8 @@ export async function createStaffQuoteAction(
     .maybeSingle();
   if (existingPrincipal?.account_type === "staff") return staffActionError("That email is reserved for Foundry staff and cannot receive a customer quotation.");
 
-  const taxRateBasisPoints = getServerEnvironment().INVOICE_GST_RATE_BASIS_POINTS;
-  const taxPaise = Math.round(priced.subtotalPaise * taxRateBasisPoints / 10_000);
+  const taxRateBasisPoints = configuredGstRateBasisPoints();
+  const taxPaise = calculateTaxPaise(priced.subtotalPaise, taxRateBasisPoints);
   const totalPaise = priced.subtotalPaise + taxPaise;
   const token = randomBytes(32).toString("base64url");
   const tokenHash = createHash("sha256").update(token).digest("hex");
@@ -521,4 +523,82 @@ export async function recordOrderRefundAction(
   if (error) return staffActionError(parsed.data.action === "complete" ? "Refund completion could not be recorded." : "Refund could not be initiated.");
   revalidatePath(`/orders/${parsed.data.orderNumber}`); revalidatePath("/orders");
   return staffActionSuccess(parsed.data.action === "complete" ? "Refund completed and recorded." : "Refund marked pending with provider reference.");
+}
+
+export async function recheckCustomCheckoutPaymentAction(
+  _state: StaffActionState,
+  formData: FormData,
+): Promise<StaffActionState> {
+  const context = await requireStaffPermission("change_order_status");
+  const attemptId = z.string().uuid().safeParse(formData.get("attemptId"));
+  if (!attemptId.success) return staffActionError("Payment attempt is invalid.");
+  const { reconcileCustomCheckoutPayuAttempt } = await import("@/lib/domain/payments/processPayuEvent");
+  const { finishSystemJobRun, startSystemJobRun } = await import("@/lib/jobs/health");
+  const runId = await startSystemJobRun({
+    jobName: "payu_reconciliation",
+    triggerSource: "staff",
+    triggerUserId: context.user.id,
+  });
+  try {
+    const result = await reconcileCustomCheckoutPayuAttempt(attemptId.data);
+    await finishSystemJobRun({ runId, status: "completed", summary: { checked: 1, outcome: result.outcome } });
+    revalidatePath("/orders");
+    if (result.orderNumber) revalidatePath(`/orders/${result.orderNumber}`);
+    return staffActionSuccess(
+      result.outcome === "success"
+        ? `Payment verified${result.orderNumber ? `; order ${result.orderNumber} is available` : ""}.`
+        : result.outcome === "failure"
+          ? "PayU confirmed that this payment failed."
+          : "PayU still reports this payment as pending.",
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Payment verification failed";
+    await finishSystemJobRun({ runId, status: "failed", error: message, summary: { checked: 1, errors: 1 } });
+    return staffActionError(`Payment could not be rechecked: ${message}`);
+  }
+}
+
+export async function retryIntegrationJobAction(
+  _state: StaffActionState,
+  formData: FormData,
+): Promise<StaffActionState> {
+  const context = await requireStaffPermission("change_order_status");
+  const jobId = z.string().uuid().safeParse(formData.get("jobId"));
+  if (!jobId.success) return staffActionError("Integration job is invalid.");
+  const { data, error } = await callRpc(context.supabase, "retry_integration_job", { p_job_id: jobId.data });
+  if (error || !data) return staffActionError("The job could not be queued for retry.");
+  revalidatePath("/orders");
+  return staffActionSuccess("Integration job queued for retry.");
+}
+
+export async function processIntegrationJobsNowAction(
+  _state: StaffActionState,
+  _formData: FormData,
+): Promise<StaffActionState> {
+  const context = await requireStaffPermission("change_order_status");
+  const { processIntegrationJobs } = await import("@/lib/jobs/service");
+  const { finishSystemJobRun, startSystemJobRun } = await import("@/lib/jobs/health");
+  const runId = await startSystemJobRun({
+    jobName: "integration_jobs",
+    triggerSource: "staff",
+    triggerUserId: context.user.id,
+  });
+  try {
+    const summary = await processIntegrationJobs({ batchSize: 25, workerId: `staff:${context.user.id}:${crypto.randomUUID()}` });
+    await finishSystemJobRun({
+      runId,
+      status: summary.dead > 0 ? "failed" : "completed",
+      summary,
+      error: summary.dead > 0
+        ? `${summary.dead} integration job(s) permanently failed`
+        : null,
+    });
+    revalidatePath("/orders");
+    const message = `Processed ${summary.claimed} job(s): ${summary.completed} completed, ${summary.retry} retrying, ${summary.dead} permanently failed.`;
+    return summary.dead > 0 ? staffActionError(message) : staffActionSuccess(message);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Job processing failed";
+    await finishSystemJobRun({ runId, status: "failed", error: message });
+    return staffActionError(`Integration jobs could not be processed: ${message}`);
+  }
 }

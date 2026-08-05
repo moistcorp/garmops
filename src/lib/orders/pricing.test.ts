@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import type { CloudDesignSnapshot } from "@/lib/designs/schema";
+import { getConfiguredLinePricingPaise } from "@/lib/configurator/pricing";
+import { calculateTaxPaise } from "@/lib/tax";
 
 import { CUSTOM_ORDER_PRICING_VERSION, priceCustomOrder } from "./pricing";
 
@@ -59,7 +61,7 @@ describe("server custom-order pricing", () => {
     expect(result.quantity).toBe(50);
     expect(result.subtotalPaise).toBeGreaterThan(0);
     expect(result.taxEstimatePaise).toBe(
-      Math.round((result.subtotalPaise * 5) / 100),
+      calculateTaxPaise(result.subtotalPaise),
     );
     expect(result.estimatedTotalPaise).toBe(
       result.subtotalPaise + result.taxEstimatePaise,
@@ -70,6 +72,26 @@ describe("server custom-order pricing", () => {
     ).toBe(CUSTOM_ORDER_PRICING_VERSION);
   });
 
+
+  it("uses the same integer-paise line pricing as the configurator", () => {
+    const snapshot = designSnapshot(100);
+    const server = priceCustomOrder({
+      snapshot,
+      sizeQuantities: { XS: 10, S: 20, M: 30, L: 20, XL: 10, XXL: 10 },
+      deliveryType: "rush",
+    });
+    const browserLine = getConfiguredLinePricingPaise({
+      productId: snapshot.configId,
+      colour: snapshot.configuration.colour,
+      artwork: {},
+      neckLabel: undefined,
+      quantity: 100,
+    });
+    const expectedSubtotal = browserLine.discountedSubtotalPaise + 100 * 7_500;
+    expect(server.subtotalPaise).toBe(expectedSubtotal);
+    expect(server.unitPricePaise * server.quantity).toBe(expectedSubtotal);
+    expect(server.taxEstimatePaise).toBe(calculateTaxPaise(expectedSubtotal));
+  });
 
 
   it("keeps duplicate products as separately numbered commercial lines", () => {

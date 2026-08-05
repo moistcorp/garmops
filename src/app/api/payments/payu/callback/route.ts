@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 
 import {
   createDurablePaymentResult,
   DURABLE_PAYMENT_RESULT_COOKIE,
 } from "@/lib/domain/payments/result";
 import { processPayuEvent } from "@/lib/domain/payments/processPayuEvent";
+import { processIntegrationJobsWithHealth } from "@/lib/jobs/run";
 import { getServerEnvironment } from "@/lib/config/env";
 import { durableOrdersAvailable } from "@/lib/orders/api";
 import type { PayuIncomingFields } from "@/lib/providers/payu/types";
@@ -74,6 +75,13 @@ export async function POST(request: NextRequest) {
 
   try {
     const result = await processPayuEvent("callback", await readForm(request));
+    if (result.outcome === "success") {
+      after(async () => {
+        await processIntegrationJobsWithHealth({ triggerSource: "system", batchSize: 10 }).catch((error) => {
+          console.error("Post-payment integration processing failed", { error: error instanceof Error ? error.message : "unknown" });
+        });
+      });
+    }
     if (result.redirectPath) {
       return NextResponse.redirect(
         new URL(result.redirectPath, getServerEnvironment().NEXT_PUBLIC_APP_URL),

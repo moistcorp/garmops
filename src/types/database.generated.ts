@@ -256,6 +256,9 @@ export type Database = {
           failure_message: string | null
           id: string
           initiated_at: string | null
+          last_reconciled_at: string | null
+          last_reconciliation_error: string | null
+          reconciliation_attempts: number
           paid_at: string | null
           provider: string
           provider_merchant_txn_id: string
@@ -280,6 +283,9 @@ export type Database = {
           failure_message?: string | null
           id?: string
           initiated_at?: string | null
+          last_reconciled_at?: string | null
+          last_reconciliation_error?: string | null
+          reconciliation_attempts?: number
           paid_at?: string | null
           provider?: string
           provider_merchant_txn_id: string
@@ -304,6 +310,9 @@ export type Database = {
           failure_message?: string | null
           id?: string
           initiated_at?: string | null
+          last_reconciled_at?: string | null
+          last_reconciliation_error?: string | null
+          reconciliation_attempts?: number
           paid_at?: string | null
           provider?: string
           provider_merchant_txn_id?: string
@@ -1450,6 +1459,9 @@ export type Database = {
           failure_message: string | null
           id: string
           initiated_at: string | null
+          last_reconciled_at: string | null
+          last_reconciliation_error: string | null
+          reconciliation_attempts: number
           order_id: string
           paid_at: string | null
           provider: string
@@ -1473,6 +1485,9 @@ export type Database = {
           failure_message?: string | null
           id?: string
           initiated_at?: string | null
+          last_reconciled_at?: string | null
+          last_reconciliation_error?: string | null
+          reconciliation_attempts?: number
           order_id: string
           paid_at?: string | null
           provider?: string
@@ -1496,6 +1511,9 @@ export type Database = {
           failure_message?: string | null
           id?: string
           initiated_at?: string | null
+          last_reconciled_at?: string | null
+          last_reconciliation_error?: string | null
+          reconciliation_attempts?: number
           order_id?: string
           paid_at?: string | null
           provider?: string
@@ -1856,6 +1874,45 @@ export type Database = {
           },
         ]
       }
+      system_job_runs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          job_name: string
+          started_at: string
+          status: string
+          summary: Json
+          trigger_source: string
+          trigger_user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          job_name: string
+          started_at?: string
+          status?: string
+          summary?: Json
+          trigger_source?: string
+          trigger_user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          job_name?: string
+          started_at?: string
+          status?: string
+          summary?: Json
+          trigger_source?: string
+          trigger_user_id?: string | null
+        }
+        Relationships: []
+      }
       terms_acceptances: {
         Row: {
           accepted_at: string
@@ -2186,6 +2243,14 @@ export type Database = {
       record_staff_mfa_enrollment: { Args: never; Returns: undefined }
       reopen_order_configuration: {
         Args: { p_order_id: string; p_reason: string }
+        Returns: boolean
+      }
+      record_payment_reconciliation_attempt: {
+        Args: { p_attempt_id: string; p_custom_checkout: boolean; p_error?: string | null }
+        Returns: boolean
+      }
+      retry_integration_job: {
+        Args: { p_job_id: string }
         Returns: boolean
       }
       request_order_cancellation: {

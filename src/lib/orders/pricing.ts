@@ -1,11 +1,11 @@
 import { CUSTOM_DYE_MOQ_UNITS } from "../configurator/colourRules";
 import {
-  getConfiguredUnitPrice,
-  getVolumeDiscountPercent,
+  getConfiguredLinePricingPaise,
+  getConfiguredUnitPricePaise,
 } from "../configurator/pricing";
 import { getProduct, getProductMinimumOrderQuantity } from "../configurator/products";
-import { GST_PERCENT } from "../pricingRules";
 import { RUSH_DELIVERY_SURCHARGE_PAISE } from "../configurator/delivery";
+import { calculateTaxPaise, GST_RATE_BASIS_POINTS } from "@/lib/tax";
 import type { Json } from "@/types/database.generated";
 
 import type { CloudDesignSnapshot } from "@/lib/designs/schema";
@@ -149,20 +149,17 @@ export function priceCustomOrder(input: {
             : ""),
       } satisfies NeckLabel)
     : undefined;
-  const configuredUnitRupees = getConfiguredUnitPrice(
-    product.id,
-    configuration.colour,
-    priceableArtwork,
-    priceableNeckLabel,
-    false,
-  );
-  const configuredUnitPaise = Math.round(configuredUnitRupees * 100);
-  const discountPercent = getVolumeDiscountPercent(quantity);
-  const discountedMerchandiseUnitPaise = Math.round(
-    (configuredUnitPaise * (100 - discountPercent)) / 100,
-  );
-  const volumeDiscountUnitPaise =
-    configuredUnitPaise - discountedMerchandiseUnitPaise;
+  const linePricing = getConfiguredLinePricingPaise({
+    productId: product.id,
+    colour: configuration.colour,
+    artwork: priceableArtwork,
+    neckLabel: priceableNeckLabel,
+    quantity,
+  });
+  const configuredUnitPaise = linePricing.configuredUnitPaise;
+  const discountPercent = linePricing.discountPercent;
+  const discountedMerchandiseUnitPaise = linePricing.discountedUnitPaise;
+  const volumeDiscountUnitPaise = linePricing.volumeDiscountUnitPaise;
   const rushSurchargeUnitPaise =
     input.deliveryType === "rush" ? RUSH_DELIVERY_SURCHARGE_PAISE : 0;
   const unitPricePaise =
@@ -172,7 +169,7 @@ export function priceCustomOrder(input: {
   const subtotalPaise = unitPricePaise * quantity;
   // Shipping is quoted and collected separately by staff after the order is reviewed.
   const shippingPaise = 0;
-  const taxEstimatePaise = Math.round((subtotalPaise * GST_PERCENT) / 100);
+  const taxEstimatePaise = calculateTaxPaise(subtotalPaise);
   const estimatedTotalPaise = subtotalPaise + taxEstimatePaise;
 
   const productSnapshot = {
@@ -184,14 +181,11 @@ export function priceCustomOrder(input: {
     fit: product.fit,
     fabricFeel: product.fabricFeel,
     sizes: product.sizes,
-    basePricePaise: Math.round(
-      getConfiguredUnitPrice(
-        product.id,
-        undefined,
-        {},
-        undefined,
-        false,
-      ) * 100,
+    basePricePaise: getConfiguredUnitPricePaise(
+      product.id,
+      undefined,
+      {},
+      undefined,
     ),
     configuredUnitPaise,
     discountedMerchandiseUnitPaise,
@@ -203,7 +197,7 @@ export function priceCustomOrder(input: {
     rushSurchargePaise,
     pricingVersion: CUSTOM_ORDER_PRICING_VERSION,
     hsnCode: hsnCodeForProduct(product.id),
-    gstRateBasisPoints: GST_PERCENT * 100,
+    gstRateBasisPoints: GST_RATE_BASIS_POINTS,
     cartItemId: input.cartItemId ?? null,
     designProjectId: input.designProjectId ?? null,
     designVersionId: input.designVersionId ?? null,

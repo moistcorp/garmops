@@ -2,6 +2,8 @@ import "server-only";
 
 import { getServerEnvironment } from "@/lib/config/env";
 import { buildInvoicePdf } from "@/lib/invoices/pdf";
+import { GST_RATE_BASIS_POINTS } from "@/lib/tax";
+import { configuredGstRateBasisPoints } from "@/lib/tax.server";
 import { putPrivatePdf } from "@/lib/r2/put";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -47,6 +49,16 @@ export async function createTaxInvoiceForOrder(orderId: string) {
   const buyerSnapshot = record(invoice.buyer_snapshot);
   const buyerAddress = record(buyerSnapshot.address);
   const lineItems = Array.isArray(invoice.line_items) ? invoice.line_items.map(record) : [];
+  const rates = new Set(
+    lineItems
+      .map((item) => Number(item.gstRateBasisPoints ?? GST_RATE_BASIS_POINTS))
+      .filter((rate) => Number.isInteger(rate) && rate > 0),
+  );
+  const configuredRate = configuredGstRateBasisPoints();
+  if (rates.size > 1 || (rates.size === 1 && !rates.has(configuredRate))) {
+    throw Object.assign(new Error("Invoice line items contain inconsistent GST rates"), { retryable: false });
+  }
+  const gstRateBasisPoints = rates.values().next().value ?? configuredRate;
   const lines = lineItems.map((item) => ({
     description: String(item.description ?? "Garmops garment order"),
     quantity: Number(item.quantity ?? 1),
@@ -78,7 +90,7 @@ export async function createTaxInvoiceForOrder(orderId: string) {
     taxableValuePaise: Number(invoice.taxable_value_paise),
     taxPaise: Number(invoice.tax_paise),
     totalPaise: Number(invoice.total_paise),
-    gstRateBasisPoints: env.INVOICE_GST_RATE_BASIS_POINTS,
+    gstRateBasisPoints,
   });
 
   let pdfFileId = invoice.pdf_file_id as string | null;

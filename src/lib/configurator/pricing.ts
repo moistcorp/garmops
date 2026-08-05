@@ -10,6 +10,7 @@ import {
   getVolumeDiscountPercent,
   type VolumeDiscountTier,
 } from "../pricingRules";
+import { calculateTaxPaise } from "@/lib/tax";
 import type { Artwork, ArtworkTechnique, GarmentColour, NeckLabel } from "./types/configurator";
 
 // ============================================================
@@ -127,6 +128,62 @@ export function getConfiguredUnitPrice(
   );
 }
 
+export type ConfiguredLinePricingPaise = {
+  configuredUnitPaise: number;
+  discountPercent: number;
+  discountedUnitPaise: number;
+  volumeDiscountUnitPaise: number;
+  volumeDiscountPaise: number;
+  quantity: number;
+  merchandiseSubtotalPaise: number;
+  discountedSubtotalPaise: number;
+};
+
+export function getConfiguredUnitPricePaise(
+  productId: ProductId,
+  colour?: Pick<GarmentColour, "type">,
+  artwork: Artwork = {},
+  neckLabel?: Partial<NeckLabel>,
+): number {
+  return Math.round(
+    getConfiguredUnitPrice(productId, colour, artwork, neckLabel, false) * 100,
+  );
+}
+
+/** Shared browser/server line calculation. Volume pricing is rounded per unit. */
+export function getConfiguredLinePricingPaise(input: {
+  productId: ProductId;
+  colour?: Pick<GarmentColour, "type">;
+  artwork?: Artwork;
+  neckLabel?: Partial<NeckLabel>;
+  quantity: number;
+}): ConfiguredLinePricingPaise {
+  const quantity = Number.isFinite(input.quantity) && input.quantity > 0
+    ? Math.floor(input.quantity)
+    : 0;
+  const configuredUnitPaise = getConfiguredUnitPricePaise(
+    input.productId,
+    input.colour,
+    input.artwork ?? {},
+    input.neckLabel,
+  );
+  const discountPercent = getVolumeDiscountPercent(quantity);
+  const discountedUnitPaise = Math.round(
+    (configuredUnitPaise * (100 - discountPercent)) / 100,
+  );
+  const volumeDiscountUnitPaise = configuredUnitPaise - discountedUnitPaise;
+  return {
+    configuredUnitPaise,
+    discountPercent,
+    discountedUnitPaise,
+    volumeDiscountUnitPaise,
+    volumeDiscountPaise: volumeDiscountUnitPaise * quantity,
+    quantity,
+    merchandiseSubtotalPaise: configuredUnitPaise * quantity,
+    discountedSubtotalPaise: discountedUnitPaise * quantity,
+  };
+}
+
 export interface ConfiguredPricingSummary {
   undiscountedUnitPrice: number;
   discountedUnitPrice: number;
@@ -155,30 +212,27 @@ export function getConfiguredPricingSummary(
   const safeQuantity = Number.isFinite(quantity) && quantity > 0
     ? Math.floor(quantity)
     : 1;
-  const undiscountedUnitPrice = getConfiguredUnitPrice(
+  const line = getConfiguredLinePricingPaise({
     productId,
     colour,
     artwork,
     neckLabel,
-    rushDelivery
-  );
-  const discountPercent = getVolumeDiscountPercent(safeQuantity);
-  const discountedUnitPrice =
-    undiscountedUnitPrice - getVolumeDiscountAmount(undiscountedUnitPrice, safeQuantity);
-  const lineSubtotal = undiscountedUnitPrice * safeQuantity;
-  const discountAmount = lineSubtotal - discountedUnitPrice * safeQuantity;
-  const taxableSubtotal = lineSubtotal - discountAmount;
-  const gst = (taxableSubtotal * GST_PERCENT) / 100;
+    quantity: safeQuantity,
+  });
+  const rushUnitPaise = rushDelivery ? Math.round(RUSH_DELIVERY_FEE_PER_UNIT * 100) : 0;
+  const taxableSubtotalPaise =
+    line.discountedSubtotalPaise + rushUnitPaise * safeQuantity;
+  const gstPaise = calculateTaxPaise(taxableSubtotalPaise);
 
   return {
-    undiscountedUnitPrice,
-    discountedUnitPrice,
-    lineSubtotal,
-    discountPercent,
-    discountAmount,
-    taxableSubtotal,
-    gst,
-    total: taxableSubtotal + gst,
+    undiscountedUnitPrice: line.configuredUnitPaise / 100,
+    discountedUnitPrice: (line.discountedUnitPaise + rushUnitPaise) / 100,
+    lineSubtotal: line.merchandiseSubtotalPaise / 100,
+    discountPercent: line.discountPercent,
+    discountAmount: line.volumeDiscountPaise / 100,
+    taxableSubtotal: taxableSubtotalPaise / 100,
+    gst: gstPaise / 100,
+    total: (taxableSubtotalPaise + gstPaise) / 100,
   };
 }
 

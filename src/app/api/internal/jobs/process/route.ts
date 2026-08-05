@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 
 import { getServerEnvironment } from "@/lib/config/env";
+import { finishSystemJobRun, startSystemJobRun } from "@/lib/jobs/health";
 import { processIntegrationJobs } from "@/lib/jobs/service";
 
 export const runtime = "nodejs";
@@ -18,23 +19,33 @@ function authorised(request: NextRequest): boolean {
 }
 
 export async function GET(request: NextRequest) {
-  if (!authorised(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+  if (!authorised(request)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const runId = await startSystemJobRun({ jobName: "integration_jobs", triggerSource: "cron" });
   try {
     const summary = await processIntegrationJobs();
-    return NextResponse.json(summary, {
-      headers: { "Cache-Control": "no-store" },
-    });
-  } catch (error) {
-    const requestId = crypto.randomUUID();
-    console.error("Integration job processor failed", {
-      requestId,
-      error: error instanceof Error ? error.message : "unknown",
+    const hasPermanentFailure = summary.dead > 0;
+    await finishSystemJobRun({
+      runId,
+      status: hasPermanentFailure ? "failed" : "completed",
+      summary,
+      error: hasPermanentFailure
+        ? `${summary.dead} integration job(s) permanently failed`
+        : null,
     });
     return NextResponse.json(
-      { error: "Job processing failed", requestId },
+      { ...summary, runId },
+      {
+        status: hasPermanentFailure ? 500 : 200,
+        headers: { "Cache-Control": "no-store" },
+      },
+    );
+  } catch (error) {
+    const requestId = crypto.randomUUID();
+    const message = error instanceof Error ? error.message : "unknown";
+    await finishSystemJobRun({ runId, status: "failed", error: message });
+    console.error("Integration job processor failed", { requestId, error: message });
+    return NextResponse.json(
+      { error: "Job processing failed", requestId, runId },
       { status: 500, headers: { "Cache-Control": "no-store" } },
     );
   }

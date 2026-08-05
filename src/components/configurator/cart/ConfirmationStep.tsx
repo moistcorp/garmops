@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   CheckCircle2,
@@ -38,7 +38,7 @@ import {
   isDeliverySelectionValid,
 } from "@/lib/configurator/delivery";
 import { formatInr } from "@/lib/configurator/pricing";
-import { GST_PERCENT } from "@/lib/pricingRules";
+import { calculateTaxPaise, formatGstRate } from "@/lib/tax";
 import { formatSpecCode } from "@/lib/orders/format";
 import { getPaymentJourneyStep } from "@/lib/configurator/journey";
 import {
@@ -55,6 +55,7 @@ import { prepareCustomCheckoutPayment } from "@/lib/orders/client";
 export interface ConfirmationStepProps {
   cartId: string;
   paymentOutcome?: "failure" | "pending";
+  checkoutAttemptId?: string;
 }
 
 function joinAddress(address: Address): string {
@@ -73,12 +74,17 @@ function joinAddress(address: Address): string {
 export function ConfirmationStep({
   cartId,
   paymentOutcome,
+  checkoutAttemptId,
 }: ConfirmationStepProps) {
   const router = useRouter();
   const [draft, setDraft] = useState(() => createDraft(cartId));
   const [isDraftReady, setIsDraftReady] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [verificationState, setVerificationState] = useState<"idle" | "pending" | "checking" | "failed">(
+    paymentOutcome === "pending" ? "pending" : "idle",
+  );
+  const automaticRecheckStarted = useRef(false);
   const [promoState, setPromoState] = useState<
     | { status: "idle" }
     | { status: "checking" }
@@ -92,6 +98,48 @@ export function ConfirmationStep({
         ? "PayU is still verifying this payment. Please wait before trying another payment."
         : "",
   );
+
+  const recheckPayment = async () => {
+    if (!checkoutAttemptId || verificationState === "checking") return;
+    setVerificationState("checking");
+    setPaymentError("Checking the verified payment status with PayU…");
+    try {
+      const response = await fetch("/api/payments/payu/recheck", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ checkoutAttemptId }),
+      });
+      const body = (await response.json().catch(() => ({}))) as {
+        outcome?: "success" | "failure" | "pending";
+        confirmationUrl?: string | null;
+        error?: string;
+      };
+      if (!response.ok) throw new Error(body.error ?? "Payment status could not be checked");
+      if (body.outcome === "success" && body.confirmationUrl) {
+        clearPaidCart(cartId);
+        window.location.assign(body.confirmationUrl);
+        return;
+      }
+      if (body.outcome === "failure") {
+        setVerificationState("failed");
+        setPaymentError("PayU confirmed that the previous payment was not completed. You can start a new payment safely.");
+        return;
+      }
+      setVerificationState("pending");
+      setPaymentError("PayU is still verifying this payment. Do not start another payment yet; check again shortly.");
+    } catch (error) {
+      setVerificationState("pending");
+      setPaymentError(error instanceof Error ? error.message : "Payment status could not be checked");
+    }
+  };
+
+  useEffect(() => {
+    if (paymentOutcome !== "pending" || !checkoutAttemptId || automaticRecheckStarted.current) return;
+    automaticRecheckStarted.current = true;
+    void recheckPayment();
+    // One automatic verification is enough. The customer can explicitly recheck afterwards.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checkoutAttemptId, paymentOutcome]);
 
   useEffect(() => {
     const loadDraft = window.setTimeout(() => {
@@ -151,7 +199,7 @@ export function ConfirmationStep({
     0,
     baseTotals.taxableSubtotalPaise - promoDiscountPaise,
   );
-  const gstPaise = Math.round((discountedTaxablePaise * GST_PERCENT) / 100);
+  const gstPaise = calculateTaxPaise(discountedTaxablePaise);
   const orderTotalPaise = discountedTaxablePaise + gstPaise;
   const subtotal = baseTotals.subtotal;
   const volumeDiscount = baseTotals.volumeDiscount;
@@ -526,7 +574,7 @@ export function ConfirmationStep({
             I agree to the order terms, privacy notice and full merchandise payment shown in this checkout.
           </label>
           <p className="mt-3 text-xs leading-relaxed text-[var(--text-primary)]/60">
-            The amount paid now includes the configured merchandise and 5% GST. Shipping is excluded and will be quoted separately by our operations team through a secure PayU payment link.
+            The amount paid now includes the configured merchandise and {formatGstRate()} GST. Shipping is excluded and will be quoted separately by our operations team through a secure PayU payment link.
           </p>
         </section>
         </div>
@@ -586,10 +634,10 @@ export function ConfirmationStep({
           />
           <button
             type="button"
-            disabled={!termsAccepted || isProcessing || promoState.status === "checking"}
+            disabled={!termsAccepted || isProcessing || verificationState === "pending" || verificationState === "checking" || promoState.status === "checking"}
             onClick={handlePayment}
             className={`flex w-full items-center justify-center gap-2 rounded-[4px] py-3 text-sm font-semibold transition-colors ${
-              termsAccepted && !isProcessing && promoState.status !== "checking"
+              termsAccepted && !isProcessing && verificationState !== "pending" && verificationState !== "checking" && promoState.status !== "checking"
                 ? "bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-dark)]"
                 : "cursor-not-allowed bg-[#E5E5E5] text-[var(--text-primary)]/40"
             }`}
@@ -602,7 +650,7 @@ export function ConfirmationStep({
           {!termsAccepted && (
             <p className="text-center text-xs text-[var(--text-primary)]/55">Accept the order terms to continue.</p>
           )}
-          {paymentError && <ActionFeedback tone="error" title="Order payment" detail={`${paymentError} Your configurator details are safe.`} actionLabel={paymentError.includes("still verifying") ? undefined : "Try payment again"} onAction={paymentError.includes("still verifying") ? undefined : handlePayment} onDismiss={() => setPaymentError("")} />}
+          {paymentError && <ActionFeedback tone={verificationState === "pending" || verificationState === "checking" ? "info" : "error"} title="Order payment" detail={`${paymentError} Your configurator details are safe.`} actionLabel={verificationState === "pending" ? (checkoutAttemptId ? "Check payment status" : undefined) : verificationState === "checking" ? undefined : "Try payment again"} onAction={verificationState === "pending" ? (checkoutAttemptId ? recheckPayment : undefined) : verificationState === "checking" ? undefined : handlePayment} onDismiss={() => setPaymentError("")} />}
         </div>
       </div>
     </>

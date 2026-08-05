@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, CalendarDays, ClipboardList } from "lucide-react";
 import TechpackPageHeader from "@/components/portal/TechpackPageHeader";
+import SystemRecoveryPanel from "@/components/staff/SystemRecoveryPanel";
 import { requireStaffPermission } from "@/lib/auth/guards";
 import { formatMoneyPaise, formatOrderCode, formatOrderTimestamp } from "@/lib/orders/format";
 import { ORDER_STATUS_LABELS, type OrderStatus } from "@/lib/staff/statuses";
@@ -43,6 +44,7 @@ export default async function StaffOrderQueue() {
   return (
     <div className="space-y-5">
       <TechpackPageHeader eyebrow="Foundry" reference="Live order register" title="Order queue" description="Review paid orders, approve artwork, and advance production through the database-enforced workflow." actions={<span className="techpack-stamp" data-tone="accent">{rows.length.toLocaleString("en-IN")} records</span>} />
+      <SystemRecoveryPanel />
       <section className="techpack-surface overflow-hidden rounded-[4px] border">
         <div className="hidden grid-cols-[1.25fr_1fr_0.55fr_0.7fr_auto] gap-3 border-b border-[var(--color-rule)] bg-[var(--color-cream-soft)] px-5 py-3 font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-black/40 sm:grid">
           <span>Order / customer</span><span>Production state</span><span>Units</span><span>Paid</span><span>Updated</span>

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { CartItem } from "./OrderReviewStep";
+import { calculateTaxPaise } from "@/lib/tax";
 import { calculateTotals, clearPaidCart, readDraft, totalUnits, upsertConfiguredCartItem } from "./cartDraft";
 
 function configuredItem(quantity = 50): CartItem {
@@ -73,7 +74,7 @@ describe("configurator cart totals", () => {
       50 * 7_500,
     );
     expect(rush.gstPaise - standard.gstPaise).toBe(
-      Math.round((50 * 7_500 * 5) / 100),
+      calculateTaxPaise(50 * 7_500),
     );
   });
 });

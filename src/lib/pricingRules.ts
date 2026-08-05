@@ -1,3 +1,7 @@
+import { GST_PERCENT, GST_RATE_BASIS_POINTS } from "@/lib/tax";
+
+export { GST_PERCENT, GST_RATE_BASIS_POINTS };
+
 export type VolumeDiscountTier = {
   minQty: number;
   maxQty: number | null;
@@ -10,7 +14,6 @@ export type RushDeliveryTier = {
   charge: number;
 };
 
-export const GST_PERCENT = 5;
 export const GST_RATE = GST_PERCENT / 100;
 
 export const DELIVERY_DAYS = 35;

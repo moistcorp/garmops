@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import type { User } from "@supabase/supabase-js";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { configuredGstRateBasisPoints } from "@/lib/tax.server";
 import type { createClient } from "@/lib/supabase/server";
 import type { Json } from "@/types/database.generated";
 
@@ -80,6 +81,7 @@ export async function submitSampleOrder(input: {
     throw new Error("Checkout email must match the logged-in customer email");
   }
 
+  const gstRateBasisPoints = configuredGstRateBasisPoints();
   const priced = priceSampleOrder(request.items);
   const customerName = `${request.contact.firstName} ${request.contact.lastName ?? ""}`.trim();
   const shippingAddress = addressSnapshot(
@@ -91,6 +93,7 @@ export async function submitSampleOrder(input: {
   const payload: Json = {
     orderType: "sample_purchase",
     pricingVersion: SAMPLE_ORDER_PRICING_VERSION,
+    gstRateBasisPoints,
     configurationSchemaVersion: SAMPLE_ORDER_SCHEMA_VERSION,
     customerReference: "Catalogue samples",
     billingSnapshot: {

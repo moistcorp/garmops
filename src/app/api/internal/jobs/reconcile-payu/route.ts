@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 
 import { getServerEnvironment } from "@/lib/config/env";
+import { finishSystemJobRun, startSystemJobRun } from "@/lib/jobs/health";
 import { durableOrdersAvailable } from "@/lib/orders/api";
 import {
   reconcileCustomCheckoutPayuAttempt,
@@ -35,6 +36,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const runId = await startSystemJobRun({ jobName: "payu_reconciliation", triggerSource: "cron" });
   const environment = getServerEnvironment();
   const admin = createAdminClient();
   const staleBefore = new Date(Date.now() - 5 * 60 * 1000).toISOString();
@@ -54,8 +56,9 @@ export async function GET(request: NextRequest) {
     console.error("PayU reconciliation query failed", {
       error: error.message,
     });
+    await finishSystemJobRun({ runId, status: "failed", error: error.message, summary: { checked: 0, errors: 1 } });
     return NextResponse.json(
-      { error: "Reconciliation query failed" },
+      { error: "Reconciliation query failed", runId },
       { status: 500 },
     );
   }
@@ -64,7 +67,7 @@ export async function GET(request: NextRequest) {
   const { data: customData, error: customError } = await customAdmin
     .from("custom_checkout_payment_attempts")
     .select("id")
-    .in("status", ["initiated", "pending", "paid"])
+    .in("status", ["initiated", "pending"])
     .lt("updated_at", staleBefore)
     .gte("created_at", createdAfter)
     .order("updated_at")
@@ -80,7 +83,7 @@ export async function GET(request: NextRequest) {
     success: 0,
     pending: 0,
     failure: 0,
-    errors: 0,
+    errors: customError ? 1 : 0,
   };
 
   for (const attempt of data ?? []) {
@@ -121,7 +124,17 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.json(summary, {
-    headers: { "Cache-Control": "no-store" },
+  await finishSystemJobRun({
+    runId,
+    status: summary.errors > 0 ? "failed" : "completed",
+    summary,
+    error: summary.errors > 0 ? `${summary.errors} reconciliation attempt(s) failed` : null,
   });
+  return NextResponse.json(
+    { ...summary, runId },
+    {
+      status: summary.errors > 0 ? 500 : 200,
+      headers: { "Cache-Control": "no-store" },
+    },
+  );
 }

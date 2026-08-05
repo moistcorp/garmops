@@ -1,5 +1,6 @@
 import { products } from "@/lib/products";
 import { hsnCodeForProduct } from "@/lib/invoices/hsn";
+import { calculateTaxPaise, GST_RATE_BASIS_POINTS } from "@/lib/tax";
 import type { Json } from "@/types/database.generated";
 
 import type { SampleOrderItemInput } from "./sampleSchema";
@@ -95,7 +96,7 @@ export function priceSampleOrder(
         samplePricePaise: pricePaise,
         pricingVersion: SAMPLE_ORDER_PRICING_VERSION,
         hsnCode: hsnCodeForProduct(product.slug),
-        gstRateBasisPoints: 500,
+        gstRateBasisPoints: GST_RATE_BASIS_POINTS,
       },
       colour_snapshot: {},
       decoration_snapshot: {},
@@ -113,7 +114,7 @@ export function priceSampleOrder(
   }
 
   const shippingPaise = 0;
-  const taxEstimatePaise = Math.round(subtotalPaise * 0.05);
+  const taxEstimatePaise = calculateTaxPaise(subtotalPaise);
   const estimatedTotalPaise = subtotalPaise + taxEstimatePaise;
 
   return Object.freeze({

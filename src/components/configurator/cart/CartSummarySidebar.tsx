@@ -1,5 +1,6 @@
 import { ArrowRight, CalendarDays } from "lucide-react";
 import { formatInr } from "@/lib/configurator/pricing";
+import { formatGstRate } from "@/lib/tax";
 
 interface CartSummarySidebarProps {
   subtotal: number;
@@ -49,7 +50,7 @@ export function CartSummarySidebar({
         {promoDiscount > 0 && (
           <SummaryRow label="Promo discount" value={`− ${formatInr(promoDiscount)}`} />
         )}
-        <SummaryRow label="GST (5%)" value={formatInr(gst)} />
+        <SummaryRow label={`GST (${formatGstRate()})`} value={formatInr(gst)} />
         <div className="border-t border-[var(--color-rule)] pt-3">
           <SummaryRow label="Payable now" value={formatInr(total)} strong />
         </div>

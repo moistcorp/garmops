@@ -3,7 +3,8 @@ import "server-only";
 import { createHash, randomUUID } from "node:crypto";
 import type { User } from "@supabase/supabase-js";
 
-import { getServerEnvironment } from "@/lib/config/env";
+import { calculateTaxPaise } from "@/lib/tax";
+import { configuredGstRateBasisPoints } from "@/lib/tax.server";
 import { currentCustomTermsEvidence } from "@/lib/orders/terms";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Json } from "@/types/database.generated";
@@ -159,9 +160,8 @@ export async function prepareStaffQuoteCheckout(input: {
     discountPaise = Number(result.discount_paise);
   }
 
-  const env = getServerEnvironment();
   const taxablePaise = subtotalPaise - discountPaise;
-  const taxPaise = Math.round(taxablePaise * env.INVOICE_GST_RATE_BASIS_POINTS / 10_000);
+  const taxPaise = calculateTaxPaise(taxablePaise, configuredGstRateBasisPoints());
   const totalPaise = taxablePaise + taxPaise;
   if (totalPaise <= 0) throw new Error("The quotation total must be greater than zero");
 
@@ -173,6 +173,7 @@ export async function prepareStaffQuoteCheckout(input: {
     createdByStaffUserId: quote.created_by,
     staffQuoteId: quote.id,
     pricingVersion: typeof pricing.pricingVersion === "string" ? pricing.pricingVersion : "staff-quote-v1",
+    gstRateBasisPoints: configuredGstRateBasisPoints(),
     configurationSchemaVersion: Number(configuration.schemaVersion ?? 1),
     customerReference: quote.quote_number,
     billingSnapshot: quote.billing_snapshot,

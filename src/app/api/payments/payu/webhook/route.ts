@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 
 import { durableOrdersAvailable } from "@/lib/orders/api";
 import { processPayuEvent } from "@/lib/domain/payments/processPayuEvent";
+import { processIntegrationJobsWithHealth } from "@/lib/jobs/run";
 import type { PayuIncomingFields } from "@/lib/providers/payu/types";
 import {
   readBoundedJson,
@@ -67,6 +68,13 @@ export async function POST(request: NextRequest) {
       "webhook",
       await readPayload(request),
     );
+    if (result.outcome === "success") {
+      after(async () => {
+        await processIntegrationJobsWithHealth({ triggerSource: "system", batchSize: 10 }).catch((error) => {
+          console.error("Post-payment integration processing failed", { error: error instanceof Error ? error.message : "unknown" });
+        });
+      });
+    }
     return NextResponse.json({ ok: true, duplicate: result.duplicate });
   } catch (error) {
     console.error("PayU webhook rejected", {

@@ -13,6 +13,7 @@ import {
   RUSH_DELIVERY_DAYS,
 } from '@/lib/pricing'
 import { products } from '@/lib/products'
+import { formatGstRate } from '@/lib/tax'
 
 const productList = products.map(p => ({ name: p.pricingKey, base: p.price, icon: p.icon, description: p.description }))
 
@@ -258,7 +259,7 @@ export default function PricingClient() {
                   <span>&#8377;{subtotal.toLocaleString('en-IN')}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-white/60">GST (5%)</span>
+                  <span className="text-white/60">GST ({formatGstRate()})</span>
                   <span>&#8377;{gst.toLocaleString('en-IN')}</span>
                 </div>
                 <div className="mt-1 flex flex-col gap-1 border-t border-white/10 pt-4 text-xl font-bold min-[360px]:flex-row min-[360px]:justify-between">

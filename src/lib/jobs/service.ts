@@ -71,7 +71,12 @@ async function sendOrderConfirmation(job: IntegrationJob): Promise<void> {
   const orderId = typeof payload.orderId === "string" ? payload.orderId : null;
   if (!orderId) throw Object.assign(new Error("Order confirmation job has no order"), { retryable: false });
   const admin = createAdminClient();
-  const [{ data: order, error: orderError }, { data: payment, error: paymentError }, { data: invoice }] = await Promise.all([
+  const [
+    { data: order, error: orderError },
+    { data: payment, error: paymentError },
+    { data: invoice },
+    { data: orderItems, error: itemsError },
+  ] = await Promise.all([
     admin.from("orders")
       .select("id, order_number, order_type, customer_snapshot, total_paise")
       .eq("id", orderId)
@@ -87,9 +92,14 @@ async function sendOrderConfirmation(job: IntegrationJob): Promise<void> {
       .eq("order_id", orderId)
       .eq("kind", "tax_invoice")
       .maybeSingle(),
+    admin.from("order_items")
+      .select("line_number, product_name, quantity")
+      .eq("order_id", orderId)
+      .order("line_number"),
   ]);
   if (orderError || !order) throw new Error(orderError?.message ?? "Order not found");
   if (paymentError || !payment) throw new Error(paymentError?.message ?? "Verified payment not found");
+  if (itemsError) throw new Error(itemsError.message);
   const sampleOrder = order.order_type === "sample_purchase";
   const amount = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(Number(payment.amount_paise) / 100);
   const orderUrl = new URL(
@@ -99,6 +109,12 @@ async function sendOrderConfirmation(job: IntegrationJob): Promise<void> {
   const invoiceMessage = invoice?.invoice_number
     ? `Tax invoice <strong>${escapeEmailHtml(invoice.invoice_number, 100)}</strong> is available in your account.`
     : "Your GST tax invoice is being generated and will appear in your account shortly.";
+  const itemRows = (orderItems ?? []).map((item) =>
+    `<li style="margin:0 0 6px;"><strong>Line ${Number(item.line_number)}: ${escapeEmailHtml(item.product_name, 160)}</strong> · ${Number(item.quantity).toLocaleString("en-IN")} units</li>`,
+  ).join("");
+  const itemSummary = itemRows
+    ? `<div style="margin:16px 0;padding:14px 16px;border:1px solid ${EMAIL_THEME.line};border-radius:4px;"><p style="margin:0 0 8px;font-weight:600;color:${EMAIL_THEME.ink};">${(orderItems ?? []).length.toLocaleString("en-IN")} configured product${(orderItems ?? []).length === 1 ? "" : "s"}</p><ul style="margin:0;padding-left:18px;color:${EMAIL_THEME.muted};">${itemRows}</ul></div>`
+    : "";
   await sendResendEmail({
     to: payment.customer_email,
     subject: `Order ${order.order_number} confirmed`,
@@ -114,6 +130,7 @@ async function sendOrderConfirmation(job: IntegrationJob): Promise<void> {
       bodyHtml: `
         <p style="margin: 0 0 10px;">Hi ${escapeEmailHtml(payment.customer_name, 160)},</p>
         <p style="margin: 0 0 16px; color: ${EMAIL_THEME.muted};">We verified your full payment of <strong style="color: ${EMAIL_THEME.ink};">${escapeEmailHtml(amount, 100)}</strong> for order <strong style="color: ${EMAIL_THEME.ink};">${escapeEmailHtml(order.order_number, 100)}</strong>.</p>
+        ${itemSummary}
         <div style="padding: 14px 16px; border: 1px solid ${EMAIL_THEME.line}; border-left: 3px solid ${EMAIL_THEME.accent}; border-radius: 4px; background: ${EMAIL_THEME.accentSoft}; color: ${EMAIL_THEME.accentDark};">${invoiceMessage}</div>
       `,
     }),

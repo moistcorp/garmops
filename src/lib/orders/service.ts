@@ -4,6 +4,8 @@ import { createHash, randomUUID } from "node:crypto";
 import type { User } from "@supabase/supabase-js";
 
 import { getServerEnvironment } from "@/lib/config/env";
+import { calculateTaxPaise } from "@/lib/tax";
+import { configuredGstRateBasisPoints } from "@/lib/tax.server";
 import { CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS } from "@/lib/configurator/colourRules";
 import {
   getRequestedDeliveryDateError,
@@ -233,8 +235,8 @@ async function prepareCustomOrder(input: {
   }
 
   const taxablePaise = subtotalPaise - discountPaise;
-  const taxRateBasisPoints = getServerEnvironment().INVOICE_GST_RATE_BASIS_POINTS;
-  const taxPaise = Math.round((taxablePaise * taxRateBasisPoints) / 10_000);
+  const taxRateBasisPoints = configuredGstRateBasisPoints();
+  const taxPaise = calculateTaxPaise(taxablePaise, taxRateBasisPoints);
   const totalPaise = taxablePaise + taxPaise;
   if (totalPaise <= 0) throw new Error("Order total must be greater than zero");
 
@@ -296,6 +298,7 @@ async function prepareCustomOrder(input: {
     designProjectId: firstItem.project.id,
     designVersionId: firstItem.version.id,
     pricingVersion: CUSTOM_ORDER_PRICING_VERSION,
+    gstRateBasisPoints: taxRateBasisPoints,
     configurationSchemaVersion: Math.max(...resolvedItems.map((item) => item.snapshot.schemaVersion)),
     customerReference: request.projectName,
     requestedDeliveryDate: request.requestedDeliveryDate,

@@ -1,12 +1,12 @@
 import {
-  GST_PERCENT,
+  getConfiguredLinePricingPaise,
   getConfiguredUnitPrice,
-  getVolumeDiscountAmount,
   getVolumeDiscountPercent,
 } from "@/lib/configurator/pricing";
 import { getProduct, getProductMinimumOrderQuantity } from "@/lib/configurator/products";
 import { RUSH_DELIVERY_SURCHARGE_PAISE } from "@/lib/configurator/delivery";
 import { CUSTOM_DYE_MOQ_UNITS } from "@/lib/configurator/colourRules";
+import { calculateTaxPaise } from "@/lib/tax";
 import type { ProductId } from "@/lib/configurator/pricing";
 import type { GarmentColour, Artwork, NeckLabel } from "@/lib/configurator/types/configurator";
 import type { CartItem } from "./OrderReviewStep";
@@ -297,14 +297,16 @@ function normalizeCartItem(value: unknown): CartItem | null {
     return null;
   }
 
-  const storedBasePrice = Number(value.baseUnitPrice);
-  const baseUnitPrice =
-    Number.isFinite(storedBasePrice) && storedBasePrice >= 0
-      ? storedBasePrice
-      : calculatedBasePrice;
   const units = totalUnits(sizeQuantities);
-  const unitPrice =
-    baseUnitPrice - getVolumeDiscountAmount(baseUnitPrice, units);
+  const normalizedLinePricing = getConfiguredLinePricingPaise({
+    productId,
+    colour,
+    artwork,
+    neckLabel,
+    quantity: units,
+  });
+  const baseUnitPrice = calculatedBasePrice;
+  const unitPrice = normalizedLinePricing.discountedUnitPaise / 100;
 
   return {
     id: asString(value.id, `${productId}-${Date.now().toString(36)}`),
@@ -533,15 +535,15 @@ export function upsertConfiguredCartItem(
     quantity,
     product?.sizes ?? SIZES
   );
-  const baseUnitPrice = getConfiguredUnitPrice(
-    input.productId,
-    input.colour,
-    input.artwork,
-    input.neckLabel,
-    false
-  );
-  const unitDiscount = getVolumeDiscountAmount(baseUnitPrice, quantity);
-  const unitPrice = baseUnitPrice - unitDiscount;
+  const linePricing = getConfiguredLinePricingPaise({
+    productId: input.productId,
+    colour: input.colour,
+    artwork: input.artwork,
+    neckLabel: input.neckLabel,
+    quantity,
+  });
+  const baseUnitPrice = linePricing.configuredUnitPaise / 100;
+  const unitPrice = linePricing.discountedUnitPaise / 100;
 
   const configuredItem: CartItem = {
     id:
@@ -580,15 +582,14 @@ export function totalUnits(sizeQuantities: Record<Size, number>): number {
 }
 
 export function getCartItemBaseUnitPrice(item: CartItem): number {
-  return (
-    item.baseUnitPrice ??
-    getConfiguredUnitPrice(
-      item.productId,
-      item.colour,
-      item.artwork,
-      item.neckLabel,
-      false
-    )
+  // Reprice from the saved configuration so the review screen uses the same
+  // current catalogue rules as the server. Persisted display prices are not authoritative.
+  return getConfiguredUnitPrice(
+    item.productId,
+    item.colour,
+    item.artwork,
+    item.neckLabel,
+    false,
   );
 }
 
@@ -597,25 +598,34 @@ export function getCartItemDiscountPercent(item: CartItem): number {
 }
 
 export function getCartItemUnitPrice(item: CartItem): number {
-  const baseUnitPrice = getCartItemBaseUnitPrice(item);
-  const unitDiscount = getVolumeDiscountAmount(baseUnitPrice, totalUnits(item.sizeQuantities));
-  return baseUnitPrice - unitDiscount;
+  return getConfiguredLinePricingPaise({
+    productId: item.productId,
+    colour: item.colour,
+    artwork: item.artwork,
+    neckLabel: item.neckLabel,
+    quantity: totalUnits(item.sizeQuantities),
+  }).discountedUnitPaise / 100;
 }
 
 export function calculateTotals(
   items: CartItem[],
   deliveryType?: CartDraft["deliveryType"],
 ) {
-  const garmentSubtotalPaise = items.reduce((sum, item) => {
-    const baseUnitPaise = Math.round(getCartItemBaseUnitPrice(item) * 100);
-    return sum + totalUnits(item.sizeQuantities) * baseUnitPaise;
-  }, 0);
-  const volumeDiscountPaise = items.reduce((sum, item) => {
-    const itemUnits = totalUnits(item.sizeQuantities);
-    const baseUnitPaise = Math.round(getCartItemBaseUnitPrice(item) * 100);
-    const discountedUnitPaise = Math.round(getCartItemUnitPrice(item) * 100);
-    return sum + Math.max(0, baseUnitPaise - discountedUnitPaise) * itemUnits;
-  }, 0);
+  const linePricing = items.map((item) => getConfiguredLinePricingPaise({
+    productId: item.productId,
+    colour: item.colour,
+    artwork: item.artwork,
+    neckLabel: item.neckLabel,
+    quantity: totalUnits(item.sizeQuantities),
+  }));
+  const garmentSubtotalPaise = linePricing.reduce(
+    (sum, line) => sum + line.merchandiseSubtotalPaise,
+    0,
+  );
+  const volumeDiscountPaise = linePricing.reduce(
+    (sum, line) => sum + line.volumeDiscountPaise,
+    0,
+  );
   const quantity = items.reduce(
     (sum, item) => sum + totalUnits(item.sizeQuantities),
     0,
@@ -626,7 +636,7 @@ export function calculateTotals(
     garmentSubtotalPaise - volumeDiscountPaise;
   const taxableSubtotalPaise =
     merchandiseAfterVolumeDiscountPaise + rushFeePaise;
-  const gstPaise = Math.round((taxableSubtotalPaise * GST_PERCENT) / 100);
+  const gstPaise = calculateTaxPaise(taxableSubtotalPaise);
   const totalPaise = taxableSubtotalPaise + gstPaise;
 
   return {

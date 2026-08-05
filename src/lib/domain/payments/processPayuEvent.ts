@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getServerEnvironment } from "@/lib/config/env";
+import { recordPaymentReconciliation } from "@/lib/jobs/health";
 import { finalizeCustomCheckoutPayment } from "@/lib/orders/service";
 import {
   paymentEventFingerprint,
@@ -657,85 +658,101 @@ export async function processPayuEvent(
 export async function reconcilePayuAttempt(
   attemptId: string,
 ): Promise<ProcessResult> {
-  const admin = createAdminClient();
-  const { data: attempt, error } = await admin
-    .from("payment_attempts")
-    .select(
-      "id, order_id, amount_paise, currency, provider_merchant_txn_id, purpose, created_at, orders!inner(order_number)",
-    )
-    .eq("id", attemptId)
-    .single();
-  if (error || !attempt) throw new Error("Payment attempt not found");
+  try {
+    const admin = createAdminClient();
+    const { data: attempt, error } = await admin
+      .from("payment_attempts")
+      .select(
+        "id, order_id, amount_paise, currency, provider_merchant_txn_id, purpose, created_at, orders!inner(order_number)",
+      )
+      .eq("id", attemptId)
+      .single();
+    if (error || !attempt) throw new Error("Payment attempt not found");
 
-  const orderNumber = (
-    attempt.orders as unknown as { order_number: string }
-  ).order_number;
-  const providerVerification = await verifyPayuPayment(
-    attempt.provider_merchant_txn_id,
-  );
-  const attemptAgeMs = attempt.created_at
-    ? Date.now() - new Date(attempt.created_at).getTime()
-    : 0;
-  const verification: PayuVerificationResult =
-    providerVerification.status === "unknown" &&
-    attemptAgeMs >= 2 * 60 * 60 * 1000
-      ? {
-          ...providerVerification,
-          status: "failed",
-          failureCode: "PAYU_TRANSACTION_NOT_FOUND",
-          failureMessage:
-            "PayU did not return a transaction after the reconciliation grace period",
-          snapshot: {
-            ...providerVerification.snapshot,
-            reconciliation_classification: "abandoned_after_grace_period",
-          },
-        }
-      : providerVerification;
-  await persistVerificationEvent(attempt.id, "reconciliation", verification);
-  const outcome = await applyVerification(attempt, verification);
+    const orderNumber = (
+      attempt.orders as unknown as { order_number: string }
+    ).order_number;
+    const providerVerification = await verifyPayuPayment(
+      attempt.provider_merchant_txn_id,
+    );
+    const attemptAgeMs = attempt.created_at
+      ? Date.now() - new Date(attempt.created_at).getTime()
+      : 0;
+    const verification: PayuVerificationResult =
+      providerVerification.status === "unknown" &&
+      attemptAgeMs >= 2 * 60 * 60 * 1000
+        ? {
+            ...providerVerification,
+            status: "failed",
+            failureCode: "PAYU_TRANSACTION_NOT_FOUND",
+            failureMessage:
+              "PayU did not return a transaction after the reconciliation grace period",
+            snapshot: {
+              ...providerVerification.snapshot,
+              reconciliation_classification: "abandoned_after_grace_period",
+            },
+          }
+        : providerVerification;
+    await persistVerificationEvent(attempt.id, "reconciliation", verification);
+    const outcome = await applyVerification(attempt, verification);
+    await recordPaymentReconciliation({ attemptId, customCheckout: false });
 
-  return {
-    outcome,
-    attemptId,
-    orderNumber,
-    duplicate: false,
-  };
+    return { outcome, attemptId, orderNumber, duplicate: false };
+  } catch (error) {
+    await recordPaymentReconciliation({
+      attemptId,
+      customCheckout: false,
+      error: error instanceof Error ? error.message : "Unknown reconciliation error",
+    });
+    throw error;
+  }
 }
 
 export async function reconcileCustomCheckoutPayuAttempt(
   checkoutAttemptId: string,
 ): Promise<ProcessResult> {
-  const admin = checkoutAdmin();
-  const { data, error } = await admin
-    .from("custom_checkout_payment_attempts")
-    .select(
-      "id, checkout_session_id, amount_paise, currency, provider_merchant_txn_id, expected_product_info, customer_email, customer_name, status, provider_payment_id, raw_verified_snapshot, created_at, custom_checkout_sessions!inner(id, cart_id, return_path, status, final_order_number, final_payment_attempt_id)",
-    )
-    .eq("id", checkoutAttemptId)
-    .single();
-  if (error || !data) throw new Error("Checkout payment attempt not found");
-  const attempt = data as CustomCheckoutAttempt & { created_at?: string };
-  const providerVerification = await verifyPayuPayment(
-    attempt.provider_merchant_txn_id,
-  );
-  const attemptAgeMs = attempt.created_at
-    ? Date.now() - new Date(attempt.created_at).getTime()
-    : 0;
-  const verification: PayuVerificationResult =
-    providerVerification.status === "unknown" &&
-    attemptAgeMs >= 2 * 60 * 60 * 1000
-      ? {
-          ...providerVerification,
-          status: "failed",
-          failureCode: "PAYU_TRANSACTION_NOT_FOUND",
-          failureMessage:
-            "PayU did not return a transaction after the reconciliation grace period",
-          snapshot: {
-            ...providerVerification.snapshot,
-            reconciliation_classification: "abandoned_after_grace_period",
-          },
-        }
-      : providerVerification;
-  await persistCustomVerificationEvent(attempt.id, "reconciliation", verification);
-  return applyCustomVerification(attempt, verification);
+  try {
+    const admin = checkoutAdmin();
+    const { data, error } = await admin
+      .from("custom_checkout_payment_attempts")
+      .select(
+        "id, checkout_session_id, amount_paise, currency, provider_merchant_txn_id, expected_product_info, customer_email, customer_name, status, provider_payment_id, raw_verified_snapshot, created_at, custom_checkout_sessions!inner(id, cart_id, return_path, status, final_order_number, final_payment_attempt_id)",
+      )
+      .eq("id", checkoutAttemptId)
+      .single();
+    if (error || !data) throw new Error("Checkout payment attempt not found");
+    const attempt = data as CustomCheckoutAttempt & { created_at?: string };
+    const providerVerification = await verifyPayuPayment(
+      attempt.provider_merchant_txn_id,
+    );
+    const attemptAgeMs = attempt.created_at
+      ? Date.now() - new Date(attempt.created_at).getTime()
+      : 0;
+    const verification: PayuVerificationResult =
+      providerVerification.status === "unknown" &&
+      attemptAgeMs >= 2 * 60 * 60 * 1000
+        ? {
+            ...providerVerification,
+            status: "failed",
+            failureCode: "PAYU_TRANSACTION_NOT_FOUND",
+            failureMessage:
+              "PayU did not return a transaction after the reconciliation grace period",
+            snapshot: {
+              ...providerVerification.snapshot,
+              reconciliation_classification: "abandoned_after_grace_period",
+            },
+          }
+        : providerVerification;
+    await persistCustomVerificationEvent(attempt.id, "reconciliation", verification);
+    const result = await applyCustomVerification(attempt, verification);
+    await recordPaymentReconciliation({ attemptId: checkoutAttemptId, customCheckout: true });
+    return result;
+  } catch (error) {
+    await recordPaymentReconciliation({
+      attemptId: checkoutAttemptId,
+      customCheckout: true,
+      error: error instanceof Error ? error.message : "Unknown reconciliation error",
+    });
+    throw error;
+  }
 }

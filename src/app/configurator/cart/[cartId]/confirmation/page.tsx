@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 
 interface ConfirmationPageProps {
   params: Promise<{ cartId: string }>;
-  searchParams: Promise<{ payment?: string }>;
+  searchParams: Promise<{ payment?: string; checkoutAttempt?: string }>;
 }
 
 async function hasAuthenticatedCustomer(): Promise<boolean> {
@@ -26,6 +26,7 @@ async function hasAuthenticatedCustomer(): Promise<boolean> {
 export default async function ConfirmationPage({ params, searchParams }: ConfirmationPageProps) {
   const [{ cartId }, query] = await Promise.all([params, searchParams]);
   const paymentOutcome = query.payment === "failure" || query.payment === "pending" ? query.payment : undefined;
+  const checkoutAttemptId = /^[0-9a-f-]{36}$/i.test(query.checkoutAttempt ?? "") ? query.checkoutAttempt : undefined;
 
   if (!isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED")) {
     return (
@@ -53,7 +54,7 @@ export default async function ConfirmationPage({ params, searchParams }: Confirm
   return (
     <main className="techpack-cart-page techpack-studio-bg min-h-screen px-4 pb-8 sm:pb-10">
       <div className="mx-auto max-w-6xl">
-        <ConfirmationStep cartId={cartId} paymentOutcome={paymentOutcome} />
+        <ConfirmationStep cartId={cartId} paymentOutcome={paymentOutcome} checkoutAttemptId={checkoutAttemptId} />
       </div>
     </main>
   );

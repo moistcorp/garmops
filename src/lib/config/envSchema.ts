@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { GST_RATE_BASIS_POINTS } from "@/lib/tax";
+
 const emptyToUndefined = (value: unknown) =>
   typeof value === "string" && value.trim() === "" ? undefined : value;
 
@@ -72,7 +74,7 @@ const serverEnvironmentSchema = z
     INVOICE_SELLER_GSTIN: z.string().trim().min(1).max(40).default("09HPFPS8162L1ZY"),
     INVOICE_SELLER_STATE: z.string().trim().min(1).max(80).default("Uttar Pradesh"),
     INVOICE_DEFAULT_HSN_CODE: z.string().trim().min(1).max(40).default("CONFIGURE_HSN_CODE"),
-    INVOICE_GST_RATE_BASIS_POINTS: positiveInteger(500, 10_000),
+    INVOICE_GST_RATE_BASIS_POINTS: positiveInteger(GST_RATE_BASIS_POINTS, 10_000),
 
     ORDER_CURRENCY: z.literal("INR").default("INR"),
     ESTIMATE_VALIDITY_DAYS: positiveInteger(7, 90),

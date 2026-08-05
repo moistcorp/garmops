@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, CalendarDays, ShoppingBag } from "lucide-react";
 
+import PendingCheckoutRecovery from "@/components/payment/PendingCheckoutRecovery";
 import PortalPlaceholder from "@/components/portal/PortalPlaceholder";
 import TechpackPageHeader from "@/components/portal/TechpackPageHeader";
 import { requireCustomer } from "@/lib/auth/guards";
@@ -51,13 +52,27 @@ function ordersHref(filter: OrderListFilter, page = 1): string {
 export default async function AccountOrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ filter?: string; page?: string }>;
+  searchParams: Promise<{
+    filter?: string;
+    page?: string;
+    payment?: string;
+    checkoutAttempt?: string;
+  }>;
 }) {
   const query = await searchParams;
   const parsedFilter = orderListFilterSchema.safeParse(query.filter ?? "all");
   const parsedPage = orderListPageSchema.safeParse(query.page ?? "1");
   const filter = parsedFilter.success ? parsedFilter.data : "all";
   const page = parsedPage.success ? parsedPage.data : 1;
+  const paymentOutcome =
+    query.payment === "pending" || query.payment === "failure"
+      ? query.payment
+      : undefined;
+  const checkoutAttemptId = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    query.checkoutAttempt ?? "",
+  )
+    ? query.checkoutAttempt
+    : undefined;
   const { supabase, user } = await requireCustomer("/account/orders");
   const result = await listCustomerOrders(supabase, user.id, filter, page);
 
@@ -101,6 +116,15 @@ export default async function AccountOrdersPage({
         }
       />
 
+      {paymentOutcome ? (
+        <PendingCheckoutRecovery
+          outcome={paymentOutcome}
+          checkoutAttemptId={checkoutAttemptId}
+          retryHref="/checkout"
+          retryLabel="Return to sample checkout"
+        />
+      ) : null}
+
       <div className="flex gap-2 overflow-x-auto border-b border-black/8 pb-3">
         {filters.map((entry) => (
           <Link
@@ -141,6 +165,9 @@ export default async function AccountOrdersPage({
                   </div>
                   <p className="mt-2 text-sm text-black/50">
                     {order.order_items?.[0]?.product_name ?? "Custom garment order"}
+                    {order.order_items && order.order_items.length > 1
+                      ? ` + ${order.order_items.length - 1} more configured ${order.order_items.length === 2 ? "item" : "items"}`
+                      : ""}
                   </p>
                 </div>
                 <div>

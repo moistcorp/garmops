@@ -55,4 +55,17 @@ describe("AccountOrdersPage", () => {
     );
   });
 
+  it("shows a pending PayU recovery control for sample checkout returns", async () => {
+    const page = await AccountOrdersPage({
+      searchParams: Promise.resolve({
+        payment: "pending",
+        checkoutAttempt: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      }),
+    });
+    const html = renderToStaticMarkup(page);
+
+    expect(html).toContain("Payment verification pending");
+    expect(html).toContain("Check payment status");
+  });
+
 });
