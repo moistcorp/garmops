@@ -39,6 +39,7 @@ import {
 } from "./cartDraft";
 import {
   formatDeliveryLabel,
+  getIndiaCalendarDate,
   isDeliverySelectionValid,
 } from "@/lib/configurator/delivery";
 import { CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS } from "@/lib/configurator/colourRules";
@@ -330,13 +331,9 @@ export function BillingShippingStep({
   )
     ? CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS.max
     : 0;
-  const deliveryBaseDate = useMemo(
-    () =>
-      draft.orderConfirmedDateIso
-        ? new Date(draft.orderConfirmedDateIso)
-        : undefined,
-    [draft.orderConfirmedDateIso]
-  );
+  // Delivery availability must always be calculated from today's date in India,
+  // not from the date on which an older browser draft was first created.
+  const deliveryBaseDate = getIndiaCalendarDate();
 
   const markFormStarted = useCallback(() => {
     if (formStartedRef.current) return;
@@ -647,8 +644,7 @@ export function BillingShippingStep({
                 updateDraft({
                   selectedDeliveryDateIso: date.toISOString(),
                   deliveryType: type,
-                  orderConfirmedDateIso:
-                    draft.orderConfirmedDateIso ?? new Date().toISOString(),
+                  orderConfirmedDateIso: new Date().toISOString(),
                 });
               }}
               selectedDate={selectedDeliveryDate}
@@ -871,6 +867,7 @@ export function BillingShippingStep({
           <CartSummarySidebar
             subtotal={totals.subtotal}
             volumeDiscount={totals.volumeDiscount}
+            rushFee={totals.rushFee}
             shippingFee={totals.shippingFee}
             gst={totals.gst}
             delivery={deliveryLabel}

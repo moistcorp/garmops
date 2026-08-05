@@ -6,8 +6,23 @@ import type { OrderListFilter } from "./schema";
 type OrderClient = SupabaseClient<Database>;
 const listSelect = "id, order_number, order_type, status, public_status, currency, total_paise, amount_paid_paise, requested_delivery_date, confirmed_at, created_at, order_items(product_name, quantity)";
 
-export function listCustomerOrders(supabase: OrderClient, customerUserId: string, filter: OrderListFilter) {
-  let query = supabase.from("orders").select(listSelect).eq("customer_user_id", customerUserId).order("created_at", { ascending: false }).limit(50);
+export const CUSTOMER_ORDER_PAGE_SIZE = 20;
+
+export function listCustomerOrders(
+  supabase: OrderClient,
+  customerUserId: string,
+  filter: OrderListFilter,
+  page = 1,
+) {
+  const safePage = Math.max(1, Math.floor(page));
+  const from = (safePage - 1) * CUSTOMER_ORDER_PAGE_SIZE;
+  const to = from + CUSTOMER_ORDER_PAGE_SIZE - 1;
+  let query = supabase
+    .from("orders")
+    .select(listSelect, { count: "exact" })
+    .eq("customer_user_id", customerUserId)
+    .order("created_at", { ascending: false })
+    .range(from, to);
   const statuses: Partial<Record<OrderListFilter, readonly Enums<"public_order_status">[]>> = {
     active: ["order_received", "artwork_under_review", "approved_for_production", "in_production", "quality_check_and_packing", "preparing_dispatch", "shipped", "action_required"],
     completed: ["delivered"],

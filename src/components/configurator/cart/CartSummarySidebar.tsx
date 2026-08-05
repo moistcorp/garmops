@@ -5,6 +5,8 @@ interface CartSummarySidebarProps {
   subtotal: number;
   volumeDiscount: number;
   shippingFee: number;
+  rushFee?: number;
+  promoDiscount?: number;
   gst: number;
   delivery: string;
   total: number;
@@ -19,6 +21,8 @@ interface CartSummarySidebarProps {
 export function CartSummarySidebar({
   subtotal,
   volumeDiscount,
+  rushFee = 0,
+  promoDiscount = 0,
   gst,
   delivery,
   total,
@@ -38,6 +42,12 @@ export function CartSummarySidebar({
         <SummaryRow label="Configured merchandise" value={formatInr(subtotal)} />
         {volumeDiscount > 0 && (
           <SummaryRow label="Volume discount" value={`− ${formatInr(volumeDiscount)}`} />
+        )}
+        {rushFee > 0 && (
+          <SummaryRow label="Rush delivery" value={`+ ${formatInr(rushFee)}`} />
+        )}
+        {promoDiscount > 0 && (
+          <SummaryRow label="Promo discount" value={`− ${formatInr(promoDiscount)}`} />
         )}
         <SummaryRow label="GST (5%)" value={formatInr(gst)} />
         <div className="border-t border-[var(--color-rule)] pt-3">

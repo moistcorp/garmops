@@ -16,6 +16,22 @@ describe("company details validation", () => {
     ).toEqual({ companyName: "Acme India", gstin: "29ABCDE1234F1Z5" });
   });
 
+
+  it("allows personal customers to leave the company name blank", () => {
+    expect(
+      companyDetailsSchema.parse({ companyName: "", gstin: "" }),
+    ).toEqual({ companyName: null, gstin: null });
+  });
+
+  it("requires a legal business name when GSTIN is supplied", () => {
+    expect(
+      companyDetailsSchema.safeParse({
+        companyName: "",
+        gstin: "29ABCDE1234F1Z5",
+      }).success,
+    ).toBe(false);
+  });
+
   it("rejects an invalid Indian billing PIN code", () => {
     expect(
       savedAddressSchema.safeParse({

@@ -4,6 +4,11 @@ import { createHash, randomUUID } from "node:crypto";
 import type { User } from "@supabase/supabase-js";
 
 import { getServerEnvironment } from "@/lib/config/env";
+import { CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS } from "@/lib/configurator/colourRules";
+import {
+  getRequestedDeliveryDateError,
+  RUSH_DELIVERY_SURCHARGE_PAISE,
+} from "@/lib/configurator/delivery";
 import { cloudDesignSnapshotSchema } from "@/lib/designs/schema";
 import { currentCustomTermsEvidence } from "@/lib/orders/terms";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -163,6 +168,16 @@ async function prepareCustomOrder(input: {
   if (!project || !version || version.design_project_id !== project.id) throw new Error("Saved design version is unavailable");
 
   const snapshot = cloudDesignSnapshotSchema.parse(version.configuration_snapshot);
+  const deliveryDateError = getRequestedDeliveryDateError({
+    deliveryType: request.deliveryType,
+    requestedDeliveryDate: request.requestedDeliveryDate,
+    extraLeadTimeDays:
+      snapshot.configuration.colour.type === "custom_dye"
+        ? CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS.max
+        : 0,
+  });
+  if (deliveryDateError) throw new Error(deliveryDateError);
+
   const priced = priceCustomOrder({
     snapshot,
     sizeQuantities: request.sizeQuantities,
@@ -230,6 +245,9 @@ async function prepareCustomOrder(input: {
     sizeQuantities: request.sizeQuantities,
     deliveryType: request.deliveryType,
     requestedDeliveryDate: request.requestedDeliveryDate,
+    rushPricing: request.deliveryType === "rush"
+      ? { surchargeUnitPaise: RUSH_DELIVERY_SURCHARGE_PAISE, taxable: true }
+      : null,
     orderNotes: request.orderNotes ?? null,
     commercialFieldsLockedAfterPayment: ["quantity", "garment", "printingTechnique"],
   };

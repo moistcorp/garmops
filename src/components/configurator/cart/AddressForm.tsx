@@ -303,19 +303,20 @@ export function AddressForm({
         {showError("addressLine1", !value.addressLine1.trim()) && <p className="mt-1 text-xs text-red-600">Required</p>}
       </div>
 
-      {!compact && (
-        <div>
-          <label htmlFor={id("addressLine2")} className={labelClass}>Address line 2 (optional)</label>
-          <input
-            id={id("addressLine2")}
-            autoComplete="address-line2"
-            className={inputClass}
-            value={value.addressLine2 ?? ""}
-            onChange={(event) => set("addressLine2", event.target.value)}
-            placeholder="Landmark, floor or unit"
-          />
-        </div>
-      )}
+      <div>
+        <label htmlFor={id("addressLine2")} className={labelClass}>
+          Address line 2 (optional)
+        </label>
+        <input
+          id={id("addressLine2")}
+          autoComplete="address-line2"
+          className={inputClass}
+          value={value.addressLine2 ?? ""}
+          onChange={(event) => set("addressLine2", event.target.value)}
+          placeholder={compact ? "Apartment, floor, unit or landmark" : "Landmark, floor or unit"}
+          maxLength={200}
+        />
+      </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import ConfigureClient from "@/components/configurator/ConfigureClient";
+import { getProduct } from "@/lib/configurator/products";
 
 interface ConfiguratorBuildPageProps {
   params: Promise<{ configId: string }>;
@@ -12,6 +13,12 @@ export default async function ConfiguratorBuildPage({
   searchParams,
 }: ConfiguratorBuildPageProps) {
   const { configId } = await params;
+  const product = getProduct(configId);
+
+  if (!product) {
+    notFound();
+  }
+
   const query = await searchParams;
   const hasPersistentIdentity = Boolean(
     query.draftId || query.designId || query.itemId
@@ -27,5 +34,5 @@ export default async function ConfiguratorBuildPage({
     redirect(`/configurator/build/${encodeURIComponent(configId)}?${next.toString()}`);
   }
 
-  return <ConfigureClient configId={configId} />;
+  return <ConfigureClient configId={configId} product={product} />;
 }

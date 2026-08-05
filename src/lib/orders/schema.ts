@@ -75,6 +75,7 @@ export const submitCustomOrderRequestSchema = z.object({
 export const retryOrderPaymentRequestSchema = z.object({ idempotencyKey: z.uuid() }).strict();
 export const orderNumberSchema = z.string().regex(/^(?:GAR|SAM)-[0-9]{4}-[0-9]{6}$/);
 export const orderListFilterSchema = z.enum(["all", "active", "completed", "cancelled"]);
+export const orderListPageSchema = z.coerce.number().int().min(1).max(10_000);
 
 export type SubmitCustomOrderRequest = z.infer<typeof submitCustomOrderRequestSchema>;
 export type OrderListFilter = z.infer<typeof orderListFilterSchema>;

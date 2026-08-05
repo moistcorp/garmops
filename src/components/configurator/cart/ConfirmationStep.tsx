@@ -8,6 +8,7 @@ import {
   LoaderCircle,
   MapPin,
   ShieldCheck,
+  Tag,
 } from "lucide-react";
 import {
   isAddressValid,
@@ -23,14 +24,21 @@ import { getProcurementMissingFields } from "./checkoutDetails";
 import type { CartItem } from "./OrderReviewStep";
 import {
   calculateTotals,
+  clearPaidCart,
   createDraft,
   getCartItemDiscountPercent,
   getCartItemUnitPrice,
   readDraft,
   totalUnits,
+  writeDraft,
 } from "./cartDraft";
-import { formatDeliveryLabel, isDeliverySelectionValid } from "@/lib/configurator/delivery";
+import {
+  formatDeliveryLabel,
+  getIndiaCalendarDate,
+  isDeliverySelectionValid,
+} from "@/lib/configurator/delivery";
 import { formatInr } from "@/lib/configurator/pricing";
+import { GST_PERCENT } from "@/lib/pricingRules";
 import { formatSpecCode } from "@/lib/orders/format";
 import { getPaymentJourneyStep } from "@/lib/configurator/journey";
 import {
@@ -71,6 +79,12 @@ export function ConfirmationStep({
   const [isDraftReady, setIsDraftReady] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [promoState, setPromoState] = useState<
+    | { status: "idle" }
+    | { status: "checking" }
+    | { status: "applied"; code: string; discountPaise: number; subtotalPaise: number }
+    | { status: "error"; message: string }
+  >({ status: "idle" });
   const [paymentError, setPaymentError] = useState(() =>
     paymentOutcome === "failure"
       ? "The payment was not completed. No order was created. You can try again safely."
@@ -96,9 +110,7 @@ export function ConfirmationStep({
       const selectedDeliveryDate = savedDraft.selectedDeliveryDateIso
         ? new Date(savedDraft.selectedDeliveryDateIso)
         : undefined;
-      const deliveryBaseDate = savedDraft.orderConfirmedDateIso
-        ? new Date(savedDraft.orderConfirmedDateIso)
-        : new Date();
+      const deliveryBaseDate = getIndiaCalendarDate();
       const extraLeadTimeDays = savedDraft.items.some(
         (item) => item.colour.type === "custom_dye"
       )
@@ -124,21 +136,36 @@ export function ConfirmationStep({
   }, [cartId, router]);
 
 
-  const { subtotal, volumeDiscount, shippingFee, gst, delivery, orderTotal } =
-    useMemo(() => {
-      const totals = calculateTotals(draft.items, draft.deliveryType);
-      return {
-        subtotal: totals.subtotal,
-        volumeDiscount: totals.volumeDiscount,
-        shippingFee: totals.shippingFee,
-        gst: totals.gst,
-        delivery: formatDeliveryLabel(
-          draft.deliveryType,
-          draft.selectedDeliveryDateIso ? new Date(draft.selectedDeliveryDateIso) : undefined
-        ),
-        orderTotal: totals.total,
-      };
-    }, [draft]);
+  const baseTotals = useMemo(
+    () => calculateTotals(draft.items, draft.deliveryType),
+    [draft.deliveryType, draft.items],
+  );
+  const normalizedPromoCode = draft.promoCode.trim().toUpperCase();
+  const promoDiscountPaise =
+    promoState.status === "applied" &&
+    promoState.code === normalizedPromoCode &&
+    promoState.subtotalPaise === baseTotals.taxableSubtotalPaise
+      ? promoState.discountPaise
+      : 0;
+  const discountedTaxablePaise = Math.max(
+    0,
+    baseTotals.taxableSubtotalPaise - promoDiscountPaise,
+  );
+  const gstPaise = Math.round((discountedTaxablePaise * GST_PERCENT) / 100);
+  const orderTotalPaise = discountedTaxablePaise + gstPaise;
+  const subtotal = baseTotals.subtotal;
+  const volumeDiscount = baseTotals.volumeDiscount;
+  const rushFee = baseTotals.rushFee;
+  const shippingFee = baseTotals.shippingFee;
+  const promoDiscount = promoDiscountPaise / 100;
+  const gst = gstPaise / 100;
+  const orderTotal = orderTotalPaise / 100;
+  const delivery = formatDeliveryLabel(
+    draft.deliveryType,
+    draft.selectedDeliveryDateIso
+      ? new Date(draft.selectedDeliveryDateIso)
+      : undefined,
+  );
 
   const savedBillingAddress = draft.billingInformation.sameAsCompanyAddress
     ? draft.shippingInformation.address
@@ -155,6 +182,73 @@ export function ConfirmationStep({
   const billingUsesDeliveryAddress =
     joinAddress(billingAddress) ===
     joinAddress(draft.shippingInformation.address);
+
+  const updatePromoCode = (value: string) => {
+    const promoCode = value.toUpperCase().replace(/[^A-Z0-9_-]/g, "").slice(0, 40);
+    setPromoState({ status: "idle" });
+    setDraft((current) => {
+      const next = { ...current, promoCode };
+      writeDraft(cartId, next);
+      return next;
+    });
+  };
+
+  const validatePromoCode = async (): Promise<boolean> => {
+    const code = draft.promoCode.trim().toUpperCase();
+    if (!code) {
+      setPromoState({ status: "idle" });
+      return true;
+    }
+
+    if (
+      promoState.status === "applied" &&
+      promoState.code === code &&
+      promoState.subtotalPaise === baseTotals.taxableSubtotalPaise
+    ) {
+      return true;
+    }
+
+    setPromoState({ status: "checking" });
+    try {
+      const response = await fetch("/api/orders/custom/discount", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code,
+          subtotalPaise: baseTotals.taxableSubtotalPaise,
+        }),
+      });
+      const body = (await response.json().catch(() => ({}))) as {
+        error?: string;
+        code?: string;
+        discountPaise?: number;
+      };
+      if (
+        !response.ok ||
+        typeof body.code !== "string" ||
+        typeof body.discountPaise !== "number"
+      ) {
+        setPromoState({
+          status: "error",
+          message: body.error ?? "Discount code is invalid or unavailable",
+        });
+        return false;
+      }
+      setPromoState({
+        status: "applied",
+        code: body.code,
+        discountPaise: body.discountPaise,
+        subtotalPaise: baseTotals.taxableSubtotalPaise,
+      });
+      return true;
+    } catch {
+      setPromoState({
+        status: "error",
+        message: "Discount code could not be checked. Try again.",
+      });
+      return false;
+    }
+  };
 
   const handlePayment = async () => {
     setPaymentError("");
@@ -173,9 +267,7 @@ export function ConfirmationStep({
     const selectedDeliveryDate = draft.selectedDeliveryDateIso
       ? new Date(draft.selectedDeliveryDateIso)
       : undefined;
-    const deliveryBaseDate = draft.orderConfirmedDateIso
-      ? new Date(draft.orderConfirmedDateIso)
-      : new Date();
+    const deliveryBaseDate = getIndiaCalendarDate();
     const extraLeadTimeDays = draft.items.some((item) => item.colour.type === "custom_dye")
       ? CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS.max
       : 0;
@@ -198,6 +290,11 @@ export function ConfirmationStep({
       return;
     }
 
+    if (!(await validatePromoCode())) {
+      setPaymentError("Review or remove the discount code before payment.");
+      return;
+    }
+
     trackConfiguratorEvent("payment_started", {
       cart_id: cartId,
       amount: orderTotal,
@@ -216,6 +313,7 @@ export function ConfirmationStep({
             cart_id: cartId,
             order_number: result.order.orderNumber,
           });
+          clearPaidCart(cartId);
           window.location.assign(result.order.confirmationUrl);
         }
         return;
@@ -434,9 +532,52 @@ export function ConfirmationStep({
         </div>
 
         <div className="space-y-4 lg:sticky lg:top-36 lg:self-start">
+          <section className="techpack-panel rounded-[4px] border p-4">
+            <div className="flex items-center gap-2">
+              <Tag size={16} className="text-[var(--color-accent)]" />
+              <h2 className="text-sm font-semibold text-[var(--text-primary)]">Discount code</h2>
+            </div>
+            <div className="mt-3 flex gap-2">
+              <input
+                value={draft.promoCode}
+                onChange={(event) => updatePromoCode(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    void validatePromoCode();
+                  }
+                }}
+                placeholder="WELCOME10"
+                className="techpack-control min-w-0 flex-1 rounded-[4px] border px-3 py-2 text-sm font-mono uppercase outline-none focus:!border-[var(--color-accent)]"
+                maxLength={40}
+                autoComplete="off"
+              />
+              <button
+                type="button"
+                onClick={() => void validatePromoCode()}
+                disabled={!draft.promoCode.trim() || promoState.status === "checking"}
+                className="rounded-[4px] bg-black px-3 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {promoState.status === "checking" ? "Checking…" : "Apply"}
+              </button>
+            </div>
+            {promoState.status === "applied" ? (
+              <p className="mt-2 text-xs font-medium text-emerald-700">
+                {promoState.code} applied · save {formatInr(promoState.discountPaise / 100)}
+              </p>
+            ) : promoState.status === "error" ? (
+              <p className="mt-2 text-xs text-red-600">{promoState.message}</p>
+            ) : (
+              <p className="mt-2 text-xs text-[var(--text-primary)]/45">
+                Codes are checked against your account and current order value.
+              </p>
+            )}
+          </section>
           <CartSummarySidebar
             subtotal={subtotal}
             volumeDiscount={volumeDiscount}
+            rushFee={rushFee}
+            promoDiscount={promoDiscount}
             shippingFee={shippingFee}
             gst={gst}
             delivery={delivery}
@@ -445,10 +586,10 @@ export function ConfirmationStep({
           />
           <button
             type="button"
-            disabled={!termsAccepted || isProcessing}
+            disabled={!termsAccepted || isProcessing || promoState.status === "checking"}
             onClick={handlePayment}
             className={`flex w-full items-center justify-center gap-2 rounded-[4px] py-3 text-sm font-semibold transition-colors ${
-              termsAccepted && !isProcessing
+              termsAccepted && !isProcessing && promoState.status !== "checking"
                 ? "bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-dark)]"
                 : "cursor-not-allowed bg-[#E5E5E5] text-[var(--text-primary)]/40"
             }`}

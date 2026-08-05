@@ -70,6 +70,26 @@ describe("server custom-order pricing", () => {
     ).toBe(CUSTOM_ORDER_PRICING_VERSION);
   });
 
+
+  it("adds the rush surcharge after volume discount and before GST", () => {
+    const standard = priceCustomOrder({
+      snapshot: designSnapshot(),
+      sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 5, XXL: 5 },
+      deliveryType: "standard",
+    });
+    const rush = priceCustomOrder({
+      snapshot: designSnapshot(),
+      sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 5, XXL: 5 },
+      deliveryType: "rush",
+    });
+
+    expect(rush.subtotalPaise - standard.subtotalPaise).toBe(50 * 7_500);
+    expect(
+      (rush.item as { product_snapshot: { rushSurchargePaise: number } })
+        .product_snapshot.rushSurchargePaise,
+    ).toBe(50 * 7_500);
+  });
+
   it("rejects quantity tampering against the immutable design", () => {
     expect(() =>
       priceCustomOrder({

@@ -1,7 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { getDeliveryOptions } from "@/lib/configurator/delivery";
+import {
+  getDeliveryOptions,
+  RUSH_DELIVERY_SURCHARGE_RUPEES,
+} from "@/lib/configurator/delivery";
 
 export interface DeliveryDatePickerProps {
   orderConfirmedDate?: Date;
@@ -93,7 +96,7 @@ export function DeliveryDatePicker({
         >
           <span className="block text-sm font-medium">Rush</span>
           <span className="block text-xs opacity-70">
-            {formatDate(options.rush)} · +₹75/unit
+            {formatDate(options.rush)} · +₹{RUSH_DELIVERY_SURCHARGE_RUPEES}/unit
           </span>
         </button>
 
@@ -147,7 +150,7 @@ export function DeliveryDatePicker({
       )}
 
       <div className="text-xs text-[var(--text-primary)]/60 space-y-1 pt-1">
-        <p>Rush adds ₹75 per unit to the invoice.</p>
+        <p>Rush adds ₹{RUSH_DELIVERY_SURCHARGE_RUPEES} per unit before GST.</p>
         <p>Standard follows the regular production and shipping timeline.</p>
         {extraLeadTimeDays > 0 && (
           <p>Custom dye adds {extraLeadTimeDays} production days to these estimates.</p>

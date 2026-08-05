@@ -5,6 +5,7 @@ import {
   getVolumeDiscountPercent,
 } from "@/lib/configurator/pricing";
 import { getProduct } from "@/lib/configurator/products";
+import { RUSH_DELIVERY_SURCHARGE_PAISE } from "@/lib/configurator/delivery";
 import type { ProductId } from "@/lib/configurator/pricing";
 import type { GarmentColour, Artwork, NeckLabel } from "@/lib/configurator/types/configurator";
 import type { CartItem } from "./OrderReviewStep";
@@ -407,6 +408,52 @@ export function readActiveCartSummary(): { cartId: string; itemCount: number } |
   }
 }
 
+
+export function clearPaidCart(cartId: string): void {
+  if (typeof window === "undefined") return;
+
+  try {
+    const cartKey = `${STORAGE_PREFIX}${cartId}`;
+    const raw = window.localStorage.getItem(cartKey);
+    const itemIds: string[] = [];
+
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw) as { items?: Array<{ id?: unknown }> };
+        for (const item of parsed.items ?? []) {
+          if (typeof item.id === "string") itemIds.push(item.id);
+        }
+      } catch {
+        // The cart itself is still safe to remove when its JSON is corrupted.
+      }
+    }
+
+    window.localStorage.removeItem(cartKey);
+    window.localStorage.removeItem(`garmops:durable-order:${cartId}`);
+
+    // A customer may revisit an old paid-order result after starting a new cart.
+    // Only clear the active-cart pointer when it still belongs to this paid cart.
+    if (window.localStorage.getItem(ACTIVE_CART_ID_KEY) === cartId) {
+      window.localStorage.removeItem(ACTIVE_CART_ID_KEY);
+      window.localStorage.removeItem(ACTIVE_CART_KEY);
+    }
+
+    for (const itemId of itemIds) {
+      const storageKey = `cart-item:${itemId}`;
+      window.localStorage.removeItem(`mf_configurator_build:${storageKey}`);
+      window.localStorage.removeItem(`mf_configurator_cloud:${storageKey}`);
+      window.localStorage.removeItem(`mf_configurator_cloud_pending:checkout:${cartId}:${itemId}`);
+    }
+
+    window.dispatchEvent(
+      new CustomEvent(CART_DRAFT_UPDATED_EVENT, { detail: { cartId, cleared: true } }),
+    );
+    scheduleUploadCleanup();
+  } catch {
+    // Payment and order finalisation are authoritative even if browser cleanup fails.
+  }
+}
+
 export interface ConfiguredCartItemInput {
   productId: ProductId;
   productName: string;
@@ -552,29 +599,43 @@ export function calculateTotals(
   items: CartItem[],
   deliveryType?: CartDraft["deliveryType"],
 ) {
-  void deliveryType;
-  const garmentSubtotal = items.reduce(
-    (sum, item) => sum + totalUnits(item.sizeQuantities) * getCartItemBaseUnitPrice(item),
+  const garmentSubtotalPaise = items.reduce((sum, item) => {
+    const baseUnitPaise = Math.round(getCartItemBaseUnitPrice(item) * 100);
+    return sum + totalUnits(item.sizeQuantities) * baseUnitPaise;
+  }, 0);
+  const volumeDiscountPaise = items.reduce((sum, item) => {
+    const itemUnits = totalUnits(item.sizeQuantities);
+    const baseUnitPaise = Math.round(getCartItemBaseUnitPrice(item) * 100);
+    const discountedUnitPaise = Math.round(getCartItemUnitPrice(item) * 100);
+    return sum + Math.max(0, baseUnitPaise - discountedUnitPaise) * itemUnits;
+  }, 0);
+  const quantity = items.reduce(
+    (sum, item) => sum + totalUnits(item.sizeQuantities),
     0,
   );
-  const volumeDiscount = items.reduce((sum, item) => {
-    const itemUnits = totalUnits(item.sizeQuantities);
-    const unitDiscount = getCartItemBaseUnitPrice(item) - getCartItemUnitPrice(item);
-    return sum + unitDiscount * itemUnits;
-  }, 0);
-  const subtotal = garmentSubtotal;
-  const shippingFee = 0;
-  const taxableSubtotal = Math.max(0, subtotal - volumeDiscount);
-  const gst = (taxableSubtotal * GST_PERCENT) / 100;
-  const total = taxableSubtotal + gst;
+  const rushFeePaise =
+    deliveryType === "rush" ? quantity * RUSH_DELIVERY_SURCHARGE_PAISE : 0;
+  const merchandiseAfterVolumeDiscountPaise =
+    garmentSubtotalPaise - volumeDiscountPaise;
+  const taxableSubtotalPaise =
+    merchandiseAfterVolumeDiscountPaise + rushFeePaise;
+  const gstPaise = Math.round((taxableSubtotalPaise * GST_PERCENT) / 100);
+  const totalPaise = taxableSubtotalPaise + gstPaise;
 
   return {
-    subtotal,
-    volumeDiscount,
-    shippingFee,
-    hasRushDelivery: false,
-    gst,
-    taxableSubtotal,
-    total,
+    subtotal: garmentSubtotalPaise / 100,
+    subtotalPaise: garmentSubtotalPaise,
+    volumeDiscount: volumeDiscountPaise / 100,
+    volumeDiscountPaise,
+    rushFee: rushFeePaise / 100,
+    rushFeePaise,
+    shippingFee: 0,
+    hasRushDelivery: deliveryType === "rush",
+    gst: gstPaise / 100,
+    gstPaise,
+    taxableSubtotal: taxableSubtotalPaise / 100,
+    taxableSubtotalPaise,
+    total: totalPaise / 100,
+    totalPaise,
   };
 }

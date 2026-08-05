@@ -5,6 +5,7 @@ import {
 } from "../configurator/pricing";
 import { getProduct } from "../configurator/products";
 import { GST_PERCENT } from "../pricingRules";
+import { RUSH_DELIVERY_SURCHARGE_PAISE } from "../configurator/delivery";
 import type { Json } from "@/types/database.generated";
 
 import type { CloudDesignSnapshot } from "@/lib/designs/schema";
@@ -16,7 +17,7 @@ import type {
 } from "../configurator/types/configurator";
 
 export const CUSTOM_ORDER_PRICING_VERSION =
-  "custom-configurator-v1-2026-07-29";
+  "custom-configurator-v2-2026-08-05-rush";
 
 type PricedCustomOrder = {
   productId: string;
@@ -153,9 +154,17 @@ export function priceCustomOrder(input: {
   );
   const configuredUnitPaise = Math.round(configuredUnitRupees * 100);
   const discountPercent = getVolumeDiscountPercent(quantity);
-  const unitPricePaise = Math.round(
+  const discountedMerchandiseUnitPaise = Math.round(
     (configuredUnitPaise * (100 - discountPercent)) / 100,
   );
+  const volumeDiscountUnitPaise =
+    configuredUnitPaise - discountedMerchandiseUnitPaise;
+  const rushSurchargeUnitPaise =
+    input.deliveryType === "rush" ? RUSH_DELIVERY_SURCHARGE_PAISE : 0;
+  const unitPricePaise =
+    discountedMerchandiseUnitPaise + rushSurchargeUnitPaise;
+  const volumeDiscountPaise = volumeDiscountUnitPaise * quantity;
+  const rushSurchargePaise = rushSurchargeUnitPaise * quantity;
   const subtotalPaise = unitPricePaise * quantity;
   // Shipping is quoted and collected separately by staff after the order is reviewed.
   const shippingPaise = 0;
@@ -181,7 +190,13 @@ export function priceCustomOrder(input: {
       ) * 100,
     ),
     configuredUnitPaise,
+    discountedMerchandiseUnitPaise,
     discountPercent,
+    volumeDiscountUnitPaise,
+    volumeDiscountPaise,
+    deliveryType: input.deliveryType,
+    rushSurchargeUnitPaise,
+    rushSurchargePaise,
     pricingVersion: CUSTOM_ORDER_PRICING_VERSION,
     hsnCode: hsnCodeForProduct(product.id),
     gstRateBasisPoints: GST_PERCENT * 100,

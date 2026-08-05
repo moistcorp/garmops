@@ -1,9 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type { Database } from "@/types/database.generated";
 
-import { getCustomerOrder } from "./dal";
+import { CUSTOMER_ORDER_PAGE_SIZE, getCustomerOrder, listCustomerOrders } from "./dal";
 
 type QueryResult = { data: unknown; error: { message: string } | null };
 
@@ -14,6 +14,7 @@ function query(result: QueryResult) {
     order: () => builder,
     is: () => builder,
     in: () => builder,
+    range: () => builder,
     maybeSingle: () => Promise.resolve(result),
     then: (
       resolve: (value: QueryResult) => unknown,
@@ -80,5 +81,33 @@ describe("getCustomerOrder", () => {
 
     expect(result.order.data).toMatchObject({ id: "order-1" });
     expect(result.payments.error).toEqual({ message: "payment unavailable" });
+  });
+});
+
+
+describe("listCustomerOrders", () => {
+  it("requests a fixed page of customer-owned orders", () => {
+    const range = vi.fn();
+    const builder = {
+      select: vi.fn(() => builder),
+      eq: vi.fn(() => builder),
+      order: vi.fn(() => builder),
+      in: vi.fn(() => builder),
+      range: vi.fn((from: number, to: number) => {
+        range(from, to);
+        return builder;
+      }),
+    };
+    const supabase = {
+      from: vi.fn(() => builder),
+    } as unknown as SupabaseClient<Database>;
+
+    listCustomerOrders(supabase, "user-1", "all", 3);
+
+    expect(builder.eq).toHaveBeenCalledWith("customer_user_id", "user-1");
+    expect(range).toHaveBeenCalledWith(
+      CUSTOMER_ORDER_PAGE_SIZE * 2,
+      CUSTOMER_ORDER_PAGE_SIZE * 3 - 1,
+    );
   });
 });

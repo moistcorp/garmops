@@ -200,13 +200,12 @@ function CompanyForm({
     <form action={action} className="space-y-5">
       <div className="grid gap-4 sm:grid-cols-2">
         <label className={labelClass}>
-          Company name *
+          Company name <span className="font-normal text-black/40">(optional for personal accounts)</span>
           <input
             className={inputClass}
             name="companyName"
             defaultValue={companyName}
             autoComplete="organization"
-            required
             maxLength={200}
             disabled={!editable}
           />
@@ -227,7 +226,7 @@ function CompanyForm({
       {editable ? (
         <div className="flex flex-wrap items-center gap-4">
           <button className={buttonClass} type="submit" disabled={pending}>
-            {pending ? "Saving…" : "Save company details"}
+            {pending ? "Saving…" : "Save billing identity"}
           </button>
           <Message state={state} />
         </div>
@@ -338,7 +337,7 @@ export default function CompanyDetailsForms({
         <TechpackSectionHeading
           index="01"
           title="Company identity"
-          description="Used on order records and billing documents."
+          description="Personal customers may leave the company name blank. A legal business name is required only when a GSTIN is added."
         />
         <div className="mt-6">
           <CompanyForm companyName={companyName} gstin={gstin} editable={canEditCompany} />

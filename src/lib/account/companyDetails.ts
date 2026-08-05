@@ -27,21 +27,31 @@ const optionalPhone = z.preprocess(
     }),
 );
 
-export const companyDetailsSchema = z.object({
-  companyName: z.string().trim().min(1, "Enter the company name").max(200),
-  gstin: z
-    .preprocess(
-      (value) =>
-        typeof value === "string" && value.trim() === "" ? undefined : value,
-      z.string().trim().toUpperCase().optional(),
-    )
-    .refine(
-      (value) =>
-        !value || /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(value),
-      "Enter a valid GSTIN",
-    )
-    .transform((value) => value ?? null),
-});
+export const companyDetailsSchema = z
+  .object({
+    companyName: optionalText(200),
+    gstin: z
+      .preprocess(
+        (value) =>
+          typeof value === "string" && value.trim() === "" ? undefined : value,
+        z.string().trim().toUpperCase().optional(),
+      )
+      .refine(
+        (value) =>
+          !value || /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(value),
+        "Enter a valid GSTIN",
+      )
+      .transform((value) => value ?? null),
+  })
+  .superRefine((value, context) => {
+    if (value.gstin && !value.companyName) {
+      context.addIssue({
+        code: "custom",
+        path: ["companyName"],
+        message: "Enter the legal business name when adding a GSTIN",
+      });
+    }
+  });
 
 export const savedAddressSchema = z.object({
   addressId: z.preprocess(

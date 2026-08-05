@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useRef } from "react";
 
-const MAX_RENDER_DIMENSION = 900;
-const MIN_RENDER_DIMENSION = 600;
+const MAX_RENDER_DIMENSION = 1400;
+const MIN_RENDER_DIMENSION = 720;
 const MAX_CACHED_VIEWS = 2;
 
 interface GarmentCompositeProps {
@@ -125,9 +125,9 @@ export function getDisplayPreviewColour(hex: string): [number, number, number] {
 
   let displayLightness = lightness;
   if (lightness < 0.22) {
-    displayLightness = 0.115 + (lightness / 0.22) * 0.105;
+    displayLightness = 0.105 + (lightness / 0.22) * 0.115;
   } else if (lightness > 0.78) {
-    displayLightness = 0.78 + ((lightness - 0.78) / 0.22) * 0.15;
+    displayLightness = 0.9 + ((lightness - 0.78) / 0.22) * 0.08;
   }
 
   return hslToRgb(hue, saturation * 0.95, clamp(displayLightness));
@@ -164,6 +164,9 @@ function buildLayerSignals(
   canvas.height = height;
   const context = canvas.getContext("2d", { willReadFrequently: true });
   if (!context) throw new Error("Canvas 2D rendering is unavailable.");
+
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
 
   const signals = new Uint8Array(width * height * 4);
 
@@ -286,10 +289,14 @@ function renderComposite(
 
   const darkProfile = smoothstep(0.45, 0.1, baseLuminance);
   const lightProfile = smoothstep(0.65, 0.95, baseLuminance);
-  const shadowStrength = 0.24 + 0.1 * lightProfile - 0.1 * darkProfile;
-  const grainStrength = 0.08 + 0.04 * lightProfile - 0.035 * darkProfile;
-  const highlightStrength = 0.035 + 0.07 * darkProfile - 0.02 * lightProfile;
-  const darkColourLift = 0.018 * darkProfile;
+
+  // Keep broad tonal shaping in the shadow map. The texture map is reserved
+  // for higher-frequency seam, rib and fabric detail so it is not counted
+  // twice and does not make light garments look grey or dirty.
+  const shadowStrength = 0.12 + 0.05 * lightProfile - 0.02 * darkProfile;
+  const detailStrength = 0.1 + 0.03 * lightProfile - 0.015 * darkProfile;
+  const highlightStrength = 0.02 + 0.07 * darkProfile - 0.01 * lightProfile;
+  const darkColourLift = 0.012 * darkProfile;
 
   for (let offset = 0; offset < pixels.length; offset += 4) {
     const alpha = signals[offset] / 255;
@@ -299,14 +306,13 @@ function renderComposite(
     const shadowLuminance = signals[offset + 2];
     const highlightLuminance = signals[offset + 3];
 
-    const shadowSignal = Math.pow(
-      clamp(Math.max((250 - shadowLuminance) / 105, (246 - textureLuminance) / 145)),
-      0.85
-    );
-    const grainSignal = Math.pow(clamp((252 - textureLuminance) / 65), 1);
-    const highlightSignal = Math.pow(clamp((highlightLuminance - 0.5) / 16.5), 1.15);
+    const shadowSignal = Math.pow(clamp((252 - shadowLuminance) / 85), 0.9);
+    const detailSignal = Math.pow(clamp((248 - textureLuminance) / 90), 1.6);
+    const highlightSignal = Math.pow(clamp((highlightLuminance - 3) / 35), 1.1);
 
-    const darken = (1 - shadowSignal * shadowStrength) * (1 - grainSignal * grainStrength);
+    const darken =
+      (1 - shadowSignal * shadowStrength) *
+      (1 - detailSignal * detailStrength);
     const highlightAlpha = highlightSignal * highlightStrength;
 
     const renderChannel = (baseChannel: number): number => {

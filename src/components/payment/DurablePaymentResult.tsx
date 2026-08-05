@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CheckCircle2, Clock3, XCircle } from "lucide-react";
 
 import InvoiceDownloadButton from "@/components/account/InvoiceDownloadButton";
+import ClearPaidCustomCart from "@/components/payment/ClearPaidCustomCart";
 import ClearPaidSampleCart from "@/components/payment/ClearPaidSampleCart";
 
 import {
@@ -23,6 +24,7 @@ export default function DurablePaymentResult({
     invoiceStatus: string | null;
     invoiceNumber: string | null;
     invoicePdfFileId: string | null;
+    cartId: string | null;
   };
 }) {
   const success = result.outcome === "success";
@@ -46,7 +48,12 @@ export default function DurablePaymentResult({
     <div className="techpack-canvas flex min-h-[80vh] items-center justify-center px-4 py-10 sm:px-6">
       {sampleOrder ? (
         <ClearPaidSampleCart paid={result.paymentStatus === "paid"} />
-      ) : null}
+      ) : (
+        <ClearPaidCustomCart
+          cartId={result.cartId}
+          paid={result.paymentStatus === "paid"}
+        />
+      )}
       <div className="techpack-surface w-full max-w-xl rounded-[4px] border p-7 text-center sm:p-10">
         <Icon
           size={52}

@@ -26,7 +26,7 @@ import { ConfiguratorTopBar } from "./ConfiguratorTopBar";
 import type { ConfiguratorJourneyStep } from "./ConfiguratorJourney";
 import { WhatsAppAssistantBar } from "./WhatsAppAssistantBar";
 import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionContext";
-import { getProduct } from "@/lib/configurator/products";
+import type { Product } from "@/lib/configurator/products";
 import {
   getBasePrice,
   buildPricingBreakdown,
@@ -81,6 +81,7 @@ interface FeedbackState {
 
 interface ConfigureClientProps {
   configId: string;
+  product: Product;
 }
 
 type CloudSaveStatus =
@@ -95,7 +96,6 @@ const POSITION_LABELS: Record<NeckLabel["position"], string> = {
   on_neck_tape: "On neck tape",
 };
 
-const FALLBACK_PRODUCT_ID = "regular-fit-tee-200gsm";
 const JOURNEY_STEP_FOR_CUSTOMISATION: Record<AccordionStepId, ConfiguratorJourneyStep> = {
   "garment-colour": "colour",
   artwork: "artwork",
@@ -160,12 +160,11 @@ function stepsForConfiguration(
   });
 }
 
-export default function ConfigureClient({ configId }: ConfigureClientProps) {
+export default function ConfigureClient({ configId, product }: ConfigureClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const product = getProduct(configId);
-  const productId = product?.id ?? FALLBACK_PRODUCT_ID;
-  const productName = product?.name ?? "Classic Tee";
+  const productId = product.id;
+  const productName = product.name;
   const editCartId = searchParams.get("cartId");
   const editItemId = searchParams.get("itemId");
   const requestedStepParam = searchParams.get("step");
