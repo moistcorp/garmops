@@ -21,6 +21,7 @@ function getDisplayPrice(productId: Product["id"], quantity: number): string {
 interface ProductCardProps {
   product: Product;
   quantity: number;
+  configuratorHref: string;
   compared: boolean;
   compareDisabled: boolean;
   onCompareChange: (selected: boolean) => void;
@@ -31,6 +32,7 @@ interface ProductCardProps {
 export default function ProductCard({
   product,
   quantity,
+  configuratorHref,
   compared,
   compareDisabled,
   onCompareChange,
@@ -41,7 +43,6 @@ export default function ProductCard({
   const cardRef = useRef<HTMLElement>(null);
   const hasTrackedView = useRef(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const configuratorHref = `/configurator/build/${product.id}`;
 
   useEffect(() => {
     const card = cardRef.current;
@@ -152,6 +153,7 @@ export default function ProductCard({
               <div><dt className="font-semibold text-[var(--text-primary)]">Climate</dt><dd>{product.climate}</dd></div>
               <div><dt className="font-semibold text-[var(--text-primary)]">Typical lead time</dt><dd>{product.standardLeadTime}</dd></div>
               <div><dt className="font-semibold text-[var(--text-primary)]">Recommended branding</dt><dd>{product.recommendedTechnique}</dd></div>
+              <div><dt className="font-semibold text-[var(--text-primary)]">Minimum per cart line</dt><dd>{product.minimumOrderQuantity} units</dd></div>
             </dl>
             <div><span className="font-semibold text-[var(--text-primary)]">Sizes</span><p>{product.sizes.join(", ")}</p></div>
           </div>

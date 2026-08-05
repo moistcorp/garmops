@@ -15,13 +15,21 @@ export const metadata: Metadata = generateMeta({
   ],
 });
 
-export default function ConfiguratorPage() {
+export default async function ConfiguratorPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const query = await searchParams;
+  const cartId = typeof query.cartId === "string" ? query.cartId : undefined;
   return (
     <main className="techpack-studio-bg min-h-screen px-4 pb-10 sm:px-6">
       <div className="mx-auto flex max-w-7xl flex-col gap-8">
         <ConfiguratorTopBar
           currentStep="product"
-          backHref="/"
+          backHref={cartId
+            ? `/configurator/cart/${encodeURIComponent(cartId)}/review`
+            : "/"}
           showCart
         />
 
@@ -35,7 +43,7 @@ export default function ConfiguratorPage() {
             </h1>
           </div>
         </div>
-        <ProductGrid />
+        <ProductGrid cartId={cartId} />
       </div>
     </main>
   );

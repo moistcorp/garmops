@@ -13,6 +13,7 @@ export type Product = {
   details: string[]
   careInstructions: string[]
   sizes: string[]
+  minimumOrderQuantity: number
   price: number
   image: string | null
 }
@@ -31,6 +32,7 @@ export const products: Product[] = [
     details: ['200 GSM 100% Cotton French Terry', 'Regular fit', 'Crew neck', 'Preshrunk fabric (0-3%)', 'Twin needle hem'],
     careInstructions: ['Machine Wash', 'Tumble Dry', 'Do not bleach', 'Iron on low heat'],
     sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+    minimumOrderQuantity: 50,
     price: PRODUCT_PRICES['Regular Fit Tee (200 GSM)'],
     image: '/products/regular-fit-tee-200gsm.webp',
   },
@@ -47,6 +49,7 @@ export const products: Product[] = [
     details: ['200 GSM 100% combed cotton', 'Boxy oversized fit', 'Drop shoulder', 'Crew neck', 'Preshrunk fabric'],
     careInstructions: ['Machine Wash', 'Tumble Dry', 'Do not bleach', 'Iron on low heat'],
     sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+    minimumOrderQuantity: 50,
     price: PRODUCT_PRICES['Boxy Fit Tee (200 GSM)'],
     image: '/products/boxy-fit-tee-200gsm.webp',
   },
@@ -63,6 +66,7 @@ export const products: Product[] = [
     details: ['260 GSM 100% combed cotton', 'Regular fit', 'Crew neck', 'Preshrunk fabric', 'Reinforced seams'],
     careInstructions: ['Machine Wash', 'Tumble Dry', 'Do not bleach', 'Iron on low heat'],
     sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+    minimumOrderQuantity: 50,
     price: PRODUCT_PRICES['Regular Fit Tee (260 GSM)'],
     image: '/products/regular-fit-tee-260gsm.webp',
   },
@@ -79,6 +83,7 @@ export const products: Product[] = [
     details: ['260 GSM 100% combed cotton', 'Boxy oversized fit', 'Drop shoulder', 'Crew neck', 'Reinforced seams'],
     careInstructions: ['Machine Wash', 'Tumble Dry', 'Do not bleach', 'Iron on low heat'],
     sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+    minimumOrderQuantity: 50,
     price: PRODUCT_PRICES['Boxy Fit Tee (260 GSM)'],
     image: '/products/boxy-fit-tee-260gsm.webp',
   },
@@ -94,6 +99,7 @@ export const products: Product[] = [
     details: ['260 GSM 100% combed cotton', 'Regular fit', 'Long sleeves', 'Crew neck', 'Ribbed cuffs'],
     careInstructions: ['Machine Wash', 'Tumble Dry', 'Do not bleach'],
     sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+    minimumOrderQuantity: 50,
     price: PRODUCT_PRICES['Longsleeve Tee (260 GSM)'],
     image: '/products/longsleeve-tee-260gsm.webp',
   },
@@ -110,6 +116,7 @@ export const products: Product[] = [
     details: ['280 GSM cotton pique', 'Regular fit', 'Ribbed polo collar', 'Button placket', 'Preshrunk fabric'],
     careInstructions: ['Machine Wash', 'Tumble Dry', 'Do not bleach', 'Iron on low heat'],
     sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+    minimumOrderQuantity: 50,
     price: PRODUCT_PRICES['Polo (280 GSM)'],
     image: '/products/polo-tee.webp',
   },
@@ -125,6 +132,7 @@ export const products: Product[] = [
     details: ['12oz (340 GSM) natural canvas', 'Reinforced 24" handles', 'Gusset base', '38cm x 42cm body'],
     careInstructions: ['Hand Wash', 'Air Dry', 'Do not Machine Wash', 'Iron on Low'],
     sizes: ['One Size'],
+    minimumOrderQuantity: 50,
     price: PRODUCT_PRICES['Canvas Tote Bag'],
     image: '/products/canvas-tote-bag.webp',
   },
@@ -141,6 +149,7 @@ export const products: Product[] = [
     details: ['320 GSM 80/20 cotton-poly fleece', 'Regular fit', 'Crewneck collar', 'Ribbed cuffs and hem', 'Brushed inner fleece'],
     careInstructions: ['Machine Wash', 'Tumble Dry', 'Do not bleach', 'Iron on low heat'],
     sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+    minimumOrderQuantity: 50,
     price: PRODUCT_PRICES['Regular Fit Sweatshirt (320 GSM)'],
     image: '/products/regular-fit-sweatshirt-320gsm.webp',
   },
@@ -157,6 +166,7 @@ export const products: Product[] = [
     details: ['320 GSM 80/20 cotton-poly fleece', 'Regular fit', 'Kangaroo pocket', 'Structured hood with drawcord', 'Ribbed cuffs and hem'],
     careInstructions: ['Machine Wash', 'Tumble Dry', 'Do not bleach', 'Iron on low heat'],
     sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+    minimumOrderQuantity: 50,
     price: PRODUCT_PRICES['Regular Fit Hoodie (320 GSM)'],
     image: '/products/regular-fit-hoodie-320gsm.webp',
   },
@@ -173,6 +183,7 @@ export const products: Product[] = [
     details: ['320 GSM 80/20 cotton-poly fleece', 'Boxy oversized fit', 'Drop shoulder', 'Kangaroo pocket', 'Oversized hood with drawcord'],
     careInstructions: ['Machine Wash', 'Tumble Dry', 'Do not bleach'],
     sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+    minimumOrderQuantity: 50,
     price: PRODUCT_PRICES['Boxy Fit Hoodie (320 GSM)'],
     image: '/products/boxy-fit-hoodie-320gsm.webp',
   },

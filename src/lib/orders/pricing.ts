@@ -3,7 +3,7 @@ import {
   getConfiguredUnitPrice,
   getVolumeDiscountPercent,
 } from "../configurator/pricing";
-import { getProduct } from "../configurator/products";
+import { getProduct, getProductMinimumOrderQuantity } from "../configurator/products";
 import { GST_PERCENT } from "../pricingRules";
 import { RUSH_DELIVERY_SURCHARGE_PAISE } from "../configurator/delivery";
 import type { Json } from "@/types/database.generated";
@@ -17,7 +17,7 @@ import type {
 } from "../configurator/types/configurator";
 
 export const CUSTOM_ORDER_PRICING_VERSION =
-  "custom-configurator-v2-2026-08-05-rush";
+  "custom-configurator-v3-2026-08-05-multi-item";
 
 type PricedCustomOrder = {
   productId: string;
@@ -75,6 +75,10 @@ export function priceCustomOrder(input: {
   snapshot: CloudDesignSnapshot;
   sizeQuantities: Record<string, number>;
   deliveryType: "rush" | "standard" | "flexible";
+  lineNumber?: number;
+  cartItemId?: string;
+  designProjectId?: string;
+  designVersionId?: string;
 }): PricedCustomOrder {
   ensureCompleteConfiguration(input.snapshot);
 
@@ -104,10 +108,10 @@ export function priceCustomOrder(input: {
   if (quantity !== input.snapshot.configuration.quantity) {
     throw new Error("Size quantities do not match the saved design quantity");
   }
-  const minimum =
-    input.snapshot.configuration.colour.type === "custom_dye"
-      ? CUSTOM_DYE_MOQ_UNITS
-      : 50;
+  const minimum = getProductMinimumOrderQuantity(product.id, {
+    colourType: input.snapshot.configuration.colour.type,
+    customDyeMinimum: CUSTOM_DYE_MOQ_UNITS,
+  });
   if (quantity < minimum || quantity > 1_000_000) {
     throw new Error(`Order quantity must be between ${minimum} and 1000000`);
   }
@@ -200,10 +204,14 @@ export function priceCustomOrder(input: {
     pricingVersion: CUSTOM_ORDER_PRICING_VERSION,
     hsnCode: hsnCodeForProduct(product.id),
     gstRateBasisPoints: GST_PERCENT * 100,
+    cartItemId: input.cartItemId ?? null,
+    designProjectId: input.designProjectId ?? null,
+    designVersionId: input.designVersionId ?? null,
+    minimumOrderQuantity: minimum,
   };
 
   const item = {
-    line_number: 1,
+    line_number: input.lineNumber ?? 1,
     product_id: product.id,
     product_slug: product.id,
     product_name: product.name,

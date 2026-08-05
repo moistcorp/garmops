@@ -51,10 +51,27 @@ const sizeQuantitiesSchema = z.record(
 ).refine((sizes) => Object.keys(sizes).length > 0, "Size allocation is required")
   .refine((sizes) => Object.values(sizes).some((quantity) => quantity > 0), "At least one size needs a quantity");
 
-export const submitCustomOrderRequestSchema = z.object({
+const customOrderItemSchema = z.object({
+  cartItemId: z.string().trim().min(1).max(160),
   designProjectId: z.uuid(),
   designVersion: z.number().int().positive(),
   sizeQuantities: sizeQuantitiesSchema,
+}).strict();
+
+export const submitCustomOrderRequestSchema = z.object({
+  items: z.array(customOrderItemSchema).min(1).max(20).superRefine((items, context) => {
+    const seen = new Set<string>();
+    items.forEach((item, index) => {
+      if (seen.has(item.cartItemId)) {
+        context.addIssue({
+          code: "custom",
+          path: [index, "cartItemId"],
+          message: "Each cart item must be unique",
+        });
+      }
+      seen.add(item.cartItemId);
+    });
+  }),
   deliveryType: z.enum(["rush", "standard", "flexible"]),
   requestedDeliveryDate: z.iso.date(),
   projectName: z.string().trim().min(1).max(160),

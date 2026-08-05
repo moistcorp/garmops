@@ -17,11 +17,16 @@ import {
 
 const PREPARED_ORDER_PREFIX = "garmops:durable-order:";
 
+type PreparedOrderItem = {
+  cartItemId: string;
+  designProjectId: string;
+  designVersion: number;
+};
+
 type PreparedOrder = {
   fingerprint: string;
   idempotencyKey: string;
-  designProjectId: string;
-  designVersion: number;
+  items: PreparedOrderItem[];
 };
 
 type SubmissionResult =
@@ -55,8 +60,17 @@ function readPreparedOrder(cartId: string): PreparedOrder | null {
     if (
       typeof value.fingerprint !== "string" ||
       typeof value.idempotencyKey !== "string" ||
-      typeof value.designProjectId !== "string" ||
-      !Number.isInteger(value.designVersion)
+      !Array.isArray(value.items) ||
+      value.items.length === 0 ||
+      value.items.some((item) => {
+        if (!item || typeof item !== "object") return true;
+        const candidate = item as Partial<PreparedOrderItem>;
+        return (
+          typeof candidate.cartItemId !== "string" ||
+          typeof candidate.designProjectId !== "string" ||
+          !Number.isInteger(candidate.designVersion)
+        );
+      })
     ) return null;
     return value as PreparedOrder;
   } catch {
@@ -91,16 +105,15 @@ function draftForItem(item: CartItem): BuildDraft {
 }
 
 function fingerprintFor(draft: CartDraft): string {
-  const item = draft.items[0];
   return JSON.stringify({
-    item: item ? {
+    items: draft.items.map((item) => ({
       id: item.id,
       productId: item.productId,
       colour: item.colour,
       artwork: item.artwork,
       neckLabel: item.neckLabel,
       sizeQuantities: item.sizeQuantities,
-    } : null,
+    })),
     projectName: draft.projectName,
     contact: draft.projectContact,
     shipping: draft.shippingInformation,
@@ -149,62 +162,92 @@ export async function prepareCustomCheckoutPayment(input: {
   cartId: string;
   draft: CartDraft;
 }): Promise<SubmissionResult> {
-  if (input.draft.items.length !== 1) {
+  if (input.draft.items.length === 0 || input.draft.items.length > 20) {
     return {
       ok: false,
       kind: "validation",
-      message: "Each order can contain one configured product. Start a separate order for another product.",
+      message: input.draft.items.length === 0
+        ? "Add at least one configured product before payment."
+        : "A cart can contain at most 20 configured products.",
     };
   }
   if (!input.draft.selectedDeliveryDateIso || !input.draft.deliveryType) {
     return { ok: false, kind: "validation", message: "Choose a requested delivery date before payment." };
   }
 
-  const item = input.draft.items[0];
-  const storageKey = `cart-item:${item.id}`;
   const fingerprint = fingerprintFor(input.draft);
   let prepared = readPreparedOrder(input.cartId);
 
   if (!prepared || prepared.fingerprint !== fingerprint) {
-    const cloudResult = await saveBuildDraftToCloud({
-      configId: item.productId,
-      storageKey,
-      productName: item.productName,
-      draft: draftForItem(item),
-      existingLink: readCloudDesignLink(storageKey),
-      operationKey: `checkout:${input.cartId}:${item.id}`,
-    });
-    if (!cloudResult.ok) {
-      return {
-        ok: false,
-        kind: cloudResult.kind === "unauthorized"
-          ? "unauthorized"
-          : cloudResult.kind === "unavailable"
-            ? "unavailable"
-            : "conflict",
-        message: cloudResult.kind === "conflict"
-          ? "This design has newer cloud changes. Resolve them in the Studio before ordering."
-          : cloudResult.message,
-      };
+    const preparedItems: PreparedOrderItem[] = [];
+    for (const item of input.draft.items) {
+      const storageKey = `cart-item:${item.id}`;
+      const cloudResult = await saveBuildDraftToCloud({
+        configId: item.productId,
+        storageKey,
+        productName: item.productName,
+        draft: draftForItem(item),
+        existingLink: readCloudDesignLink(storageKey),
+        operationKey: `checkout:${input.cartId}:${item.id}`,
+      });
+      if (!cloudResult.ok) {
+        return {
+          ok: false,
+          kind: cloudResult.kind === "unauthorized"
+            ? "unauthorized"
+            : cloudResult.kind === "unavailable"
+              ? "unavailable"
+              : "conflict",
+          message: cloudResult.kind === "conflict"
+            ? `${item.productName} has newer cloud changes. Resolve them in the Studio before ordering.`
+            : cloudResult.message,
+        };
+      }
+
+      let frozen: CloudDesignLink;
+      try {
+        frozen = await freezeVersion(storageKey, cloudResult.link);
+      } catch (error) {
+        return {
+          ok: false,
+          kind: "conflict",
+          message: error instanceof Error
+            ? `${item.productName}: ${error.message}`
+            : `${item.productName}: design version could not be frozen`,
+        };
+      }
+      preparedItems.push({
+        cartItemId: item.id,
+        designProjectId: frozen.designId,
+        designVersion: frozen.currentVersion,
+      });
     }
 
-    let frozen: CloudDesignLink;
-    try {
-      frozen = await freezeVersion(storageKey, cloudResult.link);
-    } catch (error) {
-      return {
-        ok: false,
-        kind: "conflict",
-        message: error instanceof Error ? error.message : "Design version could not be frozen",
-      };
-    }
     prepared = {
       fingerprint,
       idempotencyKey: crypto.randomUUID(),
-      designProjectId: frozen.designId,
-      designVersion: frozen.currentVersion,
+      items: preparedItems,
     };
     writePreparedOrder(input.cartId, prepared);
+  }
+
+  const preparedByItemId = new Map(prepared.items.map((item) => [item.cartItemId, item]));
+  const checkoutItems: Array<PreparedOrderItem & { sizeQuantities: Record<string, number> }> = [];
+  for (const item of input.draft.items) {
+    const frozen = preparedByItemId.get(item.id);
+    if (!frozen) {
+      return {
+        ok: false,
+        kind: "conflict",
+        message: `Prepared design is missing for ${item.productName}. Return to the cart and try again.`,
+      };
+    }
+    checkoutItems.push({
+      cartItemId: item.id,
+      designProjectId: frozen.designProjectId,
+      designVersion: frozen.designVersion,
+      sizeQuantities: item.sizeQuantities,
+    });
   }
 
   const contact = input.draft.projectContact;
@@ -219,12 +262,10 @@ export async function prepareCustomCheckoutPayment(input: {
     body: JSON.stringify({
       cartId: input.cartId,
       returnPath: `/configurator/cart/${encodeURIComponent(input.cartId)}/confirmation`,
-      designProjectId: prepared.designProjectId,
-      designVersion: prepared.designVersion,
-      sizeQuantities: item.sizeQuantities,
+      items: checkoutItems,
       deliveryType: input.draft.deliveryType,
       requestedDeliveryDate: localDateInIndia(input.draft.selectedDeliveryDateIso),
-      projectName: input.draft.projectName.trim() || `${item.productName} project`,
+      projectName: input.draft.projectName.trim() || "Merch project",
       contact,
       shipping: input.draft.shippingInformation,
       billing: {

@@ -105,9 +105,11 @@ export async function updateOrderConfigurationAction(
         ? "Order quantity cannot be changed after payment. Cancel and place a new order."
         : /PRINTING_TECHNIQUE_IMMUTABLE/.test(error.message)
           ? "Printing technique cannot be changed after payment. Cancel and place a new order."
-          : /LOCKED/.test(error.message)
-            ? "This order is locked against configuration edits."
-            : "Configuration changes could not be saved.";
+          : /ORDER_LINE_(?:STRUCTURE|IDENTITY)_IMMUTABLE/.test(error.message)
+            ? "Cart lines and their paid design identities cannot be added, removed, or replaced after payment."
+            : /LOCKED/.test(error.message)
+              ? "This order is locked against configuration edits."
+              : "Configuration changes could not be saved.";
     return staffActionError(message);
   }
   revalidatePath(`/orders/${orderNumber.data}`);

@@ -45,7 +45,7 @@ import {
   CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS,
   CUSTOM_DYE_MOQ_UNITS,
 } from "@/lib/configurator/colourRules";
-import { getProduct } from "@/lib/configurator/products";
+import { getProduct, getProductMinimumOrderQuantity } from "@/lib/configurator/products";
 import CanvasRenderer from "../GarmentPreview/CanvasRenderer";
 import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionContext";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
@@ -256,7 +256,7 @@ export function ConfirmationStep({
     const hasValidItems =
       draft.items.length > 0 &&
       draft.items.every((item) => {
-        const minimum = item.colour.type === "custom_dye" ? CUSTOM_DYE_MOQ_UNITS : 50;
+        const minimum = getProductMinimumOrderQuantity(item.productId, { colourType: item.colour.type, customDyeMinimum: CUSTOM_DYE_MOQ_UNITS });
         return totalUnits(item.sizeQuantities) >= minimum;
       });
     const procurementMissing = getProcurementMissingFields({
@@ -487,7 +487,7 @@ export function ConfirmationStep({
           <p className="mb-2 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">02 / Order specification</p>
           <h3 className="mb-4 text-sm font-medium text-[var(--text-primary)]">Order summary</h3>
           <div className="space-y-4">
-            {draft.items.map((item) => <ProductRecapCard key={item.id} item={item} />)}
+            {draft.items.map((item, index) => <ProductRecapCard key={item.id} item={item} lineNumber={index + 1} />)}
           </div>
         </section>
 
@@ -656,7 +656,7 @@ function AddressSummary({ address }: { address: Address }) {
   );
 }
 
-function ProductRecapCard({ item }: { item: CartItem }) {
+function ProductRecapCard({ item, lineNumber }: { item: CartItem; lineNumber: number }) {
   const units = totalUnits(item.sizeQuantities);
   const unitPrice = getCartItemUnitPrice(item);
   const discountPercent = getCartItemDiscountPercent(item);
@@ -678,6 +678,7 @@ function ProductRecapCard({ item }: { item: CartItem }) {
         </ArtworkPositionProvider>
       </div>
       <div className="flex-1">
+        <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--color-accent)]">Line {lineNumber}</p>
         <p className="text-sm font-medium text-[var(--text-primary)]">{item.productName}</p>
         <p className="text-xs text-[var(--text-primary)]/60">
           {item.colour.name || "Bright White"} · <span className="font-mono">{units} units · {formatInr(unitPrice)}/unit</span>

@@ -39,14 +39,15 @@ export function getCartJourneyLinks(
   firstItemId?: string
 ): Partial<Record<ConfiguratorJourneyStep, string>> {
   const encodedCartId = encodeURIComponent(cartId);
+  const productHref = `/configurator?cartId=${encodedCartId}`;
   const buildHref = firstProductId && firstItemId
     ? `/configurator/build/${encodeURIComponent(firstProductId)}?cartId=${encodedCartId}&itemId=${encodeURIComponent(firstItemId)}`
-    : "/configurator";
+    : productHref;
   const buildStepHref = (step: "garment-colour" | "artwork" | "neck-label") =>
     firstProductId && firstItemId ? `${buildHref}&step=${step}` : buildHref;
 
   return {
-    product: "/configurator",
+    product: productHref,
     colour: buildStepHref("garment-colour"),
     artwork: buildStepHref("artwork"),
     "neck-label": buildStepHref("neck-label"),

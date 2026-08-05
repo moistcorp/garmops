@@ -14,9 +14,20 @@ function validSubmission() {
     state: "Uttar Pradesh",
   };
   return {
-    designProjectId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-    designVersion: 2,
-    sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 5, XXL: 5 },
+    items: [
+      {
+        cartItemId: "cart-line-1",
+        designProjectId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        designVersion: 2,
+        sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 5, XXL: 5 },
+      },
+      {
+        cartItemId: "cart-line-2",
+        designProjectId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        designVersion: 1,
+        sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 5, XXL: 5 },
+      },
+    ],
     deliveryType: "standard" as const,
     requestedDeliveryDate: "2026-09-15",
     projectName: "Autumn team merchandise",
@@ -47,6 +58,17 @@ describe("custom order submission schema", () => {
   it("accepts a complete immutable-design submission", () => {
     expect(submitCustomOrderRequestSchema.safeParse(validSubmission()).success)
       .toBe(true);
+  });
+
+
+  it("rejects duplicate cart line identities while allowing repeated products", () => {
+    const input = validSubmission();
+    expect(
+      submitCustomOrderRequestSchema.safeParse({
+        ...input,
+        items: [input.items[0], { ...input.items[1], cartItemId: input.items[0].cartItemId }],
+      }).success,
+    ).toBe(false);
   });
 
   it("rejects a submission without accepted terms", () => {

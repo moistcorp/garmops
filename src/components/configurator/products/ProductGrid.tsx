@@ -12,7 +12,7 @@ import ProductCard from "./ProductCard";
 
 const PRODUCT_TRANSITION_MS = 2000;
 
-export default function ProductGrid() {
+export default function ProductGrid({ cartId }: { cartId?: string }) {
   const router = useRouter();
   const [useCase, setUseCase] = useState<ProductUseCase | "">("");
   const [quantity, setQuantity] = useState(100);
@@ -41,6 +41,10 @@ export default function ProductGrid() {
 
   const comparedProducts = products.filter((product) => compareIds.includes(product.id));
   const discount = getVolumeDiscountPercent(quantity);
+  const productHref = useCallback((productId: string) => {
+    const base = `/configurator/build/${encodeURIComponent(productId)}`;
+    return cartId ? `${base}?cartId=${encodeURIComponent(cartId)}` : base;
+  }, [cartId]);
 
   function updateQuantityDraft(raw: string) {
     if (!/^[0-9]*$/.test(raw)) return;
@@ -83,14 +87,14 @@ export default function ProductGrid() {
     ) return;
 
     event.preventDefault();
-    const href = `/configurator/build/${product.id}`;
+    const href = productHref(product.id);
     setSelectedProductId(product.id);
     router.prefetch(href);
     // Dynamic-route prefetching stops at the loading boundary, so warm the
     // configurator client bundle during the intentional transition as well.
     void import("../ConfigureClient");
     selectionTimer.current = window.setTimeout(() => router.push(href), PRODUCT_TRANSITION_MS);
-  }, [quantity, router, selectedProductId, useCase]);
+  }, [productHref, quantity, router, selectedProductId, useCase]);
 
   return (
     <div className="space-y-6">
@@ -141,6 +145,7 @@ export default function ProductGrid() {
             key={product.id}
             product={product}
             quantity={quantity}
+            configuratorHref={productHref(product.id)}
             compared={compareIds.includes(product.id)}
             compareDisabled={compareIds.length >= 3}
             onCompareChange={(selected) => toggleCompare(product.id, selected)}

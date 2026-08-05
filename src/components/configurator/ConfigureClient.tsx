@@ -26,7 +26,7 @@ import { ConfiguratorTopBar } from "./ConfiguratorTopBar";
 import type { ConfiguratorJourneyStep } from "./ConfiguratorJourney";
 import { WhatsAppAssistantBar } from "./WhatsAppAssistantBar";
 import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionContext";
-import type { Product } from "@/lib/configurator/products";
+import { getProductMinimumOrderQuantity, type Product } from "@/lib/configurator/products";
 import {
   getBasePrice,
   buildPricingBreakdown,
@@ -35,6 +35,7 @@ import {
 import { CUSTOM_DYE_MOQ_UNITS } from "@/lib/configurator/colourRules";
 import {
   readDraft,
+  MAX_CONFIGURED_CART_ITEMS,
   totalUnits,
   upsertConfiguredCartItem,
   splitQuantityAcrossSizes,
@@ -173,6 +174,9 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   const requestedCloudSave = searchParams.get("cloudSave") === "1";
   const requestedSaveTitle = searchParams.get("saveTitle") ?? "";
   const requestedEstimateId = searchParams.get("estimateId");
+  const productCatalogHref = editCartId
+    ? `/configurator?cartId=${encodeURIComponent(editCartId)}`
+    : "/configurator";
   const designStorageKey = requestedDesignId
     ? `design:${requestedDesignId}`
     : editItemId
@@ -199,7 +203,9 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   const [expandedStepId, setExpandedStepId] = useState<AccordionStepId | null>(
     requestedStep
   );
-  const [quantity, setQuantity] = useState(50);
+  const [quantity, setQuantity] = useState(() =>
+    getProductMinimumOrderQuantity(productId)
+  );
   const [ctaErrorMessage, setCtaErrorMessage] = useState<string | null>(null);
   const [ctaErrorNonce, setCtaErrorNonce] = useState(0);
   const [colour, setColour] = useState<GarmentColour>(DEFAULT_COLOUR);
@@ -243,7 +249,10 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   const cloudSaveIntentHandled = useRef(false);
 
   const pricingBreakdown = buildPricingBreakdown(productId, colour, artwork, neckLabel, quantity);
-  const minimumQuantity = colour.type === "custom_dye" ? CUSTOM_DYE_MOQ_UNITS : 50;
+  const minimumQuantity = getProductMinimumOrderQuantity(productId, {
+    colourType: colour.type,
+    customDyeMinimum: CUSTOM_DYE_MOQ_UNITS,
+  });
   const activeCustomisationStepId = expandedStepId ?? "garment-colour";
   const previewNeckLabel: NeckLabel =
     activeCustomisationStepId === "neck-label" && !neckLabel.fileUrl
@@ -344,9 +353,10 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
       setQuantity(
         safeQuantity(
           restoredQuantity,
-          restoredColour.type === "custom_dye"
-            ? CUSTOM_DYE_MOQ_UNITS
-            : 50
+          getProductMinimumOrderQuantity(productId, {
+            colourType: restoredColour.type,
+            customDyeMinimum: CUSTOM_DYE_MOQ_UNITS,
+          })
         )
       );
       setDraftRestored(true);
@@ -570,11 +580,15 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
     const timer = window.setTimeout(() => {
       const preferredQuantity = readPreferredQuantity();
       if (preferredQuantity) {
-        setQuantity((current) => current === 50 ? preferredQuantity : current);
+        setQuantity((current) =>
+          current === getProductMinimumOrderQuantity(productId)
+            ? safeQuantity(preferredQuantity, minimumQuantity)
+            : current
+        );
       }
     }, 0);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [minimumQuantity, productId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -875,6 +889,14 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
     artwork?: Artwork;
     neckLabel?: NeckLabel;
   }) {
+    if (editCartId && !editItemId && readDraft(editCartId).items.length >= MAX_CONFIGURED_CART_ITEMS) {
+      setFeedback({
+        tone: "error",
+        title: "This cart already has 20 configured products",
+        detail: "Remove a cart line or complete this order before adding another product.",
+      });
+      return;
+    }
     const cartArtwork = overrides?.artwork ?? artwork;
     const cartNeckLabel = overrides?.neckLabel ?? neckLabel;
     const cartInput: ConfiguredCartItemInput = {
@@ -903,7 +925,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
       writeEstimateForDesign(cloudLinkRef.current.designId, requestedEstimateId);
     }
 
-    trackConfiguratorEvent("added_to_cart", { product_id: productId, quantity, editing: Boolean(editCartId) });
+    trackConfiguratorEvent("added_to_cart", { product_id: productId, quantity, editing: Boolean(editItemId), existing_cart: Boolean(editCartId) });
     clearBuildDraft(designStorageKey);
     router.push(`/configurator/cart/${encodeURIComponent(targetCartId)}/review`);
   }
@@ -1065,7 +1087,9 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
       <div className="techpack-studio-bg flex h-dvh min-h-0 flex-col overflow-hidden text-(--text-primary)">
         <ConfiguratorTopBar
           currentStep={JOURNEY_STEP_FOR_CUSTOMISATION[activeCustomisationStepId]}
-          backHref="/configurator"
+          backHref={editCartId
+            ? `/configurator/cart/${encodeURIComponent(editCartId)}/review`
+            : productCatalogHref}
           onDownloadPdf={handleDownloadPdf}
           isDownloadingPdf={isDownloadingPdf}
           showCart
@@ -1116,7 +1140,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
               ) : null}
             </div>
           }
-          links={{ product: "/configurator" }}
+          links={{ product: productCatalogHref }}
           onStepSelect={journeyStepSelection}
           className="px-4"
         />
@@ -1251,7 +1275,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
                         summary: `${next.type === "signature" ? "Signature" : "Custom dye"} · ${next.name}`,
                       });
                       if (next.type === "custom_dye") {
-                        setQuantity((current) => Math.max(CUSTOM_DYE_MOQ_UNITS, current));
+                        setQuantity((current) => Math.max(getProductMinimumOrderQuantity(productId, { colourType: "custom_dye", customDyeMinimum: CUSTOM_DYE_MOQ_UNITS }), current));
                       }
                     }}
                     steps={steps}

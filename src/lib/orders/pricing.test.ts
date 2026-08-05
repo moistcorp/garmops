@@ -71,6 +71,43 @@ describe("server custom-order pricing", () => {
   });
 
 
+
+  it("keeps duplicate products as separately numbered commercial lines", () => {
+    const first = priceCustomOrder({
+      snapshot: designSnapshot(),
+      sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 5, XXL: 5 },
+      deliveryType: "standard",
+      lineNumber: 1,
+      cartItemId: "tee-line-a",
+      designProjectId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      designVersionId: "11111111-1111-4111-8111-111111111111",
+    });
+    const second = priceCustomOrder({
+      snapshot: designSnapshot(),
+      sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 5, XXL: 5 },
+      deliveryType: "standard",
+      lineNumber: 2,
+      cartItemId: "tee-line-b",
+      designProjectId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      designVersionId: "22222222-2222-4222-8222-222222222222",
+    });
+
+    const firstItem = first.item as {
+      line_number: number;
+      product_snapshot: { cartItemId: string; minimumOrderQuantity: number };
+    };
+    const secondItem = second.item as {
+      line_number: number;
+      product_snapshot: { cartItemId: string; minimumOrderQuantity: number };
+    };
+    expect(firstItem.line_number).toBe(1);
+    expect(secondItem.line_number).toBe(2);
+    expect(firstItem.product_snapshot.cartItemId).toBe("tee-line-a");
+    expect(secondItem.product_snapshot.cartItemId).toBe("tee-line-b");
+    expect(firstItem.product_snapshot.minimumOrderQuantity).toBe(50);
+    expect(secondItem.product_snapshot.minimumOrderQuantity).toBe(50);
+  });
+
   it("adds the rush surcharge after volume discount and before GST", () => {
     const standard = priceCustomOrder({
       snapshot: designSnapshot(),

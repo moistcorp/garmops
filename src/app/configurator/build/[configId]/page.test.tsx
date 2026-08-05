@@ -50,6 +50,20 @@ describe("ConfiguratorBuildPage", () => {
     expect(mocks.redirect).not.toHaveBeenCalled();
   });
 
+
+  it("preserves the existing cart id while creating a new line draft", async () => {
+    await expect(
+      ConfiguratorBuildPage({
+        params: Promise.resolve({ configId: "regular-fit-tee-200gsm" }),
+        searchParams: Promise.resolve({ cartId: "cart-123" }),
+      }),
+    ).rejects.toThrow("NEXT_REDIRECT:");
+
+    const redirectUrl = String(mocks.redirect.mock.calls[0]?.[0]);
+    expect(redirectUrl).toContain("cartId=cart-123");
+    expect(redirectUrl).toMatch(/draftId=[0-9a-f-]+/i);
+  });
+
   it("passes the validated catalog product to the configurator", async () => {
     const page = await ConfiguratorBuildPage({
       params: Promise.resolve({ configId: "regular-fit-tee-200gsm" }),

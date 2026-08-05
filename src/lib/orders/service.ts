@@ -151,40 +151,70 @@ async function prepareCustomOrder(input: {
     throw new Error("Checkout email must match the logged-in customer email");
   }
 
-  const [{ data: project, error: projectError }, { data: version, error: versionError }] = await Promise.all([
+  const projectIds = [...new Set(request.items.map((item) => item.designProjectId))];
+  const versionNumbers = [...new Set(request.items.map((item) => item.designVersion))];
+  const [{ data: projects, error: projectsError }, { data: versions, error: versionsError }] = await Promise.all([
     supabase.from("design_projects")
       .select("id, created_by, title, status, schema_version")
-      .eq("id", request.designProjectId)
       .eq("created_by", user.id)
-      .maybeSingle(),
+      .in("id", projectIds),
     supabase.from("design_project_versions")
       .select("id, design_project_id, version_number, configuration_snapshot")
-      .eq("design_project_id", request.designProjectId)
-      .eq("version_number", request.designVersion)
-      .maybeSingle(),
+      .in("design_project_id", projectIds)
+      .in("version_number", versionNumbers),
   ]);
-  if (projectError) throw new Error(projectError.message);
-  if (versionError) throw new Error(versionError.message);
-  if (!project || !version || version.design_project_id !== project.id) throw new Error("Saved design version is unavailable");
+  if (projectsError) throw new Error(projectsError.message);
+  if (versionsError) throw new Error(versionsError.message);
 
-  const snapshot = cloudDesignSnapshotSchema.parse(version.configuration_snapshot);
+  const projectsById = new Map((projects ?? []).map((project) => [project.id, project]));
+  const versionsByKey = new Map(
+    (versions ?? []).map((version) => [
+      `${version.design_project_id}:${version.version_number}`,
+      version,
+    ]),
+  );
+
+  const resolvedItems = request.items.map((item, index) => {
+    const project = projectsById.get(item.designProjectId);
+    const version = versionsByKey.get(`${item.designProjectId}:${item.designVersion}`);
+    if (!project || !version || version.design_project_id !== project.id) {
+      throw new Error(`Saved design version is unavailable for cart item ${index + 1}`);
+    }
+    const snapshot = cloudDesignSnapshotSchema.parse(version.configuration_snapshot);
+    return { requestItem: item, project, version, snapshot };
+  });
+
+  const hasCustomDye = resolvedItems.some(
+    (item) => item.snapshot.configuration.colour.type === "custom_dye",
+  );
   const deliveryDateError = getRequestedDeliveryDateError({
     deliveryType: request.deliveryType,
     requestedDeliveryDate: request.requestedDeliveryDate,
-    extraLeadTimeDays:
-      snapshot.configuration.colour.type === "custom_dye"
-        ? CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS.max
-        : 0,
+    extraLeadTimeDays: hasCustomDye ? CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS.max : 0,
   });
   if (deliveryDateError) throw new Error(deliveryDateError);
 
-  const priced = priceCustomOrder({
-    snapshot,
-    sizeQuantities: request.sizeQuantities,
+  const pricedItems = resolvedItems.map((item, index) => priceCustomOrder({
+    snapshot: item.snapshot,
+    sizeQuantities: item.requestItem.sizeQuantities,
     deliveryType: request.deliveryType,
-  });
+    lineNumber: index + 1,
+    cartItemId: item.requestItem.cartItemId,
+    designProjectId: item.project.id,
+    designVersionId: item.version.id,
+  }));
+
   const admin = adminClient();
-  await validateDesignFiles({ admin, userId: user.id, designProjectId: project.id, fileIds: priced.fileIds });
+  await Promise.all(resolvedItems.map((item, index) => validateDesignFiles({
+    admin,
+    userId: user.id,
+    designProjectId: item.project.id,
+    fileIds: pricedItems[index].fileIds,
+  })));
+
+  const subtotalPaise = pricedItems.reduce((sum, item) => sum + item.subtotalPaise, 0);
+  const fileIds = [...new Set(pricedItems.flatMap((item) => item.fileIds))];
+  if (fileIds.length > 50) throw new Error("An order can contain at most 50 uploaded files");
 
   let discountCodeId: string | null = null;
   let normalizedDiscountCode: string | null = null;
@@ -193,7 +223,7 @@ async function prepareCustomOrder(input: {
     const { data, error } = await admin.rpc("validate_discount_code", {
       p_code: request.discountCode,
       p_customer_user_id: user.id,
-      p_subtotal_paise: priced.subtotalPaise,
+      p_subtotal_paise: subtotalPaise,
     });
     const result = data?.[0];
     if (error || !result) throw new Error("Discount code is invalid or unavailable");
@@ -202,7 +232,7 @@ async function prepareCustomOrder(input: {
     discountPaise = Number(result.discount_paise);
   }
 
-  const taxablePaise = priced.subtotalPaise - discountPaise;
+  const taxablePaise = subtotalPaise - discountPaise;
   const taxRateBasisPoints = getServerEnvironment().INVOICE_GST_RATE_BASIS_POINTS;
   const taxPaise = Math.round((taxablePaise * taxRateBasisPoints) / 10_000);
   const totalPaise = taxablePaise + taxPaise;
@@ -241,8 +271,15 @@ async function prepareCustomOrder(input: {
   }
 
   const configurationSnapshot: Json = {
-    design: snapshot,
-    sizeQuantities: request.sizeQuantities,
+    items: resolvedItems.map((item, index) => ({
+      cartItemId: item.requestItem.cartItemId,
+      designProjectId: item.project.id,
+      designVersionId: item.version.id,
+      designVersion: item.version.version_number,
+      design: item.snapshot,
+      sizeQuantities: item.requestItem.sizeQuantities,
+      lineNumber: index + 1,
+    })),
     deliveryType: request.deliveryType,
     requestedDeliveryDate: request.requestedDeliveryDate,
     rushPricing: request.deliveryType === "rush"
@@ -251,12 +288,15 @@ async function prepareCustomOrder(input: {
     orderNotes: request.orderNotes ?? null,
     commercialFieldsLockedAfterPayment: ["quantity", "garment", "printingTechnique"],
   };
+  const firstItem = resolvedItems[0];
   const payload = {
     orderType: "custom_bulk",
-    designProjectId: project.id,
-    designVersionId: version.id,
+    // Retained for compatibility with existing order-level design links. Every
+    // line's immutable design references are also stored in its product snapshot.
+    designProjectId: firstItem.project.id,
+    designVersionId: firstItem.version.id,
     pricingVersion: CUSTOM_ORDER_PRICING_VERSION,
-    configurationSchemaVersion: snapshot.schemaVersion,
+    configurationSchemaVersion: Math.max(...resolvedItems.map((item) => item.snapshot.schemaVersion)),
     customerReference: request.projectName,
     requestedDeliveryDate: request.requestedDeliveryDate,
     billingSnapshot,
@@ -269,11 +309,11 @@ async function prepareCustomOrder(input: {
       version: terms.version,
       privacyVersion: terms.privacyVersion,
       contentHash: terms.documentHash,
-      requestMetadata: { checkoutType: "full_payment" },
+      requestMetadata: { checkoutType: "full_payment", cartItemCount: request.items.length },
     },
     configurationSnapshot,
-    items: [priced.item],
-    fileIds: priced.fileIds,
+    items: pricedItems.map((item) => item.item),
+    fileIds,
     discountCode: normalizedDiscountCode,
     saveShippingToAccount: request.saveShippingToAccount,
     saveBillingToAccount: request.saveBillingToAccount,
@@ -282,9 +322,9 @@ async function prepareCustomOrder(input: {
   const requestHash = hashOrderRequest({
     userId: user.id,
     request,
-    versionId: version.id,
+    versionIds: resolvedItems.map((item) => item.version.id),
     pricingVersion: CUSTOM_ORDER_PRICING_VERSION,
-    subtotalPaise: priced.subtotalPaise,
+    subtotalPaise,
     discountPaise,
     taxPaise,
     totalPaise,
@@ -293,7 +333,7 @@ async function prepareCustomOrder(input: {
   return {
     requestHash,
     payload,
-    subtotalPaise: priced.subtotalPaise,
+    subtotalPaise,
     discountPaise,
     taxPaise,
     totalPaise,

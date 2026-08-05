@@ -4,8 +4,9 @@ import {
   getVolumeDiscountAmount,
   getVolumeDiscountPercent,
 } from "@/lib/configurator/pricing";
-import { getProduct } from "@/lib/configurator/products";
+import { getProduct, getProductMinimumOrderQuantity } from "@/lib/configurator/products";
 import { RUSH_DELIVERY_SURCHARGE_PAISE } from "@/lib/configurator/delivery";
+import { CUSTOM_DYE_MOQ_UNITS } from "@/lib/configurator/colourRules";
 import type { ProductId } from "@/lib/configurator/pricing";
 import type { GarmentColour, Artwork, NeckLabel } from "@/lib/configurator/types/configurator";
 import type { CartItem } from "./OrderReviewStep";
@@ -24,6 +25,7 @@ const STORAGE_PREFIX = "mf_configurator_cart:";
 const ACTIVE_CART_KEY = `${STORAGE_PREFIX}active`;
 const ACTIVE_CART_ID_KEY = `${STORAGE_PREFIX}active_id`;
 export const CART_DRAFT_UPDATED_EVENT = "mf-cart-updated";
+export const MAX_CONFIGURED_CART_ITEMS = 20;
 
 const SIZE_DISTRIBUTION: Record<(typeof SIZES)[number], number> = {
   XS: 0.1,
@@ -522,8 +524,13 @@ export function upsertConfiguredCartItem(
   const cartId = options.cartId ?? suggestedCartId;
   const draft = readDraft(cartId);
   const product = getProduct(input.productId);
+  const minimumQuantity = getProductMinimumOrderQuantity(input.productId, {
+    colourType: input.colour.type,
+    customDyeMinimum: CUSTOM_DYE_MOQ_UNITS,
+  });
+  const quantity = Math.max(minimumQuantity, Math.floor(input.quantity));
   const sizeQuantities = splitQuantityAcrossSizes(
-    input.quantity,
+    quantity,
     product?.sizes ?? SIZES
   );
   const baseUnitPrice = getConfiguredUnitPrice(
@@ -533,7 +540,7 @@ export function upsertConfiguredCartItem(
     input.neckLabel,
     false
   );
-  const unitDiscount = getVolumeDiscountAmount(baseUnitPrice, input.quantity);
+  const unitDiscount = getVolumeDiscountAmount(baseUnitPrice, quantity);
   const unitPrice = baseUnitPrice - unitDiscount;
 
   const configuredItem: CartItem = {

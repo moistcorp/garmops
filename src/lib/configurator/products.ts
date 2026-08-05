@@ -18,6 +18,7 @@ export interface Product {
   details: string[];
   careInstructions: string[];
   sizes: string[];
+  minimumOrderQuantity: number;
   category: string;
   bestFor: ProductUseCase[];
   fit: string;
@@ -124,6 +125,7 @@ export const products: Product[] = catalogProducts.map((product) => {
     details: product.details,
     careInstructions: product.careInstructions,
     sizes: product.sizes,
+    minimumOrderQuantity: product.minimumOrderQuantity,
     category: product.category,
     ...deriveProductGuidance(product),
   };
@@ -139,4 +141,13 @@ export const PRODUCT_USE_CASES: ProductUseCase[] = [
 
 export function getProduct(id: ProductId): Product | undefined {
   return products.find((p) => p.id === id);
+}
+
+export function getProductMinimumOrderQuantity(
+  id: ProductId,
+  options?: { customDyeMinimum?: number; colourType?: "signature" | "custom_dye" },
+): number {
+  const productMinimum = getProduct(id)?.minimumOrderQuantity ?? 50;
+  if (options?.colourType !== "custom_dye") return productMinimum;
+  return Math.max(productMinimum, options.customDyeMinimum ?? productMinimum);
 }

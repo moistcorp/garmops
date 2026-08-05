@@ -15,6 +15,7 @@ import {
 import {
   calculateTotals,
   createDraft,
+  MAX_CONFIGURED_CART_ITEMS,
   getCartItemDiscountPercent,
   getCartItemUnitPrice,
   readDraft,
@@ -25,7 +26,7 @@ import {
 import { formatInr } from '@/lib/configurator/pricing';
 import { CUSTOM_DYE_MOQ_UNITS } from '@/lib/configurator/colourRules';
 import { getSizeChart } from '@/lib/sizecharts';
-import { getProduct } from '@/lib/configurator/products';
+import { getProduct, getProductMinimumOrderQuantity } from '@/lib/configurator/products';
 import CanvasRenderer from '../GarmentPreview/CanvasRenderer';
 import { NECK_PREVIEW_CANVAS_CLASS } from '../GarmentPreview/GarmentPreview';
 import ViewTabs from '../GarmentPreview/ViewTabs';
@@ -133,7 +134,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
 
         const currentSizeQty = item.sizeQuantities[size] ?? 0;
         const currentTotal = totalUnits(item.sizeQuantities);
-        const minimumUnits = item.colour.type === 'custom_dye' ? CUSTOM_DYE_MOQ_UNITS : 50;
+        const minimumUnits = getProductMinimumOrderQuantity(item.productId, { colourType: item.colour.type, customDyeMinimum: CUSTOM_DYE_MOQ_UNITS });
         const minimumAllowedQty = Math.max(
           0,
           currentSizeQty - Math.max(0, currentTotal - minimumUnits)
@@ -194,7 +195,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
   }
 
   function handleAddAnotherProduct() {
-    router.push('/configurator');
+    router.push(`/configurator?cartId=${encodeURIComponent(cartId)}`);
   }
 
   function handleNext() {
@@ -260,12 +261,10 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
   }
 
   const totals = calculateTotals(items);
-  const cartUnitCount = items.reduce((sum, item) => sum + totalUnits(item.sizeQuantities), 0);
   const cartIsValid =
     items.length > 0 &&
     items.every((item) => {
-      const minimumUnits =
-        item.colour.type === 'custom_dye' ? CUSTOM_DYE_MOQ_UNITS : 50;
+      const minimumUnits = getProductMinimumOrderQuantity(item.productId, { colourType: item.colour.type, customDyeMinimum: CUSTOM_DYE_MOQ_UNITS });
       return totalUnits(item.sizeQuantities) >= minimumUnits;
     });
 
@@ -293,9 +292,19 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             </p>
             <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Sizes &amp; quantity</h1>
             <p className="mt-1 text-sm text-[var(--text-primary)]/55">
-              Confirm the final size allocation for this configured product.
+              Confirm the final size allocation for every configured product.
             </p>
           </div>
+          {draftLoaded && items.length > 0 && (
+            <button
+              type="button"
+              onClick={handleAddAnotherProduct}
+              disabled={items.length >= MAX_CONFIGURED_CART_ITEMS}
+              className="rounded-[4px] border border-[var(--color-accent)] px-4 py-2 text-sm font-semibold text-[var(--color-accent-dark)] hover:bg-[var(--color-accent)]/5 disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              {items.length >= MAX_CONFIGURED_CART_ITEMS ? "Cart limit reached" : "Add another product"}
+            </button>
+          )}
         </div>
 
         {!draftLoaded && <OrderItemSkeleton />}
@@ -316,10 +325,10 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
           </section>
         )}
 
-        {draftLoaded && items.map((item) => {
+        {draftLoaded && items.map((item, itemIndex) => {
           const selectedView = activeView[item.id] ?? 'front';
           const itemUnits = totalUnits(item.sizeQuantities);
-          const itemMinimumUnits = item.colour.type === 'custom_dye' ? CUSTOM_DYE_MOQ_UNITS : 50;
+          const itemMinimumUnits = getProductMinimumOrderQuantity(item.productId, { colourType: item.colour.type, customDyeMinimum: CUSTOM_DYE_MOQ_UNITS });
           const itemSizes = getProduct(item.productId)?.sizes ?? SIZES;
           const sizeChart = getSizeChart(item.productId);
           const itemUnitPrice = getCartItemUnitPrice(item);
@@ -382,6 +391,9 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                 <div className="min-w-0 flex-1 space-y-5">
                   <div className="flex items-start justify-between gap-4">
                     <div>
+                      <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--color-accent)]">
+                        Line {itemIndex + 1}
+                      </p>
                       <h2 className="text-lg font-medium text-[var(--text-primary)]">
                         {item.productName}
                       </h2>
@@ -506,10 +518,10 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             total={totals.total}
             onNext={handleNext}
             nextLabel="Confirm spec · delivery"
-            nextDisabled={!cartIsValid || cartUnitCount < 50}
+            nextDisabled={!cartIsValid}
             disabledMessage={
-              !cartIsValid || cartUnitCount < 50
-                ? "Qty must meet the minimum per colourway and every size allocation must be complete."
+              !cartIsValid
+                ? "Every cart line must independently meet that product’s minimum quantity."
                 : undefined
             }
             sticky={false}
