@@ -220,7 +220,12 @@ export async function verifyCustomerOtpAction(
 
   try {
     await ensureCustomerAccount(supabase);
-  } catch {
+  } catch (accountError) {
+    console.error("Customer account provisioning failed after OTP verification", {
+      userId: data.user.id,
+      email: parsed.data.email,
+      error: accountError instanceof Error ? accountError.message : "unknown",
+    });
     await supabase.auth.signOut();
     return actionError("That email cannot be used for customer access.");
   }
