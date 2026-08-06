@@ -61,11 +61,18 @@ export async function POST(request: NextRequest) {
     });
     return orderJson({ checkout }, checkout.alreadyFinalized ? 200 : 201);
   } catch (error) {
-    const message =
+    const originalMessage =
       error instanceof Error ? error.message : "Checkout could not be prepared";
-    const status = /access|required|belong/i.test(message)
+    const discountLimitReached = /DISCOUNT_CODE_LIMIT_REACHED/.test(originalMessage);
+    const discountInvalid = /DISCOUNT_CODE_INVALID/.test(originalMessage);
+    const message = discountLimitReached
+      ? "This discount code has reached its redemption limit. Refresh pricing and use another code."
+      : discountInvalid
+        ? "This discount code is no longer available. Refresh pricing and use another code."
+        : originalMessage;
+    const status = /access|required|belong/i.test(originalMessage)
       ? 403
-      : /unavailable|submitted|expired|match|changed|linked/i.test(message)
+      : discountLimitReached || discountInvalid || /unavailable|submitted|expired|match|changed|linked/i.test(originalMessage)
         ? 409
         : 422;
     return orderJsonError(message, status);

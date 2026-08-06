@@ -21,6 +21,7 @@ export default function DurablePaymentResult({
     submittedAt: string;
     amountPaise: number;
     paymentStatus: string;
+    paymentPurpose: string;
     invoiceStatus: string | null;
     invoiceNumber: string | null;
     invoicePdfFileId: string | null;
@@ -30,6 +31,7 @@ export default function DurablePaymentResult({
   const success = result.outcome === "success";
   const pending = result.outcome === "pending";
   const sampleOrder = result.orderType === "sample_purchase";
+  const shippingPayment = result.paymentPurpose === "shipping";
   const reviewRequired = result.paymentStatus === "duplicate_success" || result.paymentStatus === "disputed";
   const Icon = success ? CheckCircle2 : pending ? Clock3 : XCircle;
   const invoice = result.invoiceNumber
@@ -46,14 +48,14 @@ export default function DurablePaymentResult({
 
   return (
     <div className="techpack-canvas flex min-h-[80vh] items-center justify-center px-4 py-10 sm:px-6">
-      {sampleOrder ? (
+      {!shippingPayment && (sampleOrder ? (
         <ClearPaidSampleCart paid={result.paymentStatus === "paid"} />
       ) : (
         <ClearPaidCustomCart
           cartId={result.cartId}
           paid={result.paymentStatus === "paid"}
         />
-      )}
+      ))}
       <div className="techpack-surface w-full max-w-xl rounded-[4px] border p-7 text-center sm:p-10">
         <Icon
           size={52}
@@ -71,23 +73,31 @@ export default function DurablePaymentResult({
         </p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight">
           {success
-            ? sampleOrder
-              ? "Sample order confirmed"
-              : "Order confirmed"
+            ? shippingPayment
+              ? "Shipping payment confirmed"
+              : sampleOrder
+                ? "Sample order confirmed"
+                : "Order confirmed"
             : reviewRequired
               ? "Payment requires review"
               : pending
                 ? "Payment verification pending"
-                : "Payment was not completed"}
+                : shippingPayment
+                  ? "Shipping payment was not completed"
+                  : "Payment was not completed"}
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-black/55">
           {success
-            ? `PayU verified the full payment and created order ${result.orderNumber}.`
+            ? shippingPayment
+              ? `PayU verified the shipping payment for order ${result.orderNumber}.`
+              : `PayU verified the full payment and created order ${result.orderNumber}.`
             : reviewRequired
               ? "PayU reported a duplicate successful payment. Do not pay again; the Founder will review the duplicate for refund."
               : pending
                 ? "We are reconciling the transaction with PayU. Do not make another payment yet."
-                : "No confirmed order was created. You can retry the prepared checkout safely."}
+                : shippingPayment
+                  ? "The shipping payment was not confirmed. Return to the order before attempting payment again."
+                  : "No confirmed order was created. You can retry the prepared checkout safely."}
         </p>
 
         <dl className="mt-7 grid gap-3 rounded-[4px] border border-black/7 bg-white p-5 text-left sm:grid-cols-2">
@@ -107,7 +117,7 @@ export default function DurablePaymentResult({
           </div>
           <div>
             <dt className="text-[10px] uppercase tracking-wider text-black/35">
-              Full merchandise payment
+              {shippingPayment ? "Shipping payment" : "Full merchandise payment"}
             </dt>
             <dd className="mt-1 font-semibold">
               {formatMoneyPaise(result.amountPaise)}

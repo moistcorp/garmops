@@ -122,24 +122,32 @@ export async function setShippingPaymentLinkAction(
   _state: StaffActionState,
   formData: FormData,
 ): Promise<StaffActionState> {
-  const context = await requireStaffPermission("change_order_status");
+  const context = await requireStaffPermission("manage_shipping_payments");
   const parsed = z.object({
     orderId: z.string().uuid(),
     orderNumber: z.string().regex(/^(GAR|SAM)-\d{4}-\d{6}$/),
     amountRupees: z.coerce.number().positive().max(10_000_000),
-    url: z.string().url().refine((value) => value.startsWith("https://")),
-    reference: z.string().trim().max(200).optional(),
   }).safeParse(Object.fromEntries(formData.entries()));
-  if (!parsed.success) return staffActionError("Enter a valid HTTPS PayU link and shipping amount.");
-  const { error } = await callRpc(context.supabase, "set_shipping_payment_link", {
+  if (!parsed.success) return staffActionError("Enter a valid shipping amount.");
+  const { error } = await callRpc(context.supabase, "create_shipping_payment_attempt", {
     p_order_id: parsed.data.orderId,
     p_amount_paise: Math.round(parsed.data.amountRupees * 100),
-    p_url: parsed.data.url,
-    p_reference: parsed.data.reference ?? null,
   });
-  if (error) return staffActionError("Shipping payment link could not be saved.");
+  if (error) {
+    const message = /SHIPPING_PAYMENT_IN_PROGRESS/.test(error.message)
+      ? "A shipping payment is already in progress. Reconcile it before replacing the quote."
+      : /SHIPPING_ALREADY_PAID/.test(error.message)
+        ? "Shipping has already been paid."
+        : /SHIPPING_ALREADY_SETTLED/.test(error.message)
+          ? "Shipping is already waived or marked not required."
+          : /ORDER_NOT_PAYABLE/.test(error.message)
+            ? "This order cannot receive a new shipping charge."
+            : "The secure shipping payment could not be created.";
+    return staffActionError(message);
+  }
   revalidatePath(`/orders/${parsed.data.orderNumber}`);
-  return staffActionSuccess("Shipping payment link saved.");
+  revalidatePath(`/account/orders/${parsed.data.orderNumber}`);
+  return staffActionSuccess("Secure PayU shipping payment created for the customer.");
 }
 
 export async function markShippingPaidAction(
@@ -157,7 +165,14 @@ export async function markShippingPaidAction(
     p_order_id: parsed.data.orderId,
     p_reference: parsed.data.reference,
   });
-  if (error) return staffActionError("Shipping payment could not be marked received.");
+  if (error) {
+    const message = /SHIPPING_PAYMENT_IN_PROGRESS/.test(error.message)
+      ? "A PayU shipping payment is already in progress. Reconcile it before recording a manual payment."
+      : /SHIPPING_ALREADY_PAID/.test(error.message)
+        ? "Shipping has already been marked paid."
+        : "Shipping payment could not be marked received.";
+    return staffActionError(message);
+  }
   revalidatePath(`/orders/${parsed.data.orderNumber}`);
   return staffActionSuccess("Shipping payment recorded.");
 }
@@ -211,12 +226,21 @@ export async function setStaffActiveAction(
   const context = await requireStaffPermission("manage_staff");
   const parsed = z.object({ userId: z.string().uuid(), active: z.enum(["true", "false"]) }).safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) return staffActionError("Invalid staff account update.");
-  if (parsed.data.userId === context.user.id && parsed.data.active === "false") return staffActionError("The active Founder cannot disable their own account.");
-  const admin = createAdminClient();
   const active = parsed.data.active === "true";
-  const result = await admin.from("staff_members").update({ active, deactivated_at: active ? null : new Date().toISOString() }).eq("user_id", parsed.data.userId);
-  if (result.error) return staffActionError("Staff access could not be updated.");
-  await admin.from("account_principals").update({ active }).eq("user_id", parsed.data.userId).eq("account_type", "staff");
+  const { error } = await callRpc(context.supabase, "set_staff_active", {
+    p_user_id: parsed.data.userId,
+    p_active: active,
+  });
+  if (error) {
+    const message = /CANNOT_DISABLE_SELF/.test(error.message)
+      ? "The active Founder cannot disable their own account."
+      : /LAST_FOUNDER_REQUIRED/.test(error.message)
+        ? "At least one active Founder account must remain."
+        : /STAFF_(?:MEMBER|PRINCIPAL)_NOT_FOUND/.test(error.message)
+          ? "The staff account is incomplete or no longer exists."
+          : "Staff access could not be updated.";
+    return staffActionError(message);
+  }
   revalidatePath("/staff-management");
   return staffActionSuccess(active ? "Staff access restored." : "Staff access disabled.");
 }

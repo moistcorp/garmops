@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import {
   authenticateOrderApi,
-  durableCustomOrdersAvailable,
+  durableOrdersAvailable,
   hasExpectedOrderOrigin,
   orderJson,
   orderJsonError,
@@ -15,12 +15,25 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const schema = z.object({ checkoutPaymentAttemptId: z.string().uuid() }).strict();
+const schema = z.object({ orderPaymentAttemptId: z.string().uuid() }).strict();
 
+type OrderSnapshot = {
+  customer_user_id: string;
+  customer_snapshot: unknown;
+  order_number: string;
+  shipping_charge_paise: number | null;
+  shipping_payment_status: string;
+};
+
+function record(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
 
 export async function POST(request: NextRequest) {
-  if (!durableCustomOrdersAvailable()) {
-    return orderJsonError("Custom checkout is unavailable", 503);
+  if (!durableOrdersAvailable()) {
+    return orderJsonError("Order payments are unavailable", 503);
   }
   if (!hasExpectedOrderOrigin(request)) {
     return orderJsonError("Invalid request origin", 403);
@@ -34,39 +47,47 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) return orderJsonError("Invalid payment initiation request", 400);
 
   const admin = createAdminClient();
-  const { data: attempt, error } = await admin.from("custom_checkout_payment_attempts")
+  const { data: principal } = await admin.from("account_principals")
+    .select("active, account_type")
+    .eq("user_id", auth.user.id)
+    .maybeSingle();
+  if (!principal?.active || principal.account_type !== "customer") {
+    return orderJsonError("Customer account is unavailable", 403);
+  }
+
+  const { data: attempt, error } = await admin.from("payment_attempts")
     .select(
-      "id, checkout_session_id, status, amount_paise, currency, provider_merchant_txn_id, expected_product_info, customer_email, customer_name, customer_phone, custom_checkout_sessions!inner(customer_user_id, status, expires_at)",
+      "id, order_id, purpose, status, amount_paise, currency, provider_merchant_txn_id, expected_product_info, customer_email, customer_name, orders!inner(customer_user_id, customer_snapshot, order_number, shipping_charge_paise, shipping_payment_status)",
     )
-    .eq("id", parsed.data.checkoutPaymentAttemptId)
+    .eq("id", parsed.data.orderPaymentAttemptId)
     .maybeSingle();
   if (error || !attempt) return orderJsonError("Payment attempt not found", 404);
 
-  const session = attempt.custom_checkout_sessions as {
-    customer_user_id: string;
-    status: string;
-    expires_at: string;
-  };
-  if (session.customer_user_id !== auth.user.id) {
+  const order = attempt.orders as unknown as OrderSnapshot;
+  if (order.customer_user_id !== auth.user.id || attempt.purpose !== "shipping") {
     return orderJsonError("Payment attempt not found", 404);
   }
-  if (new Date(session.expires_at).getTime() <= Date.now()) {
-    await admin.from("custom_checkout_sessions")
-      .update({ status: "expired" })
-      .eq("id", attempt.checkout_session_id)
-      .neq("status", "finalized");
-    return orderJsonError("Checkout payment window has expired", 409);
-  }
-  if (session.status === "finalized" || ["paid", "duplicate_success"].includes(attempt.status)) {
-    return orderJsonError("Order payment is already complete", 409);
-  }
   if (attempt.currency !== "INR") return orderJsonError("Unsupported payment currency", 409);
+  if (order.shipping_payment_status === "paid" || attempt.status === "paid") {
+    return orderJsonError("Shipping payment is already complete", 409);
+  }
+  if (order.shipping_payment_status !== "link_created") {
+    return orderJsonError("This shipping payment is no longer available", 409);
+  }
+  if (Number(order.shipping_charge_paise) !== Number(attempt.amount_paise)) {
+    return orderJsonError("Shipping quote has changed. Refresh the order before paying", 409);
+  }
   if (!["created", "initiated"].includes(attempt.status)) {
     return orderJsonError(
-      attempt.status === "pending" ? "Payment verification is pending" : "Payment cannot be initiated",
+      attempt.status === "pending"
+        ? "Shipping payment verification is pending"
+        : "This shipping payment can no longer be initiated",
       409,
     );
   }
+
+  const customer = record(order.customer_snapshot);
+  const phone = typeof customer.phone === "string" ? customer.phone : "";
 
   try {
     const checkout = buildPayuCheckout({
@@ -76,11 +97,11 @@ export async function POST(request: NextRequest) {
       productInfo: attempt.expected_product_info,
       customerName: attempt.customer_name,
       customerEmail: attempt.customer_email,
-      customerPhone: attempt.customer_phone,
+      customerPhone: phone,
     });
 
     if (attempt.status === "created") {
-      const { data: initiated, error: updateError } = await admin.from("custom_checkout_payment_attempts")
+      const { data: initiated, error: updateError } = await admin.from("payment_attempts")
         .update({
           status: "initiated",
           initiated_at: new Date().toISOString(),
@@ -93,17 +114,15 @@ export async function POST(request: NextRequest) {
         .maybeSingle();
       if (updateError) throw new Error(updateError.message);
       if (!initiated) return orderJsonError("Payment attempt state changed", 409);
-      await admin.from("custom_checkout_sessions")
-        .update({ status: "payment_initiated" })
-        .eq("id", attempt.checkout_session_id)
-        .in("status", ["prepared", "failed"]);
     }
+
     return orderJson(checkout);
   } catch (initiationError) {
-    console.error("PayU checkout initiation failed", {
-      checkoutAttemptId: attempt.id,
+    console.error("Shipping PayU checkout initiation failed", {
+      paymentAttemptId: attempt.id,
+      orderNumber: order.order_number,
       error: initiationError instanceof Error ? initiationError.message : "unknown",
     });
-    return orderJsonError("Secure payment could not be started", 503);
+    return orderJsonError("Secure shipping payment could not be started", 503);
   }
 }

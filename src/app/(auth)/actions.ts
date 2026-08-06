@@ -172,7 +172,7 @@ export async function requestCustomerOtpAction(
     { verificationEmail: parsed.data.email },
   );
   const principal = await principalForEmail(parsed.data.email);
-  if (principal?.account_type === "staff") return success;
+  if (principal && (principal.account_type === "staff" || !principal.active)) return success;
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithOtp({

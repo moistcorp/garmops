@@ -5,7 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export async function loadDurablePaymentResult(attemptId: string, orderNumber: string) {
   const admin = createAdminClient();
   const { data, error } = await admin.from("payment_attempts")
-    .select("id, amount_paise, status, order_id, orders!inner(order_number, order_type, submitted_at)")
+    .select("id, amount_paise, status, purpose, order_id, orders!inner(order_number, order_type, submitted_at)")
     .eq("id", attemptId)
     .maybeSingle();
   if (error || !data) return null;
@@ -30,6 +30,7 @@ export async function loadDurablePaymentResult(attemptId: string, orderNumber: s
     submittedAt: order.submitted_at,
     amountPaise: data.amount_paise,
     paymentStatus: data.status,
+    paymentPurpose: data.purpose,
     invoiceStatus: invoice?.status ?? null,
     invoiceNumber: invoice?.invoice_number ?? null,
     invoicePdfFileId: invoice?.pdf_file_id ?? null,

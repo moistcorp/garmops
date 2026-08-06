@@ -29,9 +29,16 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
   const { data, error } = await auth.supabase.rpc("soft_delete_file", {
     p_file_id: fileId,
   });
-  if (error || !data) {
+  if (error) {
+    if (/FILE_LOCKED_TO_ORDER/.test(error.message)) {
+      return jsonError("Files used by an active checkout or paid order cannot be deleted", 409);
+    }
+    if (/FILE_DELETE_PERMISSION_DENIED/.test(error.message)) {
+      return jsonError("File deletion is not permitted", 403);
+    }
     return jsonError("File not found", 404);
   }
+  if (!data) return jsonError("File not found", 404);
 
   return new NextResponse(null, {
     status: 204,

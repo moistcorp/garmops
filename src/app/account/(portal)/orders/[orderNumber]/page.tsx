@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import InvoiceDownloadButton from "@/components/account/InvoiceDownloadButton";
+import ShippingPaymentButton from "@/components/account/ShippingPaymentButton";
 import PortalPlaceholder from "@/components/portal/PortalPlaceholder";
 import { requireCustomer } from "@/lib/auth/guards";
 import { getCustomerOrder } from "@/lib/orders/dal";
@@ -34,7 +35,7 @@ type OrderDetail = Pick<Tables<"orders">,
   | "taxable_value_paise" | "tax_paise" | "amount_paid_paise" | "total_paise"
   | "requested_delivery_date" | "configuration_snapshot" | "shipping_snapshot"
   | "billing_snapshot" | "customer_snapshot" | "business_snapshot"
-  | "shipping_charge_paise" | "shipping_payment_status" | "shipping_payment_link_url"
+  | "shipping_charge_paise" | "shipping_payment_status"
   | "confirmed_at" | "customer_reference"
 >;
 
@@ -124,6 +125,7 @@ export default async function AccountOrderDetailPage({ params }: { params: Promi
   const history = (result.history.data ?? []) as unknown as CustomerHistoryRow[];
   const payments = (result.payments.data ?? []) as unknown as CustomerPaymentRow[];
   const invoices = (result.invoices.data ?? []) as unknown as InvoiceRow[];
+  const shippingPayment = payments.find((payment) => payment.purpose === "shipping");
   const shipping = record(order.shipping_snapshot);
   const billing = record(order.billing_snapshot);
   const customer = record(order.customer_snapshot);
@@ -226,7 +228,20 @@ export default async function AccountOrderDetailPage({ params }: { params: Promi
 
         <section className="techpack-surface rounded border p-6"><div className="flex items-center gap-2"><ReceiptIndianRupee size={18} className="text-[var(--color-accent)]" /><h2 className="font-semibold">GST invoices</h2></div><div className="mt-4 space-y-4">{invoices.length ? invoices.map((invoice) => <div key={invoice.id} className="rounded border border-black/8 p-3"><p className="font-semibold">{invoice.invoice_number || `Invoice ${humanize(invoice.status)}`}</p><p className="mt-1 text-sm text-black/50">{formatMoneyPaise(invoice.total_paise)}</p>{invoice.pdf_file_id ? <div className="mt-3"><InvoiceDownloadButton fileId={invoice.pdf_file_id} /></div> : <p className="mt-2 text-xs text-black/45">PDF generation is {humanize(invoice.status).toLowerCase()}.</p>}</div>) : <p className="text-sm text-black/45">Invoice generation is pending.</p>}</div></section>
 
-        <section className="techpack-surface rounded border p-6"><div className="flex items-center gap-2"><Truck size={18} className="text-[var(--color-accent)]" /><h2 className="font-semibold">Shipping payment</h2></div><p className="mt-3 text-sm text-black/55">{humanize(order.shipping_payment_status)}</p>{order.shipping_charge_paise != null ? <p className="mt-1 font-semibold">{formatMoneyPaise(order.shipping_charge_paise)}</p> : <p className="mt-1 text-xs text-black/45">Operations will calculate shipping separately.</p>}{order.shipping_payment_link_url ? <a href={order.shipping_payment_link_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex rounded bg-[var(--color-accent)] px-4 py-2 text-sm font-semibold text-white">Pay shipping</a> : null}</section>
+        <section className="techpack-surface rounded border p-6">
+          <div className="flex items-center gap-2"><Truck size={18} className="text-[var(--color-accent)]" /><h2 className="font-semibold">Shipping payment</h2></div>
+          <p className="mt-3 text-sm text-black/55">{humanize(order.shipping_payment_status)}</p>
+          {order.shipping_charge_paise != null
+            ? <p className="mt-1 font-semibold">{formatMoneyPaise(order.shipping_charge_paise)}</p>
+            : <p className="mt-1 text-xs text-black/45">Operations will calculate shipping separately.</p>}
+          {shippingPayment && ["created", "initiated"].includes(shippingPayment.status)
+            ? <ShippingPaymentButton orderPaymentAttemptId={shippingPayment.payment_attempt_id} />
+            : shippingPayment?.status === "pending"
+              ? <p className="mt-3 rounded bg-amber-50 p-3 text-xs text-amber-900">PayU verification is pending. Do not pay again until this status changes.</p>
+              : shippingPayment?.status === "failed"
+                ? <p className="mt-3 text-xs text-red-700">The previous shipping payment was not completed. Operations must issue a fresh secure payment attempt.</p>
+                : null}
+        </section>
       </div>
     </div>
   </div>;

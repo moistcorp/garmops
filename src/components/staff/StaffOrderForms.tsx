@@ -33,7 +33,39 @@ export function ConfigurationRevisionForm({ orderId, orderNumber, configuration 
 export function ShippingPaymentForm({ orderId, orderNumber, founder }: { orderId: string; orderNumber: string; founder: boolean }) {
   const [linkState, linkAction, linkPending] = useActionState(setShippingPaymentLinkAction, INITIAL_STAFF_ACTION_STATE);
   const [paidState, paidAction, paidPending] = useActionState(markShippingPaidAction, INITIAL_STAFF_ACTION_STATE);
-  return <div className="space-y-5"><form action={linkAction} className="space-y-3"><input type="hidden" name="orderId" value={orderId} /><input type="hidden" name="orderNumber" value={orderNumber} /><label className="block text-xs font-semibold">Shipping amount (₹)<input name="amountRupees" type="number" min="1" step="0.01" required className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" /></label><label className="block text-xs font-semibold">PayU payment-link URL<input name="url" type="url" required placeholder="https://..." className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" /></label><label className="block text-xs font-semibold">Provider reference<input name="reference" className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" /></label><button disabled={linkPending} className="techpack-button w-full" type="submit">{linkPending ? "Saving…" : "Save shipping link"}</button><Result state={linkState} /></form>{founder ? <form action={paidAction} className="space-y-3 border-t border-black/10 pt-4"><input type="hidden" name="orderId" value={orderId} /><input type="hidden" name="orderNumber" value={orderNumber} /><label className="block text-xs font-semibold">Verified payment / bank reference<input name="reference" required minLength={3} className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" /></label><button disabled={paidPending} className="w-full rounded border border-black/10 px-3 py-2 text-xs font-semibold" type="submit">{paidPending ? "Recording…" : "Founder: mark shipping paid"}</button><Result state={paidState} /></form> : null}</div>;
+  return (
+    <div className="space-y-5">
+      <form action={linkAction} className="space-y-3">
+        <input type="hidden" name="orderId" value={orderId} />
+        <input type="hidden" name="orderNumber" value={orderNumber} />
+        <label className="block text-xs font-semibold">
+          Shipping amount (₹)
+          <input name="amountRupees" type="number" min="1" step="0.01" required className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" />
+        </label>
+        <p className="text-[11px] leading-relaxed text-black/45">
+          Garmops creates the PayU transaction internally. Staff cannot paste or redirect customers to an external payment URL.
+        </p>
+        <button disabled={linkPending} className="techpack-button w-full" type="submit">
+          {linkPending ? "Creating…" : "Create secure PayU payment"}
+        </button>
+        <Result state={linkState} />
+      </form>
+      {founder ? (
+        <form action={paidAction} className="space-y-3 border-t border-black/10 pt-4">
+          <input type="hidden" name="orderId" value={orderId} />
+          <input type="hidden" name="orderNumber" value={orderNumber} />
+          <label className="block text-xs font-semibold">
+            Verified payment / bank reference
+            <input name="reference" required minLength={3} className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" />
+          </label>
+          <button disabled={paidPending} className="w-full rounded border border-black/10 px-3 py-2 text-xs font-semibold" type="submit">
+            {paidPending ? "Recording…" : "Founder: mark shipping paid"}
+          </button>
+          <Result state={paidState} />
+        </form>
+      ) : null}
+    </div>
+  );
 }
 
 
