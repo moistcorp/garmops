@@ -287,6 +287,7 @@ export async function prepareCustomCheckoutPayment(input: {
   });
   const body = (await response.json().catch(() => ({}))) as {
     error?: string;
+    issues?: Array<{ path?: string; message?: string }>;
     checkout?: {
       checkoutPaymentAttemptId: string | null;
       alreadyFinalized: boolean;
@@ -296,6 +297,10 @@ export async function prepareCustomCheckoutPayment(input: {
     };
   };
   if (!response.ok || !body.checkout) {
+    const firstIssue = body.issues?.find((issue) => issue.message);
+    const issueMessage = firstIssue?.message
+      ? `${firstIssue.path ? `${firstIssue.path}: ` : ""}${firstIssue.message}`
+      : undefined;
     return {
       ok: false,
       kind: response.status === 401
@@ -305,7 +310,7 @@ export async function prepareCustomCheckoutPayment(input: {
           : response.status === 409
             ? "conflict"
             : "validation",
-      message: body.error ?? "Checkout could not be prepared",
+      message: issueMessage ?? body.error ?? "Checkout could not be prepared",
     };
   }
   if (body.checkout.alreadyFinalized && body.checkout.orderNumber) {

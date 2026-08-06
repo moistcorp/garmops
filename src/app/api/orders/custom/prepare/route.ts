@@ -42,12 +42,15 @@ export async function POST(request: NextRequest) {
 
   const parsed = schema.safeParse(body.value);
   if (!parsed.success) {
-    return orderJsonError("Invalid checkout preparation", 400, {
-      issues: parsed.error.issues.map((issue) => ({
-        path: issue.path.join("."),
-        message: issue.message,
-      })),
+    const issues = parsed.error.issues.map((issue) => ({
+      path: issue.path.join("."),
+      message: issue.message,
+    }));
+    console.warn("Custom checkout request validation failed", {
+      userId: auth.user.id,
+      issues,
     });
+    return orderJsonError("Invalid checkout preparation", 400, { issues });
   }
 
   const { cartId, returnPath, ...orderRequest } = parsed.data;

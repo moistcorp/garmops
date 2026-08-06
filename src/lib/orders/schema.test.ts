@@ -61,6 +61,27 @@ describe("custom order submission schema", () => {
   });
 
 
+
+  it("accepts the formatted Indian phone number used by the checkout form", () => {
+    const input = validSubmission();
+    const result = submitCustomOrderRequestSchema.safeParse({
+      ...input,
+      contact: { ...input.contact, phone: "98100 00001" },
+    });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.contact.phone).toBe("9810000001");
+  });
+
+  it("accepts and normalizes an Indian phone number with country code", () => {
+    const input = validSubmission();
+    const result = submitCustomOrderRequestSchema.safeParse({
+      ...input,
+      contact: { ...input.contact, phone: "+91 98100-00001" },
+    });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.contact.phone).toBe("9810000001");
+  });
+
   it("rejects duplicate cart line identities while allowing repeated products", () => {
     const input = validSubmission();
     expect(

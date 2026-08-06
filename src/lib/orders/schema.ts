@@ -20,11 +20,19 @@ export const orderAddressSchema = z.object({
   state: z.string().trim().min(1).max(100),
 }).strict();
 
+const indianPhoneSchema = z.preprocess((value) => {
+  if (typeof value !== "string") return value;
+  const digits = value.replace(/\D/g, "");
+  if (digits.length === 12 && digits.startsWith("91")) return digits.slice(2);
+  if (digits.length === 11 && digits.startsWith("0")) return digits.slice(1);
+  return digits;
+}, z.string().regex(/^[6-9][0-9]{9}$/, "Enter a valid 10-digit Indian mobile number"));
+
 const checkoutContactSchema = z.object({
   firstName: z.string().trim().min(1).max(80),
   lastName: z.string().trim().min(1).max(80),
   email: z.email().trim().toLowerCase().max(254),
-  phone: z.string().trim().regex(/^(?:\+91|91|0)?[6-9][0-9]{9}$/),
+  phone: indianPhoneSchema,
   department: optionalText(120),
 }).strict();
 
