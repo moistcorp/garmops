@@ -56,6 +56,12 @@ export async function GET(
     return designJsonError("Design not found", 404);
   }
   if (versionsResult.error || ordersResult.error) {
+    console.error("Cloud design could not be loaded", {
+      userId: auth.user.id,
+      designId: id.data,
+      versionsError: versionsResult.error?.message ?? null,
+      ordersError: ordersResult.error?.message ?? null,
+    });
     return designJsonError("Design could not be loaded", 500);
   }
 
@@ -75,6 +81,7 @@ export async function GET(
     },
   });
 }
+
 export async function PATCH(
   request: NextRequest,
   context: DesignRouteContext,
@@ -94,8 +101,17 @@ export async function PATCH(
 
   const body = await readDesignJson(request);
   if (!body.ok) return body.response;
+
   const parsed = saveDesignRequestSchema.safeParse(body.value);
   if (!parsed.success) {
+    console.error("Cloud design save request validation failed", {
+      userId: auth.user.id,
+      designId: id.data,
+      issues: parsed.error.issues.map((issue) => ({
+        path: issue.path.join("."),
+        message: issue.message,
+      })),
+    });
     return designJsonError("Invalid design request", 400);
   }
 
@@ -111,9 +127,20 @@ export async function PATCH(
     },
   );
   const result = data?.[0];
+
   if (error || !result) {
+    console.error("Cloud design draft save failed", {
+      userId: auth.user.id,
+      designId: id.data,
+      expectedRevision: parsed.data.expectedRevision,
+      code: error?.code ?? null,
+      message: error?.message ?? "RPC returned no design",
+      details: error?.details ?? null,
+      hint: error?.hint ?? null,
+    });
     return designJsonError("Design could not be saved", 403);
   }
+
   if (result.conflict) {
     return designJsonError("Design has newer cloud changes", 409, {
       conflict: {
@@ -159,6 +186,7 @@ export async function DELETE(
 
   const body = await readDesignJson(request, 16 * 1024);
   if (!body.ok) return body.response;
+
   const parsed = revisionRequestSchema.safeParse(body.value);
   if (!parsed.success) {
     return designJsonError("Invalid design request", 400);
@@ -170,6 +198,14 @@ export async function DELETE(
     parsed.data.expectedRevision,
   );
   if (error) {
+    console.error("Cloud design archive failed", {
+      userId: auth.user.id,
+      designId: id.data,
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    });
     return designJsonError("Design could not be archived", 403);
   }
   if (!archived) {

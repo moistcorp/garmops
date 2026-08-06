@@ -36,6 +36,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
   const body = await readDesignJson(request, 16 * 1024);
   if (!body.ok) return body.response;
+
   const parsed = revisionRequestSchema.safeParse(body.value);
   if (!parsed.success) {
     return designJsonError("Invalid design request", 400);
@@ -47,9 +48,20 @@ export async function POST(request: NextRequest, context: RouteContext) {
     parsed.data.expectedRevision,
   );
   const result = data?.[0];
+
   if (error || !result) {
+    console.error("Cloud design version creation failed", {
+      userId: auth.user.id,
+      designId: id.data,
+      expectedRevision: parsed.data.expectedRevision,
+      code: error?.code ?? null,
+      message: error?.message ?? "RPC returned no version",
+      details: error?.details ?? null,
+      hint: error?.hint ?? null,
+    });
     return designJsonError("Design version could not be created", 403);
   }
+
   if (result.conflict) {
     return designJsonError("Design has newer cloud changes", 409, {
       conflict: {

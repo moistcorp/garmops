@@ -296,6 +296,11 @@ async function ensureCloudUploads(
 }
 
 async function responseFailure(response: Response): Promise<CloudSaveResult> {
+  const body = (await response.json().catch(() => ({}))) as {
+    error?: string;
+    conflict?: CloudSaveConflict;
+  };
+
   if (response.status === 401) {
     return {
       ok: false,
@@ -307,19 +312,18 @@ async function responseFailure(response: Response): Promise<CloudSaveResult> {
     return {
       ok: false,
       kind: "unavailable",
-      message: "Cloud save is temporarily unavailable",
+      message: body.error ?? "Cloud save is temporarily unavailable",
     };
   }
-  if (response.status === 409) {
-    const body = (await response.json()) as { conflict?: CloudSaveConflict };
-    if (body.conflict?.snapshot) {
-      return { ok: false, kind: "conflict", conflict: body.conflict };
-    }
+  if (response.status === 409 && body.conflict?.snapshot) {
+    return { ok: false, kind: "conflict", conflict: body.conflict };
   }
   return {
     ok: false,
     kind: "error",
-    message: "This browser draft is safe, but cloud save did not complete",
+    message:
+      body.error ??
+      "This browser draft is safe, but cloud save did not complete",
   };
 }
 
