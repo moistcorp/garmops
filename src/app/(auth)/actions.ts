@@ -85,21 +85,11 @@ async function principalForEmail(normalizedEmail: string) {
     | null;
 }
 
-type StaffAccess = {
-  role: "founder" | "operations";
-  active: boolean;
-  must_use_mfa: boolean;
-  mfa_satisfied: boolean;
-};
-
 async function staffDestination(
   supabase: Awaited<ReturnType<typeof createClient>>,
   requestedNext: string,
 ) {
-  const rpc = supabase.rpc as unknown as (
-    name: string,
-  ) => Promise<{ data: StaffAccess[] | null; error: { message: string } | null }>;
-  const { data, error } = await rpc("get_staff_access_context");
+  const { data, error } = await supabase.rpc("get_staff_access_context");
   const staff = data?.[0];
   if (error || !staff?.active) {
     await supabase.auth.signOut();

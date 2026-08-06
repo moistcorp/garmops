@@ -59,7 +59,10 @@ export async function POST(request: NextRequest) {
   if (principalError || principal?.account_type !== "customer" || !principal.active) return jsonError("Customer account access is unavailable", 403);
 
   const phoneDigits = parsed.data.contact.phone.startsWith("91") ? parsed.data.contact.phone.slice(2) : parsed.data.contact.phone;
-  const rpc = supabase.rpc as unknown as (name: string, args: Record<string, unknown>) => Promise<{ error: { message: string } | null }>;
+  const rpc = supabase.rpc.bind(supabase) as unknown as (
+    name: string,
+    args: Record<string, unknown>,
+  ) => Promise<{ error: { message: string } | null }>;
   const { error } = await rpc("save_customer_checkout_defaults", {
     p_first_name: parsed.data.contact.firstName,
     p_last_name: parsed.data.contact.lastName,

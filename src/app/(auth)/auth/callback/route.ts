@@ -47,13 +47,7 @@ export async function GET(request: Request) {
   }
 
   if (isStaffSurface()) {
-    const rpc = supabase.rpc as unknown as (
-      name: string,
-    ) => Promise<{
-      data: Array<{ active: boolean; must_use_mfa: boolean; mfa_satisfied: boolean }> | null;
-      error: { message: string } | null;
-    }>;
-    const { data, error } = await rpc("get_staff_access_context");
+    const { data, error } = await supabase.rpc("get_staff_access_context");
     const staff = data?.[0];
     if (error || !staff?.active) {
       await supabase.auth.signOut();

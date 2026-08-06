@@ -3,7 +3,6 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { ensureCustomerAccount } from "@/lib/auth/ensurePersonalCustomerAccount";
 import { safeInternalPath } from "@/lib/auth/redirects";
-import type { StaffRole } from "@/lib/auth/constants";
 import type { StaffPermission } from "@/lib/staff/permissions";
 import { createClient } from "@/lib/supabase/server";
 
@@ -53,27 +52,13 @@ export async function requireCustomer(next = "/account") {
   return { ...context, account: { type: "customer" as const } };
 }
 
-type StaffAccessContext = {
-  role: StaffRole;
-  active: boolean;
-  must_use_mfa: boolean;
-  mfa_satisfied: boolean;
-};
-
 export async function requireStaffRecord(options?: {
   allowMfaPending?: boolean;
   next?: string;
 }) {
   const next = options?.next ?? "/orders";
   const context = await requireVerifiedUser(next);
-  const rpc = context.supabase.rpc as unknown as (
-    name: string,
-    args?: Record<string, never>,
-  ) => Promise<{
-    data: StaffAccessContext[] | null;
-    error: { message: string } | null;
-  }>;
-  const { data, error } = await rpc("get_staff_access_context");
+  const { data, error } = await context.supabase.rpc("get_staff_access_context");
   const staff = data?.[0];
 
   if (error || !staff || !staff.active) {

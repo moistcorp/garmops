@@ -36,11 +36,7 @@ export class CustomerAccountProvisioningError extends Error {
 export async function ensureCustomerAccount(
   supabase: SessionClient,
 ): Promise<string> {
-  const rpc = supabase.rpc as unknown as (
-    name: string,
-    args: Record<string, unknown>,
-  ) => Promise<{ data: string | null; error: RpcError | null }>;
-  const { data, error } = await rpc("ensure_customer_account", {
+  const { data, error } = await supabase.rpc("ensure_customer_account", {
     p_terms_version: TERMS_VERSION,
     p_privacy_version: PRIVACY_VERSION,
   });
