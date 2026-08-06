@@ -23,7 +23,7 @@ export default function PaymentRetryButton({
       });
       const body = (await response.json()) as { error?: string; checkoutUrl?: string; fields?: Record<string, string> };
       if (!response.ok || !body.checkoutUrl || !body.fields) throw new Error(body.error ?? "Secure payment could not be started");
-      submitPayuCheckout(body.fields, body.checkoutUrl);
+      await submitPayuCheckout(body.fields, body.checkoutUrl);
     } catch (paymentError) {
       setError(paymentError instanceof Error ? paymentError.message : "Secure payment could not be started");
       setPending(false);

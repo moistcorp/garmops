@@ -347,6 +347,6 @@ export async function prepareCustomCheckoutPayment(input: {
       message: paymentBody.error ?? "Secure payment could not be started",
     };
   }
-  submitPayuCheckout(paymentBody.fields, paymentBody.checkoutUrl);
+  await submitPayuCheckout(paymentBody.fields, paymentBody.checkoutUrl);
   return { ok: true, kind: "payment_redirected" };
 }

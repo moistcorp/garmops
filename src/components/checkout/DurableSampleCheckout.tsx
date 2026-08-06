@@ -225,7 +225,7 @@ export default function DurableSampleCheckout({
         // The prepared database checkout is authoritative even if cleanup is blocked.
       }
       clearCart();
-      submitPayuCheckout(payment.fields, payment.checkoutUrl);
+      await submitPayuCheckout(payment.fields, payment.checkoutUrl);
     } catch (submissionError) {
       setSavedOrder(null);
       setError(

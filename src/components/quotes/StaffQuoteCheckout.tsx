@@ -34,7 +34,7 @@ export default function StaffQuoteCheckout({ token, totalPaise }: { token: strin
       });
       const checkout = await response.json() as { error?: string; checkoutUrl?: string; fields?: Record<string, string> };
       if (!response.ok || !checkout.checkoutUrl || !checkout.fields) throw new Error(checkout.error ?? "Secure payment could not be started");
-      submitPayuCheckout(checkout.fields, checkout.checkoutUrl);
+      await submitPayuCheckout(checkout.fields, checkout.checkoutUrl);
     } catch (paymentError) {
       setError(paymentError instanceof Error ? paymentError.message : "Secure payment could not be started");
       setPending(false);

@@ -30,7 +30,7 @@ export default function ShippingPaymentButton({
       if (!response.ok || !body.checkoutUrl || !body.fields) {
         throw new Error(body.error ?? "Secure shipping payment could not be started");
       }
-      submitPayuCheckout(body.fields, body.checkoutUrl);
+      await submitPayuCheckout(body.fields, body.checkoutUrl);
     } catch (paymentError) {
       setError(paymentError instanceof Error
         ? paymentError.message
