@@ -17,28 +17,17 @@ export interface GuidelinesTogglesProps {
 
 export function GuidelinesToggles(props: GuidelinesTogglesProps): JSX.Element {
   const maxAreaControlled = props.maximumArea !== undefined;
-  const leftChestControlled = props.leftChest !== undefined;
 
   const [internalMaxArea, setInternalMaxArea] = useState<boolean>(
     props.maximumArea ?? true
   );
-  const [internalLeftChest, setInternalLeftChest] = useState<boolean>(
-    props.leftChest ?? false
-  );
 
   const maximumArea = maxAreaControlled ? (props.maximumArea as boolean) : internalMaxArea;
-  const leftChest = leftChestControlled ? (props.leftChest as boolean) : internalLeftChest;
 
   const toggleMaxArea = () => {
     const next = !maximumArea;
     if (!maxAreaControlled) setInternalMaxArea(next);
     props.onMaximumAreaChange?.(next);
-  };
-
-  const toggleLeftChest = () => {
-    const next = !leftChest;
-    if (!leftChestControlled) setInternalLeftChest(next);
-    props.onLeftChestChange?.(next);
   };
 
   return (
@@ -72,34 +61,9 @@ export function GuidelinesToggles(props: GuidelinesTogglesProps): JSX.Element {
         </span>
       </button>
 
-      <button
-        type="button"
-        role="switch"
-        aria-checked={leftChest}
-        onClick={toggleLeftChest}
-        className="techpack-control flex w-full items-center justify-between gap-4 rounded-[4px] border px-3 py-2.5 text-left"
-      >
-        <span className="min-w-0">
-          <span className="block text-xs font-semibold text-[var(--text-primary)]/80">
-            Left chest
-          </span>
-          <span className="block text-[11px] text-[var(--text-primary)]/45">
-            Show the left-chest reference
-          </span>
-        </span>
-        <span
-          aria-hidden="true"
-          className={`relative h-6 w-11 shrink-0 rounded-[4px] p-0.5 transition-colors ${
-            leftChest ? "bg-[var(--color-accent)]" : "bg-[var(--text-primary)]/15"
-          }`}
-        >
-          <span
-            className={`block h-5 w-5 rounded-[4px] bg-white  transition-transform ${
-              leftChest ? "translate-x-5" : "translate-x-0"
-            }`}
-          />
-        </span>
-      </button>
+      <p className="text-[11px] leading-relaxed text-[var(--text-primary)]/50">
+        The placement presets move the artwork; this guide only shows the selected safe boundary.
+      </p>
     </div>
   );
 }

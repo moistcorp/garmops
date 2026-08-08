@@ -983,7 +983,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
       );
       if (missingTechnique) {
         showCtaError(
-          `Choose a technique for the ${missingTechnique} artwork or use Recommend for me.`
+          `Choose a print method for the ${missingTechnique} artwork before continuing.`
         );
         return;
       }

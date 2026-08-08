@@ -15,7 +15,7 @@ import { scheduleUploadCleanup } from "./objectUrls";
 const STORAGE_PREFIX = "mf_configurator_build:";
 const DRAFT_VERSION = 1;
 const STEP_IDS = new Set(["garment-colour", "artwork", "neck-label"]);
-const ARTWORK_FILE_TYPES = new Set(["jpg", "png", "svg", "ai"]);
+const ARTWORK_FILE_TYPES = new Set(["jpg", "png", "pdf", "svg", "ai"]);
 const ARTWORK_TECHNIQUES = new Set([
   "screen_print",
   "dtg",

@@ -144,7 +144,7 @@ function assetPath(productId: ProductId, view: GarmentView, layer: string): stri
 }
 
 function isRenderableImage(fileUrl?: string, fileType?: ArtworkSide["fileType"]): boolean {
-  if (!fileUrl || fileType === "ai") return false;
+  if (!fileUrl || fileType === "ai" || fileType === "pdf") return false;
   return /\.(png|jpe?g|svg|webp)$/i.test(fileUrl) || fileUrl.startsWith("blob:");
 }
 
@@ -174,8 +174,9 @@ function ArtworkPreview({ side }: { side: ArtworkSide }) {
   }
 
   return (
-    <div className="flex h-full w-full items-center justify-center bg-white/80 px-2 text-center text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/55">
-      {side.fileType} Artwork
+    <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-white/85 px-2 text-center text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/55">
+      <span className="rounded-[4px] border border-[var(--color-rule)] px-2 py-1">{side.fileType.toUpperCase()}</span>
+      <span className="text-[10px] normal-case tracking-normal">Document preview</span>
     </div>
   );
 }

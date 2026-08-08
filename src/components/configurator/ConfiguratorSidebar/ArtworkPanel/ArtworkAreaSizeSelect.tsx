@@ -26,18 +26,13 @@ export function ArtworkAreaSizeSelect(props?: ArtworkAreaSizeSelectProps): JSX.E
     props?.onChange?.(next);
   };
 
-  const maxSize = SIZE_ORDER[SIZE_ORDER.length - 1];
-
   return (
     <div className="flex flex-col gap-1.5">
       <label
         htmlFor={selectId}
         className="text-xs font-semibold leading-none tracking-normal text-[var(--text-primary)]/70"
       >
-        Smallest Size{" "}
-        <span className="font-normal text-[var(--text-primary)]/45">
-          (sets artwork area)
-        </span>
+        Smallest garment size in this order
       </label>
       <div className="relative">
         <select
@@ -63,7 +58,7 @@ export function ArtworkAreaSizeSelect(props?: ArtworkAreaSizeSelectProps): JSX.E
         />
       </div>
       <p className="text-xs leading-relaxed tracking-normal text-[var(--text-primary)]/45">
-        Sizes to order: {value}–{maxSize}. The dotted boundary updates automatically.
+        We use the smallest size to make sure your artwork fits across every garment.
       </p>
     </div>
   );

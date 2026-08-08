@@ -31,6 +31,23 @@ describe("private upload policy", () => {
     expect(JSON.stringify(result)).not.toContain("objectKey");
   });
 
+  it("accepts PDF artwork and the 20 MB customer limit", () => {
+    expect(
+      validateUploadRequest({
+        ...validArtwork,
+        filename: "Brand Artwork.pdf",
+        contentType: "application/pdf",
+        byteSize: 20 * 1024 * 1024,
+      }),
+    ).toMatchObject({ ok: true, value: { extension: "pdf", contentType: "application/pdf" } });
+    expect(
+      validateUploadRequest({
+        ...validArtwork,
+        byteSize: 20 * 1024 * 1024 + 1,
+      }),
+    ).toEqual({ ok: false, error: "File is too large" });
+  });
+
   it("rejects path-like and bidirectional-control filenames", () => {
     expect(
       validateUploadRequest({
@@ -105,7 +122,7 @@ describe("private upload policy", () => {
     expect(
       validateUploadRequest({
         ...validArtwork,
-        byteSize: 50 * 1024 * 1024 + 1,
+        byteSize: 20 * 1024 * 1024 + 1,
       }),
     ).toEqual({ ok: false, error: "File is too large" });
   });

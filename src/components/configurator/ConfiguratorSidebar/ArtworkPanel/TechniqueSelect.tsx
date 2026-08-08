@@ -1,22 +1,7 @@
 "use client";
 
-import {
-  useEffect,
-  useId,
-  useRef,
-  useState,
-  type KeyboardEvent as ReactKeyboardEvent,
-} from "react";
-import { Check, ChevronDown } from "lucide-react";
-import type {
-  ArtworkFileType,
-  CustomerArtworkTechnique,
-} from "@/lib/configurator/types/configurator";
-import { formatInr } from "@/lib/configurator/pricing";
-import {
-  CUSTOMER_PRINT_TECHNIQUE_LABELS,
-  CUSTOMER_PRINT_TECHNIQUE_UNIT_DELTAS,
-} from "@/lib/pricingRules";
+import type { ArtworkFileType, CustomerArtworkTechnique } from "@/lib/configurator/types/configurator";
+import { CUSTOMER_PRINT_TECHNIQUE_LABELS } from "@/lib/pricingRules";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 
 export interface TechniqueSelectProps {
@@ -35,258 +20,78 @@ const TECHNIQUE_ORDER: CustomerArtworkTechnique[] = [
 ];
 
 const TECHNIQUE_DESCRIPTIONS: Record<CustomerArtworkTechnique, string> = {
-  screen_print:
-    "A durable choice for bold vector artwork, clean lines and designs with a limited colour count.",
-  dtf:
-    "A versatile option for vivid raster artwork, fine details and strong colour across fabric types.",
-  reflective_heat_transfer:
-    "A light-reactive finish that adds visibility and a precise, technical look.",
+  screen_print: "Bold graphics & repeat bulk production",
+  dtf: "Detailed and multi-colour artwork",
+  reflective_heat_transfer: "Light-reactive speciality finish",
 };
 
-interface TechniqueCrop {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-const TECHNIQUE_CROPS: Record<CustomerArtworkTechnique, TechniqueCrop> = {
-  screen_print: { x: 29, y: 145, width: 226, height: 281 },
-  reflective_heat_transfer: { x: 366, y: 145, width: 226, height: 281 },
-  dtf: { x: 366, y: 530, width: 226, height: 283 },
-};
-
-const TECHNIQUE_SHEET_SIZE = 938;
-const THUMBNAIL_SIZE = 56;
-
-function TechniqueThumbnail({ technique }: { technique: CustomerArtworkTechnique }) {
-  const crop = TECHNIQUE_CROPS[technique];
-  const scale = THUMBNAIL_SIZE / crop.width;
-  const scaledCropHeight = crop.height * scale;
-  const verticalCrop = Math.max(0, (scaledCropHeight - THUMBNAIL_SIZE) / 2);
-
-  return (
-    <span
-      aria-hidden="true"
-      className="h-14 w-14 shrink-0 rounded-[4px] border border-white/70 bg-white bg-no-repeat "
-      style={{
-        backgroundImage: "url(/images/print-techniques.webp)",
-        backgroundSize: `${TECHNIQUE_SHEET_SIZE * scale}px ${TECHNIQUE_SHEET_SIZE * scale}px`,
-        backgroundPosition: `${-crop.x * scale}px ${-crop.y * scale - verticalCrop}px`,
-      }}
-    />
-  );
-}
-
-export function TechniqueSelect({
-  value,
-  fileType,
-  side = "front",
-  onChange,
-}: TechniqueSelectProps) {
-  const triggerId = useId();
-  const labelId = useId();
-  const listboxId = useId();
-  const rootRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
-  const [open, setOpen] = useState(false);
-  const selectedIndex = value ? TECHNIQUE_ORDER.indexOf(value) : -1;
-  const [highlightedIndex, setHighlightedIndex] = useState(
-    selectedIndex >= 0 ? selectedIndex : 0
-  );
+export function TechniqueSelect({ value, fileType, side = "front", onChange }: TechniqueSelectProps) {
   const sideLabel = side === "front" ? "Front" : "Back";
-
-  useEffect(() => {
-    if (!open) return;
-
-    const handleOutsidePointer = (event: PointerEvent) => {
-      if (
-        event.target instanceof Node &&
-        !rootRef.current?.contains(event.target)
-      ) {
-        setOpen(false);
-      }
-    };
-
-    document.addEventListener("pointerdown", handleOutsidePointer);
-    return () => document.removeEventListener("pointerdown", handleOutsidePointer);
-  }, [open]);
-
-  function openMenu() {
-    const nextIndex =
-      selectedIndex >= 0
-        ? selectedIndex
-        : 0;
-    setHighlightedIndex(nextIndex);
-    setOpen(true);
-    window.requestAnimationFrame(() => optionRefs.current[nextIndex]?.focus());
-  }
 
   function chooseTechnique(technique: CustomerArtworkTechnique) {
     onChange(technique);
-    setOpen(false);
-    window.requestAnimationFrame(() => triggerRef.current?.focus());
     trackConfiguratorEvent("technique_selected", {
       technique,
       file_type: fileType ?? null,
     });
   }
 
-  function moveOptionFocus(nextIndex: number) {
-    const normalized =
-      (nextIndex + TECHNIQUE_ORDER.length) % TECHNIQUE_ORDER.length;
-    setHighlightedIndex(normalized);
-    optionRefs.current[normalized]?.focus();
-  }
-
-  function handleOptionKeyDown(
-    event: ReactKeyboardEvent<HTMLButtonElement>,
-    index: number
-  ) {
-    if (event.key === "ArrowDown") {
-      event.preventDefault();
-      moveOptionFocus(index + 1);
-    } else if (event.key === "ArrowUp") {
-      event.preventDefault();
-      moveOptionFocus(index - 1);
-    } else if (event.key === "Home") {
-      event.preventDefault();
-      moveOptionFocus(0);
-    } else if (event.key === "End") {
-      event.preventDefault();
-      moveOptionFocus(TECHNIQUE_ORDER.length - 1);
-    } else if (event.key === "Escape") {
-      event.preventDefault();
-      setOpen(false);
-      triggerRef.current?.focus();
-    } else if (event.key === "Tab") {
-      setOpen(false);
-    }
-  }
-
   return (
-    <div ref={rootRef} className="flex flex-col gap-1.5">
-      <div className="flex items-center justify-between gap-3">
-        <span
-          id={labelId}
-          className="text-xs font-semibold leading-none tracking-normal text-[var(--text-primary)]/70"
-        >
-          {sideLabel} Artwork Technique<span aria-hidden="true">*</span>
-        </span>
-      </div>
-
-      <button
-        ref={triggerRef}
-        id={triggerId}
-        type="button"
-        aria-labelledby={`${labelId} ${triggerId}`}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-controls={listboxId}
-        onClick={() => {
-          if (open) setOpen(false);
-          else openMenu();
-        }}
-        onKeyDown={(event) => {
-          if (
-            !open &&
-            ["ArrowDown", "ArrowUp", "Enter", " "].includes(event.key)
-          ) {
-            event.preventDefault();
-            openMenu();
-          } else if (open && event.key === "Escape") {
-            event.preventDefault();
-            setOpen(false);
-          }
-        }}
-        className="techpack-control flex min-h-11 w-full items-center justify-between gap-3 rounded-[4px] border px-3 text-left outline-none focus:!border-[var(--color-accent)]/60"
-      >
-        <span
-          className={`text-sm font-medium leading-none tracking-normal ${
-            value ? "text-[var(--text-primary)]/80" : "text-[var(--text-primary)]/45"
-          }`}
-        >
-          {value ? TECHNIQUE_LABELS[value] : "Select a production technique"}
-        </span>
-        <ChevronDown
-          size={15}
-          strokeWidth={2.2}
-          aria-hidden="true"
-          className={`shrink-0 text-[var(--text-primary)]/45 transition-transform ${
-            open ? "rotate-180" : ""
-          }`}
-        />
-      </button>
-
-      {open && (
-        <div
-          id={listboxId}
-          role="listbox"
-          aria-labelledby={labelId}
-          className="z-40 overflow-hidden rounded-[4px] border border-[var(--text-primary)]/15 bg-white/82  ring-1 ring-white/75 "
-        >
-          <div className="max-h-[420px] overflow-y-auto p-1.5">
-            {TECHNIQUE_ORDER.map((technique, index) => {
-              const selected = value === technique;
-              const highlighted = highlightedIndex === index;
-
-              return (
-                <button
-                  key={technique}
-                  ref={(element) => {
-                    optionRefs.current[index] = element;
-                  }}
-                  type="button"
-                  role="option"
-                  aria-selected={selected}
-                  onFocus={() => setHighlightedIndex(index)}
-                  onMouseEnter={() => setHighlightedIndex(index)}
-                  onKeyDown={(event) => handleOptionKeyDown(event, index)}
-                  onClick={() => chooseTechnique(technique)}
-                  className={`flex w-full items-start gap-3 rounded-[4px] px-2.5 py-3 text-left outline-none transition-colors ${
+    <fieldset className="flex flex-col gap-2" aria-label={`${sideLabel} print method`}>
+      <legend className="text-xs font-semibold text-[var(--text-primary)]/70">
+        2 — Choose print method<span aria-hidden="true">*</span>
+      </legend>
+      <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Print method">
+        {TECHNIQUE_ORDER.map((technique) => {
+          const selected = value === technique;
+          return (
+            <button
+              key={technique}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              onClick={() => chooseTechnique(technique)}
+              className={`min-h-[92px] rounded-[4px] border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/45 ${
+                selected
+                  ? "border-[var(--color-accent)] bg-[var(--color-accent)]/8"
+                  : "techpack-control hover:!border-[var(--color-accent)]/45"
+              }`}
+            >
+              <span className="flex items-start justify-between gap-2">
+                <span className="text-sm font-semibold text-[var(--text-primary)]/85">
+                  {TECHNIQUE_LABELS[technique]}
+                </span>
+                <span
+                  aria-hidden="true"
+                  className={`mt-0.5 h-3.5 w-3.5 shrink-0 rounded-full border ${
                     selected
-                      ? "bg-[#EAF3F1]"
-                      : highlighted
-                        ? "bg-white/70"
-                        : "hover:bg-white/55"
+                      ? "border-[var(--color-accent)] bg-[var(--color-accent)] ring-2 ring-[var(--color-accent)]/20"
+                      : "border-[var(--text-primary)]/25"
                   }`}
-                >
-                  <TechniqueThumbnail technique={technique} />
-                  <span className="min-w-0 flex-1">
-                    <span className="flex flex-wrap items-center gap-1.5">
-                      <span className="text-sm font-semibold leading-tight tracking-normal text-[var(--text-primary)]/85">
-                        {TECHNIQUE_LABELS[technique]}
-                      </span>
-                    </span>
-                    <span className="mt-1 block text-xs leading-relaxed tracking-normal text-[var(--text-primary)]/55">
-                      {TECHNIQUE_DESCRIPTIONS[technique]}
-                    </span>
-                    <span className="mt-1.5 block text-[10px] font-semibold text-[var(--text-primary)]/45">
-                      +{formatInr(CUSTOMER_PRINT_TECHNIQUE_UNIT_DELTAS[technique])}/unit
-                    </span>
-                  </span>
-                  {selected && (
-                    <Check
-                      size={15}
-                      strokeWidth={2.5}
-                      aria-hidden="true"
-                      className="mt-1 shrink-0 text-[var(--color-accent-dark)]"
-                    />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
+                />
+              </span>
+              <span className="mt-2 block text-[11px] leading-relaxed text-[var(--text-primary)]/55">
+                {TECHNIQUE_DESCRIPTIONS[technique]}
+              </span>
+            </button>
+          );
+        })}
+      </div>
       {!value && (
-        <p className="text-xs font-medium leading-relaxed tracking-normal text-[#8A6212]">
-          Select a technique to unlock artwork placement.
+        <p className="text-xs font-medium leading-relaxed text-[#8A6212]">
+          Choose a print method to unlock placement.
         </p>
       )}
-    </div>
+      {value && (
+        <p className="text-xs leading-relaxed text-[var(--text-primary)]/55">
+          {value === "screen_print"
+            ? "Our team will review the artwork for print preparation."
+            : value === "dtf"
+              ? "High-resolution artwork is preferred for detailed prints."
+              : "Clean artwork generally reproduces best with this finish."}
+        </p>
+      )}
+    </fieldset>
   );
 }
 

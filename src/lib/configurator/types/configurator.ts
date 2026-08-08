@@ -28,7 +28,16 @@ export function isCustomerArtworkTechnique(
   return technique === 'screen_print' || technique === 'dtf' || technique === 'reflective_heat_transfer';
 }
 
-export type ArtworkFileType = 'jpg' | 'png' | 'svg' | 'ai';
+export type ArtworkFileType = 'jpg' | 'png' | 'pdf' | 'svg' | 'ai';
+
+export type ArtworkPlacementPreset =
+  | 'left-chest'
+  | 'centre-chest'
+  | 'large-front'
+  | 'upper-back'
+  | 'centre-back'
+  | 'large-back'
+  | 'custom';
 
 export type PrintAreaSize = 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL';
 
@@ -48,6 +57,7 @@ export interface ArtworkSide {
   fileType: ArtworkFileType;
   vectorized: boolean;
   technique?: ArtworkTechnique;
+  placementPreset?: ArtworkPlacementPreset;
   width: number; // cm
   height: number; // cm
   fromNeck: number; // cm
@@ -65,6 +75,8 @@ export interface ArtworkSide {
 export interface Artwork {
   front?: ArtworkSide;
   back?: ArtworkSide;
+  /** The smallest garment size used to choose the safe print area. */
+  smallestSize?: PrintAreaSize;
 }
 
 export type NeckLabelDimensions = '50x18' | '60x20' | '65x15' | '45x45'; // mm

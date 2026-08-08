@@ -13,7 +13,7 @@ export function getConfiguratorCtaLabel(
 ): string {
   if (openStep === "garment-colour") return "Continue to artwork →";
   if (openStep === "artwork") {
-    return options.hasArtwork ? "Continue" : "Skip artwork";
+    return options.hasArtwork ? "Continue to neck label →" : "Continue without artwork →";
   }
   if (openStep === "neck-label") {
     if (options.hasCustomLabel) return "Continue to sizes";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CheckCircle2, ChevronDown, Copy, Trash2 } from "lucide-react";
+import { Copy } from "lucide-react";
 import {
   ArtworkUploadSide,
   SAMPLE_ARTWORK_DIMENSIONS,
@@ -17,9 +17,17 @@ import {
   type PositionControlsState,
 } from "@/lib/configurator/ArtworkPositionContext";
 import { PRINT_AREA_SIZE_CHART } from "@/lib/configurator/sizecharts";
+import {
+  applyArtworkPlacementPreset,
+  FRONT_PLACEMENT_PRESETS,
+  BACK_PLACEMENT_PRESETS,
+  placementLabel,
+} from "@/lib/configurator/artworkPlacement";
+import { getArtworkQuality } from "@/lib/configurator/artworkQuality";
 import type {
   Artwork,
   ArtworkSide,
+  ArtworkPlacementPreset,
   CustomerArtworkTechnique,
   PrintAreaSize,
 } from "@/lib/configurator/types/configurator";
@@ -35,41 +43,51 @@ export interface ArtworkPanelProps {
 }
 
 type Side = "front" | "back";
-type PositionSeed = Pick<
-  PositionControlsState,
-  "widthCm" | "heightCm" | "fromNeckCm" | "fromCenterCm"
->;
+type PositionSeed = Pick<PositionControlsState, "widthCm" | "heightCm" | "fromNeckCm" | "fromCenterCm">;
 
-const SIDE_LABELS: Record<Side, string> = {
-  front: "Front",
-  back: "Back",
-};
+const SIDE_LABELS: Record<Side, string> = { front: "Front", back: "Back" };
 
-export function ArtworkPanel({
-  value,
-  onChange,
-  activeView,
-  onViewChange,
-}: ArtworkPanelProps = {}) {
+function positionFromArtwork(current: ArtworkSide): PositionControlsState {
+  return {
+    alignH: null,
+    alignV: null,
+    widthCm: current.width,
+    heightCm: current.height,
+    aspectLocked: true,
+    fromNeckCm: current.fromNeck,
+    fromCenterCm: current.fromCenter,
+  };
+}
+
+function artworkFilename(side?: ArtworkSide): string {
+  return side?.fileName ?? side?.fileUrl?.split("/").pop() ?? "Artwork";
+}
+
+export function ArtworkPanel({ value, onChange, activeView, onViewChange }: ArtworkPanelProps = {}) {
   const [internalArtwork, setInternalArtwork] = useState<Artwork>(value ?? {});
-  const [expandedSide, setExpandedSide] = useState<Side | null>(
-    activeView === "back" ? "back" : "front"
-  );
-  const isControlled = value !== undefined;
-  const artwork = isControlled ? value : internalArtwork;
+  const artwork = value !== undefined ? value : internalArtwork;
+  const [activeSide, setActiveSide] = useState<Side>(activeView === "back" ? "back" : "front");
+  const [copyNotice, setCopyNotice] = useState<string | null>(null);
+  const initialSideResolvedRef = useRef(false);
   const { positions, updatePosition } = useArtworkPosition();
   const seededArtworkIdentityRef = useRef<Partial<Record<Side, string>>>({});
-  const pendingPositionSeedRef = useRef<
-    Partial<Record<Side, { identity: string; position: PositionSeed }>>
-  >({});
+  const pendingPositionSeedRef = useRef<Partial<Record<Side, { identity: string; position: PositionSeed }>>>({});
 
   function commit(next: Artwork) {
-    if (!isControlled) setInternalArtwork(next);
+    if (value === undefined) setInternalArtwork(next);
     onChange?.(next);
   }
 
   useEffect(() => {
-    (["front", "back"] as Side[]).forEach((side) => {
+    if (initialSideResolvedRef.current || (!artwork.front && !artwork.back)) return;
+    initialSideResolvedRef.current = true;
+    const nextSide: Side = !artwork.front && artwork.back ? "back" : "front";
+    setActiveSide(nextSide);
+    onViewChange?.(nextSide);
+  }, [artwork.back, artwork.front, onViewChange]);
+
+  useEffect(() => {
+    ( ["front", "back"] as Side[]).forEach((side) => {
       const current = artwork[side];
       const pos = positions[side];
       if (!current || !pos) {
@@ -85,12 +103,8 @@ export function ArtworkPanel({
           : `url:${current.fileUrl}`;
       const isSampleArtwork = current.fileUrl === SAMPLE_ARTWORK_HREF;
       const seed: PositionSeed = {
-        widthCm: isSampleArtwork
-          ? SAMPLE_ARTWORK_DIMENSIONS.width
-          : current.width,
-        heightCm: isSampleArtwork
-          ? SAMPLE_ARTWORK_DIMENSIONS.height
-          : current.height,
+        widthCm: isSampleArtwork ? SAMPLE_ARTWORK_DIMENSIONS.width : current.width,
+        heightCm: isSampleArtwork ? SAMPLE_ARTWORK_DIMENSIONS.height : current.height,
         fromNeckCm: current.fromNeck,
         fromCenterCm: current.fromCenter,
       };
@@ -130,10 +144,12 @@ export function ArtworkPanel({
             height: pos.heightCm,
             fromNeck: pos.fromNeckCm,
             fromCenter: pos.fromCenterCm,
+            placementPreset: "custom",
           },
         });
       }
     });
+    // Position state is intentionally synchronized into the persisted side state here.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [positions.front, positions.back, artwork.front, artwork.back]);
 
@@ -141,18 +157,18 @@ export function ArtworkPanel({
     commit({ ...artwork, [side]: next });
   }
 
+  function selectSide(side: Side) {
+    setActiveSide(side);
+    setCopyNotice(null);
+    onViewChange?.(side);
+  }
+
   function handleTechniqueChange(side: Side, technique: CustomerArtworkTechnique) {
     const current = artwork[side];
     if (!current) return;
     const constrained = constrainArtworkToPrintArea(
-      {
-        ...positions[side],
-        widthCm: current.width,
-        heightCm: current.height,
-        fromNeckCm: current.fromNeck,
-        fromCenterCm: current.fromCenter,
-      },
-      PRINT_AREA_SIZE_CHART[current.printArea]
+      { ...positions[side], ...positionFromArtwork(current) },
+      PRINT_AREA_SIZE_CHART[current.printArea],
     );
     updatePosition(side, constrained);
     commit({
@@ -170,23 +186,14 @@ export function ArtworkPanel({
     onViewChange?.(side);
   }
 
-  function handlePrintAreaChange(side: Side, printArea: PrintAreaSize) {
-    const current = artwork[side];
-    if (!current) return;
-    const constrained = constrainArtworkToPrintArea(
-      {
-        ...positions[side],
-        widthCm: current.width,
-        heightCm: current.height,
-        fromNeckCm: current.fromNeck,
-        fromCenterCm: current.fromCenter,
-      },
-      PRINT_AREA_SIZE_CHART[printArea]
-    );
-    updatePosition(side, constrained);
-    commit({
-      ...artwork,
-      [side]: {
+  function handlePrintAreaChange(printArea: PrintAreaSize) {
+    const nextArtwork: Artwork = { ...artwork, smallestSize: printArea };
+    (["front", "back"] as Side[]).forEach((side) => {
+      const current = artwork[side];
+      if (!current) return;
+      const constrained = constrainArtworkToPrintArea(positionFromArtwork(current), PRINT_AREA_SIZE_CHART[printArea]);
+      updatePosition(side, constrained);
+      nextArtwork[side] = {
         ...current,
         printArea,
         width: constrained.widthCm,
@@ -194,184 +201,202 @@ export function ArtworkPanel({
         fromNeck: constrained.fromNeckCm,
         fromCenter: constrained.fromCenterCm,
         guidelines: { ...current.guidelines, maximumArea: true },
+      };
+    });
+    commit(nextArtwork);
+  }
+
+  function handleGuidelineChange(side: Side, checked: boolean) {
+    const current = artwork[side];
+    if (!current) return;
+    commit({ ...artwork, [side]: { ...current, guidelines: { ...current.guidelines, maximumArea: checked } } });
+  }
+
+  function applyPreset(side: Side, preset: ArtworkPlacementPreset) {
+    const current = artwork[side];
+    if (!current) return;
+    const nextPosition = applyArtworkPlacementPreset(
+      positionFromArtwork(current),
+      preset,
+      PRINT_AREA_SIZE_CHART[current.printArea],
+      current,
+    );
+    updatePosition(side, nextPosition);
+    commit({
+      ...artwork,
+      [side]: {
+        ...current,
+        placementPreset: preset,
+        width: nextPosition.widthCm,
+        height: nextPosition.heightCm,
+        fromNeck: nextPosition.fromNeckCm,
+        fromCenter: nextPosition.fromCenterCm,
       },
     });
     onViewChange?.(side);
   }
 
-  function handleGuidelineChange(
-    side: Side,
-    key: "maximumArea" | "leftChest",
-    checked: boolean
-  ) {
-    const current = artwork[side];
-    if (!current) return;
-    commit({
-      ...artwork,
-      [side]: { ...current, guidelines: { ...current.guidelines, [key]: checked } },
-    });
-  }
-
-  function copyArtworkToOtherSide(sourceSide: Side) {
-    const destinationSide: Side = sourceSide === "front" ? "back" : "front";
-    const source = artwork[sourceSide];
-    if (!source || artwork[destinationSide]) return;
-
+  function copyArtworkToBack() {
+    const source = artwork.front;
+    if (!source || artwork.back) return;
+    const printArea = artwork.smallestSize ?? source.printArea;
+    const safeArea = PRINT_AREA_SIZE_CHART[printArea];
+    const centred = applyArtworkPlacementPreset(
+      positionFromArtwork(source),
+      "centre-back",
+      safeArea,
+      source,
+    );
+    const constrained = constrainArtworkToPrintArea(
+      { ...centred, widthCm: source.width, heightCm: source.height, fromCenterCm: 0 },
+      safeArea,
+    );
+    const wasAdjusted = constrained.widthCm !== source.width || constrained.heightCm !== source.height;
     const destination: ArtworkSide = {
       ...source,
-      guidelines: { ...source.guidelines },
+      printArea,
+      placementPreset: "centre-back",
       confirmed: false,
+      width: constrained.widthCm,
+      height: constrained.heightCm,
+      fromNeck: constrained.fromNeckCm,
+      fromCenter: constrained.fromCenterCm,
+      guidelines: { ...source.guidelines, maximumArea: true },
     };
-    commit({ ...artwork, [destinationSide]: destination });
-    updatePosition(destinationSide, {
-      widthCm: source.width,
-      heightCm: source.height,
-      fromNeckCm: source.fromNeck,
-      fromCenterCm: source.fromCenter,
-      aspectLocked: true,
-    });
-    onViewChange?.(destinationSide);
-    setExpandedSide(destinationSide);
-    trackConfiguratorEvent(
-      destinationSide === "back"
-        ? "artwork_copied_to_back"
-        : "artwork_copied_to_front"
-    );
+    updatePosition("back", constrained);
+    commit({ ...artwork, smallestSize: printArea, back: destination });
+    selectSide("back");
+    setCopyNotice(wasAdjusted ? "The back artwork was reduced to fit its safe print area." : "The same artwork is now centred on the back.");
+    trackConfiguratorEvent("artwork_copied_to_back");
   }
 
-  function renderAdjustPanel(side: Side, current: ArtworkSide) {
-    if (!current.technique) return null;
-    return (
-      <div
-        className="techpack-subtle flex flex-col gap-3 rounded-[4px] p-3"
-        onFocusCapture={() => onViewChange?.(side)}
-        onPointerDownCapture={() => onViewChange?.(side)}
-      >
-        <PositionControls
-          printAreaDimensions={PRINT_AREA_SIZE_CHART[current.printArea]}
-          view={side}
-        />
-        <GuidelinesToggles
-          maximumArea={current.guidelines.maximumArea}
-          leftChest={current.guidelines.leftChest}
-          onMaximumAreaChange={(value) =>
-            handleGuidelineChange(side, "maximumArea", value)
-          }
-          onLeftChestChange={(value) =>
-            handleGuidelineChange(side, "leftChest", value)
-          }
-        />
-        {!artwork[side === "front" ? "back" : "front"] && (
-          <div className="flex flex-wrap items-center gap-2 pt-0.5">
-            <button
-              type="button"
-              onClick={() => copyArtworkToOtherSide(side)}
-              className="techpack-control flex items-center gap-1.5 rounded-[4px] border px-3 py-1.5 text-xs font-semibold text-[var(--text-primary)]/70 hover:!border-[var(--color-accent)]/45 hover:text-[var(--color-accent)]"
-            >
-              <Copy size={13} strokeWidth={2.2} />
-              Copy to {side === "front" ? "back" : "front"}
-            </button>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  function renderSide(side: Side) {
-    const current = artwork[side];
-    const selectedTechnique = isCustomerArtworkTechnique(current?.technique)
-      ? current.technique
-      : undefined;
-    const isReady = Boolean((current?.fileUrl || current?.fileId) && selectedTechnique);
-    const isExpanded = expandedSide === side;
-    const contentId = `artwork-${side}-accordion-content`;
-
-    return (
-      <section className="techpack-subtle overflow-hidden rounded-[4px] p-3">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            aria-expanded={isExpanded}
-            aria-controls={contentId}
-            onClick={() => {
-              setExpandedSide(isExpanded ? null : side);
-              if (!isExpanded) onViewChange?.(side);
-            }}
-            className="flex min-w-0 flex-1 items-center justify-between gap-3 rounded-[4px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/40"
-          >
-            <span className="min-w-0">
-              <span className="block text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/70">
-                {SIDE_LABELS[side]}
-              </span>
-              {isReady && selectedTechnique && (
-                <span className="mt-0.5 block truncate text-[11px] text-[var(--text-primary)]/50">
-                  {TECHNIQUE_LABELS[selectedTechnique]} selected · saved automatically
-                </span>
-              )}
-            </span>
-            <span className="ml-auto flex shrink-0 items-center gap-2">
-              {isReady && (
-                <span className="inline-flex items-center gap-1 rounded-[4px] bg-[#EAF7EA] px-2 py-1 text-[10px] font-semibold text-[#1B7F36]">
-                  <CheckCircle2 size={12} strokeWidth={2.4} />
-                  Ready for review
-                </span>
-              )}
-              <ChevronDown
-                size={17}
-                strokeWidth={2.2}
-                aria-hidden="true"
-                className={`text-[var(--text-primary)]/45 transition-transform ${
-                  isExpanded ? "rotate-180" : ""
-                }`}
-              />
-            </span>
-          </button>
-          {current && (
-            <button
-              type="button"
-              aria-label={`Delete ${SIDE_LABELS[side].toLowerCase()} artwork`}
-              title={`Delete ${SIDE_LABELS[side].toLowerCase()} artwork`}
-              onClick={() => handleSideChange(side, undefined)}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] text-[#C83E3E] transition-colors hover:bg-[#FFF0F0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C83E3E]/30"
-            >
-              <Trash2 size={16} strokeWidth={2.2} />
-            </button>
-          )}
-        </div>
-
-        {isExpanded && (
-          <div id={contentId} className="flex flex-col gap-2 pt-3">
-            <ArtworkUploadSide
-              side={side}
-              value={current}
-              onChange={(next) => handleSideChange(side, next)}
-            />
-
-            {current && (
-              <>
-                <TechniqueSelect
-                  value={selectedTechnique}
-                  fileType={current.fileType}
-                  side={side}
-                  onChange={(technique) => handleTechniqueChange(side, technique)}
-                />
-                <ArtworkAreaSizeSelect
-                  value={current.printArea}
-                  onChange={(size) => handlePrintAreaChange(side, size)}
-                />
-                {renderAdjustPanel(side, current)}
-              </>
-            )}
-          </div>
-        )}
-      </section>
-    );
-  }
+  const panelSide: Side = activeView === "back" ? "back" : activeView === "front" ? "front" : activeSide;
+  const current = artwork[panelSide];
+  const selectedTechnique = isCustomerArtworkTechnique(current?.technique) ? current.technique : undefined;
+  const placementPresets = panelSide === "front" ? FRONT_PLACEMENT_PRESETS : BACK_PLACEMENT_PRESETS;
+  const selectedPlacement = current?.placementPreset ?? "custom";
+  const quality = getArtworkQuality(current);
+  const safeSize = artwork.smallestSize ?? current?.printArea;
 
   return (
     <div className="flex flex-col gap-4 text-sm text-[var(--text-primary)]">
-      {renderSide("front")}
-      {renderSide("back")}
+      <div>
+        <h2 className="text-xl font-semibold tracking-tight">Add your artwork</h2>
+        <p className="mt-1 text-sm leading-relaxed text-[var(--text-primary)]/55">Upload artwork for the front, back, or both.</p>
+      </div>
+
+      <div className="grid grid-cols-2 border-b border-[var(--color-rule)]" role="tablist" aria-label="Artwork side">
+        {(["front", "back"] as Side[]).map((side) => {
+          const hasArtwork = Boolean(artwork[side]);
+          const selected = panelSide === side;
+          return (
+            <button
+              key={side}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              aria-controls={`artwork-${side}-panel`}
+              onClick={() => selectSide(side)}
+              className={`min-h-11 border-b-2 px-3 text-left text-xs font-semibold uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/40 ${selected ? "border-[var(--color-accent)] text-[var(--color-accent-dark)]" : "border-transparent text-[var(--text-primary)]/50 hover:text-[var(--text-primary)]"}`}
+            >
+              {SIDE_LABELS[side]} {hasArtwork ? <span aria-label="Artwork added">✓</span> : <span className="font-normal normal-case">· Optional</span>}
+            </button>
+          );
+        })}
+      </div>
+
+      {copyNotice && <p className="rounded-[4px] border border-[var(--color-accent)]/25 bg-[var(--color-accent)]/6 px-3 py-2 text-xs leading-relaxed text-[var(--color-accent-dark)]" role="status">{copyNotice}</p>}
+
+      <section id={`artwork-${panelSide}-panel`} role="tabpanel" aria-label={`${SIDE_LABELS[panelSide]} artwork controls`} className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/70">1 — Upload artwork</h3>
+          <ArtworkUploadSide side={panelSide} value={current} onChange={(next) => handleSideChange(panelSide, next)} />
+        </div>
+
+        {current && (
+          <>
+            <TechniqueSelect value={selectedTechnique} fileType={current.fileType} side={panelSide} onChange={(technique) => handleTechniqueChange(panelSide, technique)} />
+
+            {selectedTechnique && (
+              <div className="flex flex-col gap-3">
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/70">3 — Position &amp; size</h3>
+                  <p className="mt-1 text-xs leading-relaxed text-[var(--text-primary)]/55">Drag the artwork on the garment to move it. Drag the handle to resize.</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {placementPresets.map((preset) => {
+                    const selected = selectedPlacement === preset.id;
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => applyPreset(panelSide, preset.id)}
+                        className={`min-h-12 rounded-[4px] border px-2 py-2 text-left text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/40 ${selected ? "border-[var(--color-accent)] bg-[var(--color-accent)]/8 text-[var(--color-accent-dark)]" : "techpack-control hover:!border-[var(--color-accent)]/45"}`}
+                      >
+                        {preset.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <ArtworkAreaSizeSelect value={safeSize ?? current.printArea} onChange={handlePrintAreaChange} />
+
+                <details className="techpack-control rounded-[4px] border p-3">
+                  <summary className="cursor-pointer text-xs font-semibold">Fine tune placement +</summary>
+                  <div className="mt-3" onFocusCapture={() => onViewChange?.(panelSide)} onPointerDownCapture={() => onViewChange?.(panelSide)}>
+                    <PositionControls printAreaDimensions={PRINT_AREA_SIZE_CHART[current.printArea]} view={panelSide} />
+                  </div>
+                </details>
+
+                <details className="techpack-control rounded-[4px] border p-3">
+                  <summary className="cursor-pointer text-xs font-semibold">Preview guides +</summary>
+                  <div className="mt-3">
+                    <GuidelinesToggles
+                      maximumArea={current.guidelines.maximumArea}
+                      onMaximumAreaChange={(checked) => handleGuidelineChange(panelSide, checked)}
+                    />
+                  </div>
+                </details>
+
+                {quality && (
+                  <div className="rounded-[4px] border border-[var(--color-rule)] bg-[#F7F7F7] px-3 py-2.5" role="status">
+                    <p className="text-xs font-semibold">Artwork quality</p>
+                    <p className={`mt-0.5 text-sm font-medium ${quality.label.includes("soft") ? "text-[#8A6212]" : "text-[var(--color-accent-dark)]"}`}>{quality.label}</p>
+                    {quality.detail && <p className="mt-1 text-xs leading-relaxed text-[var(--text-primary)]/55">{quality.detail}</p>}
+                  </div>
+                )}
+
+                {!artwork.back && panelSide === "front" && (
+                  <button type="button" onClick={copyArtworkToBack} className="techpack-control inline-flex min-h-10 items-center justify-center gap-2 rounded-[4px] border px-3 text-xs font-semibold text-[var(--text-primary)]/75 hover:!border-[var(--color-accent)]/45 hover:text-[var(--color-accent-dark)]">
+                    <Copy size={14} aria-hidden="true" /> Use same artwork on back
+                  </button>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </section>
+
+      <section className="border-t border-[var(--color-rule)] pt-4" aria-labelledby="artwork-summary-title">
+        <h3 id="artwork-summary-title" className="text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/70">Artwork summary</h3>
+        <div className="mt-2 grid gap-2 sm:grid-cols-2">
+          {(["front", "back"] as Side[]).map((side) => {
+            const item = artwork[side];
+            const technique = isCustomerArtworkTechnique(item?.technique) ? TECHNIQUE_LABELS[item.technique] : "Print method not selected";
+            return (
+              <div key={side} className="rounded-[4px] bg-[#F7F7F7] px-3 py-2.5 text-xs">
+                <p className="font-semibold uppercase tracking-wide text-[var(--text-primary)]/65">{SIDE_LABELS[side]}</p>
+                <p className="mt-1 truncate text-[var(--text-primary)]">{item ? artworkFilename(item) : "No artwork"}</p>
+                {item && <p className="mt-0.5 text-[var(--text-primary)]/55">{technique} · {placementLabel(item.placementPreset)} · {item.width} × {item.height} cm</p>}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <p className="text-[11px] leading-relaxed text-[var(--text-primary)]/45">Low-resolution artwork is a production note, not a blocker. Our team reviews artwork before production.</p>
     </div>
   );
 }

@@ -133,6 +133,7 @@ function cloudArtworkSide(
     fileType: side.fileType,
     vectorized: side.vectorized,
     ...(side.technique ? { technique: side.technique } : {}),
+    ...(side.placementPreset ? { placementPreset: side.placementPreset } : {}),
     width: side.width,
     height: side.height,
     fromNeck: side.fromNeck,
@@ -191,6 +192,9 @@ export function buildCloudDesignSnapshot(
         ...(draft.artwork.back
           ? { back: cloudArtworkSide(draft.artwork.back, uploadFileIds) }
           : {}),
+        ...(draft.artwork.smallestSize
+          ? { smallestSize: draft.artwork.smallestSize }
+          : {}),
       },
       ...(draft.neckLabel?.fileUrl || draft.neckLabel?.fileId
         ? { neckLabel: cloudNeckLabel(draft.neckLabel, uploadFileIds) }
@@ -206,6 +210,7 @@ function contentTypeFor(filename: string, fallback?: string): string {
   if (extension === "jpg" || extension === "jpeg") return "image/jpeg";
   if (extension === "png") return "image/png";
   if (extension === "svg") return "image/svg+xml";
+  if (extension === "pdf") return "application/pdf";
   if (extension === "ai") return "application/postscript";
   return fallback || "application/octet-stream";
 }
@@ -580,6 +585,7 @@ export async function cloudSnapshotToBuildDraft(
   const artwork: Artwork = {
     front: artworkSide(configuration.artwork.front, frontUrl),
     back: artworkSide(configuration.artwork.back, backUrl),
+    smallestSize: configuration.artwork.smallestSize,
   };
   const neckLabel = configuration.neckLabel
     ? ({

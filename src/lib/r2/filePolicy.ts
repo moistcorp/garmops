@@ -18,7 +18,10 @@ const format = (extensions: readonly string[], contentTypes: readonly string[]):
 
 export const uploadPolicies: Readonly<Record<BrowserUploadKind, UploadPolicy>> = {
   customer_artwork: {
-    maximumBytes: 50 * mebibyte,
+    // Direct-to-R2 uploads do not pass through a Next request body. Twenty MB
+    // is therefore a safe customer-facing limit while keeping large artwork
+    // practical for production review.
+    maximumBytes: 20 * mebibyte,
     formats: [
       format(["ai"], ["application/postscript", "application/illustrator", "application/vnd.adobe.illustrator", "application/octet-stream"]),
       format(["pdf"], ["application/pdf"]),

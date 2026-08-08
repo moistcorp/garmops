@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
 import type { GarmentView } from "@/lib/configurator/types/garment";
 import type { ProductId } from "@/lib/configurator/pricing";
-import type { Artwork, ArtworkSide, NeckLabel } from "@/lib/configurator/types/configurator";
+import type { Artwork, NeckLabel } from "@/lib/configurator/types/configurator";
+import { getArtworkQuality } from "@/lib/configurator/artworkQuality";
 import CanvasRenderer from "./CanvasRenderer";
 import ViewTabs from "./ViewTabs";
 
@@ -22,28 +22,6 @@ interface GarmentPreviewProps {
 export const NECK_PREVIEW_CANVAS_CLASS =
   "aspect-[7817/5542] w-[104%] max-w-none shrink-0 translate-y-[2%] rounded-[4px] sm:w-[108%] lg:w-[112%]";
 
-function luminance(hex: string): number {
-  const clean = hex.replace("#", "");
-  if (!/^[0-9a-f]{6}$/i.test(clean)) return 1;
-  const rgb = [0, 2, 4].map((index) => parseInt(clean.slice(index, index + 2), 16) / 255);
-  return rgb.map((channel) => channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4)
-    .reduce((sum, channel, index) => sum + channel * [0.2126, 0.7152, 0.0722][index], 0);
-}
-
-function getArtworkQuality(side?: ArtworkSide): { warning?: string; metadata?: string } {
-  if (!side) return {};
-  const dpi = side.pixelWidth && side.width > 0 ? Math.round(side.pixelWidth / (side.width / 2.54)) : undefined;
-  return {
-    warning: dpi && dpi < 150
-      ? "This image may look blurry once printed. We recommend uploading a higher-resolution file for the sharpest result."
-      : undefined,
-    metadata: [
-      side.pixelWidth && side.pixelHeight ? `${side.pixelWidth} × ${side.pixelHeight}px` : undefined,
-      side.hasTransparency === true ? "transparent background" : undefined,
-    ].filter(Boolean).join(" · ") || undefined,
-  };
-}
-
 export default function GarmentPreview({
   activeView,
   onViewChange,
@@ -57,11 +35,6 @@ export default function GarmentPreview({
 }: GarmentPreviewProps) {
   const activeArtwork = activeView === "front" ? artwork.front : activeView === "back" ? artwork.back : undefined;
   const quality = getArtworkQuality(activeArtwork);
-  const contrastWarning = useMemo(() => {
-    if (!activeArtwork || activeArtwork.averageLuminance === undefined) return undefined;
-    const difference = Math.abs(luminance(colourHex) - activeArtwork.averageLuminance);
-    return difference < 0.18 ? "Artwork contrast is low against this garment colour. Review it on a larger screen or use a lighter/darker artwork colour." : undefined;
-  }, [activeArtwork, colourHex]);
 
   return (
     <div className="relative h-full w-full min-h-0">
@@ -84,17 +57,8 @@ export default function GarmentPreview({
         </div>
       </div>
 
-      {(quality.warning || contrastWarning) && (
-        <div
-          role="status"
-          className="absolute inset-x-6 top-16 z-20 rounded-[4px] border border-[#E7C56A] bg-[#FFF8E7]/90 px-3 py-2 text-xs leading-relaxed text-[#6E4D08] "
-        >
-          {quality.warning ?? contrastWarning}
-        </div>
-      )}
-
       <div className="pointer-events-none absolute inset-x-4 bottom-2 z-20 flex flex-col items-start gap-2">
-        {quality.metadata && <p className="text-[11px] text-[var(--text-primary)]/50">File check: {quality.metadata}</p>}
+        {quality?.effectivePpi && <p className="text-[11px] text-[var(--text-primary)]/50">Artwork quality is assessed at its current physical size.</p>}
         <div className="pointer-events-auto">
           <ViewTabs
             activeView={activeView}

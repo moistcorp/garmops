@@ -28,7 +28,18 @@ const artworkSideSchema = z
     fileId: z.uuid().optional(),
     pendingUpload: z.literal(true).optional(),
     fileName: z.string().trim().min(1).max(255).optional(),
-    fileType: z.enum(["jpg", "png", "svg", "ai"]),
+    fileType: z.enum(["jpg", "png", "pdf", "svg", "ai"]),
+    placementPreset: z
+      .enum([
+        "left-chest",
+        "centre-chest",
+        "large-front",
+        "upper-back",
+        "centre-back",
+        "large-back",
+        "custom",
+      ])
+      .optional(),
     vectorized: z.boolean(),
     technique: z
       .enum([
@@ -105,6 +116,7 @@ export const cloudDesignSnapshotSchema = z
           .object({
             front: artworkSideSchema.optional(),
             back: artworkSideSchema.optional(),
+            smallestSize: z.enum(["XS", "S", "M", "L", "XL", "XXL"]).optional(),
           })
           .strict(),
         neckLabel: neckLabelSchema.optional(),

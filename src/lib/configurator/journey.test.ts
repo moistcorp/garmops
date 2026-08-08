@@ -19,7 +19,7 @@ describe("configurator journey labels", () => {
   });
 
   it("makes optional empty steps explicit", () => {
-    expect(getConfiguratorCtaLabel("artwork", defaults)).toBe("Skip artwork");
+    expect(getConfiguratorCtaLabel("artwork", defaults)).toBe("Continue without artwork →");
     expect(getConfiguratorCtaLabel("neck-label", defaults)).toBe(
       "Use standard neck label",
     );
@@ -37,7 +37,7 @@ describe("configurator journey labels", () => {
         ...defaults,
         hasArtwork: true,
       }),
-    ).toBe("Continue");
+    ).toBe("Continue to neck label →");
     expect(
       getConfiguratorCtaLabel("neck-label", {
         ...defaults,

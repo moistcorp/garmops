@@ -35,6 +35,7 @@ import { restoreConfigurationUploads } from '@/lib/configurator/objectUrls';
 import { ActionFeedback, type ActionFeedbackTone } from '../ActionFeedback';
 import { trackConfiguratorEvent } from '@/lib/configurator/analytics';
 import { formatSpecCode } from '@/lib/orders/format';
+import { getArtworkSizeConflict } from '@/lib/configurator/artworkSizing';
 
 export interface CartItem {
   id: string;
@@ -265,7 +266,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
     items.length > 0 &&
     items.every((item) => {
       const minimumUnits = getProductMinimumOrderQuantity(item.productId, { colourType: item.colour.type, customDyeMinimum: CUSTOM_DYE_MOQ_UNITS });
-      return totalUnits(item.sizeQuantities) >= minimumUnits;
+      return totalUnits(item.sizeQuantities) >= minimumUnits && !getArtworkSizeConflict(item.artwork, item.sizeQuantities);
     });
 
   return (
@@ -334,6 +335,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
           const itemUnitPrice = getCartItemUnitPrice(item);
           const itemDiscountPercent = getCartItemDiscountPercent(item);
           const garmentTotal = itemUnitPrice * itemUnits;
+          const artworkSizeConflict = getArtworkSizeConflict(item.artwork, item.sizeQuantities);
           return (
             <section key={item.id} className="techpack-panel rounded-[4px] border p-5">
               <div className="flex flex-col gap-5 md:flex-row">
@@ -454,6 +456,24 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                     idPrefix={item.id}
                   />
 
+                  {artworkSizeConflict && (
+                    <div className="flex flex-col gap-3 rounded-[4px] border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="alert">
+                      <div>
+                        <p className="font-semibold">Artwork size needs attention</p>
+                        <p className="mt-1 text-xs leading-relaxed">
+                          Your artwork was positioned for {artworkSizeConflict.configuredFor} and above. Adding size {artworkSizeConflict.smallerSizes.join(", ")} may require reducing the artwork dimensions.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => router.push(`/configurator/build/${encodeURIComponent(item.productId)}?cartId=${encodeURIComponent(cartId)}&itemId=${encodeURIComponent(item.id)}&step=artwork`)}
+                        className="self-start rounded-[4px] border border-amber-900/25 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-amber-100"
+                      >
+                        Adjust artwork
+                      </button>
+                    </div>
+                  )}
+
                   {sizeChart && (
                     <details className="techpack-control rounded-[4px] border p-3 text-xs text-[var(--text-primary)]">
                       <summary className="cursor-pointer font-semibold">Fit / measurement chart</summary>
@@ -521,7 +541,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             nextDisabled={!cartIsValid}
             disabledMessage={
               !cartIsValid
-                ? "Every cart line must independently meet that product’s minimum quantity."
+                ? "Each cart line must meet its quantity minimum and use an artwork size that fits every selected garment size."
                 : undefined
             }
             sticky={false}
