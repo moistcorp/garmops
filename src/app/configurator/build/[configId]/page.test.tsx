@@ -75,6 +75,6 @@ describe("ConfiguratorBuildPage", () => {
     expect(mocks.redirect).not.toHaveBeenCalled();
     expect(html).toContain('data-config-id="regular-fit-tee-200gsm"');
     expect(html).toContain('data-product-id="regular-fit-tee-200gsm"');
-    expect(html).toContain("Regular Fit Tee (200 GSM)");
+    expect(html).toContain("Classic T-Shirt");
   });
 });

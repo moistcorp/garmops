@@ -1,4 +1,8 @@
-import { products as catalogProducts } from "../products";
+import {
+  productFabricFeel,
+  productFitLabel,
+  products as catalogProducts,
+} from "../products";
 import type { ProductId } from "./pricing";
 
 export type ProductUseCase =
@@ -15,6 +19,7 @@ export interface Product {
   hoverImage: string;
   description: string;
   gsm: number;
+  material: string;
   details: string[];
   careInstructions: string[];
   sizes: string[];
@@ -47,15 +52,8 @@ function deriveProductGuidance(product: (typeof catalogProducts)[number]): Pick<
   "bestFor" | "fit" | "fabricFeel" | "climate" | "standardLeadTime" | "recommendedTechnique"
 > {
   const slug = product.slug;
-  const fit = slug.includes("boxy") ? "Relaxed boxy" : slug.includes("tote") ? "One size" : "Regular unisex";
-  const fabricFeel =
-    product.gsm >= 320
-      ? "Warm and substantial"
-      : product.gsm >= 260
-        ? "Premium and structured"
-        : product.gsm >= 220
-          ? "Midweight"
-          : "Everyday breathable";
+  const fit = productFitLabel(product);
+  const fabricFeel = productFabricFeel(product) ?? product.selectorFeel;
   const climate =
     product.gsm >= 300
       ? "Cool weather / air-conditioned spaces"
@@ -117,16 +115,17 @@ export const products: Product[] = catalogProducts.map((product) => {
   const flatlay = getFlatlayImage(product.slug);
   return {
     id: product.slug,
-    name: product.pricingKey,
+    name: product.name,
     defaultImage: flatlay,
     hoverImage: product.image ?? flatlay,
     description: product.description,
     gsm: product.gsm,
+    material: product.selectorMaterial,
     details: product.details,
     careInstructions: product.careInstructions,
     sizes: product.sizes,
     minimumOrderQuantity: product.minimumOrderQuantity,
-    category: product.category,
+    category: product.selectorCategory,
     ...deriveProductGuidance(product),
   };
 });

@@ -1,202 +1,109 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
-import { useRouter } from "next/navigation";
-import { X } from "lucide-react";
-import { PRODUCT_USE_CASES, products, type ProductUseCase } from "@/lib/configurator/products";
-import { formatInr, getBasePrice, getVolumeDiscountPercent } from "@/lib/configurator/pricing";
-import { readPreferredQuantity, writePreferredQuantity } from "@/lib/configurator/clientPreferences";
-import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
-import GarmopsLoadingScreen from "@/components/common/GarmopsLoadingScreen";
+import { useCallback, useMemo, useState } from "react";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { products } from "@/lib/configurator/products";
 import ProductCard from "./ProductCard";
 
-const PRODUCT_TRANSITION_MS = 2000;
+const CATEGORY_OPTIONS = [
+  "All",
+  "T-Shirts",
+  "Polos",
+  "Hoodies",
+  "Sweatshirts",
+  "Tote Bags",
+] as const;
+
+type CategoryFilter = (typeof CATEGORY_OPTIONS)[number];
 
 export default function ProductGrid({ cartId }: { cartId?: string }) {
-  const router = useRouter();
-  const [useCase, setUseCase] = useState<ProductUseCase | "">("");
-  const [quantity, setQuantity] = useState(100);
-  const [quantityDraft, setQuantityDraft] = useState("100");
-  const [compareIds, setCompareIds] = useState<string[]>([]);
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
-  const selectionTimer = useRef<number | null>(null);
+  const [activeCategory, setActiveCategory] = useState<CategoryFilter>("All");
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const preferredQuantity = readPreferredQuantity() ?? 100;
-      setQuantity(preferredQuantity);
-      setQuantityDraft(String(preferredQuantity));
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, []);
+  const availableCategories = useMemo(
+    () => CATEGORY_OPTIONS.filter(
+      (category) => category === "All" || products.some((product) => product.category === category),
+    ),
+    [],
+  );
 
-  useEffect(() => () => {
-    if (selectionTimer.current) window.clearTimeout(selectionTimer.current);
-  }, []);
+  const filteredProducts = useMemo(
+    () => products.filter(
+      (product) => activeCategory === "All" || product.category === activeCategory,
+    ),
+    [activeCategory],
+  );
 
-  const sortedProducts = useMemo(() => {
-    if (!useCase) return products;
-    return [...products].sort((a, b) => Number(b.bestFor.includes(useCase)) - Number(a.bestFor.includes(useCase)));
-  }, [useCase]);
-
-  const comparedProducts = products.filter((product) => compareIds.includes(product.id));
-  const discount = getVolumeDiscountPercent(quantity);
-  const productHref = useCallback((productId: string) => {
+  const configuratorHref = useCallback((productId: string) => {
     const base = `/configurator/build/${encodeURIComponent(productId)}`;
     return cartId ? `${base}?cartId=${encodeURIComponent(cartId)}` : base;
   }, [cartId]);
 
-  function updateQuantityDraft(raw: string) {
-    if (!/^[0-9]*$/.test(raw)) return;
-    setQuantityDraft(raw);
-    if (!raw) return;
-    const parsed = Number(raw);
-    if (!Number.isFinite(parsed)) return;
-    const next = Math.max(50, Math.floor(parsed));
-    setQuantity(next);
-    writePreferredQuantity(next);
-  }
-
-  function commitQuantityDraft() {
-    const parsed = Number(quantityDraft);
-    const next = quantityDraft && Number.isFinite(parsed) ? Math.max(50, Math.floor(parsed)) : quantity;
-    setQuantity(next);
-    setQuantityDraft(String(next));
-    writePreferredQuantity(next);
-  }
-
-  function toggleCompare(productId: string, selected: boolean) {
-    setCompareIds((current) => selected ? [...current, productId].slice(0, 3) : current.filter((id) => id !== productId));
-    if (selected) trackConfiguratorEvent("product_compared", { product_id: productId });
-  }
-
-  const selectProduct = useCallback((event: MouseEvent<HTMLAnchorElement>, product: (typeof products)[number]) => {
-    trackConfiguratorEvent("product_selected", {
-      product_id: product.id,
-      quantity,
-      use_case: useCase || null,
-    });
-
-    if (
-      event.button !== 0 ||
-      event.metaKey ||
-      event.ctrlKey ||
-      event.shiftKey ||
-      event.altKey ||
-      selectedProductId
-    ) return;
-
-    event.preventDefault();
-    const href = productHref(product.id);
-    setSelectedProductId(product.id);
-    router.prefetch(href);
-    // Dynamic-route prefetching stops at the loading boundary, so warm the
-    // configurator client bundle during the intentional transition as well.
-    void import("../ConfigureClient");
-    selectionTimer.current = window.setTimeout(() => router.push(href), PRODUCT_TRANSITION_MS);
-  }, [productHref, quantity, router, selectedProductId, useCase]);
+  const productDetailHref = useCallback(
+    (productId: string) => `/products/${encodeURIComponent(productId)}`,
+    [],
+  );
 
   return (
-    <div className="space-y-6">
-      <section className="techpack-surface rounded-[4px] border p-4 sm:p-5" aria-labelledby="product-guidance-title">
-        <div className="flex flex-col gap-1">
-          <h2 id="product-guidance-title" className="text-base font-semibold text-[var(--text-primary)]">Help us recommend the right product</h2>
-          <p className="text-sm text-[var(--text-primary)]/60">These details only improve recommendations. You can still browse every product.</p>
+    <div className="space-y-8">
+      <nav aria-label="Product categories" className="border-y border-[var(--color-rule)] py-4">
+        <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {availableCategories.map((category) => {
+            const active = activeCategory === category;
+            return (
+              <button
+                key={category}
+                type="button"
+                onClick={() => setActiveCategory(category)}
+                aria-pressed={active}
+                className={`min-h-10 shrink-0 rounded-[4px] border px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)] ${
+                  active
+                    ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-white"
+                    : "border-[var(--color-rule)] bg-white text-[var(--text-primary)]/65 hover:border-[var(--color-accent)] hover:text-[var(--color-accent-dark)]"
+                }`}
+              >
+                {category}
+              </button>
+            );
+          })}
         </div>
-        <div className="mt-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_160px]">
-          <div>
-            <label htmlFor="product-use-case" className="mb-1 block text-xs font-medium text-[var(--text-primary)]/65">Primary use case</label>
-            <select
-              id="product-use-case"
-              value={useCase}
-              onChange={(event) => setUseCase(event.target.value as ProductUseCase | "")}
-              className="techpack-control min-h-11 w-full rounded-[4px] border px-3 text-sm text-[var(--text-primary)]"
-            >
-              <option value="">Show all products</option>
-              {PRODUCT_USE_CASES.map((option) => <option key={option} value={option}>{option}</option>)}
-            </select>
-          </div>
-          <div>
-            <label htmlFor="project-quantity" className="mb-1 block text-xs font-medium text-[var(--text-primary)]/65">Approx. quantity</label>
-            <input
-              id="project-quantity"
-              type="number"
-              min={50}
-              inputMode="numeric"
-              value={quantityDraft}
-              onChange={(event) => updateQuantityDraft(event.target.value)}
-              onBlur={commitQuantityDraft}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  commitQuantityDraft();
-                  event.currentTarget.blur();
-                }
-              }}
-              className="techpack-control min-h-11 w-full rounded-[4px] border px-3 text-sm text-[var(--text-primary)]"
+      </nav>
+
+      {filteredProducts.length > 0 ? (
+        <div className="grid grid-cols-1 items-stretch gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          {filteredProducts.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              configuratorHref={configuratorHref(product.id)}
+              productDetailHref={productDetailHref(product.id)}
             />
-          </div>
+          ))}
         </div>
-        <p className="mt-3 text-xs text-[var(--text-primary)]/55">Current volume tier: {discount}% off blank product pricing. Customisation is calculated in Studio.</p>
+      ) : (
+        <p className="border border-dashed border-[var(--color-rule)] px-4 py-8 text-center text-sm text-[var(--text-primary)]/60">
+          No products available in this category.
+        </p>
+      )}
+
+      <section className="border-t border-[var(--color-rule)] pt-7" aria-labelledby="product-research-title">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 id="product-research-title" className="text-lg font-semibold text-[var(--text-primary)]">
+              Not sure which garment is right?
+            </h2>
+            <p className="mt-1 text-sm text-[var(--text-primary)]/60">
+              Compare fit, fabric weight and product details before choosing.
+            </p>
+          </div>
+          <Link
+            href="/products"
+            className="inline-flex min-h-10 w-fit items-center gap-2 rounded-[4px] border border-[var(--color-accent)] px-4 py-2 text-sm font-semibold text-[var(--color-accent-dark)] transition-colors hover:bg-[var(--color-accent)] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)]"
+          >
+            Compare products <ArrowRight size={15} aria-hidden="true" />
+          </Link>
+        </div>
       </section>
-
-      <div className="grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {sortedProducts.map((product, index) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            quantity={quantity}
-            configuratorHref={productHref(product.id)}
-            compared={compareIds.includes(product.id)}
-            compareDisabled={compareIds.length >= 3}
-            onCompareChange={(selected) => toggleCompare(product.id, selected)}
-            onProductSelect={selectProduct}
-            recommended={Boolean(useCase && product.bestFor.includes(useCase) && index < 3)}
-          />
-        ))}
-      </div>
-
-      {comparedProducts.length > 0 && (
-        <section className="techpack-surface sticky bottom-4 z-30 overflow-hidden rounded-[4px] border !border-[var(--color-accent)]/30" aria-labelledby="comparison-title">
-          <div className="flex items-center justify-between gap-3 border-b border-white/60 bg-white/15 px-4 py-3">
-            <div><h2 id="comparison-title" className="text-sm font-semibold text-[var(--text-primary)]">Product comparison</h2><p className="text-xs text-[var(--text-primary)]/55">Compare up to three options before customising.</p></div>
-            <button type="button" onClick={() => setCompareIds([])} className="techpack-control rounded-[4px] border px-3 py-1.5 text-xs font-semibold text-[var(--text-primary)]/65">Clear comparison</button>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left text-xs">
-              <thead>
-                <tr className="bg-white/20">
-                  <th className="w-40 px-4 py-3 font-semibold text-[var(--text-primary)]/55">Attribute</th>
-                  {comparedProducts.map((product) => (
-                    <th key={product.id} className="px-4 py-3 text-sm font-semibold text-[var(--text-primary)]">
-                      <div className="flex items-center justify-between gap-2"><span>{product.name}</span><button type="button" aria-label={`Remove ${product.name} from comparison`} onClick={() => toggleCompare(product.id, false)} className="rounded-[4px] p-1 hover:bg-white"><X size={14} /></button></div>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#ECE7DF]">
-                <CompareRow label="Best for" values={comparedProducts.map((p) => p.bestFor.slice(0, 3).join(", "))} />
-                <CompareRow label="Feel & fit" values={comparedProducts.map((p) => `${p.fabricFeel}; ${p.fit}`)} />
-                <CompareRow label="Climate" values={comparedProducts.map((p) => p.climate)} />
-                <CompareRow label="Blank estimate" values={comparedProducts.map((p) => {
-                  try { return `${formatInr(Math.round(getBasePrice(p.id) * (1 - discount / 100)))}/unit at ${quantity}`; } catch { return "Unavailable"; }
-                })} />
-                <CompareRow label="Lead time" values={comparedProducts.map((p) => p.standardLeadTime)} />
-                <CompareRow label="Recommended branding" values={comparedProducts.map((p) => p.recommendedTechnique)} />
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )}
-
-      {selectedProductId && (
-        <div className="fixed inset-0 z-[100] overflow-y-auto bg-[var(--color-cream)]">
-          <GarmopsLoadingScreen />
-        </div>
-      )}
     </div>
   );
-}
-
-function CompareRow({ label, values }: { label: string; values: string[] }) {
-  return <tr><th className="px-4 py-3 font-semibold text-[var(--text-primary)]/55">{label}</th>{values.map((value, index) => <td key={`${label}-${index}`} className="px-4 py-3 leading-relaxed text-[var(--text-primary)]/70">{value}</td>)}</tr>;
 }

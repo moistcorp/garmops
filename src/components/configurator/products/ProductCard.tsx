@@ -3,46 +3,24 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
-import { Check, ChevronDown, GitCompareArrows, Sparkles } from "lucide-react";
+import { ArrowRight, LoaderCircle } from "lucide-react";
 import type { Product } from "@/lib/configurator/products";
-import { formatInr, getBasePrice, getVolumeDiscountPercent } from "@/lib/configurator/pricing";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
-
-function getDisplayPrice(productId: Product["id"], quantity: number): string {
-  try {
-    const price = getBasePrice(productId);
-    const discount = getVolumeDiscountPercent(quantity);
-    return `${formatInr(Math.round(price * (1 - discount / 100)))}/unit`;
-  } catch {
-    return "Price unavailable";
-  }
-}
 
 interface ProductCardProps {
   product: Product;
-  quantity: number;
   configuratorHref: string;
-  compared: boolean;
-  compareDisabled: boolean;
-  onCompareChange: (selected: boolean) => void;
-  onProductSelect: (event: MouseEvent<HTMLAnchorElement>, product: Product) => void;
-  recommended: boolean;
+  productDetailHref: string;
 }
 
 export default function ProductCard({
   product,
-  quantity,
   configuratorHref,
-  compared,
-  compareDisabled,
-  onCompareChange,
-  onProductSelect,
-  recommended,
+  productDetailHref,
 }: ProductCardProps) {
-  const priceLabel = getDisplayPrice(product.id, quantity);
   const cardRef = useRef<HTMLElement>(null);
   const hasTrackedView = useRef(false);
-  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   useEffect(() => {
     const card = cardRef.current;
@@ -65,120 +43,80 @@ export default function ProductCard({
         });
         observer.disconnect();
       },
-      { threshold: 0.45 }
+      { threshold: 0.45 },
     );
     observer.observe(card);
     return () => observer.disconnect();
   }, [product.id, product.name]);
 
+  function handleCustomiseClick(event: MouseEvent<HTMLAnchorElement>) {
+    trackConfiguratorEvent("product_selected", { product_id: product.id });
+
+    const modifiedClick = event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+    if (modifiedClick || event.button !== 0) return;
+    if (isNavigating) {
+      event.preventDefault();
+      return;
+    }
+    setIsNavigating(true);
+  }
+
   return (
-    <article ref={cardRef} className={`techpack-panel group relative flex h-full self-stretch flex-col overflow-hidden rounded-[4px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45 ${recommended ? "!border-[var(--color-accent)]/60" : ""}`}>
-      <div className="relative aspect-[3/4] w-full shrink-0 overflow-hidden bg-white">
-        <Link
-          href={configuratorHref}
-          onClick={(event) => onProductSelect(event, product)}
-          className="absolute inset-0 z-10"
-          aria-label={`Customise ${product.name}`}
-        >
-          <span className="sr-only">Customise {product.name}</span>
-        </Link>
+    <article
+      ref={cardRef}
+      className="techpack-panel group flex h-full flex-col overflow-hidden rounded-[4px] border transition-colors hover:!border-[var(--color-accent)]/50"
+    >
+      <div className="relative aspect-[5/4] w-full overflow-hidden bg-[#EFEFEF] p-3 sm:p-4">
         <Image
           src={product.defaultImage}
           alt={product.name}
           fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-          className="object-cover transition-opacity duration-300 ease-in-out group-hover:opacity-0"
+          sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
+          className="object-contain transition-opacity duration-200 ease-out group-hover:opacity-0"
         />
         <Image
           src={product.hoverImage}
           alt=""
           fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-          className="object-cover opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100"
+          sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
+          className="object-contain opacity-0 transition-opacity duration-200 ease-out group-hover:opacity-100"
         />
-
-        <div className="pointer-events-none absolute inset-x-3 top-3 z-20 flex items-start justify-between gap-2">
-          {recommended ? (
-            <span className="inline-flex items-center gap-1 rounded-[4px] bg-[var(--color-accent)] px-2.5 py-1 text-[10px] font-semibold text-white ">
-              <Sparkles size={12} aria-hidden="true" /> Recommended
-            </span>
-          ) : <span />}
-          <span className="rounded-[4px] bg-[#F2F0EA] px-2.5 py-1 text-[10px] font-semibold text-[var(--text-primary)]/55">
-            {product.standardLeadTime}
-          </span>
-        </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-3 px-4 py-4">
-        <div className="flex min-h-[78px] items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <Link
-              href={configuratorHref}
-              onClick={(event) => onProductSelect(event, product)}
-              className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-[var(--text-primary)] hover:text-[var(--color-accent-dark)]"
-            >
-              {product.name}
-            </Link>
-            <p className="mt-1 text-xs text-[var(--text-primary)]/55">Estimated at {quantity} units</p>
-            <p className="text-sm font-semibold text-[var(--text-primary)]">{priceLabel}</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setDetailsOpen((open) => !open)}
-            aria-expanded={detailsOpen}
-            aria-controls={`product-details-${product.id}`}
-            aria-label={`${detailsOpen ? "Hide" : "Show"} details for ${product.name}`}
-            className="techpack-control flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] border text-[var(--text-primary)]/60 hover:!border-[var(--color-accent)] hover:text-[var(--color-accent)]"
-          >
-            <ChevronDown size={15} strokeWidth={2.2} className={`transition-transform ${detailsOpen ? "rotate-180" : ""}`} />
-          </button>
+      <div className="flex flex-1 flex-col px-4 py-4 sm:px-5 sm:py-5">
+        <div>
+          <h2 className="text-base font-semibold leading-6 text-[var(--text-primary)]">
+            {product.name}
+          </h2>
+          <p className="mt-1 text-sm text-[var(--text-primary)]/65">
+            {product.fabricFeel} · {product.fit}
+          </p>
+          <p className="mt-1 text-xs font-medium text-[var(--text-primary)]/55">
+            {product.gsm} GSM · {product.material}
+          </p>
+          <p className="mt-3 line-clamp-2 text-sm leading-5 text-[var(--text-primary)]/65">
+            {product.description}
+          </p>
         </div>
 
-        <div className="grid min-h-[92px] grid-cols-2 gap-2 text-[11px]">
-          <div className="h-full rounded-[4px] bg-[#F7F7F7] p-2.5">
-            <p className="font-semibold text-[var(--text-primary)]">Best for</p>
-            <p className="mt-0.5 leading-snug text-[var(--text-primary)]/60">{product.bestFor.slice(0, 2).join(", ")}</p>
-          </div>
-          <div className="h-full rounded-[4px] bg-[#F7F7F7] p-2.5">
-            <p className="font-semibold text-[var(--text-primary)]">Feel & fit</p>
-            <p className="mt-0.5 leading-snug text-[var(--text-primary)]/60">{product.fabricFeel} · {product.fit}</p>
-          </div>
-        </div>
-
-        {detailsOpen && (
-          <div id={`product-details-${product.id}`} className="space-y-3 border-t border-[#ECE7DF] pt-3 text-xs text-[var(--text-primary)]/65">
-            <p className="leading-relaxed">{product.description}</p>
-            <dl className="grid grid-cols-2 gap-3">
-              <div><dt className="font-semibold text-[var(--text-primary)]">Fabric weight</dt><dd>{product.gsm} GSM</dd></div>
-              <div><dt className="font-semibold text-[var(--text-primary)]">Climate</dt><dd>{product.climate}</dd></div>
-              <div><dt className="font-semibold text-[var(--text-primary)]">Typical lead time</dt><dd>{product.standardLeadTime}</dd></div>
-              <div><dt className="font-semibold text-[var(--text-primary)]">Recommended branding</dt><dd>{product.recommendedTechnique}</dd></div>
-              <div><dt className="font-semibold text-[var(--text-primary)]">Minimum per cart line</dt><dd>{product.minimumOrderQuantity} units</dd></div>
-            </dl>
-            <div><span className="font-semibold text-[var(--text-primary)]">Sizes</span><p>{product.sizes.join(", ")}</p></div>
-          </div>
-        )}
-
-        <div className="mt-auto flex items-center gap-2 pt-1">
+        <div className="mt-auto pt-5">
           <Link
             href={configuratorHref}
-            onClick={(event) => onProductSelect(event, product)}
-            className="flex min-h-10 flex-1 items-center justify-center rounded-[4px] bg-[var(--color-accent)] px-4 text-sm font-semibold text-white hover:bg-[var(--color-accent-dark)]"
+            onClick={handleCustomiseClick}
+            aria-disabled={isNavigating}
+            aria-busy={isNavigating}
+            className="flex min-h-11 items-center justify-center gap-2 rounded-[4px] bg-[var(--color-accent)] px-4 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-accent-dark)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)] aria-disabled:pointer-events-none aria-disabled:opacity-70"
           >
-            Customise
+            {isNavigating ? <LoaderCircle size={16} className="animate-spin" aria-hidden="true" /> : null}
+            {isNavigating ? "Opening…" : "Customise"}
           </Link>
-          <button
-            type="button"
-            aria-pressed={compared}
-            disabled={!compared && compareDisabled}
-            onClick={() => onCompareChange(!compared)}
-            className={`flex min-h-10 w-28 shrink-0 items-center justify-center gap-1.5 rounded-[4px] border px-3 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${compared ? "border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent-dark)]" : "border-[#E5E5E5] text-[var(--text-primary)]/65 hover:border-[var(--color-accent)]"}`}
+          <Link
+            href={productDetailHref}
+            className="mt-3 inline-flex min-h-8 items-center gap-1 text-sm font-medium text-[var(--color-accent-dark)] hover:text-[var(--color-accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)]"
           >
-            {compared ? <Check size={14} /> : <GitCompareArrows size={14} />}
-            {compared ? "Added" : "Compare"}
-          </button>
+            Order sample <ArrowRight size={14} aria-hidden="true" />
+          </Link>
         </div>
-
       </div>
     </article>
   );
