@@ -1,102 +1,343 @@
-import { Mail, MapPin, Phone, Plus } from 'lucide-react'
+import Link from 'next/link'
+import { ArrowRight, CircleDollarSign, Mail, MessageCircle, PackageSearch, Phone, Plus, Shirt } from 'lucide-react'
+import type { ReactNode } from 'react'
 
-const helpOptions = [
+import { CUSTOM_DYE_MOQ_UNITS } from '@/lib/configurator/colourRules'
+import { formatGstRate } from '@/lib/tax'
+import { products } from '@/lib/products'
+import { siteConfig } from '@/lib/seo'
+
+const phoneNumber = siteConfig.phone.replace(/[\s-]/g, '')
+const whatsappNumber = siteConfig.phone.replace(/\D/g, '')
+const whatsappHref = whatsappNumber
+  ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent('Hi, I found Garmops and would like help with a custom apparel order.')}`
+  : null
+const catalogueMinimum = Math.min(...products.map((product) => product.minimumOrderQuantity))
+
+const intentOptions = [
   {
-    title: 'Call us for queries',
+    number: '01',
+    icon: Shirt,
+    title: 'Choose a product',
+    description: 'Compare garments, fit, fabric weight and intended use.',
+    label: 'Explore products',
+    href: '/products',
+  },
+  {
+    number: '02',
+    icon: CircleDollarSign,
+    title: 'Understand pricing',
+    description: 'See how garment, quantity and customisation affect your order.',
+    label: 'View pricing',
+    href: '/pricing',
+  },
+  {
+    number: '03',
+    icon: PackageSearch,
+    title: 'Track an existing order',
+    description: 'View order status, payment and delivery details.',
+    label: 'View my orders',
+    href: '/account/orders',
+  },
+  {
+    number: '04',
+    icon: MessageCircle,
+    title: 'Talk to us',
+    description: 'Contact Garmops for a requirement that needs human help.',
+    label: 'Contact Garmops',
+    href: '#contact-garmops',
+  },
+]
+
+const contactMethods = [
+  ...(whatsappHref
+    ? [{
+        icon: MessageCircle,
+        title: 'WhatsApp',
+        description: 'Best for quick questions about products, artwork or an existing order.',
+        label: 'Chat on WhatsApp',
+        href: whatsappHref,
+        external: true,
+      }]
+    : []),
+  {
     icon: Phone,
-    content: (
-      <>
-        <a href="tel:+918800711169" className="transition-colors hover:text-[var(--color-accent)]">Helpdesk: +91 88007 11169</a>
-        <p className="mt-2">Mon – Sat: 10:00 AM – 7:00 PM</p>
-      </>
-    ),
+    title: 'Call',
+    description: 'Speak with us about a custom requirement or production question.',
+    label: `Call ${siteConfig.name}`,
+    href: `tel:${phoneNumber}`,
+    external: false,
   },
   {
-    title: 'Email us',
     icon: Mail,
-    content: (
-      <>
-        <p>Sales enquiries and customer support:</p>
-        <a href="mailto:hello@garmops.com" className="mt-2 inline-block transition-colors hover:text-[var(--color-accent)]">hello@garmops.com</a>
-      </>
-    ),
-  },
-  {
-    title: 'Postal address',
-    icon: MapPin,
-    content: (
-      <>
-        <p>Moist Corp</p>
-        <address className="mt-2 not-italic">Q5, Surajpur Industrial Area, Site-5, Kasna, Greater Noida, UP, India</address>
-      </>
-    ),
+    title: 'Email',
+    description: 'Useful for artwork, specifications and detailed requirements.',
+    label: 'Email us',
+    href: `mailto:${siteConfig.email}`,
+    external: false,
   },
 ]
 
-const faqs = [
+type FaqItem = {
+  question: string
+  answer: ReactNode
+}
+
+type FaqGroup = {
+  title: string
+  items: FaqItem[]
+}
+
+const faqLinkClass = 'font-semibold text-[var(--color-accent-dark)] underline decoration-[var(--color-accent)]/35 underline-offset-2 transition-colors hover:text-[var(--color-accent)]'
+
+const faqGroups: FaqGroup[] = [
   {
-    question: 'How do I place an order?',
-    answer: 'Start with the configurator, choose your garment and add your design. Once you submit the order details, we will guide you through the next steps.',
+    title: 'Ordering',
+    items: [
+      {
+        question: 'How do I place a custom order?',
+        answer: (
+          <>
+            Choose a product, configure the garment and artwork, add quantities and sizes, review the order, then pay the full merchandise amount through secure PayU checkout. After payment, track progress from{' '}
+            <Link href="/account/orders" className={faqLinkClass}>My orders</Link>.
+          </>
+        ),
+      },
+      {
+        question: 'What is the minimum order quantity?',
+        answer: (
+          <>
+            The current catalogue starts at {catalogueMinimum} pieces per product configuration. The applicable MOQ is checked independently for each cart line, so two separate configurations of the same product must each meet its own minimum. Custom-dye runs currently require {CUSTOM_DYE_MOQ_UNITS} units per colour.
+          </>
+        ),
+      },
+      {
+        question: 'Can I split my order across sizes?',
+        answer: (
+          <>
+            Yes. Use the size quantity grid in the cart to distribute each configured product line across its available sizes. The line total still needs to meet that product’s MOQ.
+          </>
+        ),
+      },
+      {
+        question: 'Can I order more than one product in the same order?',
+        answer: (
+          <>
+            Yes. Add multiple configured product lines to the cart, such as T-shirts, hoodies or tote bags. Each line keeps its own configuration, quantity and applicable MOQ.
+          </>
+        ),
+      },
+      {
+        question: 'Can I order a sample before bulk production?',
+        answer: (
+          <>
+            Yes. Browse the catalogue and order a product sample to check the garment, fabric, construction and fit before starting a custom production order.{' '}
+            <Link href="/products" className={faqLinkClass}>Browse products</Link>.
+          </>
+        ),
+      },
+    ],
   },
   {
-    question: 'What is the minimum order quantity?',
-    answer: 'Our usual minimum is 50 pieces per style. The final quantity can depend on the garment and decoration technique you choose.',
+    title: 'Artwork & printing',
+    items: [
+      {
+        question: 'Which print methods do you offer?',
+        answer: 'Garmops currently offers Screen Print for solid, repeatable bulk artwork, DTF for detailed multi-colour transfers, and Reflective Print for a light-reactive finish. Suitability depends on the garment, artwork and quantity.',
+      },
+      {
+        question: 'What artwork files can I upload?',
+        answer: (
+          <>
+            The configurator accepts .jpg, .jpeg, .png, .svg and .ai artwork files up to 4.5 MB. It also guides you through print position, size and artwork checks as you configure the product.
+          </>
+        ),
+      },
+      {
+        question: 'How do I know which print method to choose?',
+        answer: (
+          <>
+            Consider artwork detail, print size and position, garment fabric and colour, quantity, desired finish and budget. Start with the product guidance or{' '}
+            <Link href="/configurator" className={faqLinkClass}>open the configurator</Link>; final suitability is reviewed against the complete specification.
+          </>
+        ),
+      },
+    ],
   },
   {
-    question: 'Will I see my design before production?',
-    answer: 'For custom orders, artwork and production details are reviewed before production begins. Any action needed from you will appear with your order updates.',
+    title: 'Payment & pricing',
+    items: [
+      {
+        question: 'How is my order price calculated?',
+        answer: (
+          <>
+            Pricing combines the garment, quantity and volume discount with the choices you make, including artwork positions and technique, colour, custom labels and delivery speed. The{' '}
+            <Link href="/pricing" className={faqLinkClass}>pricing page</Link> shows the starting estimate before configuration.
+          </>
+        ),
+      },
+      {
+        question: 'Is GST included?',
+        answer: `Yes. Custom-order checkout includes ${formatGstRate()} GST on the configured merchandise and applicable production charges. Shipping is excluded from the amount paid at checkout and is quoted separately after destination review.`,
+      },
+      {
+        question: 'What happens if my payment fails?',
+        answer: 'If PayU reports a failed payment, no order is created and you can safely try again. If PayU is still verifying the payment, wait and recheck the status before starting another payment attempt.',
+      },
+    ],
   },
   {
-    question: 'How can I check my order status?',
-    answer: 'Sign in and open My orders to see the latest status, payment information, delivery details, files, and messages for your order.',
-  },
-  {
-    question: 'When will my order be delivered?',
-    answer: 'Delivery timing depends on the product, quantity, artwork, and your requested date. Your order page will show the relevant delivery updates when available.',
-  },
-  {
-    question: 'Can I get an invoice for my order?',
-    answer: 'Yes. When your invoice is ready, it will be available to download from the relevant order in My orders.',
+    title: 'Existing orders',
+    items: [
+      {
+        question: 'Where can I track my order?',
+        answer: (
+          <>
+            Sign in when prompted and open{' '}
+            <Link href="/account/orders" className={faqLinkClass}>My orders</Link> to see status, payment, delivery details, files and available order messages.
+          </>
+        ),
+      },
+      {
+        question: 'Can I change my order after payment?',
+        answer: (
+          <>
+            Contact support as soon as possible. Changes may depend on whether production has started and need to be checked against the order specification.
+          </>
+        ),
+      },
+    ],
   },
 ]
+
+function DirectContactLink({
+  href,
+  label,
+  external,
+}: {
+  href: string
+  label: string
+  external: boolean
+}) {
+  return (
+    <a
+      href={href}
+      {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+      className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-[4px] border border-[var(--color-accent)] px-3.5 py-2.5 text-sm font-semibold text-[var(--color-accent-dark)] transition-colors hover:bg-[var(--color-accent)]/5"
+    >
+      {label} <ArrowRight size={15} aria-hidden="true" />
+    </a>
+  )
+}
 
 export default function ContactClient() {
   return (
     <main className="techpack-canvas">
-      <section className="mx-auto max-w-7xl px-4 pb-16 pt-14 sm:px-6 sm:pb-24 sm:pt-20">
-        <div className="mx-auto max-w-2xl text-center">
+      <section className="mx-auto max-w-7xl px-4 pb-16 pt-12 sm:px-6 sm:pb-24 sm:pt-20">
+        <div className="max-w-3xl">
           <p className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--color-accent)]">Help</p>
-          <h1 className="mt-3 text-4xl font-bold tracking-tight text-[var(--color-navy)] sm:text-5xl">How can we help?</h1>
-          <p className="mt-4 text-base leading-relaxed text-[var(--text-primary)]/55 sm:text-lg">Get in touch with the Garmops team for sales enquiries and order support.</p>
+          <h1 className="mt-3 text-4xl font-bold tracking-tight text-[var(--color-navy)] sm:text-5xl">Need a hand?</h1>
+          <p className="mt-4 max-w-2xl text-base leading-relaxed text-[var(--text-primary)]/60 sm:text-lg">Find the right place to start, or contact us directly.</p>
         </div>
 
-        <div className="mt-14 grid gap-10 border-y border-[#ECE7DF] py-10 text-center sm:mt-16 sm:py-14 md:grid-cols-3 md:gap-8">
-          {helpOptions.map(({ title, icon: Icon, content }) => (
-            <section key={title} className="mx-auto flex max-w-sm flex-col items-center">
-              <span className="flex size-12 items-center justify-center rounded-[4px] border border-[var(--color-rule)] bg-white text-[var(--color-accent)]">
-                <Icon size={22} strokeWidth={1.7} aria-hidden="true" />
-              </span>
-              <h2 className="mt-5 text-xl font-semibold tracking-tight text-[var(--color-navy)]">{title}</h2>
-              <div className="mt-3 text-base leading-relaxed text-[var(--text-primary)]/55">{content}</div>
-            </section>
-          ))}
-        </div>
-
-        <section className="mt-16 sm:mt-20" aria-labelledby="help-faq-heading">
-          <div className="text-center">
-            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--color-accent)]">FAQ</p>
-            <h2 id="help-faq-heading" className="mt-3 text-3xl font-bold tracking-tight text-[var(--color-navy)] sm:text-4xl">Frequently asked questions</h2>
+        <section className="mt-12 border-t border-[var(--color-rule)] pt-10 sm:mt-16" aria-labelledby="help-intents-heading">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--text-primary)]/40">Start here</p>
+              <h2 id="help-intents-heading" className="mt-2 text-2xl font-bold tracking-tight text-[var(--color-navy)] sm:text-3xl">What do you need help with?</h2>
+            </div>
+            <p className="max-w-md text-sm leading-6 text-[var(--text-primary)]/55">Choose a product → configure → add quantities and sizes → review → pay → track your order.</p>
           </div>
-          <div className="mt-8 grid gap-3 md:grid-cols-2 md:gap-4">
-            {faqs.map((faq) => (
-              <details key={faq.question} className="group border border-[#ECE7DF] bg-white">
-                <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-left text-sm font-semibold text-[var(--color-navy)] marker:content-none sm:px-6">
-                  {faq.question}
-                  <Plus size={20} className="shrink-0 text-[var(--color-accent)] transition-transform group-open:rotate-45" aria-hidden="true" />
-                </summary>
-                <p className="border-t border-[#ECE7DF] px-5 py-4 text-sm leading-relaxed text-[var(--text-primary)]/55 sm:px-6">{faq.answer}</p>
-              </details>
+
+          <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {intentOptions.map(({ number, icon: Icon, title, description, label, href }) => (
+              <article key={title} className="flex min-h-56 flex-col rounded-[4px] border border-[var(--color-rule)] bg-white p-5 transition-colors hover:border-[var(--color-accent)]/55 sm:p-6">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[10px] font-semibold tracking-[0.14em] text-[var(--color-accent)]">{number}</span>
+                  <Icon size={19} strokeWidth={1.8} className="text-[var(--color-accent)]" aria-hidden="true" />
+                </div>
+                <h3 className="mt-8 text-lg font-semibold tracking-tight text-[var(--color-navy)]">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-[var(--text-primary)]/55">{description}</p>
+                <Link href={href} className="mt-auto inline-flex items-center gap-2 pt-6 text-sm font-semibold text-[var(--color-accent-dark)] transition-colors hover:text-[var(--color-accent)]">
+                  {label} <ArrowRight size={15} aria-hidden="true" />
+                </Link>
+              </article>
             ))}
+          </div>
+        </section>
+
+        <section id="contact-garmops" className="mt-16 scroll-mt-24 border-t border-[var(--color-rule)] pt-10 sm:mt-20" aria-labelledby="contact-heading">
+          <div className="max-w-2xl">
+            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--color-accent)]">Direct support</p>
+            <h2 id="contact-heading" className="mt-2 text-2xl font-bold tracking-tight text-[var(--color-navy)] sm:text-3xl">Contact Garmops</h2>
+            <p className="mt-3 text-sm leading-6 text-[var(--text-primary)]/55">Choose the channel that suits the question. We are available Monday to Saturday, 10:00 AM–7:00 PM.</p>
+          </div>
+
+          <div className="mt-7 grid gap-3 sm:grid-cols-3">
+            {contactMethods.map(({ icon: Icon, title, description, label, href, external }) => (
+              <article key={title} className="flex min-h-52 flex-col rounded-[4px] border border-[var(--color-rule)] bg-white p-5 sm:p-6">
+                <Icon size={20} strokeWidth={1.8} className="text-[var(--color-accent)]" aria-hidden="true" />
+                <h3 className="mt-5 text-lg font-semibold tracking-tight text-[var(--color-navy)]">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-[var(--text-primary)]/55">{description}</p>
+                <DirectContactLink href={href} label={label} external={external} />
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-16 border-t border-[var(--color-rule)] pt-10 sm:mt-20" aria-labelledby="help-faq-heading">
+          <div className="max-w-2xl">
+            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--color-accent)]">FAQ</p>
+            <h2 id="help-faq-heading" className="mt-2 text-2xl font-bold tracking-tight text-[var(--color-navy)] sm:text-3xl">Frequently asked questions</h2>
+            <p className="mt-3 text-sm leading-6 text-[var(--text-primary)]/55">Short answers for choosing, configuring, paying for and following a Garmops order.</p>
+          </div>
+
+          <div className="mt-8 grid gap-x-10 gap-y-10 lg:grid-cols-2">
+            {faqGroups.map((group) => (
+              <section key={group.title} aria-labelledby={`faq-group-${group.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
+                <h3 id={`faq-group-${group.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} className="border-b border-[var(--color-rule)] pb-3 text-lg font-semibold tracking-tight text-[var(--color-navy)]">{group.title}</h3>
+                <div className="mt-3 divide-y divide-[var(--color-rule)] border-y border-[var(--color-rule)]">
+                  {group.items.map((faq) => (
+                    <details key={faq.question} className="group">
+                      <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 py-4 text-left text-sm font-semibold text-[var(--color-navy)] marker:content-none">
+                        <span>{faq.question}</span>
+                        <Plus size={18} className="shrink-0 text-[var(--color-accent)] transition-transform group-open:rotate-45" aria-hidden="true" />
+                      </summary>
+                      <div className="pb-5 pr-8 text-sm leading-6 text-[var(--text-primary)]/60">{faq.answer}</div>
+                    </details>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-16 border-t border-[var(--color-rule)] pt-10 sm:mt-20" aria-labelledby="business-details-heading">
+          <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
+            <div>
+              <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--color-accent)]">Company information</p>
+              <h2 id="business-details-heading" className="mt-2 text-2xl font-bold tracking-tight text-[var(--color-navy)] sm:text-3xl">Business details</h2>
+              <p className="mt-3 max-w-md text-sm leading-6 text-[var(--text-primary)]/55">Garmops is operated by Moist Corp from Greater Noida, India.</p>
+            </div>
+
+            <dl className="grid gap-x-8 gap-y-6 border-t border-[var(--color-rule)] pt-6 sm:grid-cols-2 lg:border-t-0 lg:pt-0">
+              <div>
+                <dt className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-primary)]/40">Legal / business name</dt>
+                <dd className="mt-2 text-sm font-semibold text-[var(--color-navy)]">Moist Corp</dd>
+              </div>
+              <div>
+                <dt className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-primary)]/40">Address</dt>
+                <dd className="mt-2 text-sm leading-6 text-[var(--text-primary)]/65">Q5, Surajpur Industrial Area, Site-5, Kasna, Greater Noida, UP, India</dd>
+              </div>
+              <div>
+                <dt className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-primary)]/40">Support email</dt>
+                <dd className="mt-2 text-sm"><a href={`mailto:${siteConfig.email}`} className={faqLinkClass}>{siteConfig.email}</a></dd>
+              </div>
+              <div>
+                <dt className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-primary)]/40">Phone</dt>
+                <dd className="mt-2 text-sm"><a href={`tel:${phoneNumber}`} className={faqLinkClass}>{siteConfig.phone}</a></dd>
+              </div>
+            </dl>
           </div>
         </section>
       </section>
