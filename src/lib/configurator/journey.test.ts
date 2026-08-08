@@ -12,6 +12,12 @@ const defaults = {
 };
 
 describe("configurator journey labels", () => {
+  it("names the next step from the colour step", () => {
+    expect(getConfiguratorCtaLabel("garment-colour", defaults)).toBe(
+      "Continue to artwork →",
+    );
+  });
+
   it("makes optional empty steps explicit", () => {
     expect(getConfiguratorCtaLabel("artwork", defaults)).toBe("Skip artwork");
     expect(getConfiguratorCtaLabel("neck-label", defaults)).toBe(

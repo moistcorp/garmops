@@ -51,6 +51,9 @@ export interface ConfiguratorSidebarProps {
   activeView?: GarmentView;
   onViewChange?: (view: GarmentView) => void;
   unitBasePrice?: number;
+  quantity?: number;
+  minimumQuantity?: number;
+  onQuantityChange?: (quantity: number) => void;
   isToteProduct?: boolean;
   onResetStep?: (id: AccordionStepId) => void;
   activeStepSummary?: string;
@@ -87,6 +90,9 @@ export function ConfiguratorSidebar({
   activeView,
   onViewChange,
   unitBasePrice,
+  quantity,
+  minimumQuantity,
+  onQuantityChange,
   isToteProduct = false,
   onResetStep,
   activeStepSummary,
@@ -170,12 +176,16 @@ export function ConfiguratorSidebar({
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
         {activeStep.id === "garment-colour" ? (
           <GarmentColourPanel
+            key={colour.type}
             value={colour}
             onChange={(next) => {
               if (selectedColour === undefined) setInternalColour(next);
               onColourChange?.(next);
             }}
             unitBasePrice={unitBasePrice}
+            quantity={quantity}
+            minimumQuantity={minimumQuantity}
+            onQuantityChange={onQuantityChange}
           />
         ) : activeStep.id === "artwork" ? (
           <ArtworkPanel

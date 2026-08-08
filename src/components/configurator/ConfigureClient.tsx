@@ -258,6 +258,12 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
     colourType: colour.type,
     customDyeMinimum: CUSTOM_DYE_MOQ_UNITS,
   });
+  const customDyeMinimumQuantity = getProductMinimumOrderQuantity(productId, {
+    colourType: "custom_dye",
+    customDyeMinimum: CUSTOM_DYE_MOQ_UNITS,
+  });
+  const customDyeQuantityShortfall =
+    colour.type === "custom_dye" && quantity < minimumQuantity;
   const activeCustomisationStepId = expandedStepId ?? "garment-colour";
   const previewNeckLabel: NeckLabel =
     activeCustomisationStepId === "neck-label" && !neckLabel.fileUrl
@@ -943,6 +949,10 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
         showCtaError("Choose a garment colour to continue.");
         return;
       }
+      if (customDyeQuantityShortfall) {
+        showCtaError(`Custom colour requires at least ${minimumQuantity} pieces.`);
+        return;
+      }
       const confirmedColour = { ...colour, confirmed: true };
       setColour(confirmedColour);
       trackConfiguratorEvent("colour_selected", { product_id: productId, colour: confirmedColour.name, colour_type: confirmedColour.type });
@@ -1279,9 +1289,6 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
                         skipped: false,
                         summary: `${next.type === "signature" ? "Signature" : "Custom dye"} · ${next.name}`,
                       });
-                      if (next.type === "custom_dye") {
-                        setQuantity((current) => Math.max(getProductMinimumOrderQuantity(productId, { colourType: "custom_dye", customDyeMinimum: CUSTOM_DYE_MOQ_UNITS }), current));
-                      }
                     }}
                     steps={steps}
                     onStepsChange={setSteps}
@@ -1306,6 +1313,9 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
                     activeView={activeView}
                     onViewChange={setActiveView}
                     unitBasePrice={unitBasePrice}
+                    quantity={quantity}
+                    minimumQuantity={customDyeMinimumQuantity}
+                    onQuantityChange={setSafeQuantity}
                     isToteProduct={isToteProduct}
                     onResetStep={resetStepDraft}
                     activeStepSummary={activeControlSummary}
