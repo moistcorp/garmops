@@ -562,7 +562,7 @@ export default function CanvasRenderer({
     <div
       ref={canvasRef}
       className={`relative ${
-        view === "front" || view === "back"
+        interactive && (view === "front" || view === "back")
           ? "overflow-visible"
           : "overflow-hidden"
       } ${className}`}

@@ -10,7 +10,6 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, MapPin, ReceiptText, ShieldCheck, UserRound } from "lucide-react";
-import { DeliveryDatePicker } from "@/components/configurator/cart/DeliveryDatePicker";
 import {
   AddressForm,
   digitsOnly,
@@ -38,8 +37,8 @@ import {
   writeDraft,
 } from "./cartDraft";
 import {
-  formatDeliveryLabel,
   getIndiaCalendarDate,
+  getDeliveryOptions,
   isDeliverySelectionValid,
 } from "@/lib/configurator/delivery";
 import { CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS } from "@/lib/configurator/colourRules";
@@ -51,6 +50,7 @@ import { formatSpecCode } from "@/lib/orders/format";
 export interface BillingShippingStepProps {
   cartId: string;
   accountContext?: CheckoutAccountContext;
+  authNotice?: string;
 }
 
 export type CheckoutAccountDefaults = Readonly<{
@@ -99,12 +99,13 @@ function formatIndianPhone(value: string): string {
 }
 
 const FIELD_ID_MAP: Record<string, string> = {
-  "contact.firstName": "contact-first-name",
-  "contact.lastName": "contact-last-name",
+  "contact.firstName": "contact-full-name",
+  "contact.lastName": "contact-full-name",
   "contact.email": "contact-email",
   "contact.phone": "contact-phone",
-  "shipping.recipientName": "contact-first-name",
+  "shipping.recipientName": "contact-full-name",
   "billing.gstin": "billing-gstin",
+  "billing.entity": "billing-entity",
 };
 
 function sectionHeading(
@@ -120,7 +121,7 @@ function sectionHeading(
       </span>
       <div>
         <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">
-          {index} / Delivery specification
+          {index}
         </p>
         <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--text-primary)]">
           {title}
@@ -131,6 +132,44 @@ function sectionHeading(
       </div>
     </div>
   );
+}
+
+function splitFullName(value: string): Pick<ProjectContact, "firstName" | "lastName"> {
+  const normalized = value.replace(/\s+/g, " ").trimStart();
+  const firstSpace = normalized.indexOf(" ");
+  return firstSpace < 0
+    ? { firstName: normalized, lastName: "" }
+    : {
+        firstName: normalized.slice(0, firstSpace),
+        lastName: normalized.slice(firstSpace + 1),
+      };
+}
+
+function withDefaultDeliverySelection(draft: CartDraft): CartDraft {
+  const today = getIndiaCalendarDate();
+  const extraLeadTimeDays = draft.items.some((item) => item.colour.type === "custom_dye")
+    ? CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS.max
+    : 0;
+  const selected = draft.selectedDeliveryDateIso
+    ? new Date(draft.selectedDeliveryDateIso)
+    : undefined;
+  if (
+    selected &&
+    isDeliverySelectionValid(
+      draft.deliveryType,
+      selected,
+      today,
+      extraLeadTimeDays,
+    )
+  ) {
+    return draft;
+  }
+  return {
+    ...draft,
+    deliveryType: "standard",
+    selectedDeliveryDateIso: getDeliveryOptions(today, extraLeadTimeDays).standard.toISOString(),
+    orderConfirmedDateIso: new Date().toISOString(),
+  };
 }
 
 function withInferredCheckoutDetails(
@@ -146,7 +185,7 @@ function withInferredCheckoutDetails(
     },
     billingInformation: {
       ...draft.billingInformation,
-      entity: draft.billingInformation.entity || accountDefaults?.billingEntity || contactName,
+      entity: draft.billingInformation.entity || accountDefaults?.billingEntity || "",
       accountsPayableEmail:
         draft.billingInformation.accountsPayableEmail ||
         accountDefaults?.billingEmail ||
@@ -251,7 +290,7 @@ function checkoutDetailsDiffer(draft: CartDraft, defaults: CheckoutAccountDefaul
   ].some(Boolean);
 }
 
-function useAuthenticatedEmail(draft: CartDraft, authenticatedEmail: string): CartDraft {
+function withAuthenticatedEmail(draft: CartDraft, authenticatedEmail: string): CartDraft {
   const previousEmail = draft.projectContact.email.trim().toLowerCase();
   const billingEmail = draft.billingInformation.accountsPayableEmail.trim().toLowerCase();
   return withInferredCheckoutDetails({
@@ -270,6 +309,7 @@ function useAuthenticatedEmail(draft: CartDraft, authenticatedEmail: string): Ca
 export function BillingShippingStep({
   cartId,
   accountContext,
+  authNotice,
 }: BillingShippingStepProps) {
   const router = useRouter();
   const accountDefaults = accountContext?.defaults;
@@ -278,6 +318,8 @@ export function BillingShippingStep({
   const [isDraftReady, setIsDraftReady] = useState(false);
   const [needsDetailsChoice, setNeedsDetailsChoice] = useState(false);
   const [saveDetailsToAccount, setSaveDetailsToAccount] = useState(true);
+  const [gstDetailsOpen, setGstDetailsOpen] = useState(false);
+  const [showSavedSummary, setShowSavedSummary] = useState(false);
   const [isSavingAccount, setIsSavingAccount] = useState(false);
   const [validationFeedback, setValidationFeedback] = useState<string | null>(null);
   const [storageSaveError, setStorageSaveError] = useState<string | null>(null);
@@ -291,7 +333,9 @@ export function BillingShippingStep({
         return;
       }
 
-      let preparedDraft = withInferredCheckoutDetails(savedDraft);
+      let preparedDraft = withDefaultDeliverySelection(
+        withInferredCheckoutDetails(savedDraft),
+      );
       if (accountContext) {
         const hasEnteredDetails = hasEnteredCheckoutDetails(savedDraft);
         const shouldChoose =
@@ -303,13 +347,16 @@ export function BillingShippingStep({
             ? "replace"
             : "fill-empty";
         preparedDraft = shouldChoose
-          ? useAuthenticatedEmail(preparedDraft, accountContext.authenticatedEmail)
-          : useAuthenticatedEmail(
+          ? withAuthenticatedEmail(preparedDraft, accountContext.authenticatedEmail)
+          : withAuthenticatedEmail(
               withAccountDefaults(preparedDraft, accountContext.defaults, defaultsMode),
               accountContext.authenticatedEmail,
             );
         setNeedsDetailsChoice(shouldChoose);
+        setShowSavedSummary(accountContext.hasSavedDetails && !hasEnteredDetails);
       }
+
+      setGstDetailsOpen(Boolean(preparedDraft.billingInformation.gstin));
 
       setDraft(preparedDraft);
       writeDraft(cartId, preparedDraft);
@@ -318,22 +365,7 @@ export function BillingShippingStep({
     return () => window.clearTimeout(loadDraft);
   }, [accountContext, cartId, router]);
 
-  const selectedDeliveryDate = useMemo(
-    () =>
-      draft.selectedDeliveryDateIso
-        ? new Date(draft.selectedDeliveryDateIso)
-        : undefined,
-    [draft.selectedDeliveryDateIso]
-  );
   const totals = calculateTotals(draft.items, draft.deliveryType);
-  const extraLeadTimeDays = draft.items.some(
-    (item) => item.colour.type === "custom_dye"
-  )
-    ? CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS.max
-    : 0;
-  // Delivery availability must always be calculated from today's date in India,
-  // not from the date on which an older browser draft was first created.
-  const deliveryBaseDate = getIndiaCalendarDate();
 
   const markFormStarted = useCallback(() => {
     if (formStartedRef.current) return;
@@ -394,7 +426,7 @@ export function BillingShippingStep({
 
   const useSavedAccountDetails = useCallback(() => {
     if (!accountContext) return;
-    const next = useAuthenticatedEmail(
+    const next = withAuthenticatedEmail(
       withAccountDefaults(draft, accountContext.defaults, "replace"),
       accountContext.authenticatedEmail,
     );
@@ -406,36 +438,31 @@ export function BillingShippingStep({
 
   const keepEnteredDetails = useCallback(() => {
     if (!authenticatedEmail) return;
-    const next = useAuthenticatedEmail(draft, authenticatedEmail);
+    const next = withAuthenticatedEmail(draft, authenticatedEmail);
     setDraft(next);
     persistCartDraft(next);
     setNeedsDetailsChoice(false);
     setValidationFeedback(null);
   }, [authenticatedEmail, draft, persistCartDraft]);
 
-  const deliveryLabel = useMemo(
-    () => formatDeliveryLabel(draft.deliveryType, selectedDeliveryDate),
-    [selectedDeliveryDate, draft.deliveryType]
-  );
-
-  const deliveryOk = isDeliverySelectionValid(
-    draft.deliveryType,
-    selectedDeliveryDate,
-    deliveryBaseDate ?? new Date(),
-    extraLeadTimeDays
-  );
   const procurementMissing = getProcurementMissingFields({
     contact: draft.projectContact,
     shipping: draft.shippingInformation,
     billing: draft.billingInformation,
   });
+  const gstDetailsValid = !gstDetailsOpen || (
+    isGstinValid(draft.billingInformation.gstin) &&
+    Boolean(draft.billingInformation.gstin.trim()) &&
+    Boolean(draft.billingInformation.entity.trim())
+  );
   const missingLabels = useMemo(() => {
     const labels = procurementMissing
       .filter((field) => field.key !== "shipping.recipientName")
       .map((field) => field.label);
-    if (!deliveryOk) labels.push("delivery date");
+    if (gstDetailsOpen && !draft.billingInformation.gstin.trim()) labels.push("GSTIN");
+    if (gstDetailsOpen && !draft.billingInformation.entity.trim()) labels.push("legal business name");
     return Array.from(new Set(labels));
-  }, [deliveryOk, procurementMissing]);
+  }, [draft.billingInformation.entity, draft.billingInformation.gstin, gstDetailsOpen, procurementMissing]);
   const isValid =
     isDraftReady &&
     Boolean(accountContext) &&
@@ -443,7 +470,7 @@ export function BillingShippingStep({
     !isSavingAccount &&
     draft.items.length > 0 &&
     procurementMissing.length === 0 &&
-    deliveryOk;
+    gstDetailsValid;
 
   const missingMessage = useMemo(() => {
     if (!isDraftReady) return "Loading your delivery details…";
@@ -466,7 +493,11 @@ export function BillingShippingStep({
         ? `billing-address-${addressKey}`
         : first
           ? FIELD_ID_MAP[first.key]
-          : "delivery-target";
+          : gstDetailsOpen && !draft.billingInformation.gstin.trim()
+            ? "billing-gstin"
+            : gstDetailsOpen && !draft.billingInformation.entity.trim()
+              ? "billing-entity"
+              : "contact-details";
 
     if (!targetId) return;
     const element = document.getElementById(targetId);
@@ -500,7 +531,7 @@ export function BillingShippingStep({
             shipping: { address: draft.shippingInformation.address },
             billing: {
               sameAsCompanyAddress: draft.billingInformation.sameAsCompanyAddress,
-              entity: draft.billingInformation.entity,
+              entity: draft.billingInformation.entity || `${draft.projectContact.firstName} ${draft.projectContact.lastName}`.trim(),
               address: draft.billingInformation.sameAsCompanyAddress
                 ? draft.shippingInformation.address
                 : draft.billingInformation.address,
@@ -544,22 +575,23 @@ export function BillingShippingStep({
   if (!accountContext) {
     const deliveryPath = `/configurator/cart/${encodeURIComponent(cartId)}/shipping`;
     const initialEmail = draft.projectContact.email.trim().toLowerCase();
-    const lockEmail = isEmailValid(initialEmail);
     return (
       <>
         {topBar}
-        <div className="mx-auto flex max-w-xl items-start justify-center py-8 sm:py-12">
+        <div className="mx-auto max-w-2xl py-8 sm:py-12">
+          <div className="mb-6">
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--color-accent)]">Delivery · 06 / 06</p>
+            <h1 className="mt-2 text-2xl font-semibold text-[var(--text-primary)]">Delivery details</h1>
+            <p className="mt-1 text-sm text-[var(--text-primary)]/55">Tell us where to deliver your order.</p>
+          </div>
+          {authNotice ? <div className="mb-4"><ActionFeedback tone="info" title={authNotice} /></div> : null}
           <section className="techpack-surface w-full rounded-[4px] border p-6 sm:p-8">
-            <div className="mb-6 text-center">
-              <span className="mx-auto flex size-11 items-center justify-center rounded-full bg-[var(--color-accent)]/10 text-[var(--color-accent)]"><ShieldCheck size={22} aria-hidden="true" /></span>
-              <p className="mt-4 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">06 / Delivery access</p>
-              <h1 className="mt-2 text-2xl font-semibold text-[var(--text-primary)]">Sign in/Register</h1>
-            </div>
+            {sectionHeading("1 — Contact", <ShieldCheck size={18} aria-hidden="true" />, "Verify your email", "We’ll use this email for secure order access and payment updates.")}
             <CustomerAuthFlow
               next={deliveryPath}
               initialEmail={initialEmail}
-              emailLocked={lockEmail}
-              allowGoogle={!lockEmail}
+              emailLocked={false}
+              allowGoogle
               onAuthenticated={() => window.location.assign(deliveryPath)}
             />
           </section>
@@ -620,90 +652,42 @@ export function BillingShippingStep({
               Delivery details
             </h1>
             <p className="mt-1 max-w-2xl text-sm leading-relaxed text-[var(--text-primary)]/55">
-              Confirm your contact, delivery and billing details. Saved account
-              information is filled automatically. Checkout details are stored as an immutable order snapshot after payment.
+              Tell us where to deliver your order.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-[4px] border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/5 px-4 py-3 text-sm">
-            <div className="flex items-center gap-2"><CheckCircle2 size={16} className="text-[var(--color-accent)]" aria-hidden="true" /><span className="text-[var(--text-primary)]/65">Signed in as <strong className="text-[var(--text-primary)]">{accountContext.authenticatedEmail}</strong></span></div>
-            <span className="text-xs text-[var(--text-primary)]/45">Saved account details are available for this checkout.</span>
+            <div className="flex items-center gap-2"><CheckCircle2 size={16} className="text-[var(--color-accent)]" aria-hidden="true" /><span className="text-[var(--text-primary)]/65"><strong className="text-[var(--text-primary)]">{accountContext.authenticatedEmail}</strong> · Verified</span></div>
+            <span className="text-xs text-[var(--text-primary)]/45">{accountContext.hasSavedDetails ? "Saved details filled from your account." : "Your details can be saved for next time."}</span>
           </div>
-
-          <section
-            id="delivery-target"
-            className="techpack-panel scroll-mt-16 rounded-[4px] border p-5"
-          >
-            <p className="mb-3 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">
-              01 / Delivery window
-            </p>
-            <DeliveryDatePicker
-              orderConfirmedDate={deliveryBaseDate}
-              extraLeadTimeDays={extraLeadTimeDays}
-              onDateSelect={(date, type) => {
-                updateDraft({
-                  selectedDeliveryDateIso: date.toISOString(),
-                  deliveryType: type,
-                  orderConfirmedDateIso: new Date().toISOString(),
-                });
-              }}
-              selectedDate={selectedDeliveryDate}
-              selectedType={draft.deliveryType}
-            />
-            <p className="mt-3 text-xs leading-relaxed text-[var(--text-primary)]/55">
-              This is a target date. The final production schedule is confirmed
-              after artwork review and approval.
-            </p>
-          </section>
 
           <section
             id="contact-details"
             className="techpack-panel scroll-mt-16 rounded-[4px] border p-5"
           >
             {sectionHeading(
-              "02",
+              "1 — Contact",
               <UserRound size={18} />,
-              "Contact details",
+              "Contact",
               "Who should receive order updates and coordinate the delivery?"
             )}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label htmlFor="contact-first-name" className={LABEL_CLASS}>
-                  First name *
-                </label>
-                <input
-                  id="contact-first-name"
-                  autoComplete="given-name"
-                  className={INPUT_CLASS}
-                  value={draft.projectContact.firstName}
-                  onChange={(event) =>
-                    updateContact({
-                      ...draft.projectContact,
-                      firstName: event.target.value,
-                    })
-                  }
-                />
+            {showSavedSummary ? (
+              <div className="flex flex-wrap items-start justify-between gap-4 text-sm text-[var(--text-primary)]/70">
+                <div>
+                  <p className="font-medium text-[var(--text-primary)]">{draft.projectContact.firstName} {draft.projectContact.lastName}</p>
+                  <p className="mt-1">{draft.projectContact.email} · Verified</p>
+                  <p className="mt-1">+91 {formatIndianPhone(draft.projectContact.phone)}</p>
+                </div>
+                <button type="button" onClick={() => setShowSavedSummary(false)} className="text-xs font-semibold text-[var(--color-accent-dark)] underline underline-offset-2">Edit</button>
               </div>
-              <div>
-                <label htmlFor="contact-last-name" className={LABEL_CLASS}>
-                  Last name *
-                </label>
-                <input
-                  id="contact-last-name"
-                  autoComplete="family-name"
-                  className={INPUT_CLASS}
-                  value={draft.projectContact.lastName}
-                  onChange={(event) =>
-                    updateContact({
-                      ...draft.projectContact,
-                      lastName: event.target.value,
-                    })
-                  }
-                />
+            ) : <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <label htmlFor="contact-full-name" className={LABEL_CLASS}>Full name</label>
+                <input id="contact-full-name" autoComplete="name" className={INPUT_CLASS} value={draft.projectContact.firstName ? `${draft.projectContact.firstName} ${draft.projectContact.lastName}` : ""} onChange={(event) => updateContact({ ...draft.projectContact, ...splitFullName(event.target.value) })} />
               </div>
               <div>
                 <label htmlFor="contact-email" className={LABEL_CLASS}>
-                  Email *
+                  Email
                 </label>
                 <input
                   id="contact-email"
@@ -724,31 +708,21 @@ export function BillingShippingStep({
               </div>
               <div>
                 <label htmlFor="contact-phone" className={LABEL_CLASS}>
-                  Phone *
+                  Phone number
                 </label>
-                <input
-                  id="contact-phone"
-                  type="tel"
-                  inputMode="tel"
-                  autoComplete="tel"
-                  className={INPUT_CLASS}
-                  placeholder="98765 43210"
-                  value={draft.projectContact.phone}
-                  onChange={(event) =>
-                    updateContact({
-                      ...draft.projectContact,
-                      phone: formatIndianPhone(event.target.value),
-                    })
-                  }
-                />
-                {draft.projectContact.phone &&
+                <div className="flex rounded-[4px] border border-[var(--color-control-border)] focus-within:!border-[var(--color-accent)]">
+                  <span className="flex items-center border-r border-[var(--color-rule)] px-3 text-sm text-[var(--text-primary)]/60">+91</span>
+                  <input id="contact-phone" type="tel" inputMode="tel" autoComplete="tel-national" className={`${INPUT_CLASS} !border-0`} placeholder="98765 43210" value={draft.projectContact.phone} onChange={(event) => updateContact({ ...draft.projectContact, phone: formatIndianPhone(event.target.value) })} />
+                </div>
+                <p className="mt-1 text-xs text-[var(--text-primary)]/45">Used for delivery updates and courier coordination.</p>
+                {digitsOnly(draft.projectContact.phone).length >= 10 &&
                   !isIndianPhoneValid(draft.projectContact.phone) && (
                     <p className="mt-1 text-xs text-red-600">
                       Enter a valid 10-digit Indian mobile number.
                     </p>
                   )}
               </div>
-            </div>
+            </div>}
           </section>
 
           <section
@@ -756,20 +730,28 @@ export function BillingShippingStep({
             className="techpack-panel scroll-mt-16 rounded-[4px] border p-5"
           >
             {sectionHeading(
-              "03",
+              "2 — Delivery address",
               <MapPin size={18} />,
               "Delivery address",
-              "Enter one primary delivery location in India. We’ll use the contact name above as the recipient."
+              "Where should we deliver this order?"
             )}
-            <AddressForm
-              compact
-              showCountry={false}
-              idPrefix="shipping-address"
-              value={draft.shippingInformation.address}
-              onChange={(address) =>
-                updateShipping({ ...draft.shippingInformation, address })
-              }
-            />
+            {showSavedSummary ? (
+              <div className="text-sm text-[var(--text-primary)]/70">
+                <p className="font-medium text-[var(--text-primary)]">{draft.shippingInformation.recipientName}</p>
+                {draft.shippingInformation.company ? <p>{draft.shippingInformation.company}</p> : null}
+                <p className="mt-1">{draft.shippingInformation.address.addressLine1}</p>
+                {draft.shippingInformation.address.addressLine2 ? <p>{draft.shippingInformation.address.addressLine2}</p> : null}
+                <p>{draft.shippingInformation.address.city}, {draft.shippingInformation.address.state} {draft.shippingInformation.address.zip}</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="delivery-company" className={LABEL_CLASS}>Company / organisation <span className="font-normal text-[var(--text-primary)]/45">Optional</span></label>
+                  <input id="delivery-company" autoComplete="organization" className={INPUT_CLASS} value={draft.shippingInformation.company} onChange={(event) => updateShipping({ ...draft.shippingInformation, company: event.target.value })} />
+                </div>
+                <AddressForm compact showCountry={false} addressLabel="Address" idPrefix="shipping-address" value={draft.shippingInformation.address} onChange={(address) => updateShipping({ ...draft.shippingInformation, address })} />
+              </div>
+            )}
           </section>
 
           <section
@@ -777,39 +759,12 @@ export function BillingShippingStep({
             className="techpack-panel scroll-mt-16 rounded-[4px] border p-5"
           >
             {sectionHeading(
-              "04",
+              "3 — Billing",
               <ReceiptText size={18} />,
-              "Billing & GST",
-              "GSTIN is optional. Add it when you need a GST invoice for this order."
+              "Billing",
+              "Billing matches delivery by default. GST details are optional."
             )}
             <div className="space-y-5">
-              <div>
-                <label htmlFor="billing-gstin" className={LABEL_CLASS}>
-                  GSTIN <span className="font-normal text-[var(--text-primary)]/45">(optional)</span>
-                </label>
-                <input
-                  id="billing-gstin"
-                  autoComplete="off"
-                  className={`${INPUT_CLASS} uppercase`}
-                  maxLength={15}
-                  placeholder="22AAAAA0000A1Z5"
-                  value={draft.billingInformation.gstin}
-                  onChange={(event) => {
-                    const gstin = event.target.value
-                      .toUpperCase()
-                      .replace(/[^0-9A-Z]/g, "")
-                      .slice(0, 15);
-                    updateBilling({ ...draft.billingInformation, gstin });
-                  }}
-                />
-                {draft.billingInformation.gstin &&
-                  !isGstinValid(draft.billingInformation.gstin) && (
-                    <p className="mt-1 text-xs text-red-600">
-                      Enter a valid 15-character GSTIN.
-                    </p>
-                  )}
-              </div>
-
               <label className="flex cursor-pointer items-start gap-3 rounded-[4px] border border-[var(--color-rule)] p-3 text-sm text-[var(--text-primary)]/75">
                 <input
                   type="checkbox"
@@ -836,6 +791,7 @@ export function BillingShippingStep({
                 <AddressForm
                   compact
                   showCountry={false}
+                  addressLabel="Billing address"
                   idPrefix="billing-address"
                   value={draft.billingInformation.address}
                   onChange={(address) =>
@@ -843,6 +799,39 @@ export function BillingShippingStep({
                   }
                 />
               )}
+
+              <button
+                type="button"
+                aria-expanded={gstDetailsOpen}
+                aria-controls="gst-details"
+                onClick={() => {
+                  if (gstDetailsOpen) {
+                    const contactName = `${draft.projectContact.firstName} ${draft.projectContact.lastName}`.trim();
+                    updateBilling({ ...draft.billingInformation, gstin: "", entity: contactName });
+                  } else if (!draft.billingInformation.gstin && draft.billingInformation.entity === `${draft.projectContact.firstName} ${draft.projectContact.lastName}`.trim()) {
+                    updateBilling({ ...draft.billingInformation, entity: "" });
+                  }
+                  setGstDetailsOpen((open) => !open);
+                }}
+                className="text-sm font-semibold text-[var(--color-accent-dark)] underline underline-offset-4"
+              >
+                {gstDetailsOpen ? "Remove GST details" : "+ Add GST details"}
+              </button>
+
+              {gstDetailsOpen ? (
+                <div id="gst-details" className="grid gap-4 rounded-[4px] border border-[var(--color-rule)] p-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="billing-gstin" className={LABEL_CLASS}>GSTIN</label>
+                    <input id="billing-gstin" autoComplete="off" className={`${INPUT_CLASS} uppercase`} maxLength={15} placeholder="22AAAAA0000A1Z5" value={draft.billingInformation.gstin} onChange={(event) => updateBilling({ ...draft.billingInformation, gstin: event.target.value.toUpperCase().replace(/[^0-9A-Z]/g, "").slice(0, 15) })} />
+                    {draft.billingInformation.gstin.length === 15 && !isGstinValid(draft.billingInformation.gstin) ? <p className="mt-1 text-xs text-red-600">Enter a valid 15-character GSTIN.</p> : null}
+                  </div>
+                  <div>
+                    <label htmlFor="billing-entity" className={LABEL_CLASS}>Legal business name</label>
+                    <input id="billing-entity" autoComplete="organization" className={INPUT_CLASS} value={draft.billingInformation.entity} onChange={(event) => updateBilling({ ...draft.billingInformation, entity: event.target.value })} />
+                  </div>
+                  <p className="text-xs leading-relaxed text-[var(--text-primary)]/50 sm:col-span-2">GSTIN format is checked locally. No GST registry lookup is configured, so enter the legal business name exactly as registered.</p>
+                </div>
+              ) : null}
             </div>
           </section>
 
@@ -870,10 +859,9 @@ export function BillingShippingStep({
             rushFee={totals.rushFee}
             shippingFee={totals.shippingFee}
             gst={totals.gst}
-            delivery={deliveryLabel}
             total={totals.total}
             onNext={handleNext}
-            nextLabel={isSavingAccount ? "Saving account details…" : "Continue to review"}
+            nextLabel={isSavingAccount ? "Saving account details…" : "Review & payment"}
             nextDisabled={!isValid}
             disabledMessage={missingMessage}
             onDisabledNext={handleNext}

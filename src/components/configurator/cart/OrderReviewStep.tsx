@@ -16,16 +16,20 @@ import {
   calculateTotals,
   createDraft,
   MAX_CONFIGURED_CART_ITEMS,
-  getCartItemDiscountPercent,
   getCartItemUnitPrice,
   readDraft,
   totalUnits,
   writeDraft,
   type CartDraft,
 } from './cartDraft';
-import { formatInr } from '@/lib/configurator/pricing';
+import {
+  formatInr,
+  getConfiguredLinePricingPaise,
+  VOLUME_DISCOUNT_TIERS,
+} from '@/lib/configurator/pricing';
 import { CUSTOM_DYE_MOQ_UNITS } from '@/lib/configurator/colourRules';
 import { getSizeChart } from '@/lib/sizecharts';
+import type { SizeChart, SizeRow } from '@/lib/sizecharts';
 import { getProduct, getProductMinimumOrderQuantity } from '@/lib/configurator/products';
 import CanvasRenderer from '../GarmentPreview/CanvasRenderer';
 import { NECK_PREVIEW_CANVAS_CLASS } from '../GarmentPreview/GarmentPreview';
@@ -34,8 +38,11 @@ import { ArtworkPositionProvider } from '@/lib/configurator/ArtworkPositionConte
 import { restoreConfigurationUploads } from '@/lib/configurator/objectUrls';
 import { ActionFeedback, type ActionFeedbackTone } from '../ActionFeedback';
 import { trackConfiguratorEvent } from '@/lib/configurator/analytics';
-import { formatSpecCode } from '@/lib/orders/format';
 import { getArtworkSizeConflict } from '@/lib/configurator/artworkSizing';
+import {
+  MAX_CONFIGURATION_QUANTITY,
+  normalizeSizeQuantity,
+} from '@/lib/configurator/sizeQuantity';
 
 export interface CartItem {
   id: string;
@@ -49,6 +56,8 @@ export interface CartItem {
   baseUnitPrice?: number;
   unitPrice: number;
   rushDelivery?: boolean;
+  /** Earlier Studio quantity, shown only as context until sizes are allocated. */
+  plannedQuantity?: number;
 }
 
 export interface OrderReviewStepProps {
@@ -133,14 +142,13 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
       items: prev.items.map((item) => {
         if (item.id !== itemId) return item;
 
-        const currentSizeQty = item.sizeQuantities[size] ?? 0;
         const currentTotal = totalUnits(item.sizeQuantities);
-        const minimumUnits = getProductMinimumOrderQuantity(item.productId, { colourType: item.colour.type, customDyeMinimum: CUSTOM_DYE_MOQ_UNITS });
-        const minimumAllowedQty = Math.max(
-          0,
-          currentSizeQty - Math.max(0, currentTotal - minimumUnits)
+        const currentSizeQty = item.sizeQuantities[size] ?? 0;
+        const otherSizesTotal = currentTotal - currentSizeQty;
+        const safeQty = normalizeSizeQuantity(
+          qty,
+          MAX_CONFIGURATION_QUANTITY - otherSizesTotal,
         );
-        const safeQty = Math.max(minimumAllowedQty, qty);
 
         const sizeQuantities = { ...item.sizeQuantities, [size]: safeQty };
         return {
@@ -266,8 +274,33 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
     items.length > 0 &&
     items.every((item) => {
       const minimumUnits = getProductMinimumOrderQuantity(item.productId, { colourType: item.colour.type, customDyeMinimum: CUSTOM_DYE_MOQ_UNITS });
-      return totalUnits(item.sizeQuantities) >= minimumUnits && !getArtworkSizeConflict(item.artwork, item.sizeQuantities);
+      const quantity = totalUnits(item.sizeQuantities);
+      return quantity >= minimumUnits &&
+        quantity <= MAX_CONFIGURATION_QUANTITY &&
+        !getArtworkSizeConflict(item.artwork, item.sizeQuantities);
     });
+
+  const cartValidationMessage = (() => {
+    if (!items.length) return "Add a product before continuing.";
+    for (const item of items) {
+      const quantity = totalUnits(item.sizeQuantities);
+      const minimum = getProductMinimumOrderQuantity(item.productId, {
+        colourType: item.colour.type,
+        customDyeMinimum: CUSTOM_DYE_MOQ_UNITS,
+      });
+      if (quantity === 0) return `Enter a quantity for ${item.productName}.`;
+      if (quantity < minimum) {
+        return `Add ${(minimum - quantity).toLocaleString("en-IN")} more pieces to ${item.productName} to meet its ${minimum.toLocaleString("en-IN")}-piece minimum.`;
+      }
+      if (quantity > MAX_CONFIGURATION_QUANTITY) {
+        return `${item.productName} exceeds the supported quantity limit.`;
+      }
+      if (getArtworkSizeConflict(item.artwork, item.sizeQuantities)) {
+        return `Adjust the artwork or remove the conflicting size for ${item.productName}.`;
+      }
+    }
+    return undefined;
+  })();
 
   return (
     <>
@@ -276,7 +309,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
         backHref="/configurator"
         onDownloadPdf={handleDownloadApprovalPdf}
         isDownloadingPdf={isDownloadingPdf}
-        isDownloadDisabled={!draftLoaded || items.length === 0}
+        isDownloadDisabled={!draftLoaded || !cartIsValid}
         showCart
         productName={getCartProductLabel(items)}
         specReference={`CART-${cartId}`}
@@ -288,12 +321,12 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
         {feedback && <ActionFeedback {...feedback} onDismiss={feedback.tone === 'loading' ? undefined : () => setFeedback(null)} actionLabel={feedback.tone === 'error' ? 'Retry PDF' : undefined} onAction={feedback.tone === 'error' ? handleDownloadApprovalPdf : undefined} />}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-[var(--text-primary)]/50">
-              {formatSpecCode(`CART-${cartId}`)}
+            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--color-accent)]">
+              Sizes &amp; quantity
             </p>
-            <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Sizes &amp; quantity</h1>
+            <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Choose sizes &amp; quantity</h1>
             <p className="mt-1 text-sm text-[var(--text-primary)]/55">
-              Confirm the final size allocation for every configured product.
+              Add the number of pieces you need in each size.
             </p>
           </div>
           {draftLoaded && items.length > 0 && (
@@ -332,16 +365,37 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
           const itemMinimumUnits = getProductMinimumOrderQuantity(item.productId, { colourType: item.colour.type, customDyeMinimum: CUSTOM_DYE_MOQ_UNITS });
           const itemSizes = getProduct(item.productId)?.sizes ?? SIZES;
           const sizeChart = getSizeChart(item.productId);
-          const itemUnitPrice = getCartItemUnitPrice(item);
-          const itemDiscountPercent = getCartItemDiscountPercent(item);
-          const garmentTotal = itemUnitPrice * itemUnits;
+          const linePricing = getConfiguredLinePricingPaise({
+            productId: item.productId,
+            colour: item.colour,
+            artwork: item.artwork,
+            neckLabel: item.neckLabel,
+            quantity: itemUnits,
+          });
+          const itemUnitPrice = linePricing.discountedUnitPaise / 100;
+          const garmentTotal = linePricing.discountedSubtotalPaise / 100;
+          const nextTier = VOLUME_DISCOUNT_TIERS.find((tier) => tier.minQty > itemUnits);
+          const nextTierPricing = nextTier
+            ? getConfiguredLinePricingPaise({
+                productId: item.productId,
+                colour: item.colour,
+                artwork: item.artwork,
+                neckLabel: item.neckLabel,
+                quantity: nextTier.minQty,
+              })
+            : null;
           const artworkSizeConflict = getArtworkSizeConflict(item.artwork, item.sizeQuantities);
+          const quantityShortfall = Math.max(0, itemMinimumUnits - itemUnits);
+          const nonZeroSizes = itemSizes.filter((size) => (item.sizeQuantities[size] ?? 0) > 0);
+          const isOneSize = itemSizes.length === 1 && itemSizes[0] === "One Size";
           return (
             <section key={item.id} className="techpack-panel rounded-[4px] border p-5">
               <div className="flex flex-col gap-5 md:flex-row">
                 <div className="w-full shrink-0 md:w-44">
                   <div className="relative isolate aspect-[3/4] overflow-hidden rounded-[4px] bg-[#F7F7F7]">
-                    <div className="absolute inset-0 flex items-center justify-center">
+                    <div className={`absolute flex items-center justify-center ${
+                      selectedView === "neck" ? "inset-0" : "inset-[9%]"
+                    }`}>
                       <ArtworkPositionProvider activeView={selectedView}>
                         <CanvasRenderer
                           view={selectedView}
@@ -353,7 +407,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                           className={
                             selectedView === "neck"
                               ? NECK_PREVIEW_CANVAS_CLASS
-                              : "h-full w-full scale-[0.82] bg-[#F7F7F7]"
+                              : "h-full w-full bg-[#F7F7F7]"
                           }
                         />
                       </ArtworkPositionProvider>
@@ -400,7 +454,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                         {item.productName}
                       </h2>
                       <p className="text-sm text-[var(--text-primary)]/60">
-                        {item.colour.name} · <span className="font-mono">{itemUnits} units</span>
+                        {item.colour.name} · <span className="font-mono">{itemUnits ? `${itemUnits.toLocaleString("en-IN")} pieces allocated` : "Ready for size allocation"}</span>
                       </p>
                     </div>
                     <div className="flex max-w-[420px] shrink-0 flex-wrap justify-end gap-2">
@@ -443,81 +497,137 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                     </div>
                   </div>
 
-                  <div className="rounded-[4px] border border-[#E5E5E5] bg-[#F7F7F7] px-3 py-2 text-xs leading-relaxed text-[var(--text-primary)]/60">
-                    We applied a recommended company-order size mix to the quantity selected in Studio. Adjust any size below before continuing; the total and volume price update automatically.
+                  <div className="grid gap-px overflow-hidden border border-[var(--color-rule)] bg-[var(--color-rule)] sm:grid-cols-2">
+                    <div className="bg-white px-4 py-3">
+                      <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--text-primary)]/45">Minimum order</p>
+                      <p className="mt-1 font-mono text-xl font-semibold tabular-nums text-[var(--text-primary)]">
+                        {itemMinimumUnits.toLocaleString("en-IN")} pieces
+                      </p>
+                      <p className="mt-1 text-xs text-[var(--text-primary)]/55">Minimum applies to this product configuration.</p>
+                    </div>
+                    <div className="bg-white px-4 py-3">
+                      <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--color-accent)]">Total quantity</p>
+                      <p className="mt-1 font-mono text-xl font-semibold tabular-nums text-[var(--text-primary)]">
+                        {itemUnits.toLocaleString("en-IN")} pieces
+                      </p>
+                      <p className={`mt-1 text-xs ${quantityShortfall ? "text-amber-800" : "text-[var(--color-accent-dark)]"}`} aria-live="polite">
+                        {itemUnits === 0
+                          ? "No quantities entered."
+                          : quantityShortfall
+                            ? `${quantityShortfall.toLocaleString("en-IN")} more pieces needed to meet the ${itemMinimumUnits.toLocaleString("en-IN")}-piece minimum.`
+                            : itemUnits === itemMinimumUnits
+                              ? "Minimum order reached ✓"
+                              : "Minimum order met."}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+                      {isOneSize ? "Choose quantity" : "Allocate by size"}
+                    </h3>
+                    {!isOneSize && (
+                      <p className="mt-1 text-xs text-[var(--text-primary)]/55">
+                        Not sure about your size split? View the size chart to plan quantities.
+                      </p>
+                    )}
                   </div>
 
                   <SizeQuantityGrid
                     value={item.sizeQuantities}
                     onChange={(size, qty) => handleQtyChange(item.id, size, qty)}
-                    unitPrice={itemUnitPrice}
                     minimumUnits={itemMinimumUnits}
+                    maximumUnits={MAX_CONFIGURATION_QUANTITY}
                     sizes={itemSizes}
                     idPrefix={item.id}
                   />
 
+                  {!isOneSize && item.plannedQuantity && item.plannedQuantity !== itemUnits && (
+                    <p className="text-xs leading-relaxed text-[var(--text-primary)]/55">
+                      Earlier quantity: {item.plannedQuantity.toLocaleString("en-IN")} pieces. Allocate the pieces you actually need above; this size allocation becomes final.
+                    </p>
+                  )}
+
                   {artworkSizeConflict && (
                     <div className="flex flex-col gap-3 rounded-[4px] border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="alert">
                       <div>
-                        <p className="font-semibold">Artwork size needs attention</p>
+                        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em]">Artwork adjustment needed</p>
                         <p className="mt-1 text-xs leading-relaxed">
-                          Your artwork was positioned for {artworkSizeConflict.configuredFor} and above. Adding size {artworkSizeConflict.smallerSizes.join(", ")} may require reducing the artwork dimensions.
+                          Your artwork was positioned for {artworkSizeConflict.configuredFor} and above. You&apos;ve added size {artworkSizeConflict.actualSmallestSize}, which has a smaller printable area.
                         </p>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => router.push(`/configurator/build/${encodeURIComponent(item.productId)}?cartId=${encodeURIComponent(cartId)}&itemId=${encodeURIComponent(item.id)}&step=artwork`)}
-                        className="self-start rounded-[4px] border border-amber-900/25 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-amber-100"
-                      >
-                        Adjust artwork
-                      </button>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => router.push(`/configurator/build/${encodeURIComponent(item.productId)}?cartId=${encodeURIComponent(cartId)}&itemId=${encodeURIComponent(item.id)}&step=artwork&returnTo=size-quantity`)}
+                          className="rounded-[4px] border border-amber-900/25 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-amber-100"
+                        >
+                          Adjust artwork →
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleQtyChange(item.id, artworkSizeConflict.actualSmallestSize, 0)}
+                          className="rounded-[4px] border border-amber-900/25 px-3 py-1.5 text-xs font-semibold hover:bg-amber-100"
+                        >
+                          Remove {artworkSizeConflict.actualSmallestSize}
+                        </button>
+                      </div>
                     </div>
                   )}
 
                   {sizeChart && (
                     <details className="techpack-control rounded-[4px] border p-3 text-xs text-[var(--text-primary)]">
-                      <summary className="cursor-pointer font-semibold">Fit / measurement chart</summary>
+                      <summary className="cursor-pointer font-semibold text-[var(--color-accent-dark)]">View size chart →</summary>
                       <div className="mt-3 overflow-x-auto">
-                        <table className="w-full min-w-[420px] text-left">
-                          <thead className="text-[var(--text-primary)]/50">
-                            <tr>
-                              <th className="py-1 pr-3">Size</th>
-                              <th className="py-1 pr-3">Chest</th>
-                              <th className="py-1 pr-3">Length</th>
-                              <th className="py-1 pr-3">Shoulder</th>
-                              <th className="py-1 pr-3">Sleeve</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {sizeChart.sizes.map((row) => (
-                              <tr key={row.size} className="border-t border-[#E5E5E5]">
-                                <td className="py-1.5 pr-3 font-medium">{row.size}</td>
-                                <td className="py-1.5 pr-3">{row.chest}</td>
-                                <td className="py-1.5 pr-3">{row.length}</td>
-                                <td className="py-1.5 pr-3">{row.shoulder ?? "-"}</td>
-                                <td className="py-1.5 pr-3">{row.sleeve ?? "-"}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                        <SizeChartTable chart={sizeChart} />
                       </div>
                       {sizeChart.note && <p className="mt-2 text-[var(--text-primary)]/55">{sizeChart.note}</p>}
                     </details>
                   )}
 
-                  <div className="rounded-[4px] border border-[#E5E5E5] bg-[#F7F7F7] px-4 py-3 text-sm text-[var(--text-primary)]">
-                    <div className="flex items-center justify-between gap-4">
-                      <span className="font-medium">Item total</span>
-                      <span className="flex items-center gap-2 text-right font-semibold">
-                        {itemDiscountPercent > 0 && (
-                          <span className="rounded-[4px] bg-[#EAF7EA] px-2 py-0.5 text-[10px] font-medium text-[#1B7F36]">
-                            {itemDiscountPercent}% off
-                          </span>
-                        )}
-                        <span className="font-mono">
-                          {formatInr(itemUnitPrice)} × {itemUnits} = {formatInr(garmentTotal)}
-                        </span>
-                      </span>
+                  <div className="grid gap-4 border-y border-[var(--color-rule)] py-4 sm:grid-cols-2">
+                    <div>
+                      <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--text-primary)]/45">Quantity pricing</p>
+                      <p className="mt-1 font-mono text-sm font-semibold text-[var(--text-primary)]">
+                        {formatInr(itemUnitPrice)} / piece
+                      </p>
+                    </div>
+                    {nextTier && nextTierPricing ? (
+                      <div>
+                        <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--text-primary)]/45">Next price break</p>
+                        <p className="mt-1 text-xs text-[var(--text-primary)]/70">
+                          Add {(nextTier.minQty - itemUnits).toLocaleString("en-IN")} more pieces to reach {nextTier.minQty.toLocaleString("en-IN")} pieces · {formatInr(nextTierPricing.discountedUnitPaise / 100)} / piece
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--text-primary)]/45">Price tier</p>
+                        <p className="mt-1 text-xs text-[var(--text-primary)]/70">Highest quantity tier reached.</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="rounded-[4px] border border-[var(--color-rule)] bg-[#F7F7F7] px-4 py-4 text-sm text-[var(--text-primary)]">
+                    <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--color-accent)]">Size &amp; quantity</p>
+                    <div className="mt-3 space-y-1.5">
+                      {nonZeroSizes.length ? nonZeroSizes.map((size) => (
+                        <div key={size} className="flex items-center justify-between gap-4 text-xs">
+                          <span className="font-medium">{isOneSize ? "Quantity" : size}</span>
+                          <span className="font-mono tabular-nums">{(item.sizeQuantities[size] ?? 0).toLocaleString("en-IN")}</span>
+                        </div>
+                      )) : (
+                        <p className="text-xs text-[var(--text-primary)]/55">No quantities entered.</p>
+                      )}
+                    </div>
+                    <div className="mt-3 space-y-1.5 border-t border-[var(--color-rule)] pt-3">
+                      <div className="flex items-center justify-between gap-4 font-semibold">
+                        <span>Total</span>
+                        <span className="font-mono tabular-nums">{itemUnits.toLocaleString("en-IN")} pieces</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-4 text-xs text-[var(--text-primary)]/65">
+                        <span>{formatInr(itemUnitPrice)} / piece</span>
+                        <span className="font-mono font-semibold text-[var(--text-primary)]">{formatInr(garmentTotal)} subtotal</span>
+                      </div>
                     </div>
                   </div>
 
@@ -534,15 +644,12 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             volumeDiscount={totals.volumeDiscount}
             shippingFee={totals.shippingFee}
             gst={totals.gst}
-            delivery="Calculated at shipping"
             total={totals.total}
             onNext={handleNext}
-            nextLabel="Confirm spec · delivery"
+            nextLabel="Continue to delivery"
             nextDisabled={!cartIsValid}
             disabledMessage={
-              !cartIsValid
-                ? "Each cart line must meet its quantity minimum and use an artwork size that fits every selected garment size."
-                : undefined
+              !cartIsValid ? cartValidationMessage : undefined
             }
             sticky={false}
           />
@@ -571,5 +678,54 @@ function OrderItemSkeleton() {
         </div>
       </div>
     </section>
+  );
+}
+
+const SIZE_CHART_COLUMNS: Array<{
+  key: Exclude<keyof SizeRow, "size">;
+  label: string;
+}> = [
+  { key: "chest", label: "Chest" },
+  { key: "length", label: "Length" },
+  { key: "shoulder", label: "Shoulder" },
+  { key: "sleeve", label: "Sleeve" },
+  { key: "waist", label: "Waist" },
+  { key: "inseam", label: "Inseam" },
+  { key: "handles", label: "Handles" },
+];
+
+function SizeChartTable({ chart }: { chart: SizeChart }) {
+  const columns = SIZE_CHART_COLUMNS.filter(({ key }) =>
+    chart.sizes.some((row) => Boolean(row[key])),
+  ).map((column) => ({
+    ...column,
+    label: column.key === "chest"
+      ? chart.chestLabel ?? column.label
+      : column.key === "length"
+        ? chart.lengthLabel ?? column.label
+        : column.label,
+  }));
+
+  return (
+    <table className="w-full min-w-[360px] text-left">
+      <thead className="text-[var(--text-primary)]/50">
+        <tr>
+          <th className="py-1 pr-3">Size</th>
+          {columns.map((column) => (
+            <th key={column.key} className="py-1 pr-3">{column.label}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {chart.sizes.map((row) => (
+          <tr key={row.size} className="border-t border-[#E5E5E5]">
+            <td className="py-1.5 pr-3 font-medium">{row.size}</td>
+            {columns.map((column) => (
+              <td key={column.key} className="py-1.5 pr-3">{row[column.key] ?? "—"}</td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }

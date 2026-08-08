@@ -4,7 +4,10 @@
 import { createContext, useCallback, useContext, useState } from "react";
 import type { ReactNode } from "react";
 import type { GarmentView } from "@/lib/configurator/types/garment";
-import type { PrintAreaDimensions } from "@/lib/configurator/sizecharts";
+import {
+  PRINT_AREA_TOP_OFFSET_CM,
+  type PrintAreaDimensions,
+} from "@/lib/configurator/sizecharts";
 
 // ---------------------------------------------------------------------------
 // Shared types (moved from PositionControls.tsx — now consumed by both
@@ -15,8 +18,7 @@ import type { PrintAreaDimensions } from "@/lib/configurator/sizecharts";
 export type HorizontalAlign = "left" | "center" | "right";
 export type VerticalAlign = "top" | "center" | "bottom";
 
-// Production print areas begin three inches below the neck seam.
-export const PRINT_AREA_TOP_OFFSET_CM = 3 * 2.54;
+export { PRINT_AREA_TOP_OFFSET_CM } from "@/lib/configurator/sizecharts";
 
 export interface PositionControlsState {
   alignH: HorizontalAlign | null;

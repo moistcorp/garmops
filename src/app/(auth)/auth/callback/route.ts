@@ -1,7 +1,11 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { ensureCustomerAccount } from "@/lib/auth/ensurePersonalCustomerAccount";
-import { safeInternalPath } from "@/lib/auth/redirects";
+import {
+  AUTH_NEXT_COOKIE,
+  decodeAuthNextCookie,
+  safeInternalPath,
+} from "@/lib/auth/redirects";
 import { isStaffSurface } from "@/lib/config/appSurface";
 import { createClient } from "@/lib/supabase/server";
 
@@ -14,13 +18,33 @@ const OTP_TYPES = new Set<EmailOtpType>([
   "magiclink",
 ]);
 
-export async function GET(request: Request) {
+function redirectAfterAuth(origin: string, destination: string) {
+  const response = NextResponse.redirect(new URL(destination, origin));
+  response.cookies.set(AUTH_NEXT_COOKIE, "", {
+    maxAge: 0,
+    path: "/",
+    sameSite: "lax",
+  });
+  return response;
+}
+
+function callbackFailureDestination(next: string): string {
+  return /^\/configurator\/cart\/[^/]+\/shipping$/.test(next)
+    ? `${next}?auth=cancelled`
+    : "/auth/error?code=AUTH_CALLBACK_FAILED";
+}
+
+export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const tokenHash = url.searchParams.get("token_hash");
   const type = url.searchParams.get("type") as EmailOtpType | null;
   const fallback = isStaffSurface() ? "/orders" : "/account/orders";
-  const next = safeInternalPath(url.searchParams.get("next"), fallback);
+  const next = safeInternalPath(
+    url.searchParams.get("next") ??
+      decodeAuthNextCookie(request.cookies.get(AUTH_NEXT_COOKIE)?.value),
+    fallback,
+  );
   const supabase = await createClient();
 
   let callbackError: unknown;
@@ -33,17 +57,17 @@ export async function GET(request: Request) {
   }
 
   if (callbackError) {
-    return NextResponse.redirect(new URL("/auth/error?code=AUTH_CALLBACK_FAILED", url.origin));
+    return redirectAfterAuth(url.origin, callbackFailureDestination(next));
   }
 
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) {
-    return NextResponse.redirect(new URL("/auth/error?code=AUTH_CALLBACK_FAILED", url.origin));
+    return redirectAfterAuth(url.origin, callbackFailureDestination(next));
   }
 
   // Recovery must finish before any portal-specific checks.
   if (next === "/reset-password") {
-    return NextResponse.redirect(new URL(next, url.origin));
+    return redirectAfterAuth(url.origin, next);
   }
 
   if (isStaffSurface()) {
@@ -51,12 +75,12 @@ export async function GET(request: Request) {
     const staff = data?.[0];
     if (error || !staff?.active) {
       await supabase.auth.signOut();
-      return NextResponse.redirect(new URL("/auth/error?code=STAFF_ACCESS_DENIED", url.origin));
+      return redirectAfterAuth(url.origin, "/auth/error?code=STAFF_ACCESS_DENIED");
     }
     const destination = staff.must_use_mfa && !staff.mfa_satisfied
       ? `/settings/security?next=${encodeURIComponent(next)}`
       : next;
-    return NextResponse.redirect(new URL(destination, url.origin));
+    return redirectAfterAuth(url.origin, destination);
   }
 
   try {
@@ -67,7 +91,7 @@ export async function GET(request: Request) {
       userId: userData.user.id,
       error: accountError instanceof Error ? accountError.message : "unknown",
     });
-    return NextResponse.redirect(new URL("/auth/error?code=CUSTOMER_ACCESS_DENIED", url.origin));
+    return redirectAfterAuth(url.origin, "/auth/error?code=CUSTOMER_ACCESS_DENIED");
   }
-  return NextResponse.redirect(new URL(next, url.origin));
+  return redirectAfterAuth(url.origin, next);
 }

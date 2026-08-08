@@ -18,6 +18,7 @@ export interface AddressFormProps {
   idPrefix?: string;
   showCountry?: boolean;
   compact?: boolean;
+  addressLabel?: string;
 }
 
 export interface AddressMissingField {
@@ -189,6 +190,7 @@ export function AddressForm({
   idPrefix,
   showCountry = true,
   compact = false,
+  addressLabel,
 }: AddressFormProps) {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [lookupStatus, setLookupStatus] = useState<LookupStatus>("idle");
@@ -289,7 +291,7 @@ export function AddressForm({
 
       <div>
         <label htmlFor={id("addressLine1")} className={labelClass}>
-          {compact ? "Delivery address" : "Address line 1"}
+          {addressLabel ?? (compact ? "Address" : "Address line 1")}
         </label>
         <input
           id={id("addressLine1")}
@@ -305,7 +307,7 @@ export function AddressForm({
 
       <div>
         <label htmlFor={id("addressLine2")} className={labelClass}>
-          Address line 2 (optional)
+          Apartment / building <span className="font-normal text-[var(--text-primary)]/45">Optional</span>
         </label>
         <input
           id={id("addressLine2")}

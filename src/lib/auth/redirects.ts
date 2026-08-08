@@ -1,3 +1,15 @@
+export const AUTH_NEXT_COOKIE = "garmops_auth_next";
+export const AUTH_NEXT_COOKIE_MAX_AGE_SECONDS = 10 * 60;
+
+export function decodeAuthNextCookie(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return undefined;
+  }
+}
+
 export function safeInternalPath(
   value: FormDataEntryValue | string | null | undefined,
   fallback = "/account",

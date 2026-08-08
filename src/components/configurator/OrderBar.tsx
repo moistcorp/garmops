@@ -257,7 +257,7 @@ export function OrderBar({
 
         <div className="min-w-0 border-l border-white/55 pl-2">
           <div className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text-primary)]/45">
-            Due today
+            Order total
           </div>
           <div className="mt-1 truncate font-mono text-sm font-semibold text-[var(--text-primary)]">
             {formatInr(pricingBreakdown.total)}

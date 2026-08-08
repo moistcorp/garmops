@@ -19,7 +19,7 @@ const addressSchema = z.object({
 const schema = z.object({
   contact: z.object({
     firstName: z.string().trim().min(1).max(80),
-    lastName: z.string().trim().min(1).max(80),
+    lastName: z.string().trim().max(80),
     email: z.string().trim().toLowerCase().email().max(320),
     phone: z.string().transform((value) => value.replace(/\D/g, "")).refine((value) => /^(?:91)?[6-9][0-9]{9}$/.test(value)),
   }),

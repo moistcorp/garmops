@@ -14,6 +14,11 @@ import {
   type AuthActionState,
 } from "@/lib/auth/constants";
 import { createClient } from "@/lib/supabase/client";
+import {
+  AUTH_NEXT_COOKIE,
+  AUTH_NEXT_COOKIE_MAX_AGE_SECONDS,
+  safeInternalPath,
+} from "@/lib/auth/redirects";
 
 type Step = "email" | "otp";
 
@@ -32,7 +37,7 @@ function Message({ state }: { state: AuthActionState }) {
 
 function AuthProgress({ step }: { step: Step }) {
   const activeIndex = step === "email" ? 0 : 1;
-  const labels = ["Sign in", "Verify"];
+  const labels = ["Email", "Verify"];
   return (
     <ol
       className="mb-6 grid grid-cols-2 border border-[var(--color-rule)]"
@@ -148,8 +153,15 @@ export default function CustomerAuthFlow({
     setGooglePending(true);
     setGoogleError("");
     try {
+      const destination = safeInternalPath(next, "/account/orders");
+      document.cookie = [
+        `${AUTH_NEXT_COOKIE}=${encodeURIComponent(destination)}`,
+        `Max-Age=${AUTH_NEXT_COOKIE_MAX_AGE_SECONDS}`,
+        "Path=/",
+        "SameSite=Lax",
+        window.location.protocol === "https:" ? "Secure" : "",
+      ].filter(Boolean).join("; ");
       const redirect = new URL("/auth/callback", window.location.origin);
-      redirect.searchParams.set("next", next);
       const { error } = await createClient().auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -158,6 +170,7 @@ export default function CustomerAuthFlow({
       });
       if (error) throw error;
     } catch (error) {
+      document.cookie = `${AUTH_NEXT_COOKIE}=; Max-Age=0; Path=/; SameSite=Lax`;
       setGooglePending(false);
       setGoogleError(
         error instanceof Error
@@ -179,7 +192,7 @@ export default function CustomerAuthFlow({
           <input type="hidden" name="email" value={email} />
           <input type="hidden" name="next" value={next} />
           <p className="rounded-[4px] border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/5 p-4 text-sm text-black/65">
-            Enter the six-digit code sent to <strong>{email}</strong>.
+            We sent a six-digit code to <strong>{email}</strong>.
           </p>
           <label className="flex flex-col gap-1.5 text-xs font-medium uppercase tracking-wide text-black/55">
             One-time code
@@ -200,7 +213,7 @@ export default function CustomerAuthFlow({
             disabled={verifying}
             className="min-h-11 rounded-[4px] bg-[var(--color-accent)] px-6 py-3 text-sm font-medium text-white disabled:opacity-60"
           >
-            {verifying ? "Verifying…" : "Verify OTP"}
+            {verifying ? "Verifying…" : "Verify"}
           </button>
         </form>
         <form action={requestAction} className="flex flex-col gap-3">
@@ -215,7 +228,7 @@ export default function CustomerAuthFlow({
             disabled={requesting || cooldown > 0}
             className="min-h-11 text-left text-sm text-[var(--color-accent)] hover:underline disabled:text-black/40"
           >
-            {cooldown > 0 ? `Resend OTP in ${cooldown}s` : "Resend OTP"}
+            {cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend code"}
           </button>
         </form>
         {!emailLocked ? (
@@ -234,28 +247,6 @@ export default function CustomerAuthFlow({
   return (
     <div>
       <AuthProgress step="email" />
-      {allowGoogle ? (
-        <>
-          <button
-            type="button"
-            onClick={signInWithGoogle}
-            disabled={googlePending || requesting}
-            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-[4px] border border-[var(--color-rule)] bg-white px-6 py-3 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--color-accent)] disabled:opacity-60"
-          >
-            <GoogleMark />
-            {googlePending ? "Opening Google…" : "Continue with Google"}
-          </button>
-
-          <div className="my-5 flex items-center gap-3" aria-hidden="true">
-            <span className="h-px flex-1 bg-[var(--color-rule)]" />
-            <span className="font-mono text-[9px] uppercase tracking-[0.1em] text-black/35">
-              or use email OTP
-            </span>
-            <span className="h-px flex-1 bg-[var(--color-rule)]" />
-          </div>
-        </>
-      ) : null}
-
       <form
         action={requestAction}
         className="flex flex-col gap-4"
@@ -274,7 +265,7 @@ export default function CustomerAuthFlow({
             required
             autoComplete="email"
             autoFocus={!emailLocked}
-            placeholder="name@company.com"
+            placeholder="you@example.com"
           />
         </label>
         <TurnstileWidget action="login" resetToken={requestState.resetToken} />
@@ -287,9 +278,30 @@ export default function CustomerAuthFlow({
           disabled={requesting || googlePending}
           className="min-h-11 rounded-[4px] bg-[var(--color-accent)] px-6 py-3 text-sm font-medium text-white disabled:opacity-60"
         >
-          {requesting ? "Sending code…" : "Send access code"}
+          {requesting ? "Sending code…" : "Continue with email"}
         </button>
       </form>
+
+      {allowGoogle ? (
+        <>
+          <div className="my-5 flex items-center gap-3" aria-hidden="true">
+            <span className="h-px flex-1 bg-[var(--color-rule)]" />
+            <span className="font-mono text-[9px] uppercase tracking-[0.1em] text-black/35">
+              or
+            </span>
+            <span className="h-px flex-1 bg-[var(--color-rule)]" />
+          </div>
+          <button
+            type="button"
+            onClick={signInWithGoogle}
+            disabled={googlePending || requesting}
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-[4px] border border-[var(--color-rule)] bg-white px-6 py-3 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--color-accent)] disabled:opacity-60"
+          >
+            <GoogleMark />
+            {googlePending ? "Opening Google…" : "Continue with Google"}
+          </button>
+        </>
+      ) : null}
 
       <p className="mt-5 text-xs leading-relaxed text-black/45">
         By continuing, you agree to the{" "}

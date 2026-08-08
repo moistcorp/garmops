@@ -9,7 +9,7 @@ interface CartSummarySidebarProps {
   rushFee?: number;
   promoDiscount?: number;
   gst: number;
-  delivery: string;
+  delivery?: string;
   total: number;
   onNext?: () => void;
   nextLabel?: string;
@@ -52,7 +52,7 @@ export function CartSummarySidebar({
         )}
         <SummaryRow label={`GST (${formatGstRate()})`} value={formatInr(gst)} />
         <div className="border-t border-[var(--color-rule)] pt-3">
-          <SummaryRow label="Payable now" value={formatInr(total)} strong />
+          <SummaryRow label="Order total" value={formatInr(total)} strong />
         </div>
       </div>
 
@@ -60,8 +60,14 @@ export function CartSummarySidebar({
         <div className="flex items-start gap-2">
           <CalendarDays size={15} className="mt-0.5 shrink-0 text-[var(--color-accent-dark)]" />
           <div>
-            <p className="font-medium text-[var(--text-primary)]">Target: {delivery}</p>
-            <p className="mt-1">Shipping is excluded. Operations will review the destination and share a separate PayU link.</p>
+            {delivery ? (
+              <>
+                <p className="font-medium text-[var(--text-primary)]">Target: {delivery}</p>
+                <p className="mt-1">Shipping charges will be shared separately.</p>
+              </>
+            ) : (
+              <p className="font-medium text-[var(--text-primary)]">Shipping charges will be shared separately.</p>
+            )}
           </div>
         </div>
       </div>

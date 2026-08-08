@@ -20,6 +20,7 @@ import type {
 import type { Size } from "./SizeQuantityGrid";
 import { SIZES } from "./SizeQuantityGrid";
 import { scheduleUploadCleanup } from "@/lib/configurator/objectUrls";
+import { MAX_CONFIGURATION_QUANTITY } from "@/lib/configurator/sizeQuantity";
 
 const STORAGE_PREFIX = "mf_configurator_cart:";
 const ACTIVE_CART_KEY = `${STORAGE_PREFIX}active`;
@@ -62,6 +63,7 @@ function createEmptyProjectContact(): ProjectContact {
 function createEmptyShipping(): ShippingInformation {
   return {
     recipientName: "",
+    company: "",
     address: createEmptyAddress(),
     multipleLocations: false,
     multipleLocationsNotes: "",
@@ -156,6 +158,7 @@ function normalizeShipping(value: unknown): ShippingInformation {
   if (!isRecord(value)) return createEmptyShipping();
   return {
     recipientName: asString(value.recipientName),
+    company: asString(value.company),
     address: normalizeAddress(value.address),
     multipleLocations: value.multipleLocations === true,
     multipleLocationsNotes: asString(value.multipleLocationsNotes),
@@ -211,6 +214,7 @@ function migrateLegacyProcurementDetails(value: Record<string, unknown>): Pick<
     shippingInformation: {
       ...createEmptyShipping(),
       recipientName: `${firstName} ${lastName}`.trim(),
+      company: billingName,
       address: shippingAddress,
     },
     billingInformation: {
@@ -282,6 +286,7 @@ function normalizeCartItem(value: unknown): CartItem | null {
     ? (value.neckLabel as unknown as NeckLabel)
     : undefined;
   const sizeQuantities = normalizeSizeQuantities(value.sizeQuantities, product.sizes);
+  const plannedQuantity = normalizeQuantity(value.plannedQuantity) || undefined;
   const rushDelivery = value.rushDelivery === true;
 
   let calculatedBasePrice: number;
@@ -320,6 +325,7 @@ function normalizeCartItem(value: unknown): CartItem | null {
     baseUnitPrice,
     unitPrice,
     rushDelivery,
+    plannedQuantity,
   };
 }
 
@@ -466,6 +472,8 @@ export interface ConfiguredCartItemInput {
   artwork: Artwork;
   neckLabel?: NeckLabel;
   quantity: number;
+  /** Preserved when a cart line returns to Studio for design adjustments. */
+  sizeQuantities?: Record<Size, number>;
   rushDelivery: boolean;
 }
 
@@ -530,11 +538,24 @@ export function upsertConfiguredCartItem(
     colourType: input.colour.type,
     customDyeMinimum: CUSTOM_DYE_MOQ_UNITS,
   });
-  const quantity = Math.max(minimumQuantity, Math.floor(input.quantity));
-  const sizeQuantities = splitQuantityAcrossSizes(
-    quantity,
-    product?.sizes ?? SIZES
-  );
+  const requestedQuantity = Number.isFinite(input.quantity)
+    ? Math.min(MAX_CONFIGURATION_QUANTITY, Math.max(0, Math.floor(input.quantity)))
+    : 0;
+  const quantity = options.itemId
+    ? requestedQuantity
+    : Math.max(minimumQuantity, requestedQuantity);
+  const productSizes = product?.sizes ?? SIZES;
+  const restoredSizeQuantities = input.sizeQuantities
+    ? normalizeSizeQuantities(input.sizeQuantities, productSizes)
+    : null;
+  const isOneSize = productSizes.length === 1 && productSizes[0] === "One Size";
+  const hasRestoredAllocation =
+    restoredSizeQuantities && totalUnits(restoredSizeQuantities) === quantity;
+  const sizeQuantities = hasRestoredAllocation
+    ? restoredSizeQuantities
+    : isOneSize
+      ? { [productSizes[0]]: quantity }
+      : Object.fromEntries(productSizes.map((size) => [size, 0]));
   const linePricing = getConfiguredLinePricingPaise({
     productId: input.productId,
     colour: input.colour,
@@ -559,6 +580,7 @@ export function upsertConfiguredCartItem(
     baseUnitPrice,
     unitPrice,
     rushDelivery: false,
+    plannedQuantity: hasRestoredAllocation || isOneSize ? undefined : quantity,
   };
 
   const existingIndex = options.itemId

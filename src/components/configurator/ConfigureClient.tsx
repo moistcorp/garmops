@@ -66,6 +66,7 @@ import { useCustomerSession } from "@/components/auth/useCustomerSession";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 import { readPreferredQuantity } from "@/lib/configurator/clientPreferences";
 import { getConfiguratorCtaLabel } from "@/lib/configurator/journey";
+import { MAX_CONFIGURATION_QUANTITY } from "@/lib/configurator/sizeQuantity";
 import {
   cloudSnapshotToBuildDraft,
   loadCloudDesign,
@@ -114,7 +115,9 @@ const JOURNEY_STEP_FOR_CUSTOMISATION: Record<AccordionStepId, ConfiguratorJourne
 
 function safeQuantity(value: unknown, minimum = 50): number {
   const parsed = Number(value);
-  return Number.isFinite(parsed) ? Math.max(minimum, Math.floor(parsed)) : minimum;
+  return Number.isFinite(parsed)
+    ? Math.min(MAX_CONFIGURATION_QUANTITY, Math.max(minimum, Math.floor(parsed)))
+    : minimum;
 }
 
 function artworkSummary(artwork: Artwork): string | null {
@@ -188,6 +191,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   const requestedCloudSave = searchParams.get("cloudSave") === "1";
   const requestedSaveTitle = searchParams.get("saveTitle") ?? "";
   const requestedEstimateId = searchParams.get("estimateId");
+  const returnToSizeQuantity = searchParams.get("returnTo") === "size-quantity";
   const productCatalogHref = editCartId
     ? `/configurator?cartId=${encodeURIComponent(editCartId)}`
     : "/configurator";
@@ -249,6 +253,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   const saveTimer = useRef<number | null>(null);
   const autosaveErrorNotifiedRef = useRef(false);
   const retainedObjectUrlsRef = useRef<Set<string>>(new Set());
+  const restoredSizeQuantitiesRef = useRef<Record<string, number> | null>(null);
   const cloudLinkRef = useRef<CloudDesignLink | null>(null);
   const cloudSaveTimer = useRef<number | null>(null);
   const cloudSaveInFlight = useRef(false);
@@ -377,15 +382,20 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
       setQuantity(
         safeQuantity(
           restoredQuantity,
-          getProductMinimumOrderQuantity(productId, {
-            colourType: restoredColour.type,
-            customDyeMinimum: CUSTOM_DYE_MOQ_UNITS,
-          })
+          editCartId && editItemId
+            ? 0
+            : getProductMinimumOrderQuantity(productId, {
+                colourType: restoredColour.type,
+                customDyeMinimum: CUSTOM_DYE_MOQ_UNITS,
+              })
         )
       );
       setDraftRestored(true);
     },
     [
+      editCartId,
+      editItemId,
+      productId,
       setArtwork,
       setColour,
       setDraftRestored,
@@ -620,6 +630,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
       if (editCartId && editItemId) {
         const item = readDraft(editCartId).items.find((candidate) => candidate.id === editItemId);
         if (item && item.productId === productId) {
+          restoredSizeQuantitiesRef.current = { ...item.sizeQuantities };
           await applyRestoredConfiguration(
             item.colour,
             item.artwork,
@@ -873,7 +884,11 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   }
 
   function setSafeQuantity(next: number) {
-    setQuantity(safeQuantity(next, minimumQuantity));
+    setQuantity((current) => {
+      const safe = safeQuantity(next, minimumQuantity);
+      if (safe !== current) restoredSizeQuantitiesRef.current = null;
+      return safe;
+    });
   }
 
   function applyExpandedStepChange(next: AccordionStepId | null) {
@@ -935,6 +950,11 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
           ? cartNeckLabel
           : undefined,
       quantity,
+      sizeQuantities:
+        restoredSizeQuantitiesRef.current &&
+        totalUnits(restoredSizeQuantitiesRef.current) === quantity
+          ? restoredSizeQuantitiesRef.current
+          : undefined,
       rushDelivery: false,
     };
     const targetCartId = upsertConfiguredCartItem(requestedDraftId ?? configId, cartInput, {
@@ -1014,6 +1034,10 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
         skipped: false,
         summary: artworkSummary(readyArtwork),
       });
+      if (returnToSizeQuantity && editCartId && editItemId) {
+        addConfigurationToCart({ artwork: readyArtwork });
+        return;
+      }
       applyExpandedStepChange("neck-label");
       return;
     }
@@ -1356,11 +1380,15 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
                 quantity={quantity}
                 onQuantityChange={setSafeQuantity}
                 minQuantity={minimumQuantity}
-                ctaLabel={getConfiguratorCtaLabel(expandedStepId, {
-                  hasArtwork: Boolean(artwork.front || artwork.back),
-                  hasCustomLabel: isCustomNeckLabel(neckLabel),
-                  isToteProduct,
-                })}
+                ctaLabel={
+                  returnToSizeQuantity && expandedStepId === "artwork"
+                    ? "Return to sizes & quantity →"
+                    : getConfiguratorCtaLabel(expandedStepId, {
+                        hasArtwork: Boolean(artwork.front || artwork.back),
+                        hasCustomLabel: isCustomNeckLabel(neckLabel),
+                        isToteProduct,
+                      })
+                }
                 onCtaClick={handleCtaClick}
                 pricingBreakdown={pricingBreakdown}
                 ctaErrorMessage={ctaErrorMessage}

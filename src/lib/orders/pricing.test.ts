@@ -169,6 +169,20 @@ describe("server custom-order pricing", () => {
     ).toThrow("between 100");
   });
 
+  it("enforces the product MOQ independently at the lower boundary", () => {
+    expect(() => priceCustomOrder({
+      snapshot: designSnapshot(49),
+      sizeQuantities: { XS: 0, S: 9, M: 20, L: 10, XL: 10 },
+      deliveryType: "standard",
+    })).toThrow("between 50");
+
+    expect(priceCustomOrder({
+      snapshot: designSnapshot(50),
+      sizeQuantities: { XS: 0, S: 10, M: 20, L: 10, XL: 10 },
+      deliveryType: "standard",
+    }).quantity).toBe(50);
+  });
+
   it("rejects unavailable product sizes", () => {
     expect(() =>
       priceCustomOrder({
@@ -184,5 +198,37 @@ describe("server custom-order pricing", () => {
         deliveryType: "standard",
       }),
     ).toThrow("unavailable size");
+  });
+
+  it("rejects artwork that does not fit the actual smallest ordered size", () => {
+    const snapshot = designSnapshot();
+    snapshot.configuration.artwork = {
+      smallestSize: "M",
+      front: {
+        fileUrl: "https://assets.example.com/front.png",
+        fileType: "png",
+        vectorized: false,
+        technique: "screen_print",
+        width: 34,
+        height: 8,
+        fromNeck: 8,
+        fromCenter: 0,
+        printArea: "M",
+        guidelines: { maximumArea: true, leftChest: false },
+        confirmed: true,
+      },
+    };
+    snapshot.configuration.steps[1] = {
+      id: "artwork",
+      title: "Artwork",
+      summary: "Front · Screen Print",
+      confirmed: true,
+    };
+
+    expect(() => priceCustomOrder({
+      snapshot,
+      sizeQuantities: { XS: 0, S: 10, M: 20, L: 10, XL: 10 },
+      deliveryType: "standard",
+    })).toThrow("smallest ordered garment size");
   });
 });

@@ -1,121 +1,127 @@
-import { formatInr } from "@/lib/configurator/pricing";
+import {
+  MAX_CONFIGURATION_QUANTITY,
+  parseSizeQuantityInput,
+} from "@/lib/configurator/sizeQuantity";
 
 export type Size = string;
 
-export const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'] as const;
+export const SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
 
 export interface SizeQuantityGridProps {
   value: Record<Size, number>;
   onChange: (size: Size, qty: number) => void;
-  unitPrice: number;
   minimumUnits?: number;
+  maximumUnits?: number;
   sizes?: readonly Size[];
   idPrefix?: string;
 }
 
-const ALLOCATION_PRESETS = {
-  recommended: [0.1, 0.25, 0.3, 0.2, 0.1, 0.05],
-  equal: [1, 1, 1, 1, 1, 1],
-  larger: [0.04, 0.12, 0.24, 0.3, 0.2, 0.1],
-} as const;
-
-function splitByWeights(total: number, sizeCount: number, weights: readonly number[]): number[] {
-  const active = weights.slice(0, sizeCount);
-  const weightTotal = active.reduce((sum, value) => sum + value, 0) || 1;
-  const result = active.map((weight) => Math.floor((total * weight) / weightTotal));
-  let remainder = total - result.reduce((sum, value) => sum + value, 0);
-  let index = 0;
-  while (remainder > 0) { result[index % result.length] += 1; remainder -= 1; index += 1; }
-  return result;
+function pieceLabel(quantity: number): string {
+  return `${quantity.toLocaleString("en-IN")} ${quantity === 1 ? "piece" : "pieces"}`;
 }
 
 export function SizeQuantityGrid({
   value,
   onChange,
-  unitPrice,
   minimumUnits = 50,
+  maximumUnits = MAX_CONFIGURATION_QUANTITY,
   sizes = SIZES,
   idPrefix = "item",
 }: SizeQuantityGridProps) {
   const totalUnits = sizes.reduce((sum, size) => sum + (value[size] || 0), 0);
-  const columnsClass = sizes.length === 1 ? "grid-cols-1" : "grid-cols-6";
+  const isOneSize = sizes.length === 1 && sizes[0] === "One Size";
   const inputId = (size: Size) =>
     `qty-${idPrefix}-${size.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
-  function handleInputChange(size: Size, raw: string) {
-    const parsed = Number(raw);
-    const safe = Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : 0;
-    onChange(size, safe);
+  function maximumForSize(size: Size): number {
+    return Math.max(0, maximumUnits - (totalUnits - (value[size] ?? 0)));
   }
 
-  function applyPreset(weights: readonly number[]) {
-    const targetTotal = Math.max(minimumUnits, totalUnits);
-    const quantities = splitByWeights(targetTotal, sizes.length, weights);
-    sizes.forEach((size, index) => onChange(size, quantities[index] ?? 0));
+  function handleInputChange(size: Size, raw: string) {
+    onChange(
+      size,
+      parseSizeQuantityInput(raw, value[size] ?? 0, maximumForSize(size)),
+    );
+  }
+
+  function quantityControl(size: Size) {
+    const quantity = value[size] ?? 0;
+    const maximum = maximumForSize(size);
+    return (
+      <div className="ml-auto flex h-11 w-full max-w-52 items-center justify-between border border-[var(--color-rule)] bg-white">
+        <button
+          type="button"
+          aria-label={`Decrease ${isOneSize ? "quantity" : `${size} quantity`}`}
+          disabled={quantity <= 0}
+          onClick={() => onChange(size, Math.max(0, quantity - 1))}
+          className="flex h-full w-11 items-center justify-center border-r border-[var(--color-rule)] text-lg leading-none text-[var(--text-primary)]/80 hover:bg-[#F7F7F7] disabled:cursor-not-allowed disabled:text-[var(--text-primary)]/25"
+        >
+          −
+        </button>
+        <input
+          id={inputId(size)}
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          autoComplete="off"
+          value={quantity}
+          onChange={(event) => handleInputChange(size, event.target.value)}
+          aria-describedby={`${inputId(size)}-limit`}
+          className="h-full min-w-0 flex-1 bg-transparent px-2 text-center font-mono text-sm font-semibold tabular-nums text-[var(--text-primary)] outline-none focus:bg-[var(--color-accent)]/5"
+        />
+        <span id={`${inputId(size)}-limit`} className="sr-only">
+          Whole numbers from zero to {maximum.toLocaleString("en-IN")}
+        </span>
+        <button
+          type="button"
+          aria-label={`Increase ${isOneSize ? "quantity" : `${size} quantity`}`}
+          disabled={totalUnits >= maximumUnits}
+          onClick={() => onChange(size, Math.min(maximum, quantity + 1))}
+          className="flex h-full w-11 items-center justify-center border-l border-[var(--color-rule)] text-lg leading-none text-[var(--text-primary)]/80 hover:bg-[#F7F7F7] disabled:cursor-not-allowed disabled:text-[var(--text-primary)]/25"
+        >
+          +
+        </button>
+      </div>
+    );
+  }
+
+  if (isOneSize) {
+    const size = sizes[0];
+    return (
+      <div className="w-full">
+        <div className="border-y border-[var(--color-rule)] py-5">
+          <div className="flex items-center justify-between gap-5">
+            <label htmlFor={inputId(size)} className="text-sm font-semibold text-[var(--text-primary)]">
+              Quantity
+            </label>
+            {quantityControl(size)}
+          </div>
+        </div>
+        <p className="mt-3 text-xs text-[var(--text-primary)]/55">
+          Minimum order: {pieceLabel(minimumUnits)}. Minimum applies to this product configuration.
+        </p>
+      </div>
+    );
   }
 
   return (
     <div className="w-full">
-      <div className="mb-2 flex items-center justify-end gap-3 text-xs text-[var(--text-primary)]/60">
-        <span>Minimum {minimumUnits} units</span>
-        <span className="font-mono font-medium text-[var(--text-primary)]">{totalUnits} units</span>
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(180px,208px)] border-y border-[var(--color-rule)] bg-[#F7F7F7] px-3 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--text-primary)]/50">
+        <span>Size</span>
+        <span className="text-center">Quantity</span>
       </div>
-      {sizes.length > 1 && (
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--text-primary)]/45">Quick allocation</span>
-          <button type="button" onClick={() => applyPreset(ALLOCATION_PRESETS.recommended)} className="rounded-[4px] border border-[#E5E5E5] px-2.5 py-1 text-[11px] font-semibold text-[var(--text-primary)]/65 hover:border-[var(--color-accent)]">Recommended mix</button>
-          <button type="button" onClick={() => applyPreset(ALLOCATION_PRESETS.equal)} className="rounded-[4px] border border-[#E5E5E5] px-2.5 py-1 text-[11px] font-semibold text-[var(--text-primary)]/65 hover:border-[var(--color-accent)]">Equal split</button>
-          <button type="button" onClick={() => applyPreset(ALLOCATION_PRESETS.larger)} className="rounded-[4px] border border-[#E5E5E5] px-2.5 py-1 text-[11px] font-semibold text-[var(--text-primary)]/65 hover:border-[var(--color-accent)]">More L–XXL</button>
-        </div>
-      )}
-      <div className={`techpack-control grid ${columnsClass} gap-px overflow-hidden rounded-[4px] border`}>
+      <div className="divide-y divide-[var(--color-rule)] border-b border-[var(--color-rule)]">
         {sizes.map((size) => (
-          <div key={size} className="bg-white/25 px-2 py-2 text-center text-xs font-medium tracking-wide text-[var(--text-primary)]">
-            {size}
-          </div>
-        ))}
-        {sizes.map((size) => (
-          <div key={`${size}-input`} className="bg-white/15 px-1.5 py-1.5">
-            <label className="sr-only" htmlFor={inputId(size)}>
-              Quantity for size {size}
+          <div
+            key={size}
+            className="grid grid-cols-[minmax(0,1fr)_minmax(180px,208px)] items-center px-3 py-2.5"
+          >
+            <label htmlFor={inputId(size)} className="font-mono text-sm font-semibold text-[var(--text-primary)]">
+              {size}
             </label>
-            <div className="flex h-9 items-center justify-between rounded-[4px] bg-white/30 px-1">
-              <button
-                type="button"
-                aria-label={`Decrease ${size} quantity`}
-                disabled={totalUnits <= minimumUnits || (value[size] ?? 0) <= 0}
-                onClick={() => onChange(size, Math.max(0, (value[size] ?? 0) - 1))}
-                className="flex h-7 w-7 items-center justify-center rounded-[4px] text-lg leading-none text-[var(--text-primary)]/80 hover:bg-white disabled:cursor-not-allowed disabled:text-[var(--text-primary)]/25"
-              >
-                −
-              </button>
-              <input
-                id={inputId(size)}
-                type="number"
-                inputMode="numeric"
-                min={0}
-                value={value[size] ?? 0}
-                onChange={(e) => handleInputChange(size, e.target.value)}
-                className="no-spinner h-full w-8 bg-transparent text-center font-mono text-sm font-medium text-[var(--text-primary)] outline-none"
-              />
-              <button
-                type="button"
-                aria-label={`Increase ${size} quantity`}
-                onClick={() => onChange(size, (value[size] ?? 0) + 1)}
-                className="flex h-7 w-7 items-center justify-center rounded-[4px] text-lg leading-none text-[var(--text-primary)]/80 hover:bg-white"
-              >
-                +
-              </button>
-            </div>
+            {quantityControl(size)}
           </div>
         ))}
-      </div>
-
-      <div className="mt-3 flex items-center justify-end border-t border-[#E5E5E5] pt-3 text-sm">
-        <div className="text-[var(--text-primary)]">
-          <span className="font-medium">Price/unit:</span>{' '}
-          <span className="font-mono">{formatInr(unitPrice)}</span>
-        </div>
       </div>
     </div>
   );

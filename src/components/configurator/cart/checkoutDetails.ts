@@ -26,6 +26,7 @@ export interface ProjectContact {
 
 export interface ShippingInformation {
   recipientName: string;
+  company: string;
   address: Address;
   multipleLocations: boolean;
   multipleLocationsNotes: string;
@@ -71,7 +72,6 @@ export function isGstinValid(value: string): boolean {
 export function getContactMissingFields(contact: ProjectContact): MissingCheckoutField[] {
   const missing: MissingCheckoutField[] = [];
   if (!contact.firstName.trim()) missing.push({ key: "contact.firstName", label: "contact first name", section: "contact" });
-  if (!contact.lastName.trim()) missing.push({ key: "contact.lastName", label: "contact last name", section: "contact" });
   if (!isEmailValid(contact.email)) missing.push({ key: "contact.email", label: "email", section: "contact" });
   if (!isIndianPhoneValid(contact.phone)) missing.push({ key: "contact.phone", label: "phone number", section: "contact" });
   return missing;
@@ -91,7 +91,7 @@ export function getShippingMissingFields(shipping: ShippingInformation): Missing
 
 export function getBillingMissingFields(billing: BillingInformation): MissingCheckoutField[] {
   const missing: MissingCheckoutField[] = [];
-  if (!billing.entity.trim()) missing.push({ key: "billing.entity", label: "billing name", section: "billing" });
+  if (billing.gstin.trim() && !billing.entity.trim()) missing.push({ key: "billing.entity", label: "legal business name", section: "billing" });
   if (!billing.sameAsCompanyAddress) {
     missing.push(...addressFields(billing.address, "billing", "billing.address"));
   }

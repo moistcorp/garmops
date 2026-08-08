@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 
 interface ShippingPageProps {
   params: Promise<{ cartId: string }>;
+  searchParams: Promise<{ auth?: string }>;
 }
 
 export const dynamic = "force-dynamic";
@@ -100,16 +101,21 @@ async function loadCheckoutAccountContext(): Promise<CheckoutAccountContext | nu
   }
 }
 
-export default async function ShippingPage({ params }: ShippingPageProps) {
-  const [{ cartId }, accountContext] = await Promise.all([
+export default async function ShippingPage({ params, searchParams }: ShippingPageProps) {
+  const [{ cartId }, query, accountContext] = await Promise.all([
     params,
+    searchParams,
     loadCheckoutAccountContext(),
   ]);
 
   return (
     <main className="techpack-cart-page techpack-studio-bg min-h-screen px-4 pb-8 sm:pb-10">
       <div className="mx-auto max-w-6xl">
-        <BillingShippingStep cartId={cartId} accountContext={accountContext ?? undefined} />
+        <BillingShippingStep
+          cartId={cartId}
+          accountContext={accountContext ?? undefined}
+          authNotice={query.auth === "cancelled" ? "Google sign-in wasn’t completed. Your order details are still here." : undefined}
+        />
       </div>
     </main>
   );

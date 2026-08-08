@@ -16,6 +16,7 @@ import type {
   NeckLabel,
 } from "../configurator/types/configurator";
 import { isCustomerArtworkTechnique } from "../configurator/types/configurator";
+import { getArtworkSizeConflict } from "../configurator/artworkSizing";
 
 export const CUSTOM_ORDER_PRICING_VERSION =
   "custom-configurator-v3-2026-08-05-multi-item";
@@ -123,28 +124,31 @@ export function priceCustomOrder(input: {
   }
 
   const { configuration } = input.snapshot;
-  const priceableArtwork = Object.fromEntries(
-    (["front", "back"] as const)
-      .map((side) => {
-        const value = configuration.artwork[side];
-        if (!value) return null;
-        return [
-          side,
-          {
-            ...value,
-            fileUrl:
-              value.fileUrl ??
-              (value.fileId ? `private-file:${value.fileId}` : ""),
-          } satisfies ArtworkSide,
-        ] as const;
-      })
-      .filter(
-        (
-          entry,
-        ): entry is readonly ["front" | "back", ArtworkSide] =>
-          entry !== null,
-      ),
-  ) as Artwork;
+  const priceableArtwork: Artwork = {
+    smallestSize: configuration.artwork.smallestSize,
+    ...Object.fromEntries(
+      (["front", "back"] as const)
+        .map((side) => {
+          const value = configuration.artwork[side];
+          if (!value) return null;
+          return [
+            side,
+            {
+              ...value,
+              fileUrl:
+                value.fileUrl ??
+                (value.fileId ? `private-file:${value.fileId}` : ""),
+            } satisfies ArtworkSide,
+          ] as const;
+        })
+        .filter(
+          (
+            entry,
+          ): entry is readonly ["front" | "back", ArtworkSide] =>
+            entry !== null,
+        ),
+    ),
+  };
   const priceableNeckLabel = configuration.neckLabel
     ? ({
         ...configuration.neckLabel,
@@ -155,6 +159,9 @@ export function priceCustomOrder(input: {
             : ""),
       } satisfies NeckLabel)
     : undefined;
+  if (getArtworkSizeConflict(priceableArtwork, input.sizeQuantities)) {
+    throw new Error("Artwork does not fit the smallest ordered garment size");
+  }
   const linePricing = getConfiguredLinePricingPaise({
     productId: product.id,
     colour: configuration.colour,

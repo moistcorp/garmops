@@ -30,7 +30,7 @@ const indianPhoneSchema = z.preprocess((value) => {
 
 const checkoutContactSchema = z.object({
   firstName: z.string().trim().min(1).max(80),
-  lastName: z.string().trim().min(1).max(80),
+  lastName: z.string().trim().max(80),
   email: z.email().trim().toLowerCase().max(254),
   phone: indianPhoneSchema,
   department: optionalText(120),
@@ -38,6 +38,7 @@ const checkoutContactSchema = z.object({
 
 const checkoutShippingSchema = z.object({
   recipientName: z.string().trim().min(1).max(160),
+  company: optionalText(200),
   address: orderAddressSchema,
   multipleLocations: z.boolean().default(false),
   multipleLocationsNotes: optionalText(2_000),

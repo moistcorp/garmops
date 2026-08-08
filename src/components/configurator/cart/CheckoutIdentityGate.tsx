@@ -107,7 +107,7 @@ export function CheckoutIdentityGate({
             <h1 className="mt-2 text-2xl font-semibold text-[var(--text-primary)]">
               {signedInEmail
                 ? "Use the order email to continue"
-                : "Sign in to review your order"}
+                : "Verify your email to review your order"}
             </h1>
             <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-[var(--text-primary)]/55">
               {signedInEmail

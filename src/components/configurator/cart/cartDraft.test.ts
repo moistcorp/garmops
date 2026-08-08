@@ -111,6 +111,7 @@ describe("multi-item cart lines", () => {
       },
       artwork: {},
       quantity: 50,
+      sizeQuantities: { XS: 10, S: 10, M: 10, L: 10, XL: 10 },
       rushDelivery: false,
     };
 
@@ -121,6 +122,122 @@ describe("multi-item cart lines", () => {
     expect(draft.items).toHaveLength(2);
     expect(draft.items[0].id).not.toBe(draft.items[1].id);
     expect(draft.items.map((item) => totalUnits(item.sizeQuantities))).toEqual([50, 50]);
+    expect(draft.items.map((item) => item.plannedQuantity)).toEqual([undefined, undefined]);
+
+    expect(upsertConfiguredCartItem("cart-1", {
+      ...input,
+      sizeQuantities: undefined,
+    }, { cartId: "cart-1" })).toBe("cart-1");
+    const unallocatedLine = readDraft("cart-1").items[2];
+    expect(totalUnits(unallocatedLine.sizeQuantities)).toBe(0);
+    expect(unallocatedLine.plannedQuantity).toBe(50);
+  });
+
+  it("preserves an edited line's size allocation when its total is unchanged", () => {
+    const localStorage = new MemoryStorage();
+    vi.stubGlobal("window", {
+      localStorage,
+      dispatchEvent: vi.fn(),
+      setTimeout: vi.fn(() => 1),
+      clearTimeout: vi.fn(),
+    });
+    vi.stubGlobal("CustomEvent", class {
+      constructor(public readonly type: string, public readonly init?: unknown) {}
+    });
+
+    const input = {
+      productId: "regular-fit-tee-200gsm" as const,
+      productName: "Regular Fit Tee",
+      previewImage: "/test.webp",
+      colour: {
+        type: "signature" as const,
+        name: "Bright White",
+        hex: "#FFFFFF",
+        confirmed: true,
+      },
+      artwork: {},
+      quantity: 30,
+      sizeQuantities: { XS: 0, S: 10, M: 10, L: 10, XL: 0 },
+      rushDelivery: false,
+    };
+
+    expect(upsertConfiguredCartItem("cart-1", input, { itemId: "line-1" })).toBe("cart-1");
+    expect(readDraft("cart-1").items[0].sizeQuantities).toEqual(input.sizeQuantities);
+  });
+
+  it("stores a tote as one quantity without an apparel size split", () => {
+    const localStorage = new MemoryStorage();
+    vi.stubGlobal("window", {
+      localStorage,
+      dispatchEvent: vi.fn(),
+      setTimeout: vi.fn(() => 1),
+      clearTimeout: vi.fn(),
+    });
+    vi.stubGlobal("CustomEvent", class {
+      constructor(public readonly type: string, public readonly init?: unknown) {}
+    });
+
+    expect(upsertConfiguredCartItem("tote-cart", {
+      productId: "canvas-tote-bag",
+      productName: "Canvas Tote Bag",
+      previewImage: "/test.webp",
+      colour: {
+        type: "signature",
+        name: "Natural",
+        hex: "#F2E8D5",
+        confirmed: true,
+      },
+      artwork: {},
+      quantity: 100,
+      rushDelivery: false,
+    })).toBe("tote-cart");
+
+    expect(readDraft("tote-cart").items[0].sizeQuantities).toEqual({
+      "One Size": 100,
+    });
+  });
+
+  it("keeps different products and their allocations independent", () => {
+    const localStorage = new MemoryStorage();
+    vi.stubGlobal("window", {
+      localStorage,
+      dispatchEvent: vi.fn(),
+      setTimeout: vi.fn(() => 1),
+      clearTimeout: vi.fn(),
+    });
+    vi.stubGlobal("CustomEvent", class {
+      constructor(public readonly type: string, public readonly init?: unknown) {}
+    });
+
+    const colour = {
+      type: "signature" as const,
+      name: "Bright White",
+      hex: "#FFFFFF",
+      confirmed: true,
+    };
+    expect(upsertConfiguredCartItem("mixed-cart", {
+      productId: "regular-fit-tee-200gsm",
+      productName: "Regular Fit Tee",
+      previewImage: "/tee.webp",
+      colour,
+      artwork: {},
+      quantity: 50,
+      sizeQuantities: { XS: 0, S: 10, M: 20, L: 15, XL: 5 },
+      rushDelivery: false,
+    })).toBe("mixed-cart");
+    expect(upsertConfiguredCartItem("mixed-cart", {
+      productId: "canvas-tote-bag",
+      productName: "Canvas Tote Bag",
+      previewImage: "/tote.webp",
+      colour,
+      artwork: {},
+      quantity: 100,
+      rushDelivery: false,
+    }, { cartId: "mixed-cart" })).toBe("mixed-cart");
+
+    const [tee, tote] = readDraft("mixed-cart").items;
+    expect(tee.sizeQuantities).toEqual({ XS: 0, S: 10, M: 20, L: 15, XL: 5 });
+    expect(tote.sizeQuantities).toEqual({ "One Size": 100 });
   });
 });
 

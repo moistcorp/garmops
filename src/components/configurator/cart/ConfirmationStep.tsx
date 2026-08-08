@@ -475,6 +475,7 @@ export function ConfirmationStep({
               <p className="font-medium text-[var(--text-primary)]">
                 {draft.shippingInformation.recipientName}
               </p>
+              {draft.shippingInformation.company ? <p>{draft.shippingInformation.company}</p> : null}
               <AddressSummary address={draft.shippingInformation.address} />
               <p className="pt-1 text-xs text-[var(--text-primary)]/55">
                 Target delivery date: {delivery}
@@ -490,6 +491,7 @@ export function ConfirmationStep({
                 </span>{" "}
                 · {billingEmail}
               </p>
+              {draft.billingInformation.gstin ? <p className="text-xs text-[var(--text-primary)]/55">GSTIN: {draft.billingInformation.gstin}</p> : <p className="text-xs text-[var(--text-primary)]/55">Personal / non-GST customer</p>}
               {billingUsesDeliveryAddress ? (
                 <p className="text-xs text-[var(--text-primary)]/55">
                   Billing address is the same as the delivery address.
@@ -518,15 +520,12 @@ export function ConfirmationStep({
 
         </ReviewSection>
 
-        {(draft.projectPreferences.orderNotes || draft.projectPreferences.receiveEmails) && (
+        {draft.projectPreferences.orderNotes && (
           <section className="techpack-panel rounded-[4px] border p-5">
             <p className="mb-2 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">Supplement / Project notes</p>
             <h3 className="text-sm font-medium text-[var(--text-primary)]">Project notes & communication</h3>
             {draft.projectPreferences.orderNotes && (
               <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[var(--text-primary)]/70">{draft.projectPreferences.orderNotes}</p>
-            )}
-            {draft.projectPreferences.receiveEmails && (
-              <p className="mt-2 text-xs text-[var(--text-primary)]/50">Marketing and product updates enabled.</p>
             )}
           </section>
         )}
@@ -645,7 +644,7 @@ export function ConfirmationStep({
             {isProcessing && <LoaderCircle size={16} className="animate-spin" />}
             {isProcessing
               ? "Opening secure PayU checkout…"
-              : `Pay full amount — ${formatInr(orderTotal)}`}
+              : `Pay securely with PayU — ${formatInr(orderTotal)}`}
           </button>
           {!termsAccepted && (
             <p className="text-center text-xs text-[var(--text-primary)]/55">Accept the order terms to continue.</p>

@@ -206,7 +206,13 @@ export async function verifyCustomerOtpAction(
     token: parsed.data.token,
     type: "email",
   });
-  if (error || !data.user) return actionError("That sign-in code is invalid or expired.");
+  if (error || !data.user) {
+    return actionError(
+      error?.code === "otp_expired"
+        ? "This code has expired. Request a new one."
+        : "That code couldn't be verified. Try again.",
+    );
+  }
 
   try {
     await ensureCustomerAccount(supabase);

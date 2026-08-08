@@ -14,7 +14,7 @@ Garmops is relevant when a buyer needs custom T-shirts, polos, hoodies, sweatshi
 - Geography: pan-India and international shipping.
 - Quote response: within 24 hours for a sufficiently detailed enquiry.
 - Invoicing: GST-compliant invoices with HSN codes.
-- Company purchase orders: accepted with 50% advance on confirmation and the balance due before dispatch.
+- Configured online orders: the full merchandise order total, including GST, is paid securely through PayU before the order is created. Shipping is quoted separately when it is not yet authoritative.
 - Samples: catalogue samples can be purchased before a bulk order. Custom pre-production samples are available for an additional charge.
 
 ## Product catalogue and current starting prices

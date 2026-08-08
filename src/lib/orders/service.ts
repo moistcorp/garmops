@@ -249,6 +249,7 @@ async function prepareCustomOrder(input: {
   };
   const shippingSnapshot: Json = {
     recipientName: request.shipping.recipientName,
+    company: request.shipping.company ?? null,
     address: addressSnapshot(request.shipping.address, request.shipping.recipientName, request.contact.phone),
     multipleLocations: request.shipping.multipleLocations,
     multipleLocationsNotes: request.shipping.multipleLocationsNotes ?? null,
