@@ -1,5 +1,7 @@
 // src/lib/configurator/delivery.ts
 
+import { RUSH_DELIVERY_FEE_PER_UNIT } from "@/lib/pricingRules";
+
 const INDIA_TIME_ZONE = "Asia/Kolkata";
 
 function addDays(date: Date, days: number): Date {
@@ -22,7 +24,7 @@ function isSameDay(a: Date, b: Date): boolean {
 
 export type DeliveryType = "rush" | "standard" | "flexible";
 
-export const RUSH_DELIVERY_SURCHARGE_RUPEES = 75;
+export const RUSH_DELIVERY_SURCHARGE_RUPEES = RUSH_DELIVERY_FEE_PER_UNIT;
 export const RUSH_DELIVERY_SURCHARGE_PAISE = RUSH_DELIVERY_SURCHARGE_RUPEES * 100;
 
 export type DeliveryOptions = {

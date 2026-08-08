@@ -12,7 +12,7 @@ describe("customerProductionTimeline", () => {
       "Artwork under review",
       "Approved for production",
       "Material preparation",
-      "Printing or embroidery",
+      "Printing",
       "Stitching",
       "Quality check and packing",
       "Dispatched",

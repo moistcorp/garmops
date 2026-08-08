@@ -2,10 +2,9 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { caseStudies } from '@/lib/casestudies'
+import { caseStudies, formatCaseStudyProducts, getCaseStudyIndustry } from '@/lib/casestudies'
 
-// Featured testimonial for the homepage pull-quote — pulled from a real case study
-// rather than invented copy, matching the specific-outcome quotes Nugget uses.
+// Featured testimonial is pulled from the public case-study record.
 const featuredTestimonial = caseStudies.find(cs => cs.testimonial)?.testimonial
 
 function initials(name: string) {
@@ -26,11 +25,11 @@ export default function HomepageCaseStudies() {
             </p>
 
             <h2 className="mb-5 text-3xl font-bold leading-[1.05] tracking-tight text-[var(--text-primary)] sm:mb-6 sm:text-4xl">
-              How the best brands use Garmops
+              Production work, documented
             </h2>
 
             <p className="text-[#4a4a4a] leading-relaxed mb-10">
-              Brand is more important than ever, and clothes are the ultimate storytellers. See for yourself how industry leaders are using merch to build brand and community.
+              See the garments, print method and project record behind a Garmops production order.
             </p>
 
             <Link
@@ -65,15 +64,15 @@ export default function HomepageCaseStudies() {
                     <div className="absolute top-4 left-4 z-20 flex flex-wrap gap-2">
 
                       <span className="techpack-chip rounded-[4px] px-3 py-1 text-xs font-medium">
-                        ● {cs.color}
+                        ● {cs.colourways?.join(' · ') ?? 'Colour not stated'}
                       </span>
 
                       <span className="techpack-chip rounded-[4px] px-3 py-1 text-xs font-medium">
-                        {cs.product}
+                        {formatCaseStudyProducts(cs)}
                       </span>
 
                       <span className="techpack-chip rounded-[4px] px-3 py-1 text-xs font-medium">
-                        {cs.printMethod}
+                        {cs.printTechniques.join(' · ')}
                       </span>
 
                     </div>
@@ -109,14 +108,14 @@ export default function HomepageCaseStudies() {
                     </p>
 
                     <p className="text-sm text-[#555555] mb-5">
-                      {cs.industry}
+                      {getCaseStudyIndustry(cs.industryId)?.name ?? cs.industryId}
                     </p>
 
                     <div className="flex flex-col items-start gap-3 border-t border-[#E5E5E5] pt-5 min-[360px]:flex-row min-[360px]:items-center min-[360px]:justify-between">
 
                       <div className="flex gap-4 text-xs text-[#555555]">
-                        <span>{cs.quantity} pcs</span>
-                        <span>{cs.turnaround}</span>
+                        {cs.totalQuantity ? <span>{cs.totalQuantity} pcs</span> : null}
+                        {cs.productionTimeline ? <span>{cs.productionTimeline}</span> : null}
                       </div>
 
                       <span className="text-sm font-medium">
@@ -150,11 +149,11 @@ export default function HomepageCaseStudies() {
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 rounded-[4px] bg-[var(--color-accent)] text-white flex items-center justify-center text-sm font-semibold shrink-0">
-                  {initials(featuredTestimonial.author)}
+                  {initials(featuredTestimonial.name)}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-[var(--text-primary)]">{featuredTestimonial.author}</p>
-                  <p className="text-xs text-[#666666]">{featuredTestimonial.role}</p>
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">{featuredTestimonial.name}</p>
+                  <p className="text-xs text-[#666666]">{[featuredTestimonial.role, featuredTestimonial.company].filter(Boolean).join(' · ')}</p>
                 </div>
               </div>
             </div>

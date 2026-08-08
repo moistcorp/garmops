@@ -4,24 +4,9 @@ import {
   RUSH_DELIVERY_DAYS,
   RUSH_DELIVERY_TIERS,
   VOLUME_DISCOUNT_TIERS,
-  applyVolumeDiscount,
   getRushDeliveryUnitFee,
   getVolumeDiscountRate,
 } from './pricingRules'
-
-export const PRODUCT_PRICES: Record<string, number> = {
-  'Regular Fit Tee (200 GSM)': 535,
-  'Boxy Fit Tee (200 GSM)': 535,
-  'Regular Fit Tee (260 GSM)': 565,
-  'Boxy Fit Tee (260 GSM)': 565,
-  'Longsleeve Tee (260 GSM)': 565,
-  'Polo (280 GSM)': 595,
-  'Regular Fit Sweatshirt (320 GSM)': 565,
-  'Boxy Fit Sweatshirt (320 GSM)': 585,
-  'Regular Fit Hoodie (320 GSM)': 575,
-  'Boxy Fit Hoodie (320 GSM)': 615,
-  'Canvas Tote Bag': 350,
-}
 
 export { DELIVERY_DAYS, GST_RATE, RUSH_DELIVERY_DAYS }
 
@@ -44,29 +29,4 @@ export function getDiscount(qty: number): number {
 
 export function getRushCharge(qty: number): number {
   return getRushDeliveryUnitFee(qty)
-}
-
-export function calcOrder(productName: string, qty: number, rush = false) {
-  const basePrice = PRODUCT_PRICES[productName] ?? 535
-  const discount = getDiscount(qty)
-  const rushCharge = rush ? getRushCharge(qty) : 0
-  const loadedUnitPrice = basePrice + rushCharge
-  const discountAmountPerPiece = loadedUnitPrice * discount
-  const pricePerPiece = Math.round(applyVolumeDiscount(loadedUnitPrice, qty))
-  const discountedBase = pricePerPiece
-  const subtotal = pricePerPiece * qty
-  const gst = Math.round(subtotal * GST_RATE)
-  const total = subtotal + gst
-  return {
-    basePrice,
-    discount,
-    discountedBase,
-    rushCharge,
-    loadedUnitPrice,
-    discountAmountPerPiece,
-    pricePerPiece,
-    subtotal,
-    gst,
-    total,
-  }
 }

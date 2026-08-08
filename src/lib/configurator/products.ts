@@ -70,7 +70,7 @@ function deriveProductGuidance(product: (typeof catalogProducts)[number]): Pick<
       fabricFeel,
       climate,
       standardLeadTime: "18–24 working days",
-      recommendedTechnique: "Embroidery for a professional finish",
+      recommendedTechnique: "Screen Print for a clean, durable logo",
     };
   }
   if (slug.includes("hoodie") || slug.includes("sweatshirt")) {
@@ -80,7 +80,7 @@ function deriveProductGuidance(product: (typeof catalogProducts)[number]): Pick<
       fabricFeel,
       climate,
       standardLeadTime: "20–26 working days",
-      recommendedTechnique: "Embroidery or screen print",
+      recommendedTechnique: "Screen Print or DTF depending on the artwork",
     };
   }
   if (slug.includes("tote")) {
@@ -100,7 +100,7 @@ function deriveProductGuidance(product: (typeof catalogProducts)[number]): Pick<
       fabricFeel,
       climate,
       standardLeadTime: "18–24 working days",
-      recommendedTechnique: "Screen print, puff or embroidery",
+      recommendedTechnique: "Screen Print or DTF depending on the artwork",
     };
   }
   return {

@@ -46,9 +46,8 @@ export function organizationSchema() {
       'Bulk T-shirt printing',
       'Branded merchandise',
       'Screen printing',
-      'Direct-to-garment printing',
       'Direct-to-film printing',
-      'Garment embroidery',
+      'Reflective printing',
       'Low minimum order quantity apparel',
     ],
   }

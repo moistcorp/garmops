@@ -1,4 +1,4 @@
-import { PRODUCT_PRICES } from './pricing'
+import { getCatalogueBasePriceRupees } from './pricingRules'
 
 export type Product = {
   id: number
@@ -65,7 +65,7 @@ export const products: Product[] = [
     careInstructions: ['Machine Wash', 'Tumble Dry', 'Do not bleach', 'Iron on low heat'],
     sizes: ['XS', 'S', 'M', 'L', 'XL'],
     minimumOrderQuantity: 50,
-    price: PRODUCT_PRICES['Regular Fit Tee (200 GSM)'],
+    price: getCatalogueBasePriceRupees('regular-fit-tee-200gsm'),
     image: '/products/regular-fit-tee-200gsm.webp',
   },
   {
@@ -90,7 +90,7 @@ export const products: Product[] = [
     careInstructions: ['Machine Wash', 'Tumble Dry', 'Do not bleach', 'Iron on low heat'],
     sizes: ['XS', 'S', 'M', 'L', 'XL'],
     minimumOrderQuantity: 50,
-    price: PRODUCT_PRICES['Boxy Fit Tee (200 GSM)'],
+    price: getCatalogueBasePriceRupees('boxy-fit-tee-200gsm'),
     image: '/products/boxy-fit-tee-200gsm.webp',
   },
   {
@@ -115,7 +115,7 @@ export const products: Product[] = [
     careInstructions: ['Machine Wash', 'Tumble Dry', 'Do not bleach', 'Iron on low heat'],
     sizes: ['XS', 'S', 'M', 'L', 'XL'],
     minimumOrderQuantity: 50,
-    price: PRODUCT_PRICES['Regular Fit Tee (260 GSM)'],
+    price: getCatalogueBasePriceRupees('regular-fit-tee-260gsm'),
     image: '/products/regular-fit-tee-260gsm.webp',
   },
   {
@@ -140,7 +140,7 @@ export const products: Product[] = [
     careInstructions: ['Machine Wash', 'Tumble Dry', 'Do not bleach', 'Iron on low heat'],
     sizes: ['XS', 'S', 'M', 'L', 'XL'],
     minimumOrderQuantity: 50,
-    price: PRODUCT_PRICES['Boxy Fit Tee (260 GSM)'],
+    price: getCatalogueBasePriceRupees('boxy-fit-tee-260gsm'),
     image: '/products/boxy-fit-tee-260gsm.webp',
   },
   {
@@ -165,7 +165,7 @@ export const products: Product[] = [
     careInstructions: ['Machine Wash', 'Tumble Dry', 'Do not bleach'],
     sizes: ['S', 'M', 'L', 'XL', 'XXL'],
     minimumOrderQuantity: 50,
-    price: PRODUCT_PRICES['Longsleeve Tee (260 GSM)'],
+    price: getCatalogueBasePriceRupees('longsleeve-tee-260gsm'),
     image: '/products/longsleeve-tee-260gsm.webp',
   },
   {
@@ -190,7 +190,7 @@ export const products: Product[] = [
     careInstructions: ['Machine Wash', 'Tumble Dry', 'Do not bleach', 'Iron on low heat'],
     sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
     minimumOrderQuantity: 50,
-    price: PRODUCT_PRICES['Polo (280 GSM)'],
+    price: getCatalogueBasePriceRupees('polo-280gsm'),
     image: '/products/polo-tee.webp',
   },
   {
@@ -213,7 +213,7 @@ export const products: Product[] = [
     careInstructions: ['Hand Wash', 'Air Dry', 'Do not Machine Wash', 'Iron on Low'],
     sizes: ['One Size'],
     minimumOrderQuantity: 50,
-    price: PRODUCT_PRICES['Canvas Tote Bag'],
+    price: getCatalogueBasePriceRupees('canvas-tote-bag'),
     image: '/products/canvas-tote-bag.webp',
   },
   {
@@ -238,7 +238,7 @@ export const products: Product[] = [
     careInstructions: ['Machine Wash', 'Tumble Dry', 'Do not bleach', 'Iron on low heat'],
     sizes: ['S', 'M', 'L', 'XL', 'XXL'],
     minimumOrderQuantity: 50,
-    price: PRODUCT_PRICES['Regular Fit Sweatshirt (320 GSM)'],
+    price: getCatalogueBasePriceRupees('regular-fit-sweatshirt-320gsm'),
     image: '/products/regular-fit-sweatshirt-320gsm.webp',
   },
   {
@@ -263,7 +263,7 @@ export const products: Product[] = [
     careInstructions: ['Machine Wash', 'Tumble Dry', 'Do not bleach', 'Iron on low heat'],
     sizes: ['S', 'M', 'L', 'XL', 'XXL'],
     minimumOrderQuantity: 50,
-    price: PRODUCT_PRICES['Regular Fit Hoodie (320 GSM)'],
+    price: getCatalogueBasePriceRupees('regular-fit-hoodie-320gsm'),
     image: '/products/regular-fit-hoodie-320gsm.webp',
   },
   {
@@ -288,7 +288,7 @@ export const products: Product[] = [
     careInstructions: ['Machine Wash', 'Tumble Dry', 'Do not bleach'],
     sizes: ['S', 'M', 'L', 'XL'],
     minimumOrderQuantity: 50,
-    price: PRODUCT_PRICES['Boxy Fit Hoodie (320 GSM)'],
+    price: getCatalogueBasePriceRupees('boxy-fit-hoodie-320gsm'),
     image: '/products/boxy-fit-hoodie-320gsm.webp',
   },
 ]

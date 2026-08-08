@@ -13,8 +13,9 @@ import {
 import type {
   ArtworkFileType,
   ArtworkSide,
-  ArtworkTechnique,
+  CustomerArtworkTechnique,
 } from "@/lib/configurator/types/configurator";
+import { isCustomerArtworkTechnique } from "@/lib/configurator/types/configurator";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 
 const ACCEPTED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".svg", ".ai"];
@@ -26,10 +27,8 @@ const VECTORIZER_HREF = "https://vectorizer.ai/";
 const DEFAULT_ARTWORK_WIDTH_CM = 20;
 const FALLBACK_VECTOR_HEIGHT_CM = 4.2;
 
-const VECTOR_REQUIRED_TECHNIQUES: ArtworkTechnique[] = [
+const VECTOR_REQUIRED_TECHNIQUES: CustomerArtworkTechnique[] = [
   "screen_print",
-  "puff_print",
-  "embroidery",
   "reflective_heat_transfer",
 ];
 
@@ -49,7 +48,7 @@ function makeDefaultSide(
   fileUrl: string,
   fileType: ArtworkFileType,
   dimensions: { width: number; height: number },
-  technique?: ArtworkTechnique,
+  technique?: CustomerArtworkTechnique,
   fileKey?: string,
   fileName?: string,
   diagnostics?: Pick<ArtworkSide, "pixelWidth" | "pixelHeight" | "hasTransparency" | "averageLuminance">
@@ -243,8 +242,8 @@ function VectorConversionDialog({
                 they scale without losing quality.
               </p>
               <p>
-                They also allow us to separate colours and layers precisely, essential for
-                techniques like screen printing, embroidery, and others.
+                They also allow us to separate colours and layers precisely, which is useful
+                for Screen Print and other artwork that needs production preparation.
               </p>
             </div>
           </div>
@@ -320,7 +319,9 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
   const [showConversionGuide, setShowConversionGuide] = useState(false);
 
   const requiresVector =
-    !!value?.technique && VECTOR_REQUIRED_TECHNIQUES.includes(value.technique) && !value.vectorized;
+    isCustomerArtworkTechnique(value?.technique) &&
+    VECTOR_REQUIRED_TECHNIQUES.includes(value.technique) &&
+    !value.vectorized;
 
   useEffect(() => {
     return () => {
@@ -391,7 +392,7 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
         fileUrl,
         fileType,
         dimensions,
-        value?.technique,
+        isCustomerArtworkTechnique(value?.technique) ? value.technique : undefined,
         fileKey,
         fileName,
         diagnostics

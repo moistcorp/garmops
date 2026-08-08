@@ -15,6 +15,7 @@ import type {
   ArtworkSide,
   NeckLabel,
 } from "../configurator/types/configurator";
+import { isCustomerArtworkTechnique } from "../configurator/types/configurator";
 
 export const CUSTOM_ORDER_PRICING_VERSION =
   "custom-configurator-v3-2026-08-05-multi-item";
@@ -61,6 +62,11 @@ function ensureCompleteConfiguration(snapshot: CloudDesignSnapshot): void {
   ]) {
     if (side?.pendingUpload || (side && !side.confirmed)) {
       throw new Error("Artwork must be uploaded and confirmed");
+    }
+  }
+  for (const side of [configuration.artwork.front, configuration.artwork.back]) {
+    if (side?.technique && !isCustomerArtworkTechnique(side.technique)) {
+      throw new Error("This saved design needs an updated production technique before it can be ordered");
     }
   }
   if (

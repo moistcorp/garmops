@@ -66,7 +66,7 @@ export type SeoLandingPageContent = {
   stepsHeading?: string
   stepsIntroduction?: string
   steps?: LandingPageStep[]
-  techniqueKeys?: Array<'screen-printing' | 'dtf' | 'dtg' | 'embroidery'>
+  techniqueKeys?: Array<'screen-printing' | 'dtf' | 'reflective-print'>
   proofIndustries?: string[]
   faqs: LandingPageFaq[]
   relatedGuides: LandingPageLink[]
@@ -116,10 +116,10 @@ export const landingPages = {
     breadcrumbLabel: 'Bulk Custom T-Shirt Printing',
     eyebrow: 'Custom T-shirts',
     title: 'Bulk custom T-shirt printing in India',
-    lead: 'Garmops produces custom T-shirts for companies, events, restaurants, studios, gyms and growing brands across India. Choose regular or boxy fits in 200 GSM or 260 GSM cotton, add screen printing, DTF, DTG, embroidery and custom neck labels, and begin from 50 pieces per style.',
+    lead: 'Garmops produces custom T-shirts for companies, events, restaurants, studios, gyms and growing brands across India. Choose regular or boxy fits in 200 GSM or 260 GSM cotton, add Screen Print, DTF, Reflective Print and custom neck labels, and begin from 50 pieces per style.',
     seo: {
       title: 'Bulk Custom T-Shirt Printing India | MOQ 50',
-      description: 'Order premium custom T-shirts in bulk from 50 pieces. Choose 200 or 260 GSM, regular or oversized fits, printing, embroidery and custom labels.',
+      description: 'Order premium custom T-shirts in bulk from 50 pieces. Choose 200 or 260 GSM, regular or oversized fits, Screen Print, DTF, Reflective Print and custom labels.',
       image: '/products/boxy-fit-tee-260gsm.webp',
     },
     primaryKeyword: 'bulk custom T-shirt printing India',
@@ -187,7 +187,7 @@ export const landingPages = {
         features: [
           { title: 'Garment and quantity', description: 'Fit, fabric weight and total units set the production base; volume tiers can change the unit price.' },
           { title: 'Artwork and positions', description: 'Physical print dimensions, number of positions, colour count and file preparation affect setup and production.' },
-          { title: 'Decoration method', description: 'Screen printing, DTF, DTG and embroidery have different setup, material and handling requirements.' },
+          { title: 'Print method', description: 'Screen Print, DTF and Reflective Print have different artwork, material and handling requirements.' },
           { title: 'Finishing and deadline', description: 'Labels, packaging, sampling, rush production, GST and shipping must be compared as separate requirements.' },
         ],
         links: [{ label: 'Estimate bulk T-shirt pricing', href: '/pricing' }],
@@ -196,7 +196,7 @@ export const landingPages = {
     stepsHeading: 'How a bulk T-shirt order works',
     stepsIntroduction: 'Keep product, artwork, sizes, commercial approval and the delivery requirement in one controlled specification.',
     steps: orderingSteps,
-    techniqueKeys: ['screen-printing', 'dtf', 'dtg', 'embroidery'],
+    techniqueKeys: ['screen-printing', 'dtf', 'reflective-print'],
     faqs: [
       {
         question: 'What is the minimum order quantity for custom T-shirts?',
@@ -233,7 +233,7 @@ export const landingPages = {
     ],
     relatedGuides: [
       { label: 'Read the bulk T-shirt printing buyer’s guide', href: '/journal/bulk-custom-t-shirt-printing-india' },
-      { label: 'Compare screen printing, DTF, DTG and embroidery', href: '/journal/screen-printing-vs-dtg-vs-dtf-embroidery' },
+      { label: 'See how custom pricing works', href: '/pricing' },
       { label: 'Understand 200 GSM and 260 GSM fabric weights', href: '/journal/fabric-weight-guide' },
     ],
     relatedPages: [
@@ -254,10 +254,10 @@ export const landingPages = {
     breadcrumbLabel: 'Custom Polo T-Shirts',
     eyebrow: 'Company polos',
     title: 'Custom polo T-shirts for companies and teams',
-    lead: 'Create structured custom polo T-shirts for employees, front-of-house staff, hospitality teams, clubs and events. Garmops offers a 280 GSM cotton-pique polo with logo embroidery or printing, size selection and custom-branding options from 50 pieces.',
+    lead: 'Create structured custom polo T-shirts for employees, front-of-house staff, hospitality teams, clubs and events. Garmops offers a 280 GSM cotton-pique polo with Screen Print, DTF or Reflective Print, size selection and custom-branding options from 50 pieces.',
     seo: {
       title: 'Custom Polo T-Shirts for Companies India',
-      description: 'Create custom polo T-shirts for companies, restaurants, hotels and teams. Add logo embroidery or printing to 280 GSM cotton-pique polos from 50 pieces.',
+      description: 'Create custom polo T-shirts for companies, restaurants, hotels and teams. Add Screen Print, DTF or Reflective Print to 280 GSM cotton-pique polos from 50 pieces.',
       image: '/products/polo-tee.webp',
     },
     primaryKeyword: 'custom polo T-shirts for companies India',
@@ -270,7 +270,7 @@ export const landingPages = {
       'MOQ 50 pieces per style',
       '280 GSM cotton pique',
       'Regular fit',
-      'Embroidery and print options',
+      'Print options',
       'GST invoicing',
       'Sizes XS to XXL',
     ],
@@ -295,14 +295,14 @@ export const landingPages = {
     productSlugs: ['polo-280gsm'],
     sections: [
       {
-        title: 'Embroidery or printing for a company logo',
+        title: 'Choosing a print technique for a company logo',
         introduction: 'Choose the method after reviewing the real artwork at its intended physical size.',
         features: [
-          { title: 'Embroidery', description: 'A textured, durable option for compact logos. Stitch count, fine detail, fabric structure and logo size affect suitability and price.' },
+          { title: 'Screen Print, DTF or Reflective Print', description: 'Choose around the artwork detail, finished size, garment fabric, quantity and desired result.' },
           { title: 'Screen or transfer printing', description: 'Useful for larger or more detailed artwork depending on the design, colour count and intended finish.' },
           { title: 'Technique approval', description: 'A digital mock-up shows placement; a physical sample or strike-off is the safer approval when colour or detail is critical.' },
         ],
-        links: [{ label: 'Compare decoration methods in detail', href: '/journal/screen-printing-vs-dtg-vs-dtf-embroidery' }],
+        links: [{ label: 'See how custom pricing works', href: '/pricing' }],
       },
       {
         title: 'Logo placement and approvals',
@@ -326,17 +326,17 @@ export const landingPages = {
     ],
     stepsHeading: 'From polo brief to delivery',
     steps: orderingSteps,
-    techniqueKeys: ['screen-printing', 'dtf', 'embroidery'],
+    techniqueKeys: ['screen-printing', 'dtf', 'reflective-print'],
     faqs: [
       { question: 'What is the minimum order for custom polo T-shirts?', answer: 'The minimum custom order is 50 pieces per style, split across the available XS to XXL size range.' },
       { question: 'What is the Garmops polo made from?', answer: 'The current catalogue polo is 280 GSM cotton pique with a regular fit, ribbed polo collar, button placket and preshrunk fabric.' },
-      { question: 'Should a company logo be embroidered or printed?', answer: 'Embroidery often suits compact logos and a textured finish. Printing can suit larger or more detailed artwork. The final recommendation depends on the artwork, position, fabric, quantity and desired result.' },
+      { question: 'Which print technique should we use for a company logo?', answer: 'Screen Print, DTF and Reflective Print suit different artwork, quantities and visual outcomes. The final recommendation depends on the artwork, position, fabric and desired result.' },
       { question: 'Can we place branding on the sleeve or back?', answer: 'Additional positions can be reviewed. Each position needs a physical dimension and visual approval and may change the final quote.' },
       { question: 'Can we order a polo sample first?', answer: 'Yes. The catalogue polo can be purchased as a sample. A paid pre-production sample can also be requested when the branded result needs physical approval.' },
       { question: 'How should we collect staff sizes?', answer: 'Use the approved polo measurement chart, ask wearers to compare it with a garment that fits and close the final size list before production.' },
     ],
     relatedGuides: [
-      { label: 'Compare embroidery and apparel printing methods', href: '/journal/screen-printing-vs-dtg-vs-dtf-embroidery' },
+      { label: 'See how custom pricing works', href: '/pricing' },
       { label: 'Use the corporate merchandise planning guide', href: '/journal/corporate-merchandise-india-planning-guide' },
       { label: 'Prepare a complete manufacturer brief', href: '/journal/how-to-brief-a-manufacturer' },
     ],
@@ -358,10 +358,10 @@ export const landingPages = {
     breadcrumbLabel: 'Custom Hoodies',
     eyebrow: 'Bulk hoodies',
     title: 'Custom hoodies in bulk for companies, teams and merchandise',
-    lead: 'Create 320 GSM custom hoodies in regular or boxy fits for employee programmes, teams, events, clubs and premium merchandise collections. Add printing, embroidery or custom labels and begin from 50 pieces per style.',
+    lead: 'Create 320 GSM custom hoodies in regular or boxy fits for employee programmes, teams, events, clubs and premium merchandise collections. Add Screen Print, DTF, Reflective Print or custom labels and begin from 50 pieces per style.',
     seo: {
       title: 'Custom Hoodies in Bulk India | Company & Team Hoodies',
-      description: 'Order custom 320 GSM hoodies in regular or boxy fits for companies, teams, events and merchandise. Printing, embroidery and labels from 50 pieces.',
+      description: 'Order custom 320 GSM hoodies in regular or boxy fits for companies, teams, events and merchandise. Screen Print, DTF, Reflective Print and labels from 50 pieces.',
       image: '/products/boxy-fit-hoodie-320gsm.webp',
     },
     primaryKeyword: 'custom hoodies bulk India',
@@ -374,7 +374,7 @@ export const landingPages = {
       'MOQ 50 pieces per style',
       '320 GSM fleece',
       'Regular and boxy fits',
-      'Print and embroidery',
+      'Print options',
       'Custom neck-label choices',
       'Sizes XS to XXL',
     ],
@@ -391,7 +391,7 @@ export const landingPages = {
     useCases: [
       { title: 'Employee merchandise', description: 'Higher-value team apparel for onboarding, milestones and company programmes.' },
       { title: 'Winter teamwear', description: 'A warmer layer for teams, subject to the actual environment and wearer needs.' },
-      { title: 'Studio merchandise', description: 'Design-led hoodies combining compact embroidery with larger printed artwork where appropriate.' },
+      { title: 'Studio merchandise', description: 'Design-led hoodies with artwork placements chosen around the final visual and wear context.' },
       { title: 'Event crews', description: 'Visible crew or operations apparel planned against a fixed event deadline.' },
       { title: 'Clubs and communities', description: 'Member apparel with a controlled colourway and size collection process.' },
       { title: 'Premium collections', description: 'Retail-style merchandise where fit, sample approval, labels and artwork finish matter.' },
@@ -399,10 +399,10 @@ export const landingPages = {
     productSlugs: ['regular-fit-hoodie-320gsm', 'boxy-fit-hoodie-320gsm'],
     sections: [
       {
-        title: 'Print, embroidery and artwork placement',
+        title: 'Print technique and artwork placement',
         features: [
-          { title: 'Compact embroidery', description: 'Useful for chest or sleeve marks when the logo can be translated cleanly into thread at the final size.' },
-          { title: 'Printed graphics', description: 'Screen printing, DTF or DTG can support larger graphics depending on artwork, fabric, colour, quantity and desired hand feel.' },
+          { title: 'Compact logo artwork', description: 'Plan the finished dimensions and placement so the mark remains clear at its intended viewing distance.' },
+          { title: 'Printed graphics', description: 'Screen Print, DTF or Reflective Print can support different graphics depending on artwork, fabric, colour, quantity and desired finish.' },
           { title: 'Placement approval', description: 'Record the artwork dimensions and its distance from garment landmarks. A mock-up should not be the only reference for a critical placement.' },
         ],
       },
@@ -421,17 +421,17 @@ export const landingPages = {
     ],
     stepsHeading: 'How custom hoodie production works',
     steps: orderingSteps,
-    techniqueKeys: ['screen-printing', 'dtf', 'dtg', 'embroidery'],
+    techniqueKeys: ['screen-printing', 'dtf', 'reflective-print'],
     faqs: [
       { question: 'What is the minimum order for custom hoodies?', answer: 'The minimum is 50 pieces per style, allocated across the available sizes for the selected hoodie.' },
       { question: 'What fabric do the Garmops hoodies use?', answer: 'The current regular- and boxy-fit hoodies use 320 GSM 80/20 cotton-poly fleece with a brushed inner fleece.' },
       { question: 'What is the difference between regular and boxy hoodies?', answer: 'The regular fit has a more familiar silhouette. The boxy fit has a wider body, dropped shoulder and oversized hood. Compare the actual measurements and a sample before sharing sizes.' },
-      { question: 'Can company hoodies be embroidered?', answer: 'Yes. Embroidery is available, subject to artwork and placement review. Compact logos usually translate more cleanly than large or highly detailed designs.' },
-      { question: 'Can we combine print and embroidery?', answer: 'Multiple decoration methods can be reviewed as one specification. Each position and technique affects approvals, sequencing, cost and production feasibility.' },
+      { question: 'Which print techniques are available for company hoodies?', answer: 'Garmops currently offers Screen Print, DTF and Reflective Print. Suitability depends on the artwork, placement, garment colour, quantity and desired finish.' },
+      { question: 'Can we combine print techniques?', answer: 'Multiple artwork positions can be reviewed as one specification. Each position and technique affects approvals, sequencing, cost and production feasibility.' },
       { question: 'Can we order samples before a bulk hoodie run?', answer: 'Yes. Catalogue samples are available, and a paid pre-production sample can be requested for a customised hoodie.' },
     ],
     relatedGuides: [
-      { label: 'Compare printing and embroidery methods', href: '/journal/screen-printing-vs-dtg-vs-dtf-embroidery' },
+      { label: 'See how custom pricing works', href: '/pricing' },
       { label: 'Plan company merchandise and employee sizes', href: '/journal/corporate-merchandise-india-planning-guide' },
       { label: 'Learn how to brief an apparel manufacturer', href: '/journal/how-to-brief-a-manufacturer' },
     ],
@@ -525,7 +525,7 @@ export const landingPages = {
     ],
     relatedGuides: [
       { label: 'Prepare production-ready artwork and a complete brief', href: '/journal/how-to-brief-a-manufacturer' },
-      { label: 'Compare screen printing and DTF', href: '/journal/screen-printing-vs-dtg-vs-dtf-embroidery' },
+      { label: 'See how custom pricing works', href: '/pricing' },
       { label: 'Plan cafe and restaurant merchandise', href: '/journal/cafe-merch-guide' },
     ],
     relatedPages: [
@@ -642,7 +642,7 @@ export const landingPages = {
     relatedGuides: [
       { label: 'Read the corporate merchandise planning guide', href: '/journal/corporate-merchandise-india-planning-guide' },
       { label: 'Learn how to brief an apparel manufacturer', href: '/journal/how-to-brief-a-manufacturer' },
-      { label: 'Compare printing and embroidery methods', href: '/journal/screen-printing-vs-dtg-vs-dtf-embroidery' },
+      { label: 'See how custom pricing works', href: '/pricing' },
       { label: 'Plan a bulk custom T-shirt order', href: '/journal/bulk-custom-t-shirt-printing-india' },
     ],
     relatedPages: [
@@ -680,7 +680,7 @@ export const landingPages = {
       'Staff apparel and retail merchandise',
       'T-shirts, polos and layers',
       'Canvas tote bags',
-      'Print and embroidery',
+      'Print options',
       'Product samples available',
     ],
     productHeading: 'Products for hospitality teams and customers',
@@ -713,7 +713,7 @@ export const landingPages = {
         features: [
           { title: 'Logo position', description: 'Define chest, sleeve or back artwork with physical dimensions and an approved visual.' },
           { title: 'Role identifiers', description: 'If a role name is required, control spelling, hierarchy, placement and quantities by role before production.' },
-          { title: 'Embroidery or print', description: 'Choose the method around artwork detail, garment fabric, intended size, wear context and desired finish.' },
+          { title: 'Print technique', description: 'Choose Screen Print, DTF or Reflective Print around artwork detail, garment fabric, intended size, wear context and desired finish.' },
           { title: 'Garment colour', description: 'Review brand contrast and likely operating conditions, including how visible marks or stains may be, without treating one colour as universally correct.' },
         ],
       },
@@ -737,7 +737,7 @@ export const landingPages = {
     ],
     stepsHeading: 'From hospitality brief to repeatable order',
     steps: orderingSteps,
-    techniqueKeys: ['screen-printing', 'dtf', 'dtg', 'embroidery'],
+    techniqueKeys: ['screen-printing', 'dtf', 'reflective-print'],
     proofIndustries: ['Hotels & Restaurants'],
     faqs: [
       { question: 'What is the minimum order for restaurant staff apparel?', answer: 'The minimum custom order is 50 pieces per style, with sizes split within the range for that product.' },
@@ -749,7 +749,7 @@ export const landingPages = {
     ],
     relatedGuides: [
       { label: 'Read the cafe and restaurant merchandise guide', href: '/journal/cafe-merch-guide' },
-      { label: 'Compare printing and embroidery methods', href: '/journal/screen-printing-vs-dtg-vs-dtf-embroidery' },
+      { label: 'See how custom pricing works', href: '/pricing' },
       { label: 'Prepare a complete hospitality apparel brief', href: '/journal/how-to-brief-a-manufacturer' },
     ],
     relatedPages: [
@@ -786,7 +786,7 @@ export const landingPages = {
       'MOQ 50 pieces per style',
       'Attendee, crew and retail apparel',
       'T-shirts, layers and totes',
-      'Print and embroidery',
+      'Print options',
       'Artwork review',
       'Deadline feasibility review',
     ],
@@ -824,7 +824,7 @@ export const landingPages = {
         features: [
           { title: 'Multiple logos', description: 'Keep original files, hierarchy, minimum sizes and approval responsibility clear for every sponsor or partner mark.' },
           { title: 'Front and back positions', description: 'Specify each position with physical dimensions, garment colour and an approved visual.' },
-          { title: 'Colour count and technique', description: 'Screen setup, transfers, DTG and embroidery respond differently to artwork detail, colours, fabric and quantity.' },
+          { title: 'Colour count and technique', description: 'Screen Print, DTF and Reflective Print respond differently to artwork detail, colours, fabric and quantity.' },
           { title: 'File readiness', description: 'Vector artwork is preferred where required. Other files can proceed to review, but production readiness must be confirmed before approval.' },
         ],
       },
@@ -848,7 +848,7 @@ export const landingPages = {
     ],
     stepsHeading: 'A deadline-led event order sequence',
     steps: orderingSteps,
-    techniqueKeys: ['screen-printing', 'dtf', 'dtg', 'embroidery'],
+    techniqueKeys: ['screen-printing', 'dtf', 'reflective-print'],
     proofIndustries: ['Music & Events'],
     faqs: [
       { question: 'What is the minimum order for event merchandise?', answer: 'The minimum custom order is 50 pieces per style. Each garment or tote style in a mixed event range should be planned against its applicable minimum.' },
@@ -860,7 +860,7 @@ export const landingPages = {
     ],
     relatedGuides: [
       { label: 'Plan a bulk event T-shirt order', href: '/journal/bulk-custom-t-shirt-printing-india' },
-      { label: 'Compare event apparel decoration methods', href: '/journal/screen-printing-vs-dtg-vs-dtf-embroidery' },
+      { label: 'See how custom pricing works', href: '/pricing' },
       { label: 'Prepare a complete event merchandise brief', href: '/journal/how-to-brief-a-manufacturer' },
     ],
     relatedPages: [

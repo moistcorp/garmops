@@ -1,159 +1,123 @@
 import type { Metadata } from 'next'
-import { generateMeta } from '@/lib/seo'
 import Image from 'next/image'
 import Link from 'next/link'
-import { caseStudies } from '@/lib/casestudies'
+import { caseStudies, formatCaseStudyProducts, getCaseStudyIndustry } from '@/lib/casestudies'
+import { generateMeta } from '@/lib/seo'
 
 export const metadata: Metadata = generateMeta({
-  title: 'Custom Merchandise Case Studies',
-  description: 'See how Garmops plans and produces custom uniforms, event merchandise, team apparel and branded clothing for businesses in India.',
+  title: 'Made with Garmops — Apparel Production Work',
+  description: 'A documented Garmops Screen Print project, showing the garments, production configuration and finished project record.',
   path: '/work',
-  keywords: [
-    'custom merchandise case studies',
-    'corporate apparel examples',
-    'event merchandise India',
-    'restaurant staff uniforms India',
-  ],
+  keywords: ['Garmops production work', 'Screen Print case study', 'festival merchandise India'],
 })
+
+function ProjectImage({
+  src,
+  alt,
+  sizes,
+  className = 'object-cover',
+}: {
+  src: string | null
+  alt: string
+  sizes: string
+  className?: string
+}) {
+  if (!src) {
+    return (
+      <div className="flex h-full min-h-64 items-center justify-center bg-[var(--color-cream-soft)]">
+        <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--text-primary)]/35">Image unavailable</span>
+      </div>
+    )
+  }
+
+  return <Image src={src} alt={alt} fill sizes={sizes} className={className} />
+}
 
 export default function Work() {
   return (
-    <div className="techpack-canvas">
-      {/* Header */}
-      <section className="max-w-7xl mx-auto px-4 pb-10 pt-10 sm:px-6 sm:pb-16 sm:pt-20">
-        <p className="text-xs text-[var(--text-primary)]/40 font-medium mb-4 tracking-widest uppercase">Case studies</p>
-        <h1 className="text-4xl sm:text-5xl font-bold text-[var(--text-primary)] leading-tight mb-6 tracking-tight">
-          Custom merchandise case studies
+    <main className="techpack-canvas">
+      <section className="mx-auto max-w-7xl px-4 pb-12 pt-12 sm:px-6 sm:pb-16 sm:pt-20 lg:pb-20">
+        <p className="mb-4 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--text-primary)]/45">Case Studies</p>
+        <h1 className="max-w-3xl text-4xl font-bold leading-[1.06] tracking-tight text-[var(--text-primary)] sm:text-6xl">
+          Made with Garmops.
         </h1>
-        <p className="max-w-lg text-base leading-relaxed text-[var(--text-primary)]/50 sm:text-lg">
-          A selection of projects across restaurants, events, gyms, and creative studios. Real briefs, real timelines, real results.
+        <p className="mt-6 max-w-2xl text-base leading-7 text-[#3f3f3f] sm:text-lg sm:leading-8">
+          Real apparel projects, from the original brief through artwork, production and delivery.
         </p>
       </section>
 
-      {/* Featured — first case study */}
-      <section className="max-w-7xl mx-auto px-4 pb-12 sm:px-6 sm:pb-16">
-        <Link href={`/work/${caseStudies[0].slug}`} className="group block">
-          <div className="techpack-surface grid gap-0 overflow-hidden rounded-[4px] border transition-all duration-300 hover:!border-[var(--color-accent)]/45 md:grid-cols-2">
-            {/* Image */}
-            <div className="relative aspect-video md:aspect-auto bg-[var(--color-cream-soft)] flex items-center justify-center min-h-64 overflow-hidden">
-              {caseStudies[0].coverImage ? (
-                <Image
-                  src={caseStudies[0].coverImage}
-                  alt={caseStudies[0].client}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              ) : (
-                <span className="text-xs text-[var(--text-primary)]/20 uppercase tracking-widest">
-                  {caseStudies[0].client}
-                </span>
-              )}
-            </div>
-            {/* Content */}
-            <div className="flex flex-col justify-between p-5 sm:p-8 md:p-10">
-              <div>
-                <div className="mb-5 flex flex-wrap items-center gap-3 sm:mb-6">
-                  <span className="text-xs border border-[#ECE7DF] rounded-[4px] px-2.5 py-1 text-[var(--text-primary)]/50">
-                    {caseStudies[0].industry}
-                  </span>
-                  <span className="text-xs text-[var(--text-primary)]/30">{caseStudies[0].date}</span>
-                </div>
-                <h2 className="mb-4 text-2xl font-bold leading-tight tracking-tight text-[var(--text-primary)] group-hover:underline sm:text-3xl">
-                  {caseStudies[0].title}
-                </h2>
-                <p className="text-[var(--text-primary)]/60 text-sm leading-relaxed mb-8">
-                  {caseStudies[0].excerpt}
-                </p>
-                <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-[var(--text-primary)]/40">
-                  <span>{caseStudies[0].quantity} pieces</span>
-                  <span>{caseStudies[0].turnaround}</span>
-                  <span>{caseStudies[0].deliverables.length} deliverables</span>
-                </div>
-              </div>
-              <div className="mt-8 pt-6 border-t border-[#ECE7DF]">
-                <span className="text-xs font-medium text-[var(--color-accent)] group-hover:underline">
-                  Read case study
-                </span>
-              </div>
-            </div>
-          </div>
-        </Link>
-      </section>
+      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 sm:pb-24">
+        <div className="grid gap-6 md:grid-cols-2">
+          {caseStudies.map(study => {
+            const industry = getCaseStudyIndustry(study.industryId)
 
-      {/* Grid — remaining case studies */}
-      <section className="max-w-7xl mx-auto px-4 pb-16 sm:px-6 sm:pb-24">
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {caseStudies.slice(1).map(cs => (
-            <Link
-              key={cs.slug}
-              href={`/work/${cs.slug}`}
-              className="techpack-panel group flex flex-col overflow-hidden rounded-[4px] border transition-all duration-300 hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45"
-            >
-              {/* Image */}
-              <div className="relative w-full aspect-video bg-[var(--color-cream-soft)] flex items-center justify-center overflow-hidden">
-                {cs.coverImage ? (
-                  <Image
-                    src={cs.coverImage}
-                    alt={cs.client}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+            return (
+              <Link
+                key={study.slug}
+                href={`/work/${study.slug}`}
+                className="techpack-panel group flex flex-col overflow-hidden rounded-[4px] border transition-colors hover:!border-[var(--color-accent)]/55"
+              >
+                <div className="relative aspect-[4/3] overflow-hidden bg-[var(--color-cream-soft)]">
+                  <ProjectImage
+                    src={study.coverImage}
+                    alt={study.gallery?.[0]?.alt ?? `${study.client} project image`}
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                   />
-                ) : (
-                  <span className="text-xs text-[var(--text-primary)]/20 uppercase tracking-widest">{cs.client}</span>
-                )}
-              </div>
+                </div>
 
-              {/* Content */}
-              <div className="p-6 flex flex-col gap-3 flex-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs border border-[#ECE7DF] rounded-[4px] px-2.5 py-1 text-[var(--text-primary)]/50">
-                    {cs.industry}
+                <div className="flex flex-1 flex-col p-5 sm:p-7">
+                  {industry?.href ? (
+                    <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--color-accent-dark)]">{industry.name}</span>
+                  ) : (
+                    <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-primary)]/45">{industry?.name ?? study.industryId}</span>
+                  )}
+                  <h2 className="mt-3 text-2xl font-semibold leading-tight tracking-tight text-[var(--text-primary)] group-hover:underline sm:text-3xl">
+                    {study.client}
+                  </h2>
+                  <p className="mt-2 text-sm font-medium text-[var(--text-primary)]/75">{formatCaseStudyProducts(study)}</p>
+                  <p className="mt-3 text-sm leading-6 text-[#3f3f3f]">{study.summary}</p>
+
+                  <div className="mt-6 flex flex-wrap gap-x-4 gap-y-2 border-t border-[var(--color-rule)] pt-4 font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--text-primary)]/50">
+                    <span>{study.printTechniques.join(' · ')}</span>
+                    {study.totalQuantity ? <span>{study.totalQuantity} pieces</span> : null}
+                  </div>
+                  <span className="mt-6 text-sm font-medium text-[var(--color-accent-dark)] underline decoration-[var(--color-accent)]/35 underline-offset-4">
+                    View project →
                   </span>
-                  <span className="text-xs text-[var(--text-primary)]/30">{cs.date}</span>
                 </div>
-                <h3 className="text-base font-semibold text-[var(--text-primary)] leading-snug group-hover:underline">
-                  {cs.title}
-                </h3>
-                <p className="text-xs text-[var(--text-primary)]/50 leading-relaxed flex-1">{cs.excerpt}</p>
-                <div className="flex gap-4 text-xs text-[var(--text-primary)]/30 pt-3 border-t border-[#ECE7DF]">
-                  <span>{cs.quantity} pcs</span>
-                  <span>{cs.turnaround}</span>
-                </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            )
+          })}
         </div>
       </section>
 
-      {/* CTA */}
       <section className="techpack-section py-12 sm:py-16">
-        <div className="max-w-7xl mx-auto flex flex-col items-center justify-between gap-6 px-4 sm:px-6 md:flex-row">
-          <div className="techpack-dark flex w-full flex-col items-stretch justify-between gap-6 rounded-[4px] border p-6 sm:rounded-[4px] sm:p-8 md:flex-row md:items-center md:p-10">
-          <div>
-            <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">
-              Want results like these?
-            </h2>
-            <p className="text-white/40 text-sm">MOQ 50 pieces. Quote within 24 hours.</p>
-          </div>
-          <div className="flex shrink-0 flex-col gap-3 min-[360px]:flex-row">
-            <Link
-              href="/configurator"
-              className="rounded-[4px] bg-white px-6 py-3.5 text-center text-sm font-medium text-[var(--color-navy)] transition hover:bg-white/90 sm:px-7"
-            >
-              Start designing
-            </Link>
-            <Link
-              href="/contact"
-              className="rounded-[4px] border border-white/30 px-6 py-3.5 text-center text-sm font-medium text-white transition hover:bg-white/10 sm:px-7"
-            >
-              Contact us
-            </Link>
-          </div>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="techpack-dark flex flex-col gap-6 rounded-[4px] border p-6 text-white sm:p-10 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight">Building something similar?</h2>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-white/70">
+                Start with the product, then configure your artwork, colour and quantity. Current print methods are Screen Print, DTF and Reflective Print.
+              </p>
+            </div>
+            <div className="flex shrink-0 flex-col gap-3 min-[360px]:flex-row">
+              <Link
+                href="/configurator/build/boxy-fit-tee-260gsm"
+                className="rounded-[4px] bg-white px-5 py-3.5 text-center text-sm font-medium text-[var(--color-navy)] transition hover:bg-white/90"
+              >
+                Customise this T-Shirt →
+              </Link>
+              <Link
+                href="/industries/events"
+                className="rounded-[4px] border border-white/25 px-5 py-3.5 text-center text-sm font-medium text-white transition hover:bg-white/10"
+              >
+                Explore Events &amp; Entertainment →
+              </Link>
+            </div>
           </div>
         </div>
       </section>
-    </div>
+    </main>
   )
 }

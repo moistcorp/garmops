@@ -1,13 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import type { CaseStudy } from '@/lib/casestudies'
-
-function industryLabel(industry: string) {
-  if (industry === 'Hotels & Restaurants') return 'Cafés & Hospitality'
-  if (industry === 'Music & Events') return 'Events & Entertainment'
-  if (industry === 'Creative Studios') return 'Creative Teams'
-  return industry
-}
+import { formatCaseStudyProducts, getCaseStudyIndustry } from '@/lib/casestudies'
 
 export default function ProofLinks({ caseStudies }: { caseStudies: CaseStudy[] }) {
   if (caseStudies.length === 0) {
@@ -48,7 +42,7 @@ export default function ProofLinks({ caseStudies }: { caseStudies: CaseStudy[] }
               {study.coverImage && (
                 <Image
                   src={study.coverImage}
-                  alt={`${study.client} ${study.product} case study`}
+                  alt={study.gallery?.[0]?.alt ?? `${study.client} project image`}
                   fill
                   sizes="(max-width: 768px) 100vw, 22vw"
                   className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
@@ -56,9 +50,12 @@ export default function ProofLinks({ caseStudies }: { caseStudies: CaseStudy[] }
               )}
             </div>
             <div className="p-5 sm:p-6">
-              <p className="text-xs font-medium uppercase tracking-widest text-[var(--text-primary)]/45">{industryLabel(study.industry)}</p>
-              <h3 className="mt-3 text-lg font-semibold leading-snug text-[var(--text-primary)] group-hover:underline">{study.title}</h3>
-              <p className="mt-3 text-sm leading-6 text-[#3f3f3f]">{study.excerpt}</p>
+              <p className="text-xs font-medium uppercase tracking-widest text-[var(--text-primary)]/45">{getCaseStudyIndustry(study.industryId)?.name ?? study.industryId}</p>
+              <h3 className="mt-3 text-lg font-semibold leading-snug text-[var(--text-primary)] group-hover:underline">{study.client}</h3>
+              <p className="mt-3 text-sm leading-6 text-[#3f3f3f]">{study.summary}</p>
+              <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--text-primary)]/45">
+                {formatCaseStudyProducts(study)} · {study.printTechniques.join(' · ')}{study.totalQuantity ? ` · ${study.totalQuantity} pieces` : ''}
+              </p>
             </div>
           </Link>
         ))}

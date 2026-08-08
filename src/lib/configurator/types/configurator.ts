@@ -9,13 +9,24 @@ export interface GarmentColour {
   confirmed: boolean;
 }
 
-export type ArtworkTechnique =
-  | 'screen_print'
+/** Values retained to read historical snapshots; not selectable for new work. */
+export type LegacyArtworkTechnique =
   | 'dtg'
-  | 'dtf'
-  | 'reflective_heat_transfer'
   | 'puff_print'
   | 'embroidery';
+
+export type CustomerArtworkTechnique =
+  | 'screen_print'
+  | 'dtf'
+  | 'reflective_heat_transfer';
+
+export type ArtworkTechnique = CustomerArtworkTechnique | LegacyArtworkTechnique;
+
+export function isCustomerArtworkTechnique(
+  technique: ArtworkTechnique | undefined,
+): technique is CustomerArtworkTechnique {
+  return technique === 'screen_print' || technique === 'dtf' || technique === 'reflective_heat_transfer';
+}
 
 export type ArtworkFileType = 'jpg' | 'png' | 'svg' | 'ai';
 

@@ -22,6 +22,60 @@ export const RUSH_DELIVERY_DAYS = 18;
 export const RUSH_DELIVERY_FEE_PER_UNIT = 75;
 export const EXPRESS_DELIVERY_FEE_PER_UNIT = RUSH_DELIVERY_FEE_PER_UNIT;
 
+/**
+ * Canonical pre-GST starting prices for a blank catalogue garment.
+ *
+ * Product-facing copy may use a simplified name, but calculations always use
+ * this immutable product slug. Configuration additions and all line totals
+ * are calculated from these values in `configurator/pricing.ts`.
+ */
+export const CATALOGUE_BASE_PRICE_RUPEES = {
+  "regular-fit-tee-200gsm": 535,
+  "boxy-fit-tee-200gsm": 535,
+  "regular-fit-tee-260gsm": 565,
+  "boxy-fit-tee-260gsm": 565,
+  "longsleeve-tee-260gsm": 565,
+  "polo-280gsm": 595,
+  "regular-fit-sweatshirt-320gsm": 565,
+  "boxy-fit-sweatshirt-320gsm": 585,
+  "regular-fit-hoodie-320gsm": 575,
+  "boxy-fit-hoodie-320gsm": 615,
+  "canvas-tote-bag": 350,
+} as const;
+
+export type CatalogueProductId = keyof typeof CATALOGUE_BASE_PRICE_RUPEES;
+
+export function getCatalogueBasePriceRupees(productId: string): number {
+  const price = CATALOGUE_BASE_PRICE_RUPEES[productId as CatalogueProductId];
+  if (price === undefined) throw new Error(`No base price found for product ID "${productId}"`);
+  return price;
+}
+
+/** Customer-selectable decoration methods. */
+export const CUSTOMER_PRINT_TECHNIQUES = [
+  "screen_print",
+  "dtf",
+  "reflective_heat_transfer",
+] as const;
+
+export type CustomerPrintTechnique = (typeof CUSTOMER_PRINT_TECHNIQUES)[number];
+
+export const CUSTOMER_PRINT_TECHNIQUE_LABELS: Record<CustomerPrintTechnique, string> = {
+  screen_print: "Screen Print",
+  dtf: "DTF",
+  reflective_heat_transfer: "Reflective Print",
+};
+
+export const CUSTOMER_PRINT_TECHNIQUE_UNIT_DELTAS: Record<CustomerPrintTechnique, number> = {
+  screen_print: 38,
+  dtf: 32,
+  reflective_heat_transfer: 46,
+};
+
+export const CUSTOM_DYE_UNIT_INCREASE_PERCENT = 15.33;
+export const BACK_ARTWORK_UNIT_INCREASE_PERCENT = 22;
+export const NECK_LABEL_UNIT_PRICE = 25;
+
 export const VOLUME_DISCOUNT_TIERS: VolumeDiscountTier[] = [
   { minQty: 50, maxQty: 99, discountPercent: 0 },
   { minQty: 100, maxQty: 249, discountPercent: 7 },

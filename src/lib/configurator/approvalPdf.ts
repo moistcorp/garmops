@@ -62,11 +62,11 @@ const encoder = new TextEncoder();
 
 const TECHNIQUE_LABELS: Record<string, string> = {
   screen_print: "Screen print",
-  dtg: "Direct-to-garment print",
   dtf: "Direct-to-film print",
-  reflective_heat_transfer: "Reflective heat transfer",
-  puff_print: "Puff print",
-  embroidery: "Embroidery",
+  reflective_heat_transfer: "Reflective print",
+  dtg: "Archived decoration",
+  puff_print: "Archived decoration",
+  embroidery: "Archived decoration",
 };
 
 function sanitizePdfText(value: string): string {
@@ -166,7 +166,7 @@ function artworkLine(side: "Front" | "Back", artwork?: ArtworkSide): string {
     return `${side}: No artwork selected`;
   }
   const technique = artwork.technique
-    ? TECHNIQUE_LABELS[artwork.technique] ?? artwork.technique.replaceAll("_", " ")
+    ? TECHNIQUE_LABELS[artwork.technique] ?? "Archived decoration"
     : "Technique to be recommended";
   const review = artwork.vectorized ? "production file available" : "file preparation review required";
   return `${side}: ${technique}, ${artwork.width} x ${artwork.height} cm, ${artwork.fromNeck} cm below neck (${review})`;

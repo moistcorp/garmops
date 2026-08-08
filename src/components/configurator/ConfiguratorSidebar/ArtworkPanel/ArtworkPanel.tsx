@@ -20,9 +20,10 @@ import { PRINT_AREA_SIZE_CHART } from "@/lib/configurator/sizecharts";
 import type {
   Artwork,
   ArtworkSide,
-  ArtworkTechnique,
+  CustomerArtworkTechnique,
   PrintAreaSize,
 } from "@/lib/configurator/types/configurator";
+import { isCustomerArtworkTechnique } from "@/lib/configurator/types/configurator";
 import type { GarmentView } from "@/lib/configurator/types/garment";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 
@@ -140,7 +141,7 @@ export function ArtworkPanel({
     commit({ ...artwork, [side]: next });
   }
 
-  function handleTechniqueChange(side: Side, technique: ArtworkTechnique) {
+  function handleTechniqueChange(side: Side, technique: CustomerArtworkTechnique) {
     const current = artwork[side];
     if (!current) return;
     const constrained = constrainArtworkToPrintArea(
@@ -278,9 +279,10 @@ export function ArtworkPanel({
 
   function renderSide(side: Side) {
     const current = artwork[side];
-    const isReady = Boolean(
-      (current?.fileUrl || current?.fileId) && current.technique
-    );
+    const selectedTechnique = isCustomerArtworkTechnique(current?.technique)
+      ? current.technique
+      : undefined;
+    const isReady = Boolean((current?.fileUrl || current?.fileId) && selectedTechnique);
     const isExpanded = expandedSide === side;
     const contentId = `artwork-${side}-accordion-content`;
 
@@ -301,9 +303,9 @@ export function ArtworkPanel({
               <span className="block text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/70">
                 {SIDE_LABELS[side]}
               </span>
-              {isReady && current?.technique && (
+              {isReady && selectedTechnique && (
                 <span className="mt-0.5 block truncate text-[11px] text-[var(--text-primary)]/50">
-                  {TECHNIQUE_LABELS[current.technique]} selected · saved automatically
+                  {TECHNIQUE_LABELS[selectedTechnique]} selected · saved automatically
                 </span>
               )}
             </span>
@@ -348,7 +350,7 @@ export function ArtworkPanel({
             {current && (
               <>
                 <TechniqueSelect
-                  value={current.technique}
+                  value={selectedTechnique}
                   fileType={current.fileType}
                   side={side}
                   onChange={(technique) => handleTechniqueChange(side, technique)}

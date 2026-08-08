@@ -42,7 +42,7 @@ export default function AboutPage() {
           <h2 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">What we make</h2>
           <div className="mt-5 space-y-4 text-sm leading-7 text-[var(--text-primary)]/65">
             <p>
-              Our catalogue covers regular and boxy T-shirts, long-sleeve tees, polos, sweatshirts, hoodies and canvas tote bags. Projects can combine ready-stock or custom garment colours with screen printing, DTG, DTF, reflective heat transfer, embroidery, puff decoration and custom neck-label details.
+              Our catalogue covers regular and boxy T-shirts, long-sleeve tees, polos, sweatshirts, hoodies and canvas tote bags. Projects can combine ready-stock or custom garment colours with Screen Print, DTF, Reflective Print and custom neck-label details.
             </p>
             <p>
               The platform is designed for brands, startups, companies, hospitality teams, gyms, creative studios, artists and event organisers. Buyers can compare products, order samples, estimate pricing and configure artwork before the production team reviews the final specification.

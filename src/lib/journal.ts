@@ -86,7 +86,7 @@ export const journalPosts: JournalPost[] = [
         heading: 'What a bulk custom T-shirt quote should include',
         paragraphs: [
           'A useful quote separates what is included from what changes the price. At Garmops, the base price includes the garment, stitching, a single-colour screen print and a neck label. GST is calculated separately and included in the order total; shipping is excluded. Volume discounts apply as the order quantity increases.',
-          'Additional print colours, multiple artwork positions, embroidery, special transfers, custom dyeing, complex labels, individual packaging, sampling and rush production can change the cost. Ask for every assumption in writing, especially when comparing two suppliers.',
+          'Additional artwork positions, custom dyeing, custom labels, individual packaging, sampling and rush production can change the cost. Ask for every assumption in writing, especially when comparing two suppliers.',
         ],
         bullets: [
           'Exact product name, fit, fabric composition and GSM',
@@ -101,10 +101,10 @@ export const journalPosts: JournalPost[] = [
         heading: 'Choose the print method around the artwork',
         paragraphs: [
           'Screen printing is usually the strongest starting point for bulk orders with solid colours and repeat artwork. The setup is spread across more garments, producing consistent coverage and an efficient unit cost. Each colour needs its own screen, so artwork with many colours requires more setup.',
-          'DTG is useful for detailed, photographic or gradient artwork on compatible cotton garments. DTF handles detailed multi-colour artwork across a broader range of fabrics but leaves a transfer layer on the garment. Embroidery gives small logos a dimensional, durable finish and works particularly well on polos, sweatshirts and hoodies. The best method is the one that fits the artwork, fabric, quantity, desired hand feel and budget together.',
+          'DTF handles detailed multi-colour artwork across compatible fabrics and can leave a transfer layer on the garment. Reflective Print creates a light-reactive visual effect. The best method is the one that fits the artwork, fabric, quantity, desired hand feel and budget together.',
         ],
         links: [
-          { label: 'Compare screen print, DTG, DTF and embroidery', href: '/journal/screen-printing-vs-dtg-vs-dtf-embroidery' },
+          { label: 'See how custom pricing works', href: '/pricing' },
         ],
       },
       {
@@ -348,7 +348,7 @@ export const journalPosts: JournalPost[] = [
         table: {
           headers: ['Production model', 'What it usually covers', 'Best for'],
           rows: [
-            ['Catalogue customisation', 'Existing garment fits with print, embroidery, colours and labels', 'Teamwear, event merch, hospitality and brand drops'],
+            ['Catalogue customisation', 'Existing garment fits with print, colours and labels', 'Teamwear, event merch, hospitality and brand drops'],
             ['Private label / white label', 'Existing or adapted products carrying your brand identity', 'Brands testing a controlled first collection'],
             ['Full cut-and-sew development', 'New tech pack, pattern, fabric, trims, sampling and grading', 'Original fashion products with development time and budget'],
             ['Print on demand', 'Single units produced after each sale', 'Demand testing where unit economics are secondary'],
@@ -365,7 +365,7 @@ export const journalPosts: JournalPost[] = [
           'Product, fit, fabric composition, GSM and garment colour',
           'Total quantity and size split',
           'Artwork files, physical dimensions, colours and placements',
-          'Print, transfer or embroidery preference if already known',
+          'Screen Print, DTF or Reflective Print preference if already known',
           'Neck label, hang tag, packaging and finishing requirements',
           'Sample requirement, delivery city and must-arrive date',
           'Target budget and whether it includes GST and shipping',
@@ -515,7 +515,7 @@ export const journalPosts: JournalPost[] = [
         heading: 'Design merchandise, not a walking billboard',
         paragraphs: [
           'People repeatedly wear products that feel good and fit their style. Start with the garment and use the brand identity with restraint. A compact chest mark, a considered back graphic or a detail drawn from the company’s visual system can feel more intentional than a large logo placed by default.',
-          'Create one visual that shows every position and its physical dimensions. Record garment and artwork colours using shared references. If brand colour is critical, review a physical print, embroidery or dye sample; screens cannot predict exactly how colour will appear on fabric.',
+          'Create one visual that shows every position and its physical dimensions. Record garment and artwork colours using shared references. If brand colour is critical, review a physical print or dye sample; screens cannot predict exactly how colour will appear on fabric.',
         ],
         bullets: [
           'Use the original vector logo and approved brand artwork',
@@ -535,7 +535,7 @@ export const journalPosts: JournalPost[] = [
       {
         heading: 'Build a budget that can survive approval',
         paragraphs: [
-          'Set a target cost per recipient and separate essential from optional details. The core cost includes the garment, decoration and quantity. Multiple artwork locations, extra print colours, embroidery stitch count, custom labels, packaging, rush production, tax and shipping can add to it.',
+          'Set a target cost per recipient and separate essential from optional details. The core cost includes the garment, decoration and quantity. Multiple artwork locations, custom labels, packaging, rush production, tax and shipping can add to it.',
           'Ask for a GST-compliant quote that describes the complete specification. Garmops collects the full merchandise amount including GST at checkout. Shipping is quoted and collected separately after staff review. Our online estimator shows the product, quantity, volume discount, rush option and GST so a team can establish a working budget before the final production review.',
         ],
         links: [
@@ -702,12 +702,12 @@ export const journalPosts: JournalPost[] = [
           'List front, back, sleeve and neck artwork separately. Give each position a physical width or height, garment colour, colour count and preferred technique if known. Ask the manufacturer to recommend a method when the artwork or fabric makes the choice unclear.',
         ],
         bullets: ['Source artwork file', 'Garment side and position', 'Physical width and height', 'Decoration technique', 'Ink, transfer or thread colour reference'],
-        links: [{ label: 'Compare decoration methods', href: '/journal/screen-printing-vs-dtg-vs-dtf-embroidery' }],
+        links: [{ label: 'See how custom pricing works', href: '/pricing' }],
       },
       {
         heading: 'Specify colour, labels and packaging',
         paragraphs: [
-          'Provide Pantone or other agreed physical references for brand-critical colours and state whether a lab dip, print strike-off or embroidery sample needs approval. A colour displayed on screen is not a reliable physical standard.',
+          'Provide Pantone or other agreed physical references for brand-critical colours and state whether a lab dip or print strike-off needs approval. A colour displayed on screen is not a reliable physical standard.',
           'Describe neck labels, size labels, hangtags, individual bags, size stickers or carton sorting separately. Include artwork, dimensions, material expectations and packing counts where they are known. These requirements affect cost and sequencing.',
         ],
       },
@@ -755,7 +755,7 @@ export const journalPosts: JournalPost[] = [
       'GSM measures fabric mass per square metre; it does not measure quality on its own.',
       'A 200 GSM T-shirt is lighter and versatile, while a 260 GSM T-shirt has more weight and structure.',
       'Regular and boxy fits change how the same weight appears and should be approved separately.',
-      'Use a physical sample when drape, climate, embroidery support or premium feel is important.',
+      'Use a physical sample when drape, climate, print finish or premium feel is important.',
     ],
     sections: [
       {
@@ -795,9 +795,9 @@ export const journalPosts: JournalPost[] = [
         ],
       },
       {
-        heading: 'Printing, embroidery and price',
+        heading: 'Print technique and price',
         paragraphs: [
-          'Screen printing, DTG and DTF can work on appropriate 200 GSM and 260 GSM products, subject to fabric, garment colour, artwork and process review. Embroidery can suit compact marks, but density and placement should be sampled when puckering or comfort is a concern.',
+          'Screen Print, DTF and Reflective Print can work on appropriate 200 GSM and 260 GSM products, subject to fabric, garment colour, artwork and process review.',
           'At current Garmops base pricing, the 200 GSM T-shirts start at ₹535 per piece and 260 GSM T-shirts start at ₹565 before GST and shipping. Quantity, artwork, techniques, labels, samples and deadline can change the final quote.',
         ],
         links: [
@@ -813,7 +813,7 @@ export const journalPosts: JournalPost[] = [
     ],
     relatedLinks: [
       { label: 'Bulk custom T-shirt printing options', href: '/custom-t-shirt-printing' },
-      { label: 'Compare decoration methods', href: '/journal/screen-printing-vs-dtg-vs-dtf-embroidery' },
+      { label: 'See how custom pricing works', href: '/pricing' },
       { label: 'Order catalogue samples', href: '/products' },
     ],
   },
@@ -848,7 +848,7 @@ export const journalPosts: JournalPost[] = [
       {
         heading: 'Choose polo or T-shirt around the role',
         paragraphs: [
-          'A polo provides a collar and placket for a more structured customer-facing silhouette. Compact embroidery or print can identify the venue without requiring a large graphic.',
+          'A polo provides a collar and placket for a more structured customer-facing silhouette. Compact printed artwork can identify the venue without requiring a large graphic.',
           'A regular-fit T-shirt can suit casual service, events and back-of-house roles where the garment is appropriate to the working environment. Use a physical sample and the venue’s operational requirements rather than making a decision from product category alone.',
         ],
         links: [
@@ -901,7 +901,7 @@ export const journalPosts: JournalPost[] = [
     readTime: '7 min read',
     author: 'Garmops Production Team',
     image: '/images/manufacturing-facility.webp',
-    keywords: ['Pantone fabric colour matching', 'apparel lab dip', 'print strike-off', 'embroidery thread matching'],
+    keywords: ['Pantone fabric colour matching', 'apparel lab dip', 'print strike-off', 'print colour matching'],
     takeaways: [
       'Screens emit light; fabric, ink and thread reflect light, so the same digital value cannot guarantee the same physical appearance.',
       'A Pantone reference gives the parties a common target but still requires process-specific sampling and tolerance.',
@@ -919,7 +919,7 @@ export const journalPosts: JournalPost[] = [
       {
         heading: 'Use the right physical checkpoint',
         paragraphs: [
-          'A lab dip tests a proposed fabric dye colour. A print strike-off tests ink or transfer colour and behaviour on the chosen fabric. An embroidery sew-out tests thread, density and the way the mark appears at the final size.',
+          'A lab dip tests a proposed fabric dye colour. A print strike-off tests ink or transfer colour and behaviour on the chosen fabric.',
           'A full pre-production sample brings garment, decoration, placement and labels together. Choose the checkpoint around the part of the order that carries the greatest risk.',
         ],
       },
@@ -927,7 +927,7 @@ export const journalPosts: JournalPost[] = [
         heading: 'Account for dye lots, ink and thread',
         paragraphs: [
           'Fabric produced in different dye lots can vary within an agreed tolerance. Reorders should reference the retained approved sample, while recognising that a new lot may need review.',
-          'Ink coverage changes with fabric colour, texture and underbase. Embroidery thread has its own physical colour range and sheen. Ask the supplier to match the appropriate production material rather than a screen swatch alone.',
+          'Ink coverage changes with fabric colour, texture and underbase. Ask the supplier to match the appropriate production material rather than a screen swatch alone.',
         ],
       },
       {
@@ -951,8 +951,8 @@ export const journalPosts: JournalPost[] = [
     ],
     relatedLinks: [
       { label: 'Prepare a complete production brief', href: '/journal/how-to-brief-a-manufacturer' },
-      { label: 'Compare decoration methods', href: '/journal/screen-printing-vs-dtg-vs-dtf-embroidery' },
+      { label: 'See how custom pricing works', href: '/pricing' },
       { label: 'Configure garment and artwork colours', href: '/configurator' },
     ],
   },
-]
+].filter((post) => post.slug !== 'screen-printing-vs-dtg-vs-dtf-embroidery')

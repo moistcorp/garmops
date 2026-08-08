@@ -6,7 +6,7 @@ import { products } from '@/lib/products'
 
 export const metadata: Metadata = generateMeta({
   title: 'Custom Apparel Pricing India | MOQ 50',
-  description: 'Estimate bulk custom T-shirt, hoodie, polo and tote pricing in India. See inclusions, volume discounts, GST and 18-day rush options from 50 pieces.',
+  description: 'Estimate bulk custom T-shirt, hoodie, polo and tote pricing in India. See starting garment price, volume discounts, GST and 18-day rush options from 50 pieces.',
   path: '/pricing',
   keywords: [
     'custom T-shirt printing price India',

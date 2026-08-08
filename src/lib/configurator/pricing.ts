@@ -1,11 +1,16 @@
 // src/lib/configurator/pricing.ts
 
-import { products as catalogProducts } from "../products";
 import {
+  BACK_ARTWORK_UNIT_INCREASE_PERCENT,
+  CUSTOMER_PRINT_TECHNIQUE_LABELS,
+  CUSTOMER_PRINT_TECHNIQUE_UNIT_DELTAS,
+  CUSTOM_DYE_UNIT_INCREASE_PERCENT,
   EXPRESS_DELIVERY_FEE_PER_UNIT,
   GST_PERCENT,
+  NECK_LABEL_UNIT_PRICE,
   RUSH_DELIVERY_FEE_PER_UNIT,
   VOLUME_DISCOUNT_TIERS,
+  getCatalogueBasePriceRupees,
   getVolumeDiscountAmount,
   getVolumeDiscountPercent,
   type VolumeDiscountTier,
@@ -19,24 +24,16 @@ import type { Artwork, ArtworkTechnique, GarmentColour, NeckLabel } from "./type
 
 export type ProductId = string;
 
-const BASE_PRICES: Record<ProductId, number> = Object.fromEntries(
-  catalogProducts.map((product) => [product.slug, product.price])
-);
-
 export function getBasePrice(productId: ProductId): number {
-  const price = BASE_PRICES[productId];
-  if (price === undefined) {
-    throw new Error(`No base price found for product ID "${productId}"`);
-  }
-  return price;
+  return getCatalogueBasePriceRupees(productId);
 }
 
-export const CUSTOM_DYE_UNIT_INCREASE_PERCENT = 15.33;
-export const BACK_ARTWORK_UNIT_INCREASE_PERCENT = 22;
-export const NECK_LABEL_UNIT_PRICE = 25;
 export {
+  BACK_ARTWORK_UNIT_INCREASE_PERCENT,
+  CUSTOM_DYE_UNIT_INCREASE_PERCENT,
   EXPRESS_DELIVERY_FEE_PER_UNIT,
   GST_PERCENT,
+  NECK_LABEL_UNIT_PRICE,
   RUSH_DELIVERY_FEE_PER_UNIT,
   VOLUME_DISCOUNT_TIERS,
   getVolumeDiscountAmount,
@@ -44,14 +41,26 @@ export {
   type VolumeDiscountTier,
 };
 
-export const TECHNIQUE_UNIT_PRICE_DELTAS: Record<ArtworkTechnique, number> = {
-  screen_print: 38,
+/**
+ * Legacy values are retained only so old saved design snapshots can be read.
+ * They are never offered in the customer UI and cannot be submitted as a new
+ * order. Historical orders retain their immutable pricing snapshots.
+ */
+const LEGACY_TECHNIQUE_UNIT_PRICE_DELTAS = {
   dtg: 28,
-  dtf: 32,
-  reflective_heat_transfer: 46,
   puff_print: 52,
   embroidery: 65,
-};
+} as const;
+
+export const TECHNIQUE_UNIT_PRICE_DELTAS = CUSTOMER_PRINT_TECHNIQUE_UNIT_DELTAS;
+
+function techniqueUnitPriceDelta(technique: ArtworkTechnique): number {
+  return CUSTOMER_PRINT_TECHNIQUE_UNIT_DELTAS[
+    technique as keyof typeof CUSTOMER_PRINT_TECHNIQUE_UNIT_DELTAS
+  ] ?? LEGACY_TECHNIQUE_UNIT_PRICE_DELTAS[
+    technique as keyof typeof LEGACY_TECHNIQUE_UNIT_PRICE_DELTAS
+  ];
+}
 
 /** A private cloud upload is still an artwork asset even when no URL is present. */
 export function hasArtworkAsset(side?: Partial<Pick<import("./types/configurator").ArtworkSide, "fileUrl" | "fileId">>): boolean {
@@ -83,8 +92,10 @@ export function getUnitPriceAdjustments(
     const artworkSide = artwork[side];
     if (!artworkSide || !hasArtworkAsset(artworkSide) || !artworkSide.technique) return;
     adjustments.push({
-      label: `${side === "front" ? "Front" : "Back"} ${artworkSide.technique.replaceAll("_", " ")}`,
-      amount: TECHNIQUE_UNIT_PRICE_DELTAS[artworkSide.technique],
+      label: `${side === "front" ? "Front" : "Back"} ${CUSTOMER_PRINT_TECHNIQUE_LABELS[
+        artworkSide.technique as keyof typeof CUSTOMER_PRINT_TECHNIQUE_LABELS
+      ] ?? "legacy decoration"}`,
+      amount: techniqueUnitPriceDelta(artworkSide.technique),
     });
   });
 

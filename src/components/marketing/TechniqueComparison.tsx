@@ -7,13 +7,9 @@ const techniques = {
     title: 'DTF',
     description: 'Supports detailed multi-colour transfers across compatible fabrics, with a transfer layer that changes the hand feel.',
   },
-  dtg: {
-    title: 'DTG',
-    description: 'Useful for detailed, photographic or gradient artwork on compatible cotton garments. Fabric and pretreatment influence the result.',
-  },
-  embroidery: {
-    title: 'Embroidery',
-    description: 'A textured option for compact marks on polos, hoodies and heavier garments. Stitch count, detail and size affect suitability.',
+  'reflective-print': {
+    title: 'Reflective Print',
+    description: 'A light-reactive speciality finish for artwork that needs a high-visibility visual effect.',
   },
 } as const
 
@@ -27,7 +23,7 @@ export default function TechniqueComparison({
       <div className="max-w-3xl">
         <p className="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-[var(--text-primary)]/45">Decoration</p>
         <h2 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl">
-          Printing and embroidery choices
+          Print technique choices
         </h2>
         <p className="mt-4 max-w-2xl text-sm leading-7 text-[#3f3f3f] sm:text-base">
           The right method depends on the artwork, colour count, physical size, order quantity, garment fabric and colour, desired finish and budget.

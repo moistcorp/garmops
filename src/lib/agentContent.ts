@@ -1,4 +1,9 @@
-import { caseStudies } from './casestudies'
+import {
+  caseStudies,
+  formatCaseStudyProducts,
+  getCaseStudyIndustry,
+  getCaseStudyProduct,
+} from './casestudies'
 import { homeFaqs } from './homeContent'
 import { journalPosts } from './journal'
 import { landingPageByPath } from './landingPages'
@@ -363,14 +368,15 @@ function workIndexMarkdown() {
 ## Case studies
 
 ${caseStudies.map((study) => [
-  `### [${study.title}](${absolute(`/work/${study.slug}`)})`,
+  `### [${study.client}](${absolute(`/work/${study.slug}`)})`,
   '',
-  study.excerpt,
+  study.summary,
   '',
   `- Client: ${study.client}`,
-  `- Product: ${study.product}`,
-  `- Quantity: ${study.quantity}`,
-  `- Turnaround: ${study.turnaround}`,
+  `- Industry: ${getCaseStudyIndustry(study.industryId)?.name ?? study.industryId}`,
+  `- Products: ${formatCaseStudyProducts(study)}`,
+  `- Print method: ${study.printTechniques.join(', ')}`,
+  ...(study.totalQuantity ? [`- Quantity: ${study.totalQuantity}`] : []),
 ].join('\n')).join('\n\n')}
 `,
   })
@@ -381,37 +387,46 @@ function workMarkdown(slug: string) {
   if (!study) return null
 
   return document({
-    title: study.title,
-    description: study.excerpt,
+    title: `${study.client} Case Study`,
+    description: study.summary,
     path: `/work/${study.slug}`,
     body: `
 ## Project facts
 
 - Client: ${study.client}
-- Industry: ${study.industry}
-- Product: ${study.product}
-- Quantity: ${study.quantity}
-- Colour: ${study.color}
-- Decoration: ${study.printMethod}
-- Turnaround: ${study.turnaround}
-- Date: ${study.date}
-- Deliverables: ${study.deliverables.join(', ')}
+- Industry: ${getCaseStudyIndustry(study.industryId)?.name ?? study.industryId}
+- Products: ${formatCaseStudyProducts(study)}
+- Print method: ${study.printTechniques.join(', ')}
+${study.totalQuantity ? `- Quantity: ${study.totalQuantity}` : ''}
+${study.productionTimeline ? `- Production timeline: ${study.productionTimeline}` : ''}
+${study.projectDate ? `- Project date: ${study.projectDate}` : ''}
 
-## Challenge
+## The brief
 
-${study.challenge}
+${study.brief.map(field => `- ${field.label}: ${field.value}`).join('\n')}
 
-## Solution
+## What we made
 
-${study.solution}
+${study.products.map(item => {
+  const product = getCaseStudyProduct(item.productId)
+  return [
+    `### ${product?.name ?? item.productId}`,
+    '',
+    `- Product page: [${product?.name ?? item.productId}](${absolute(`/products/${item.productId}`)})`,
+    ...(item.quantity ? [`- Quantity: ${item.quantity}`] : []),
+    ...(item.colour ? [`- Colour: ${item.colour}`] : []),
+    ...(item.printTechniques?.length ? [`- Print: ${item.printTechniques.join(', ')}`] : []),
+    ...(item.artwork ? [`- Artwork: ${item.artwork}`] : []),
+  ].join('\n')
+}).join('\n\n')}
 
-## Result
+${study.configuration?.length ? `## Project configuration\n\n${study.configuration.map(field => `- ${field.label}: ${field.value}`).join('\n')}` : ''}
 
-${study.result}
+${study.productionNotes?.length ? `## Production notes\n\n${study.productionNotes.map(note => `- ${note}`).join('\n')}` : ''}
 
-${study.sections.map((section) => `## ${section.heading}\n\n${section.body}`).join('\n\n')}
+${study.outcomes?.length ? `## Outcome\n\n${study.outcomes.map(outcome => `### ${outcome.title}\n\n${outcome.description}${outcome.sourceNote ? `\n\n_${outcome.sourceNote}_` : ''}`).join('\n\n')}` : ''}
 
-${study.testimonial ? `## Client comment\n\n> ${study.testimonial.quote}\n>\n> — ${study.testimonial.author}, ${study.testimonial.role}` : ''}
+${study.testimonial ? `## Client comment\n\n> ${study.testimonial.quote}\n>\n> — ${study.testimonial.name}${study.testimonial.role || study.testimonial.company ? `, ${[study.testimonial.role, study.testimonial.company].filter(Boolean).join(' · ')}` : ''}` : ''}
 `,
   })
 }

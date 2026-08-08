@@ -54,7 +54,7 @@ describe("server custom-order pricing", () => {
   it("recalculates canonical paise totals from the saved design", () => {
     const result = priceCustomOrder({
       snapshot: designSnapshot(),
-      sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 5, XXL: 5 },
+      sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 10 },
       deliveryType: "standard",
     });
 
@@ -77,7 +77,7 @@ describe("server custom-order pricing", () => {
     const snapshot = designSnapshot(100);
     const server = priceCustomOrder({
       snapshot,
-      sizeQuantities: { XS: 10, S: 20, M: 30, L: 20, XL: 10, XXL: 10 },
+      sizeQuantities: { XS: 10, S: 20, M: 30, L: 20, XL: 20 },
       deliveryType: "rush",
     });
     const browserLine = getConfiguredLinePricingPaise({
@@ -97,7 +97,7 @@ describe("server custom-order pricing", () => {
   it("keeps duplicate products as separately numbered commercial lines", () => {
     const first = priceCustomOrder({
       snapshot: designSnapshot(),
-      sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 5, XXL: 5 },
+      sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 10 },
       deliveryType: "standard",
       lineNumber: 1,
       cartItemId: "tee-line-a",
@@ -106,7 +106,7 @@ describe("server custom-order pricing", () => {
     });
     const second = priceCustomOrder({
       snapshot: designSnapshot(),
-      sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 5, XXL: 5 },
+      sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 10 },
       deliveryType: "standard",
       lineNumber: 2,
       cartItemId: "tee-line-b",
@@ -133,12 +133,12 @@ describe("server custom-order pricing", () => {
   it("adds the rush surcharge after volume discount and before GST", () => {
     const standard = priceCustomOrder({
       snapshot: designSnapshot(),
-      sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 5, XXL: 5 },
+      sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 10 },
       deliveryType: "standard",
     });
     const rush = priceCustomOrder({
       snapshot: designSnapshot(),
-      sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 5, XXL: 5 },
+      sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 10 },
       deliveryType: "rush",
     });
 
@@ -153,7 +153,7 @@ describe("server custom-order pricing", () => {
     expect(() =>
       priceCustomOrder({
         snapshot: designSnapshot(),
-        sizeQuantities: { XS: 5, S: 10, M: 14, L: 10, XL: 5, XXL: 5 },
+      sizeQuantities: { XS: 5, S: 10, M: 14, L: 10, XL: 10 },
         deliveryType: "standard",
       }),
     ).toThrow("do not match");
@@ -163,7 +163,7 @@ describe("server custom-order pricing", () => {
     expect(() =>
       priceCustomOrder({
         snapshot: designSnapshot(50, "custom_dye"),
-        sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 5, XXL: 5 },
+      sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 10 },
         deliveryType: "standard",
       }),
     ).toThrow("between 100");

@@ -10,7 +10,12 @@ import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronUp, Cloud, CloudAlert, LoaderCircle } from "lucide-react";
 import type { GarmentView } from "@/lib/configurator/types/garment";
-import type { GarmentColour, Artwork, NeckLabel } from "@/lib/configurator/types/configurator";
+import {
+  isCustomerArtworkTechnique,
+  type GarmentColour,
+  type Artwork,
+  type NeckLabel,
+} from "@/lib/configurator/types/configurator";
 import GarmentPreview from "./GarmentPreview/GarmentPreview";
 import CanvasRenderer from "./GarmentPreview/CanvasRenderer";
 import {
@@ -110,8 +115,8 @@ function safeQuantity(value: unknown, minimum = 50): number {
 
 function artworkSummary(artwork: Artwork): string | null {
   const summary = [
-    artwork.front?.technique && `Front · ${TECHNIQUE_LABELS[artwork.front.technique]}`,
-    artwork.back?.technique && `Back · ${TECHNIQUE_LABELS[artwork.back.technique]}`,
+    isCustomerArtworkTechnique(artwork.front?.technique) && `Front · ${TECHNIQUE_LABELS[artwork.front.technique]}`,
+    isCustomerArtworkTechnique(artwork.back?.technique) && `Back · ${TECHNIQUE_LABELS[artwork.back.technique]}`,
   ]
     .filter(Boolean)
     .join(", ");

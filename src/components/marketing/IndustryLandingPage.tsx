@@ -4,7 +4,7 @@ import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import JsonLd from '@/components/seo/JsonLd'
 import ProofLinks from '@/components/marketing/ProofLinks'
 import IndustryPrintTechniques from '@/components/marketing/IndustryPrintTechniques'
-import { caseStudies } from '@/lib/casestudies'
+import { caseStudies, matchesCaseStudyIndustry } from '@/lib/casestudies'
 import type { IndustryPageContent } from '@/lib/industries'
 import { products, productFabricFeel, productFitLabel, productImageAlt } from '@/lib/products'
 import { breadcrumbSchema, faqSchema, productItemListSchema, serviceSchema } from '@/lib/structuredData'
@@ -49,7 +49,7 @@ export default function IndustryLandingPage({ content }: { content: IndustryPage
     return product ? [{ ...item, product }] : []
   })
   const relevantCaseStudies = content.proofIndustries
-    ? caseStudies.filter(study => content.proofIndustries?.includes(study.industry)).slice(0, 2)
+    ? caseStudies.filter(study => content.proofIndustries?.some(industry => matchesCaseStudyIndustry(study, industry))).slice(0, 2)
     : []
   const breadcrumbItems = [
     { name: 'Home', path: '/' },

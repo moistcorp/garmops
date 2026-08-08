@@ -10,49 +10,37 @@ import {
 import { Check, ChevronDown } from "lucide-react";
 import type {
   ArtworkFileType,
-  ArtworkTechnique,
+  CustomerArtworkTechnique,
 } from "@/lib/configurator/types/configurator";
-import { formatInr, TECHNIQUE_UNIT_PRICE_DELTAS } from "@/lib/configurator/pricing";
+import { formatInr } from "@/lib/configurator/pricing";
+import {
+  CUSTOMER_PRINT_TECHNIQUE_LABELS,
+  CUSTOMER_PRINT_TECHNIQUE_UNIT_DELTAS,
+} from "@/lib/pricingRules";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 
 export interface TechniqueSelectProps {
-  value?: ArtworkTechnique;
+  value?: CustomerArtworkTechnique;
   fileType?: ArtworkFileType;
   side?: "front" | "back";
-  onChange: (technique: ArtworkTechnique) => void;
+  onChange: (technique: CustomerArtworkTechnique) => void;
 }
 
-export const TECHNIQUE_LABELS: Record<ArtworkTechnique, string> = {
-  screen_print: "Screen Print",
-  dtg: "DTG",
-  dtf: "DTF",
-  reflective_heat_transfer: "Reflective Heat Transfer",
-  puff_print: "Puff Print",
-  embroidery: "Embroidery",
-};
+export const TECHNIQUE_LABELS = CUSTOMER_PRINT_TECHNIQUE_LABELS;
 
-const TECHNIQUE_ORDER: ArtworkTechnique[] = [
+const TECHNIQUE_ORDER: CustomerArtworkTechnique[] = [
   "screen_print",
-  "dtg",
   "dtf",
   "reflective_heat_transfer",
-  "puff_print",
-  "embroidery",
 ];
 
-const TECHNIQUE_DESCRIPTIONS: Record<ArtworkTechnique, string> = {
+const TECHNIQUE_DESCRIPTIONS: Record<CustomerArtworkTechnique, string> = {
   screen_print:
     "A durable choice for bold vector artwork, clean lines and designs with a limited colour count.",
-  dtg:
-    "A soft-hand print suited to detailed, full-colour artwork and photographic imagery.",
   dtf:
     "A versatile option for vivid raster artwork, fine details and strong colour across fabric types.",
   reflective_heat_transfer:
     "A light-reactive finish that adds visibility and a precise, technical look.",
-  puff_print:
-    "Creates a raised, tactile finish that works best with bold shapes and simple artwork.",
-  embroidery:
-    "A premium stitched finish for logos and text with simple shapes and strong contrast.",
 };
 
 interface TechniqueCrop {
@@ -62,19 +50,16 @@ interface TechniqueCrop {
   height: number;
 }
 
-const TECHNIQUE_CROPS: Record<ArtworkTechnique, TechniqueCrop> = {
+const TECHNIQUE_CROPS: Record<CustomerArtworkTechnique, TechniqueCrop> = {
   screen_print: { x: 29, y: 145, width: 226, height: 281 },
   reflective_heat_transfer: { x: 366, y: 145, width: 226, height: 281 },
-  puff_print: { x: 682, y: 145, width: 226, height: 281 },
-  dtg: { x: 28, y: 530, width: 226, height: 283 },
   dtf: { x: 366, y: 530, width: 226, height: 283 },
-  embroidery: { x: 682, y: 530, width: 226, height: 283 },
 };
 
 const TECHNIQUE_SHEET_SIZE = 938;
 const THUMBNAIL_SIZE = 56;
 
-function TechniqueThumbnail({ technique }: { technique: ArtworkTechnique }) {
+function TechniqueThumbnail({ technique }: { technique: CustomerArtworkTechnique }) {
   const crop = TECHNIQUE_CROPS[technique];
   const scale = THUMBNAIL_SIZE / crop.width;
   const scaledCropHeight = crop.height * scale;
@@ -138,7 +123,7 @@ export function TechniqueSelect({
     window.requestAnimationFrame(() => optionRefs.current[nextIndex]?.focus());
   }
 
-  function chooseTechnique(technique: ArtworkTechnique) {
+  function chooseTechnique(technique: CustomerArtworkTechnique) {
     onChange(technique);
     setOpen(false);
     window.requestAnimationFrame(() => triggerRef.current?.focus());
@@ -278,7 +263,7 @@ export function TechniqueSelect({
                       {TECHNIQUE_DESCRIPTIONS[technique]}
                     </span>
                     <span className="mt-1.5 block text-[10px] font-semibold text-[var(--text-primary)]/45">
-                      +{formatInr(TECHNIQUE_UNIT_PRICE_DELTAS[technique])}/unit
+                      +{formatInr(CUSTOMER_PRINT_TECHNIQUE_UNIT_DELTAS[technique])}/unit
                     </span>
                   </span>
                   {selected && (

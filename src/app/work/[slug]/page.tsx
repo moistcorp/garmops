@@ -1,4 +1,4 @@
-import { caseStudies } from '@/lib/casestudies'
+import { caseStudies, getCaseStudy, getRelatedCaseStudies } from '@/lib/casestudies'
 import { notFound } from 'next/navigation'
 import WorkDetailClient from './WorkDetailClient'
 import { generateMeta } from '@/lib/seo'
@@ -18,7 +18,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await params
-  const cs = caseStudies.find(c => c.slug === slug)
+  const cs = getCaseStudy(slug)
   if (!cs) {
     return {
       title: 'Case Study Not Found',
@@ -26,8 +26,8 @@ export async function generateMetadata({
     }
   }
   return generateMeta({
-    title: `${cs.client} — ${cs.title}`,
-    description: cs.excerpt,
+    title: `${cs.client} Case Study | Garmops`,
+    description: cs.summary,
     path: `/work/${cs.slug}`,
     image: cs.coverImage ?? undefined,
   })
@@ -39,9 +39,9 @@ export default async function WorkDetailPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const cs = caseStudies.find(c => c.slug === slug)
+  const cs = getCaseStudy(slug)
   if (!cs) notFound()
-  const related = caseStudies.filter(c => c.slug !== cs.slug).slice(0, 2)
+  const related = getRelatedCaseStudies(cs)
   return (
     <>
       <JsonLd data={breadcrumbSchema([

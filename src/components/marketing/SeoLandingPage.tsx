@@ -1,6 +1,6 @@
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import JsonLd from '@/components/seo/JsonLd'
-import { caseStudies } from '@/lib/casestudies'
+import { caseStudies, matchesCaseStudyIndustry } from '@/lib/casestudies'
 import type { SeoLandingPageContent } from '@/lib/landingPages'
 import { products } from '@/lib/products'
 import {
@@ -25,7 +25,7 @@ export default function SeoLandingPage({ content }: { content: SeoLandingPageCon
   const path = `/${content.slug}`
   const selectedProducts = products.filter(product => content.productSlugs?.includes(product.slug))
   const relevantCaseStudies = content.proofIndustries
-    ? caseStudies.filter(study => content.proofIndustries?.includes(study.industry)).slice(0, 2)
+    ? caseStudies.filter(study => content.proofIndustries?.some(industry => matchesCaseStudyIndustry(study, industry))).slice(0, 2)
     : []
   const breadcrumbItems = [
     { name: 'Home', path: '/' },
