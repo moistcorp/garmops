@@ -18,17 +18,9 @@ describe("configurator journey labels", () => {
     );
   });
 
-  it("makes optional empty steps explicit", () => {
+  it("names the next step for the standard label choice", () => {
     expect(getConfiguratorCtaLabel("artwork", defaults)).toBe("Continue without artwork →");
-    expect(getConfiguratorCtaLabel("neck-label", defaults)).toBe(
-      "Use standard neck label",
-    );
-    expect(
-      getConfiguratorCtaLabel("neck-label", {
-        ...defaults,
-        isToteProduct: true,
-      }),
-    ).toBe("Use standard bag label");
+    expect(getConfiguratorCtaLabel("neck-label", defaults)).toBe("Continue to sizes");
   });
 
   it("uses continuation labels after optional work is added", () => {

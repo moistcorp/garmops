@@ -5,6 +5,8 @@ import {
   getCatalogueBasePriceRupees,
 } from "@/lib/pricingRules";
 import { getConfiguredPricingSummary } from "./pricing";
+import { createStandardNeckLabel } from "./neckLabel";
+import { NECK_LABEL_UNIT_PRICE } from "@/lib/pricingRules";
 
 describe("canonical custom-order pricing", () => {
   it("uses product slugs for the catalogue starting price", () => {
@@ -32,6 +34,34 @@ describe("canonical custom-order pricing", () => {
     expect(rush.taxableSubtotal - standard.taxableSubtotal).toBe(7_500);
     expect(rush.gst - standard.gst).toBe(375);
     expect(rush.total - standard.total).toBe(7_875);
+  });
+
+  it("charges the canonical custom-label rule but never charges the standard size label", () => {
+    const standard = getConfiguredPricingSummary(
+      "regular-fit-tee-200gsm",
+      undefined,
+      {},
+      { ...createStandardNeckLabel(), confirmed: true },
+      50,
+    );
+    const custom = getConfiguredPricingSummary(
+      "regular-fit-tee-200gsm",
+      undefined,
+      {},
+      {
+        ...createStandardNeckLabel(),
+        labelType: "custom",
+        fileUrl: "blob:custom-label",
+        fileType: "svg",
+        confirmed: true,
+      },
+      50,
+    );
+
+    expect(standard.undiscountedUnitPrice).toBe(535);
+    expect(custom.undiscountedUnitPrice - standard.undiscountedUnitPrice).toBe(
+      NECK_LABEL_UNIT_PRICE,
+    );
   });
 
   it("limits new customer selections to the three supported print techniques", () => {

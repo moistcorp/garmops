@@ -76,6 +76,7 @@ const artworkSideSchema = z
 
 const neckLabelSchema = z
   .object({
+    labelType: z.enum(["standard-size", "custom"]).optional(),
     fileUrl: safeAssetUrl.optional(),
     fileId: z.uuid().optional(),
     pendingUpload: z.literal(true).optional(),
@@ -89,8 +90,8 @@ const neckLabelSchema = z
   })
   .strict()
   .refine(
-    (label) => Boolean(label.fileUrl || label.fileId || label.pendingUpload),
-    "Neck label must reference a safe asset or an uploaded file",
+    (label) => label.labelType === "standard-size" || Boolean(label.fileUrl || label.fileId || label.pendingUpload),
+    "Custom neck label must reference a safe asset or an uploaded file",
   );
 
 const stepSchema = z

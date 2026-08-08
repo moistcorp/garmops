@@ -48,6 +48,7 @@ export interface ConfiguratorSidebarProps {
   onArtworkChange?: (artwork: Artwork) => void;
   neckLabel?: NeckLabel;
   onNeckLabelChange?: (neckLabel: NeckLabel) => void;
+  onNeckLabelPreviewChange?: (previewUrl?: string) => void;
   activeView?: GarmentView;
   onViewChange?: (view: GarmentView) => void;
   unitBasePrice?: number;
@@ -87,6 +88,7 @@ export function ConfiguratorSidebar({
   onArtworkChange,
   neckLabel: controlledNeckLabel,
   onNeckLabelChange,
+  onNeckLabelPreviewChange,
   activeView,
   onViewChange,
   unitBasePrice,
@@ -199,13 +201,14 @@ export function ConfiguratorSidebar({
           />
         ) : (
           <NeckLabelPanel
-            key={neckLabel?.fileUrl ?? "empty-neck-label"}
+            key="neck-label"
             value={neckLabel}
             onChange={(next) => {
               if (controlledNeckLabel === undefined) setInternalNeckLabel(next);
               onNeckLabelChange?.(next);
             }}
             onClear={() => resetStep("neck-label")}
+            onPreviewChange={onNeckLabelPreviewChange}
             isToteProduct={isToteProduct}
           />
         )}

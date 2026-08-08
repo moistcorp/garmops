@@ -25,6 +25,10 @@ const ARTWORK_TECHNIQUES = new Set([
   "embroidery",
 ]);
 const PRINT_AREAS = new Set(["XS", "S", "M", "L", "XL", "XXL"]);
+const NECK_LABEL_FILE_TYPES = new Set(["svg", "ai"]);
+const NECK_LABEL_DIMENSIONS = new Set(["50x18", "60x20", "65x15", "45x45"]);
+const NECK_LABEL_POSITIONS = new Set(["below_neck_tape", "on_neck_tape"]);
+const NECK_LABEL_STITCHES = new Set(["2_side", "4_corner", "2_corner"]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -50,6 +54,21 @@ function isArtworkSide(value: unknown): boolean {
     typeof value.guidelines.maximumArea === "boolean" &&
     typeof value.guidelines.leftChest === "boolean" &&
     typeof value.confirmed === "boolean"
+  );
+}
+
+function isNeckLabel(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  return (
+    (value.labelType === undefined || value.labelType === "standard-size" || value.labelType === "custom") &&
+    (value.fileUrl === undefined || typeof value.fileUrl === "string") &&
+    (value.fileKey === undefined || typeof value.fileKey === "string") &&
+    (value.fileName === undefined || typeof value.fileName === "string") &&
+    (value.fileType === undefined || NECK_LABEL_FILE_TYPES.has(String(value.fileType))) &&
+    (value.dimensions === undefined || NECK_LABEL_DIMENSIONS.has(String(value.dimensions))) &&
+    (value.position === undefined || NECK_LABEL_POSITIONS.has(String(value.position))) &&
+    (value.stitch === undefined || NECK_LABEL_STITCHES.has(String(value.stitch))) &&
+    (value.confirmed === undefined || typeof value.confirmed === "boolean")
   );
 }
 
@@ -83,6 +102,7 @@ function normalizeBuildDraft(input: unknown): BuildDraft | null {
       !isArtworkSide(parsed.artwork.front)) ||
     (parsed.artwork.back !== undefined &&
       !isArtworkSide(parsed.artwork.back)) ||
+    (parsed.neckLabel !== undefined && !isNeckLabel(parsed.neckLabel)) ||
     !Array.isArray(parsed.steps) ||
     !parsed.steps.every(
       (step) =>

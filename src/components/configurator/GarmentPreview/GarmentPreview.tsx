@@ -14,6 +14,7 @@ interface GarmentPreviewProps {
   productId: ProductId;
   artwork: Artwork;
   neckLabel?: NeckLabel;
+  neckLabelPreviewUrl?: string;
   hideBackView?: boolean;
   showProductionGuides?: boolean;
   exclusiveLayerCache?: boolean;
@@ -29,6 +30,7 @@ export default function GarmentPreview({
   productId,
   artwork,
   neckLabel,
+  neckLabelPreviewUrl,
   hideBackView = false,
   showProductionGuides = false,
   exclusiveLayerCache = false,
@@ -46,6 +48,7 @@ export default function GarmentPreview({
             productId={productId}
             artwork={artwork}
             neckLabel={neckLabel}
+            neckLabelPreviewUrl={neckLabelPreviewUrl}
             showProductionGuides={showProductionGuides}
             exclusiveLayerCache={exclusiveLayerCache}
             className={

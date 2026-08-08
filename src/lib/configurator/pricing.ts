@@ -17,6 +17,7 @@ import {
 } from "../pricingRules";
 import { calculateTaxPaise } from "@/lib/tax";
 import type { Artwork, ArtworkTechnique, GarmentColour, NeckLabel } from "./types/configurator";
+import { isCustomNeckLabel } from "./neckLabel";
 
 // ============================================================
 // PHASE 1 (confirmed) — base price lookup
@@ -103,7 +104,7 @@ export function getUnitPriceAdjustments(
     adjustments.push({ label: "Back artwork", percent: BACK_ARTWORK_UNIT_INCREASE_PERCENT });
   }
 
-  if (hasNeckLabelAsset(neckLabel)) {
+  if (isCustomNeckLabel(neckLabel)) {
     adjustments.push({ label: "Neck label", amount: NECK_LABEL_UNIT_PRICE });
   }
 

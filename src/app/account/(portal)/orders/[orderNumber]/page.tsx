@@ -199,7 +199,7 @@ export default async function AccountOrderDetailPage({ params }: { params: Promi
                   <SnapshotRows rows={[
                     ["Front artwork", textValue(frontArtwork, "fileName", "name", "filename") || (frontArtwork.fileId ? "Uploaded file" : "None")],
                     ["Back artwork", textValue(backArtwork, "fileName", "name", "filename") || (backArtwork.fileId ? "Uploaded file" : "None")],
-                    ["Neck label", textValue(neckLabel, "fileName", "name", "filename", "type") || (neckLabel.fileId ? "Uploaded file" : "None")],
+                    ["Neck label", neckLabel.labelType === "standard-size" || (!neckLabel.fileId && !neckLabel.fileUrl) ? "Standard size label only" : textValue(neckLabel, "fileName", "name", "filename") || (neckLabel.fileId ? "Uploaded file" : "Custom neck label")],
                   ]} />
                 </div>
               </details>;

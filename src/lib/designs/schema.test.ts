@@ -38,6 +38,19 @@ describe("cloud design schema", () => {
     );
   });
 
+  it("accepts an explicit standard size label without an artwork asset", () => {
+    const standard = structuredClone(validSnapshot) as Record<string, unknown>;
+    const configuration = standard.configuration as Record<string, unknown>;
+    configuration.neckLabel = {
+      labelType: "standard-size",
+      dimensions: "50x18",
+      position: "below_neck_tape",
+      confirmed: true,
+    };
+
+    expect(cloudDesignSnapshotSchema.safeParse(standard).success).toBe(true);
+  });
+
   it("accepts a pending browser upload without persisting its IndexedDB key", () => {
     const pending = structuredClone(validSnapshot) as Record<string, unknown>;
     const configuration = pending.configuration as Record<string, unknown>;

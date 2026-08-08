@@ -82,17 +82,20 @@ export interface Artwork {
 export type NeckLabelDimensions = '50x18' | '60x20' | '65x15' | '45x45'; // mm
 export type NeckLabelPosition = 'below_neck_tape' | 'on_neck_tape';
 export type NeckLabelStitch = '2_side' | '4_corner' | '2_corner';
+export type NeckLabelType = 'standard-size' | 'custom';
 
 export type NeckLabelFileType = 'svg' | 'ai';
 
 export interface NeckLabel {
-  fileUrl: string; // .svg or .ai only
+  /** Explicitly identifies the production choice. Omitted on old snapshots. */
+  labelType?: NeckLabelType;
+  fileUrl: string; // .svg or .ai only; empty for the standard size label
   /** Private R2 metadata ID used by cloud designs. */
   fileId?: string;
   /** IndexedDB key used to recreate an uploaded file after a reload. */
   fileKey?: string;
   fileName?: string;
-  fileType?: NeckLabelFileType; // drives whether the live preview can rasterize the file (svg) or must show a placeholder (ai — browsers can't render it)
+  fileType?: NeckLabelFileType;
   source?: 'upload' | 'sample';
   dimensions: NeckLabelDimensions;
   position: NeckLabelPosition;

@@ -37,6 +37,10 @@ import {
   buildPricingBreakdown,
   getConfiguredPricingSummary,
 } from "@/lib/configurator/pricing";
+import {
+  createStandardNeckLabel,
+  isCustomNeckLabel,
+} from "@/lib/configurator/neckLabel";
 import { CUSTOM_DYE_MOQ_UNITS } from "@/lib/configurator/colourRules";
 import {
   readDraft,
@@ -124,6 +128,8 @@ function artworkSummary(artwork: Artwork): string | null {
 }
 
 function labelSummary(neckLabel?: NeckLabel): string | null {
+  if (!neckLabel) return null;
+  if (!isCustomNeckLabel(neckLabel)) return "Standard size label";
   if (
     (!neckLabel?.fileUrl && !neckLabel?.fileId) ||
     !neckLabel.dimensions ||
@@ -156,12 +162,15 @@ function stepsForConfiguration(
         summary: summary ?? (restored?.skipped ? "No artwork added" : null),
       };
     }
-    const summary = labelSummary(neckLabel);
+    const hasCustomAsset = Boolean(neckLabel?.fileUrl || neckLabel?.fileId);
+    const summary = neckLabel?.confirmed || hasCustomAsset
+      ? labelSummary(neckLabel)
+      : null;
     return {
       ...step,
-      confirmed: restored?.confirmed ?? Boolean(summary),
+      confirmed: restored?.confirmed ?? Boolean(neckLabel?.confirmed || hasCustomAsset),
       skipped: !summary && restored?.skipped === true,
-      summary: summary ?? (restored?.skipped ? "Skipped · standard label only" : null),
+      summary: summary ?? (restored?.skipped ? "Standard size label" : null),
     };
   });
 }
@@ -215,7 +224,8 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   const [ctaErrorNonce, setCtaErrorNonce] = useState(0);
   const [colour, setColour] = useState<GarmentColour>(DEFAULT_COLOUR);
   const [artwork, setArtwork] = useState<Artwork>({});
-  const [neckLabel, setNeckLabel] = useState<NeckLabel>({} as NeckLabel);
+  const [neckLabel, setNeckLabel] = useState<NeckLabel>(() => createStandardNeckLabel());
+  const [neckLabelPreviewUrl, setNeckLabelPreviewUrl] = useState<string | undefined>();
   const [steps, setSteps] = useState<AccordionStepState[]>(() =>
     stepsForConfiguration(DEFAULT_COLOUR, {}, undefined)
   );
@@ -266,10 +276,11 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
     colour.type === "custom_dye" && quantity < minimumQuantity;
   const activeCustomisationStepId = expandedStepId ?? "garment-colour";
   const previewNeckLabel: NeckLabel =
-    activeCustomisationStepId === "neck-label" && !neckLabel.fileUrl
+    activeCustomisationStepId === "neck-label" && !neckLabel.dimensions
       ? {
           ...neckLabel,
           fileUrl: "",
+          labelType: "standard-size",
           dimensions: neckLabel.dimensions ?? "50x18",
           position: neckLabel.position ?? "below_neck_tape",
           stitch: neckLabel.stitch ?? "2_corner",
@@ -293,11 +304,13 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
             : artwork.back
               ? "Back artwork added · Front not added"
               : "No artwork added"
-        : neckLabel?.fileUrl || neckLabel?.fileId
-          ? `${isToteProduct ? "Bag" : "Neck"} label added`
-          : activeDrawerStep.skipped
-            ? `${isToteProduct ? "Bag" : "Neck"} label skipped`
-            : `No ${isToteProduct ? "bag" : "neck"} label added`;
+        : isCustomNeckLabel(neckLabel)
+          ? neckLabel.fileUrl || neckLabel.fileId
+            ? `${isToteProduct ? "Bag" : "Neck"} label added`
+            : `Upload ${isToteProduct ? "bag" : "neck label"} artwork`
+          : neckLabel?.confirmed
+            ? `${isToteProduct ? "Standard bag" : "Standard size"} label selected`
+            : `Choose a ${isToteProduct ? "bag" : "neck"} label`;
   const completedCustomisationSteps = new Set(
     steps
       .filter((step) => step.confirmed || step.skipped)
@@ -352,7 +365,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
       );
       setColour(restoredColour);
       setArtwork(uploads.artwork);
-      setNeckLabel((uploads.neckLabel ?? {}) as NeckLabel);
+      setNeckLabel(uploads.neckLabel ?? createStandardNeckLabel());
       setSteps(
         stepsForConfiguration(
           restoredColour,
@@ -891,7 +904,8 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
       updateStep("artwork", { confirmed: false, skipped: false, summary: null });
     }
     if (stepId === "neck-label") {
-      setNeckLabel({} as NeckLabel);
+      setNeckLabel(createStandardNeckLabel());
+      setNeckLabelPreviewUrl(undefined);
       updateStep("neck-label", { confirmed: false, skipped: false, summary: null });
     }
   }
@@ -916,7 +930,10 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
       previewImage: product?.defaultImage ?? "/flatlays/regulartee.png",
       colour: { ...colour, confirmed: true },
       artwork: cartArtwork,
-      neckLabel: cartNeckLabel?.fileUrl ? cartNeckLabel : undefined,
+      neckLabel:
+        !isCustomNeckLabel(cartNeckLabel) || cartNeckLabel?.fileUrl || cartNeckLabel?.fileId
+          ? cartNeckLabel
+          : undefined,
       quantity,
       rushDelivery: false,
     };
@@ -1002,17 +1019,22 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
     }
 
     if (expandedStepId === "neck-label") {
-      if (!neckLabel?.fileUrl && !neckLabel?.fileId) {
-        trackConfiguratorEvent("neck_label_skipped", {
-          product_id: productId,
-          step: "neck_label",
-        });
+      if (!isCustomNeckLabel(neckLabel)) {
+        const readyStandardLabel = {
+          ...createStandardNeckLabel(),
+          confirmed: true,
+        };
         updateStep("neck-label", {
           confirmed: true,
-          skipped: true,
-          summary: "Skipped · standard label only",
+          skipped: false,
+          summary: "Standard size label",
         });
-        addConfigurationToCart({ neckLabel: {} as NeckLabel });
+        setNeckLabel(readyStandardLabel);
+        addConfigurationToCart({ neckLabel: readyStandardLabel });
+        return;
+      }
+      if (!neckLabel?.fileUrl && !neckLabel?.fileId) {
+        showCtaError(`Upload your ${isToteProduct ? "bag" : "neck label"} artwork before continuing.`);
         return;
       }
       const isReady = Boolean(
@@ -1049,7 +1071,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
         productId,
         colour,
         artwork,
-        neckLabel?.fileUrl ? neckLabel : undefined,
+        neckLabel,
         quantity
       );
       const garmentCanvas = document.querySelector<HTMLCanvasElement>(
@@ -1073,7 +1095,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
             previewImage: product?.defaultImage ?? "/flatlays/regulartee.png",
             colour,
             artwork,
-            neckLabel: neckLabel?.fileUrl ? neckLabel : undefined,
+            neckLabel,
             sizeQuantities,
             unitPrice: pricing.discountedUnitPrice,
           },
@@ -1202,9 +1224,10 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
               view="front"
               colourHex={colour.hex}
               productId={productId}
-              artwork={artwork}
-              neckLabel={neckLabel}
-              interactive={false}
+            artwork={artwork}
+            neckLabel={neckLabel}
+            neckLabelPreviewUrl={neckLabelPreviewUrl}
+            interactive={false}
               exclusiveLayerCache
               className="h-full w-full bg-[#F7F7F7]"
             />
@@ -1224,6 +1247,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
                 productId={productId}
                 artwork={artwork}
                 neckLabel={previewNeckLabel}
+                neckLabelPreviewUrl={neckLabelPreviewUrl}
                 hideBackView={activeCustomisationStepId === "neck-label"}
                 showProductionGuides={activeCustomisationStepId === "artwork"}
                 exclusiveLayerCache
@@ -1310,6 +1334,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
                         summary: labelSummary(next),
                       });
                     }}
+                    onNeckLabelPreviewChange={setNeckLabelPreviewUrl}
                     activeView={activeView}
                     onViewChange={setActiveView}
                     unitBasePrice={unitBasePrice}
@@ -1333,7 +1358,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
                 minQuantity={minimumQuantity}
                 ctaLabel={getConfiguratorCtaLabel(expandedStepId, {
                   hasArtwork: Boolean(artwork.front || artwork.back),
-                  hasCustomLabel: Boolean(neckLabel?.fileUrl || neckLabel?.fileId),
+                  hasCustomLabel: isCustomNeckLabel(neckLabel),
                   isToteProduct,
                 })}
                 onCtaClick={handleCtaClick}

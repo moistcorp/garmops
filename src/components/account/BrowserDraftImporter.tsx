@@ -14,7 +14,7 @@ import {
   totalUnits,
 } from "@/components/configurator/cart/cartDraft";
 import type { CartItem } from "@/components/configurator/cart/OrderReviewStep";
-import type { NeckLabel } from "@/lib/configurator/types/configurator";
+import { createStandardNeckLabel, isCustomNeckLabel } from "@/lib/configurator/neckLabel";
 import {
   readCloudDesignLink,
   saveBuildDraftToCloud,
@@ -34,15 +34,14 @@ type ImportCandidate = {
 
 function cartItemDraft(item: CartItem): BuildDraft {
   const hasArtwork = Boolean(item.artwork.front || item.artwork.back);
-  const hasNeckLabel = Boolean(
-    item.neckLabel?.fileUrl || item.neckLabel?.fileId,
-  );
+  const hasNeckLabel = isCustomNeckLabel(item.neckLabel);
+  const neckLabel = item.neckLabel ?? createStandardNeckLabel();
   return {
     version: 1,
     savedAt: new Date().toISOString(),
     colour: item.colour,
     artwork: item.artwork,
-    neckLabel: (item.neckLabel ?? {}) as NeckLabel,
+    neckLabel,
     steps: [
       {
         id: "garment-colour",
@@ -60,9 +59,9 @@ function cartItemDraft(item: CartItem): BuildDraft {
       {
         id: "neck-label",
         title: "Neck Label",
-        summary: hasNeckLabel ? "Custom label added" : "Standard label",
+        summary: hasNeckLabel ? "Custom neck label" : "Standard size label",
         confirmed: true,
-        skipped: !hasNeckLabel,
+        skipped: false,
       },
     ],
     quantity: totalUnits(item.sizeQuantities),

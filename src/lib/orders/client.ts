@@ -3,6 +3,7 @@
 import type { CartDraft } from "@/components/configurator/cart/cartDraft";
 import type { CartItem } from "@/components/configurator/cart/OrderReviewStep";
 import type { BuildDraft } from "@/lib/configurator/buildDraft";
+import { isCustomNeckLabel, createStandardNeckLabel } from "@/lib/configurator/neckLabel";
 import {
   CUSTOM_ORDER_PRIVACY_VERSION,
   CUSTOM_ORDER_TERMS_VERSION,
@@ -88,17 +89,18 @@ function writePreparedOrder(cartId: string, value: PreparedOrder): void {
 
 function draftForItem(item: CartItem): BuildDraft {
   const hasArtwork = Boolean(item.artwork.front || item.artwork.back);
-  const hasNeckLabel = Boolean(item.neckLabel?.fileUrl || item.neckLabel?.fileId);
+  const hasNeckLabel = isCustomNeckLabel(item.neckLabel);
+  const neckLabel = item.neckLabel ?? createStandardNeckLabel();
   return {
     version: 1,
     savedAt: new Date().toISOString(),
     colour: { ...item.colour, confirmed: true },
     artwork: item.artwork,
-    neckLabel: item.neckLabel ?? ({} as BuildDraft["neckLabel"]),
+    neckLabel,
     steps: [
       { id: "garment-colour", title: "Garment colour", summary: item.colour.name, confirmed: true },
       { id: "artwork", title: "Artwork", summary: hasArtwork ? "Artwork added" : null, confirmed: hasArtwork, skipped: !hasArtwork },
-      { id: "neck-label", title: "Neck label", summary: hasNeckLabel ? "Neck label added" : null, confirmed: hasNeckLabel, skipped: !hasNeckLabel },
+      { id: "neck-label", title: "Neck label", summary: hasNeckLabel ? "Custom neck label" : "Standard size label", confirmed: true, skipped: false },
     ],
     quantity: Object.values(item.sizeQuantities).reduce<number>((total, value) => total + Number(value), 0),
   };

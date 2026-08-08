@@ -7,6 +7,7 @@ import type {
   ArtworkSide,
   NeckLabel,
 } from "@/lib/configurator/types/configurator";
+import { isStandardNeckLabel } from "@/lib/configurator/neckLabel";
 import type { CloudDesignSnapshot } from "@/lib/designs/schema";
 
 const CLOUD_LINK_PREFIX = "mf_configurator_cloud:";
@@ -160,9 +161,12 @@ function cloudNeckLabel(
     label.fileId ?? (label.fileKey ? uploadFileIds[label.fileKey] : undefined);
   const fileUrl = safeCloudAssetUrl(label.fileUrl);
   return {
+    ...(label.labelType ? { labelType: label.labelType } : {}),
     ...(fileUrl ? { fileUrl } : {}),
     ...(fileId ? { fileId } : {}),
-    ...(!fileUrl && !fileId ? { pendingUpload: true as const } : {}),
+    ...(!fileUrl && !fileId && label.labelType !== "standard-size"
+      ? { pendingUpload: true as const }
+      : {}),
     ...(label.fileName ? { fileName: label.fileName } : {}),
     ...(label.fileType ? { fileType: label.fileType } : {}),
     ...(label.source ? { source: label.source } : {}),
@@ -196,7 +200,7 @@ export function buildCloudDesignSnapshot(
           ? { smallestSize: draft.artwork.smallestSize }
           : {}),
       },
-      ...(draft.neckLabel?.fileUrl || draft.neckLabel?.fileId
+      ...(draft.neckLabel && (isStandardNeckLabel(draft.neckLabel) || draft.neckLabel.fileUrl || draft.neckLabel.fileId)
         ? { neckLabel: cloudNeckLabel(draft.neckLabel, uploadFileIds) }
         : {}),
       steps: draft.steps.map((step) => ({ ...step })),

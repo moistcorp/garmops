@@ -5,6 +5,7 @@ import type {
   NeckLabel,
 } from "@/lib/configurator/types/configurator";
 import { formatInr } from "@/lib/configurator/pricing";
+import { isCustomNeckLabel } from "@/lib/configurator/neckLabel";
 
 export interface ApprovalPdfItem {
   id: string;
@@ -173,10 +174,10 @@ function artworkLine(side: "Front" | "Back", artwork?: ArtworkSide): string {
 }
 
 function neckLabelLine(label?: NeckLabel): string {
-  if (!label?.fileUrl && !label?.fileId) {
-    return "Custom label: Skipped / standard label retained";
+  if (!label || !isCustomNeckLabel(label)) {
+    return "Label: Standard size label only (each garment uses its allocated size)";
   }
-  return `Custom label: ${label.dimensions?.replace("x", " x ")} mm, ${label.position.replaceAll("_", " ")}${label.stitch ? `, ${label.stitch.replaceAll("_", " ")} stitch` : ""}`;
+  return `Label: Custom neck label${label.fileName ? `, ${label.fileName}` : ""}, ${label.dimensions?.replace("x", " x ")} mm, ${label.position.replaceAll("_", " ")}${label.stitch ? `, ${label.stitch.replaceAll("_", " ")} stitch` : ""}`;
 }
 
 function readBlobAsDataUrl(blob: Blob): Promise<string> {

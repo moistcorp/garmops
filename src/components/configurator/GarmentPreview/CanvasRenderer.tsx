@@ -11,6 +11,7 @@ import type {
   NeckLabelDimensions,
   NeckLabelPosition,
 } from "@/lib/configurator/types/configurator";
+import { isCustomNeckLabel } from "@/lib/configurator/neckLabel";
 import type { GarmentView } from "@/lib/configurator/types/garment";
 import {
   useArtworkPosition,
@@ -64,17 +65,12 @@ const NECK_LABEL_TOP_PERCENT: Record<NeckLabelView, Record<NeckLabelPosition, nu
   },
 };
 
-// The 45x45mm preset has ~2x the on-canvas area of the strip presets (50x18,
-// 60x20, 65x15) once scaled by the same px-per-mm factor, and being a tall
-// square it visually dominates the collar in a way the physical size
-// difference doesn't really justify. Scale it down relative to the others.
-const NECK_LABEL_SCALE_OVERRIDE: Partial<Record<NeckLabelDimensions, number>> = {
-  "45x45": 0.62,
-};
-
-function neckLabelSizeMultiplier(dimensions: NeckLabelDimensions): number {
-  return NECK_LABEL_SCALE_OVERRIDE[dimensions] ?? 1;
-}
+// Standard labels are compact printed size tags, not custom-branding labels.
+// Keep this preview-only size separate from the persisted custom-label presets.
+const STANDARD_SIZE_LABEL_PREVIEW_MM = {
+  widthMm: 15,
+  heightMm: 20,
+} as const;
 
 function parseNeckLabelDimensionsMm(dimensions: NeckLabelDimensions): {
   widthMm: number;
@@ -90,6 +86,7 @@ interface CanvasRendererProps {
   productId: ProductId;
   artwork: Artwork;
   neckLabel?: NeckLabel;
+  neckLabelPreviewUrl?: string;
   interactive?: boolean;
   className?: string;
   style?: CSSProperties;
@@ -148,15 +145,14 @@ function isRenderableImage(fileUrl?: string, fileType?: ArtworkSide["fileType"])
   return /\.(png|jpe?g|svg|webp)$/i.test(fileUrl) || fileUrl.startsWith("blob:");
 }
 
-// Neck labels are restricted to .svg/.ai uploads (see NeckLabel type). Unlike
-// the general ArtworkPreview check above, a blob: url alone isn't enough
-// here — an .ai upload also gets a blob: url but a browser can't rasterize
-// PostScript/PDF content inside an <img>, so we key off the tracked
-// fileType instead and only ever try to render actual .svg files.
-function isRenderableNeckLabel(neckLabel: NeckLabel): boolean {
+// Neck labels are restricted to .svg/.ai uploads (see NeckLabel type). SVG
+// files can be displayed through the existing image/object-URL path. AI files
+// use the separate, safe PNG derivative supplied by the upload panel.
+function isRenderableNeckLabel(neckLabel: NeckLabel, previewUrl?: string): boolean {
   return (
-    neckLabel.fileType === "svg" &&
-    Boolean(neckLabel.fileUrl) &&
+    isCustomNeckLabel(neckLabel) &&
+    Boolean(previewUrl || neckLabel.fileUrl) &&
+    (Boolean(previewUrl) || neckLabel.fileType === "svg") &&
     (neckLabel.fileUrl !== SAMPLE_NECK_LABEL_HREF || neckLabel.source === "sample")
   );
 }
@@ -186,16 +182,23 @@ function ArtworkPreview({ side }: { side: ArtworkSide }) {
 // overlay that reflects the selected stitch type. Built as one SVG so the
 // stitching stays crisp and proportional as the box resizes with the
 // dimension preset, rather than layering separate DOM borders.
-function NeckLabelPreview({ neckLabel }: { neckLabel: NeckLabel }) {
-  const { widthMm, heightMm } = parseNeckLabelDimensionsMm(neckLabel.dimensions);
-  // preserveAspectRatio="none" below stretches this SVG to fill whatever box
-  // the parent gives it, so this scale only sets the internal coordinate
-  // system (stroke widths, corner-tick length, font size) — it doesn't
-  // affect the label's actual on-screen size, which is controlled per-view
-  // in neckLabelBoxStyle.
+function NeckLabelPreview({
+  neckLabel,
+  previewUrl,
+}: {
+  neckLabel: NeckLabel;
+  previewUrl?: string;
+}) {
+  const standard = !isCustomNeckLabel(neckLabel);
+  const { widthMm, heightMm } = standard
+    ? STANDARD_SIZE_LABEL_PREVIEW_MM
+    : parseNeckLabelDimensionsMm(neckLabel.dimensions);
+  // This scale sets the internal coordinate system (stroke widths,
+  // corner-tick length, font size). The matching outer box below controls the
+  // label's actual on-screen size without changing these proportions.
   const w = widthMm * NECK_LABEL_PX_PER_MM.neck;
   const h = heightMm * NECK_LABEL_PX_PER_MM.neck;
-  const renderable = isRenderableNeckLabel(neckLabel);
+  const renderable = isRenderableNeckLabel(neckLabel, previewUrl);
   // Rendering data, not UI text: stitches and fallback label artwork are intentionally true black.
   const stitchColor = "#111111";
 
@@ -208,7 +211,7 @@ function NeckLabelPreview({ neckLabel }: { neckLabel: NeckLabel }) {
     <svg
       viewBox={`0 0 ${w} ${h}`}
       className="h-full w-full overflow-visible drop-"
-      preserveAspectRatio="none"
+      preserveAspectRatio="xMidYMid meet"
       role="img"
       aria-label="Neck label preview"
     >
@@ -223,16 +226,16 @@ function NeckLabelPreview({ neckLabel }: { neckLabel: NeckLabel }) {
         strokeWidth={1}
       />
 
-      {renderable ? (
+      {!standard && renderable ? (
         <image
-          href={neckLabel.fileUrl}
+          href={previewUrl || neckLabel.fileUrl}
           x={w * 0.1}
           y={h * 0.1}
           width={w * 0.8}
           height={h * 0.8}
           preserveAspectRatio="xMidYMid meet"
         />
-      ) : !neckLabel.fileUrl || neckLabel.fileUrl === SAMPLE_NECK_LABEL_HREF ? null : (
+      ) : !isCustomNeckLabel(neckLabel) || !neckLabel.fileUrl || neckLabel.fileUrl === SAMPLE_NECK_LABEL_HREF ? null : (
         <text
           x={w / 2}
           y={h / 2}
@@ -243,7 +246,7 @@ function NeckLabelPreview({ neckLabel }: { neckLabel: NeckLabel }) {
           fill="#111111"
           opacity={0.45}
         >
-          {neckLabel.fileType === "ai" ? "AI FILE" : "LABEL"}
+          {neckLabel.fileType === "ai" ? "Preview unavailable" : "Artwork preview unavailable"}
         </text>
       )}
 
@@ -331,6 +334,7 @@ export default function CanvasRenderer({
   productId,
   artwork,
   neckLabel,
+  neckLabelPreviewUrl,
   interactive = true,
   className = "aspect-square h-[min(78dvh,820px)] max-h-[820px] max-w-full rounded-[4px] bg-[#F5F5F5]",
   style,
@@ -374,8 +378,11 @@ export default function CanvasRenderer({
 
   let neckLabelBoxStyle: { left: string; top: string; width: string; height: string; transform: string } | undefined;
   if (showNeckLabel && neckLabel?.dimensions && isNeckLabelView(view)) {
-    const { widthMm, heightMm } = parseNeckLabelDimensionsMm(neckLabel.dimensions);
-    const scale = NECK_LABEL_PX_PER_MM[view] * neckLabelSizeMultiplier(neckLabel.dimensions);
+    const standard = !isCustomNeckLabel(neckLabel);
+    const { widthMm, heightMm } = standard
+      ? STANDARD_SIZE_LABEL_PREVIEW_MM
+      : parseNeckLabelDimensionsMm(neckLabel.dimensions);
+    const scale = NECK_LABEL_PX_PER_MM[view];
     const labelWidthPx = widthMm * scale;
     const labelHeightPx = heightMm * scale;
     neckLabelBoxStyle = {
@@ -665,7 +672,10 @@ export default function CanvasRenderer({
 
       {showNeckLabel && neckLabel && neckLabelBoxStyle && (
         <div className="absolute z-10" style={neckLabelBoxStyle}>
-          <NeckLabelPreview neckLabel={neckLabel} />
+          <NeckLabelPreview
+            neckLabel={neckLabel}
+            previewUrl={neckLabelPreviewUrl}
+          />
         </div>
       )}
 

@@ -17,9 +17,7 @@ export function getConfiguratorCtaLabel(
   }
   if (openStep === "neck-label") {
     if (options.hasCustomLabel) return "Continue to sizes";
-    return options.isToteProduct
-      ? "Use standard bag label"
-      : "Use standard neck label";
+    return "Continue to sizes";
   }
   return "Continue to sizes";
 }
