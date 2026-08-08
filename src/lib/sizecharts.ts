@@ -1,7 +1,7 @@
 export type SizeRow = {
   size: string
-  chest: string
-  length: string
+  chest?: string
+  length?: string
   shoulder?: string
   waist?: string
   inseam?: string
@@ -12,99 +12,92 @@ export type SizeRow = {
 export type SizeChart = {
   sizes: SizeRow[]
   note?: string
+  fitNote?: string
   chestLabel?: string
   lengthLabel?: string
 }
 
 export const SIZE_CHARTS: Record<string, SizeChart> = {
   'regular-tee': {
-    note: 'All measurements in inches. Measure the garment laid flat.',
+    note: 'All measurements are in inches and follow the approved Regular T-Shirt size chart.',
     sizes: [
-      { size: 'XS', chest: '36"', length: '25"', shoulder: '16"', sleeve: '8"' },
-      { size: 'S',  chest: '38"', length: '25.5"', shoulder: '16.5"', sleeve: '8.5"' },
-      { size: 'M',  chest: '40"', length: '26"', shoulder: '17"', sleeve: '9"' },
-      { size: 'L',  chest: '42"', length: '27"', shoulder: '17.5"', sleeve: '9.5"' },
-      { size: 'XL', chest: '44"', length: '28"', shoulder: '18"', sleeve: '10"' },
-      { size: 'XXL',chest: '46"', length: '29"', shoulder: '18.5"', sleeve: '10.5"' },
+      { size: 'XS', length: '25"', shoulder: '16"', chest: '36"', sleeve: '8"' },
+      { size: 'S', length: '25.5"', shoulder: '16.5"', chest: '38"', sleeve: '8.5"' },
+      { size: 'M', length: '26"', shoulder: '17"', chest: '40"', sleeve: '9"' },
+      { size: 'L', length: '27"', shoulder: '17.5"', chest: '42"', sleeve: '9.5"' },
+      { size: 'XL', length: '28"', shoulder: '18"', chest: '44"', sleeve: '10"' },
     ],
   },
   'boxy-tee': {
-    note: 'All measurements in inches. Boxy fit — size down if between sizes.',
+    note: 'All measurements are in inches and follow the approved Boxy T-Shirt size chart.',
     sizes: [
-      { size: 'XS', chest: '20"', length: '27"', shoulder: '17.5"', sleeve: '8"' },
-      { size: 'S',  chest: '21"', length: '27.5"', shoulder: '18.25"', sleeve: '8.5"' },
-      { size: 'M',  chest: '22"', length: '28"', shoulder: '19"', sleeve: '9"' },
-      { size: 'L',  chest: '23"', length: '29"', shoulder: '19.75"', sleeve: '9.5"' },
-      { size: 'XL', chest: '24"', length: '30"', shoulder: '20.5"', sleeve: '10"' },
-      { size: 'XXL',chest: '25"', length: '31"', shoulder: '21"', sleeve: '10.5"' },
+      { size: 'XS', length: '27"', shoulder: '17.5"', chest: '20"', sleeve: '8"' },
+      { size: 'S', length: '27.5"', shoulder: '18.25"', chest: '21"', sleeve: '8.5"' },
+      { size: 'M', length: '28"', shoulder: '19"', chest: '22"', sleeve: '9"' },
+      { size: 'L', length: '29"', shoulder: '19.75"', chest: '23"', sleeve: '9.5"' },
+      { size: 'XL', length: '30"', shoulder: '20.5"', chest: '24"', sleeve: '10"' },
     ],
   },
   'longsleeve': {
-    note: 'All measurements in inches. Garment laid flat.',
+    fitNote: 'Regular straight-cut fit',
+    note: 'Chest measurements are in inches and follow the supplied Full Sleeve T-Shirt size guide.',
     sizes: [
-      { size: 'XS', chest: '34"', length: '27"', shoulder: '16"', sleeve: '16"' },
-      { size: 'S',  chest: '36"', length: '28"', shoulder: '17"', sleeve: '17"' },
-      { size: 'M',  chest: '38"', length: '29"', shoulder: '18"', sleeve: '18"' },
-      { size: 'L',  chest: '40"', length: '30"', shoulder: '19"', sleeve: '19"' },
-      { size: 'XL', chest: '42"', length: '31"', shoulder: '20"', sleeve: '20"' },
-      { size: 'XXL',chest: '44"', length: '32"', shoulder: '21"', sleeve: '21"' },
+      { size: 'S', chest: '38"' },
+      { size: 'M', chest: '40"' },
+      { size: 'L', chest: '42"' },
+      { size: 'XL', chest: '46"' },
+      { size: 'XXL', chest: '50"' },
     ],
   },
   'regular-sweatshirt': {
-    note: 'All measurements in inches. Garment laid flat.',
+    note: 'All measurements are in inches and follow the approved Sweatshirt size chart.',
     sizes: [
-      { size: 'XS', chest: '36"', length: '25"', shoulder: '17"', sleeve: '17"' },
-      { size: 'S',  chest: '38"', length: '26"', shoulder: '18"', sleeve: '18"' },
-      { size: 'M',  chest: '40"', length: '27"', shoulder: '19"', sleeve: '19"' },
-      { size: 'L',  chest: '42"', length: '28"', shoulder: '20"', sleeve: '20"' },
-      { size: 'XL', chest: '44"', length: '29"', shoulder: '21"', sleeve: '21"' },
-      { size: 'XXL',chest: '46"', length: '30"', shoulder: '22"', sleeve: '22"' },
+      { size: 'S', length: '25.5"', shoulder: '18.5"', chest: '43"', sleeve: '25"' },
+      { size: 'M', length: '26"', shoulder: '19"', chest: '45"', sleeve: '25.5"' },
+      { size: 'L', length: '26.5"', shoulder: '19.5"', chest: '47"', sleeve: '26"' },
+      { size: 'XL', length: '27"', shoulder: '20"', chest: '49"', sleeve: '26.5"' },
+      { size: 'XXL', length: '27.5"', shoulder: '20.5"', chest: '51"', sleeve: '27"' },
     ],
   },
   'regular-hoodie': {
-    note: 'All measurements in inches. Garment laid flat.',
+    note: 'All measurements are in inches and follow the approved Hoodie size chart.',
     sizes: [
-      { size: 'XS', chest: '36"', length: '26"', shoulder: '17"', sleeve: '17"' },
-      { size: 'S',  chest: '38"', length: '27"', shoulder: '18"', sleeve: '18"' },
-      { size: 'M',  chest: '40"', length: '28"', shoulder: '19"', sleeve: '19"' },
-      { size: 'L',  chest: '42"', length: '29"', shoulder: '20"', sleeve: '20"' },
-      { size: 'XL', chest: '44"', length: '30"', shoulder: '21"', sleeve: '21"' },
-      { size: 'XXL',chest: '46"', length: '31"', shoulder: '22"', sleeve: '22"' },
+      { size: 'S', length: '25.5"', shoulder: '18.5"', chest: '43"', sleeve: '25"' },
+      { size: 'M', length: '26"', shoulder: '19"', chest: '45"', sleeve: '25.5"' },
+      { size: 'L', length: '26.5"', shoulder: '19.5"', chest: '47"', sleeve: '26"' },
+      { size: 'XL', length: '27"', shoulder: '20"', chest: '49"', sleeve: '26.5"' },
+      { size: 'XXL', length: '27.5"', shoulder: '20.5"', chest: '51"', sleeve: '27"' },
     ],
   },
   'boxy-hoodie': {
-    note: 'All measurements in inches. Boxy fit — size down if between sizes.',
+    note: 'All measurements are in inches and follow the supplied Oversized Hoodie size chart.',
     sizes: [
-      { size: 'XS', chest: '42"', length: '27"', shoulder: '21"', sleeve: '21"' },
-      { size: 'S',  chest: '44"', length: '28"', shoulder: '22"', sleeve: '22"' },
-      { size: 'M',  chest: '46"', length: '29"', shoulder: '23"', sleeve: '23"' },
-      { size: 'L',  chest: '48"', length: '30"', shoulder: '24"', sleeve: '24"' },
-      { size: 'XL', chest: '50"', length: '31"', shoulder: '25"', sleeve: '25"' },
-      { size: 'XXL',chest: '52"', length: '32"', shoulder: '26"', sleeve: '26"' },
+      { size: 'S', chest: '46"', sleeve: '23"', length: '26"' },
+      { size: 'M', chest: '48"', sleeve: '24"', length: '27"' },
+      { size: 'L', chest: '50"', sleeve: '25"', length: '28"' },
+      { size: 'XL', chest: '52"', sleeve: '26"', length: '29"' },
     ],
   },
-
   'tote': {
-    note: 'One size. All measurements in cm.',
+    note: 'One size. Measurements are in centimetres.',
     chestLabel: 'Width',
     lengthLabel: 'Height',
     sizes: [
-      { size: 'One Size', chest: '38cm', length: '42cm', handles: '24cm' },
+      { size: 'One Size', chest: '38 cm', length: '42 cm', handles: '24"' },
     ],
   },
 }
 
-// Map product slug → size chart key
 export const PRODUCT_SIZE_CHART_MAP: Record<string, string> = {
-  'regular-fit-tee-200gsm':       'regular-tee',
-  'boxy-fit-tee-200gsm':          'boxy-tee',
-  'regular-fit-tee-260gsm':       'regular-tee',
-  'boxy-fit-tee-260gsm':          'boxy-tee',
-  'longsleeve-tee-260gsm':        'longsleeve',
-  'regular-fit-sweatshirt-320gsm':'regular-sweatshirt',
-  'regular-fit-hoodie-320gsm':    'regular-hoodie',
-  'boxy-fit-hoodie-320gsm':       'boxy-hoodie',
-  'canvas-tote-bag':              'tote',
+  'regular-fit-tee-200gsm': 'regular-tee',
+  'boxy-fit-tee-200gsm': 'boxy-tee',
+  'regular-fit-tee-260gsm': 'regular-tee',
+  'boxy-fit-tee-260gsm': 'boxy-tee',
+  'longsleeve-tee-260gsm': 'longsleeve',
+  'regular-fit-sweatshirt-320gsm': 'regular-sweatshirt',
+  'regular-fit-hoodie-320gsm': 'regular-hoodie',
+  'boxy-fit-hoodie-320gsm': 'boxy-hoodie',
+  'canvas-tote-bag': 'tote',
 }
 
 export function getSizeChart(slug: string): SizeChart | null {

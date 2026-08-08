@@ -8,6 +8,7 @@ const STATIC_AGENT_PATHS = new Set([
   '/custom-polo-t-shirts',
   '/custom-t-shirt-printing',
   '/custom-tote-bags',
+  '/industries',
   '/industries/events',
   '/industries/hospitality',
   '/journal',

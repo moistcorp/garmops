@@ -2,8 +2,10 @@
 
 import { useEffect, useMemo, useRef } from "react";
 
-const MAX_RENDER_DIMENSION = 1400;
-const MIN_RENDER_DIMENSION = 720;
+const MAX_STANDARD_RENDER_DIMENSION = 1400;
+const MAX_PHOTOGRAPHIC_RENDER_DIMENSION = 3000;
+const MIN_STANDARD_RENDER_DIMENSION = 720;
+const MIN_PHOTOGRAPHIC_RENDER_DIMENSION = 1800;
 const MAX_CACHED_VIEWS = 2;
 
 interface GarmentCompositeProps {
@@ -25,6 +27,8 @@ interface LayerPixels {
    * mask alpha, texture luminance, shadow luminance, highlight luminance.
    */
   signals: Uint8Array;
+  /** Median luminance of the photographic detail layer inside the garment mask. */
+  detailReference: number;
 }
 
 interface LayerCacheEntry {
@@ -203,13 +207,47 @@ function trimLayerCache(): void {
   }
 }
 
-function getRenderDimension(canvas: HTMLCanvasElement): number {
+function getRenderDimension(
+  canvas: HTMLCanvasElement,
+  renderProfile: "standard" | "photographic"
+): number {
   const cssDimension = Math.max(canvas.clientWidth, canvas.clientHeight);
   const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+  const maxDimension =
+    renderProfile === "photographic"
+      ? MAX_PHOTOGRAPHIC_RENDER_DIMENSION
+      : MAX_STANDARD_RENDER_DIMENSION;
+  const minDimension =
+    renderProfile === "photographic"
+      ? MIN_PHOTOGRAPHIC_RENDER_DIMENSION
+      : MIN_STANDARD_RENDER_DIMENSION;
+
   return Math.min(
-    MAX_RENDER_DIMENSION,
-    Math.max(MIN_RENDER_DIMENSION, Math.ceil(cssDimension * pixelRatio))
+    maxDimension,
+    Math.max(minDimension, Math.ceil(cssDimension * pixelRatio))
   );
+}
+
+function getDetailReference(signals: Uint8Array): number {
+  const histogram = new Uint32Array(256);
+  let count = 0;
+
+  for (let offset = 0; offset < signals.length; offset += 4) {
+    if (signals[offset] < 16) continue;
+    histogram[signals[offset + 3]] += 1;
+    count += 1;
+  }
+
+  if (count === 0) return 26;
+
+  const midpoint = Math.ceil(count / 2);
+  let cumulative = 0;
+  for (let value = 0; value < histogram.length; value += 1) {
+    cumulative += histogram[value];
+    if (cumulative >= midpoint) return value;
+  }
+
+  return 26;
 }
 
 function loadLayers(
@@ -253,14 +291,17 @@ function loadLayers(
     const width = Math.max(1, Math.round(sourceWidth * scale));
     const height = Math.max(1, Math.round(sourceHeight * scale));
 
+    const signals = buildLayerSignals(
+      [maskImage, textureImage, shadowImage, highlightImage],
+      width,
+      height
+    );
+
     return {
       width,
       height,
-      signals: buildLayerSignals(
-        [maskImage, textureImage, shadowImage, highlightImage],
-        width,
-        height
-      ),
+      signals,
+      detailReference: getDetailReference(signals),
     };
   });
 
@@ -275,7 +316,7 @@ function loadLayers(
   return promise;
 }
 
-function renderComposite(
+function renderStandardComposite(
   context: CanvasRenderingContext2D,
   layers: LayerPixels,
   colourHex: string
@@ -290,9 +331,6 @@ function renderComposite(
   const darkProfile = smoothstep(0.45, 0.1, baseLuminance);
   const lightProfile = smoothstep(0.65, 0.95, baseLuminance);
 
-  // Keep broad tonal shaping in the shadow map. The texture map is reserved
-  // for higher-frequency seam, rib and fabric detail so it is not counted
-  // twice and does not make light garments look grey or dirty.
   const shadowStrength = 0.12 + 0.05 * lightProfile - 0.02 * darkProfile;
   const detailStrength = 0.1 + 0.03 * lightProfile - 0.015 * darkProfile;
   const highlightStrength = 0.02 + 0.07 * darkProfile - 0.01 * lightProfile;
@@ -330,6 +368,144 @@ function renderComposite(
   context.putImageData(output, 0, 0);
 }
 
+function getPhotographicPreviewColour(hex: string): [number, number, number] {
+  const [red, green, blue] = parseHex(hex);
+  const [hue, saturation, lightness] = rgbToHsl(red, green, blue);
+
+  let displayLightness = lightness;
+  if (lightness < 0.22) {
+    // The photographic garment sources were captured on a black garment. Keep
+    // black dense, but give the photographed fibres enough luminance to remain visible.
+    displayLightness = 0.1 + (lightness / 0.22) * 0.06;
+  } else if (lightness > 0.78) {
+    // Keep whites slightly below the preview background so the photographic
+    // fibres and stitch shadows retain visible headroom instead of clipping.
+    displayLightness = 0.885 + ((lightness - 0.78) / 0.22) * 0.06;
+  }
+
+  // Preserve the selected colour's chroma. The photographic compositor below
+  // now changes luminance multiplicatively, so we no longer need to mute the
+  // base colour to stop highlights from becoming over-saturated.
+  return hslToRgb(hue, saturation, clamp(displayLightness));
+}
+
+function renderPhotographicComposite(
+  context: CanvasRenderingContext2D,
+  layers: LayerPixels,
+  colourHex: string
+): void {
+  const { width, height, signals, detailReference } = layers;
+  const output = context.createImageData(width, height);
+  const pixels = output.data;
+  const [baseRed, baseGreen, baseBlue] = getPhotographicPreviewColour(colourHex);
+  const baseLuminance255 = Math.max(
+    1,
+    baseRed * 0.2126 + baseGreen * 0.7152 + baseBlue * 0.0722
+  );
+  const baseLuminance = baseLuminance255 / 255;
+
+  const darkProfile = smoothstep(0.44, 0.08, baseLuminance);
+  const lightProfile = smoothstep(0.67, 0.96, baseLuminance);
+  const midProfile = clamp(1 - Math.abs(baseLuminance - 0.5) / 0.5);
+
+  const shadowScale = 3 + 14 * (1 - darkProfile) + 18 * lightProfile;
+  const textureScale = 1.5 + 5 * (1 - darkProfile) + 8 * lightProfile;
+
+  /**
+   * The supplied highlight.webp is actually a photographed black garment,
+   * not a conventional highlight map. It contains several genuinely bright
+   * seam/rim pixels around the neckline and shoulder joins. If those positive
+   * values are transferred linearly to the selected colour they become the
+   * grey/white outlines that were visible on True Black, Cocoa Mocha, etc.
+   *
+   * Preserve the negative photographic information (knit valleys, folds,
+   * stitches and AO) strongly, but compress positive values into a small
+   * highlight range. This keeps the real fabric texture while preventing the
+   * photographed white rim from being recoloured as a glowing outline.
+   */
+  const negativePhotoGain = 0.92 + 0.05 * (1 - lightProfile);
+  const positiveCoreGain = 0.56 + 0.12 * midProfile;
+  const maxHighlightLift = 10 + 5 * midProfile;
+
+  const photoLookup = new Float32Array(256);
+  const shadowLookup = new Float32Array(256);
+  const textureLookup = new Float32Array(256);
+
+  for (let value = 0; value < 256; value += 1) {
+    const rawPhotoDelta = value - detailReference;
+
+    if (rawPhotoDelta <= 0) {
+      photoLookup[value] = rawPhotoDelta * negativePhotoGain;
+    } else {
+      // Keep small positive fibre variation, but heavily compress the bright
+      // neckline/shoulder rim present in the photographic source.
+      const core = Math.min(rawPhotoDelta, 10) * positiveCoreGain;
+      const brightTail = Math.max(0, rawPhotoDelta - 10);
+      const compressedTail = Math.tanh(brightTail / 24) * 4.5;
+      photoLookup[value] = Math.min(core + compressedTail, maxHighlightLift);
+    }
+
+    shadowLookup[value] =
+      Math.pow(clamp((244 - value) / 54), 1.15) * shadowScale;
+    textureLookup[value] =
+      Math.pow(clamp((252 - value) / 72), 1.35) * textureScale;
+  }
+
+  for (let offset = 0; offset < pixels.length; offset += 4) {
+    const sourceAlpha = signals[offset] / 255;
+    if (sourceAlpha <= 0) continue;
+
+    const textureLuminance = signals[offset + 1];
+    const shadowLuminance = signals[offset + 2];
+    const photographicLuminance = signals[offset + 3];
+
+    const photoDetail = photoLookup[photographicLuminance];
+    const shadowAmount = shadowLookup[shadowLuminance];
+    const textureAmount = textureLookup[textureLuminance];
+    const tonalOffset = photoDetail - shadowAmount - textureAmount;
+
+    // Multiplicative luminance shading preserves the selected hue/chroma.
+    // The second ceiling is intentional: even if multiple maps happen to line
+    // up on a bright source seam, the resulting garment can never jump far
+    // above the selected fabric colour and create a white/grey outline.
+    let targetLuminance = clamp(baseLuminance255 + tonalOffset, 3, 252);
+    targetLuminance = Math.min(
+      targetLuminance,
+      baseLuminance255 + maxHighlightLift
+    );
+
+    const shade = targetLuminance / baseLuminance255;
+
+    pixels[offset] = clamp(baseRed * shade, 0, 255);
+    pixels[offset + 1] = clamp(baseGreen * shade, 0, 255);
+    pixels[offset + 2] = clamp(baseBlue * shade, 0, 255);
+
+    // Remove the tiny translucent fringe created when the high-resolution mask
+    // is downsampled. Very low-alpha pixels are discarded and the remaining
+    // antialias ramp is biased slightly more opaque so a white page cannot show
+    // through as a pale garment silhouette.
+    const outputAlpha =
+      sourceAlpha < 0.06 ? 0 : Math.pow(sourceAlpha, 0.75);
+    pixels[offset + 3] = Math.round(outputAlpha * 255);
+  }
+
+  context.putImageData(output, 0, 0);
+}
+
+function renderComposite(
+  context: CanvasRenderingContext2D,
+  layers: LayerPixels,
+  colourHex: string,
+  renderProfile: "standard" | "photographic"
+): void {
+  if (renderProfile === "photographic") {
+    renderPhotographicComposite(context, layers, colourHex);
+    return;
+  }
+
+  renderStandardComposite(context, layers, colourHex);
+}
+
 export default function GarmentComposite({
   maskSrc,
   textureSrc,
@@ -341,6 +517,15 @@ export default function GarmentComposite({
   className = "absolute inset-0 h-full w-full object-contain",
 }: GarmentCompositeProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  // The Regular Fit Tee front, back and neck now use photographed detail plates.
+  // Keep this derived from highlightSrc rather than adding another hook dependency:
+  // highlightSrc is already in the effect dependency list, so view changes still
+  // invalidate correctly without changing the hook dependency-array shape during
+  // Next.js Fast Refresh.
+  const renderProfile: "standard" | "photographic" =
+    /\/garments\/regular-fit-tee\/(?:front|back|neck)\/highlight\./.test(highlightSrc)
+      ? "photographic"
+      : "standard";
   const assetKey = useMemo(
     () => [maskSrc, textureSrc, shadowSrc, highlightSrc].join("|"),
     [maskSrc, textureSrc, shadowSrc, highlightSrc]
@@ -355,7 +540,7 @@ export default function GarmentComposite({
     if (!context) return;
 
     context.clearRect(0, 0, canvas.width, canvas.height);
-    const renderDimension = getRenderDimension(canvas);
+    const renderDimension = getRenderDimension(canvas, renderProfile);
 
     loadLayers(
       cacheScope,
@@ -375,7 +560,7 @@ export default function GarmentComposite({
 
         const targetContext = target.getContext("2d");
         if (!targetContext) return;
-        renderComposite(targetContext, layers, colourHex);
+        renderComposite(targetContext, layers, colourHex, renderProfile);
       })
       .catch((error: unknown) => {
         if (process.env.NODE_ENV !== "production") console.error(error);

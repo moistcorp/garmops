@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
-import SeoLandingPage from '@/components/marketing/SeoLandingPage'
-import { landingPages } from '@/lib/landingPages'
+import IndustryLandingPage from '@/components/marketing/IndustryLandingPage'
+import { industryPages } from '@/lib/industries'
 import { generateMeta } from '@/lib/seo'
 
-const content = landingPages.hospitality
+const content = industryPages.hospitality
 
 export const metadata: Metadata = generateMeta({
   title: content.seo.title,
@@ -13,5 +13,5 @@ export const metadata: Metadata = generateMeta({
 })
 
 export default function HospitalityApparelPage() {
-  return <SeoLandingPage content={content} />
+  return <IndustryLandingPage content={content} />
 }

@@ -20,7 +20,7 @@ interface GarmentPreviewProps {
 }
 
 export const NECK_PREVIEW_CANVAS_CLASS =
-  "aspect-square h-[165%] max-w-none shrink-0 translate-y-[3%] rounded-[4px] sm:h-[180%] sm:translate-y-[4%] lg:h-[190%] lg:translate-y-[5%]";
+  "aspect-[7817/5542] w-[104%] max-w-none shrink-0 translate-y-[2%] rounded-[4px] sm:w-[108%] lg:w-[112%]";
 
 function luminance(hex: string): number {
   const clean = hex.replace("#", "");

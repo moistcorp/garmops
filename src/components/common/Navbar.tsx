@@ -12,7 +12,7 @@ import GarmopsLogo from '@/components/common/GarmopsLogo'
 
 const links = [
   { label: 'Products', href: '/products' },
-  { label: 'Industries', href: '/corporate-merchandise' },
+  { label: 'Industries', href: '/industries' },
   { label: 'Case Studies', href: '/work' },
   { label: 'Pricing', href: '/pricing' },
 ]
@@ -30,9 +30,13 @@ const mobileGroups = [
   {
     label: 'Industries',
     links: [
-      { label: 'Corporate Merchandise', href: '/corporate-merchandise' },
-      { label: 'Hospitality Apparel', href: '/industries/hospitality' },
-      { label: 'Event Merchandise', href: '/industries/events' },
+      { label: 'Industries Overview', href: '/industries' },
+      { label: 'Companies & Teams', href: '/corporate-merchandise' },
+      { label: 'Cafés & Hospitality', href: '/industries/hospitality' },
+      { label: 'Events & Entertainment', href: '/industries/events' },
+      { label: 'Sports & Fitness', href: '/industries#sports-fitness' },
+      { label: 'Creative Teams', href: '/industries#creative-teams' },
+      { label: 'Arts & Culture', href: '/industries#arts-culture' },
     ],
   },
 ]
@@ -116,7 +120,7 @@ export default function Navbar() {
 
           <nav className="hidden items-center justify-center gap-6 text-sm xl:justify-self-start xl:flex" aria-label="Primary navigation">
             {links.map(link => {
-              const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`)
+              const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`) || (link.href === '/industries' && pathname === '/corporate-merchandise')
               return (
                 <Link
                   key={link.href}
@@ -218,7 +222,7 @@ export default function Navbar() {
         >
           <div className="flex flex-col">
             {links.map((link, index) => {
-              const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`)
+              const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`) || (link.href === '/industries' && pathname === '/corporate-merchandise')
               return (
                 <Link
                   ref={index === 0 ? firstMenuLinkRef : undefined}

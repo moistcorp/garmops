@@ -11,9 +11,13 @@ const productLinks = [
 ]
 
 const solutionLinks = [
-  { label: 'Corporate Merchandise', href: '/corporate-merchandise' },
-  { label: 'Hospitality Apparel', href: '/industries/hospitality' },
-  { label: 'Event Merchandise', href: '/industries/events' },
+  { label: 'Industries Overview', href: '/industries' },
+  { label: 'Companies & Teams', href: '/corporate-merchandise' },
+  { label: 'Cafés & Hospitality', href: '/industries/hospitality' },
+  { label: 'Events & Entertainment', href: '/industries/events' },
+  { label: 'Sports & Fitness', href: '/industries#sports-fitness' },
+  { label: 'Creative Teams', href: '/industries#creative-teams' },
+  { label: 'Arts & Culture', href: '/industries#arts-culture' },
   { label: 'Case Studies', href: '/work' },
   { label: 'Guides', href: '/journal' },
 ]

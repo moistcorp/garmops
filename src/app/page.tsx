@@ -8,7 +8,7 @@ import { homeFaqs } from '@/lib/homeContent'
 export const metadata: Metadata = {
   ...generateMeta({
     title: 'Custom Apparel & Bulk Merchandise India',
-    description: 'Design premium custom T-shirts, hoodies, polos and totes for your business. Made in India from 50 pieces with transparent pricing and 35-day standard delivery.',
+    description: 'Choose a garment, add your artwork and build custom T-shirts, hoodies, polos and merchandise online. Made in India with custom production from 50 pieces per product configuration.',
     path: '/',
     keywords: [
       'custom apparel manufacturer India',

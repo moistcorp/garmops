@@ -2,6 +2,13 @@ import Image from 'next/image'
 import Link from 'next/link'
 import type { CaseStudy } from '@/lib/casestudies'
 
+function industryLabel(industry: string) {
+  if (industry === 'Hotels & Restaurants') return 'Cafés & Hospitality'
+  if (industry === 'Music & Events') return 'Events & Entertainment'
+  if (industry === 'Creative Studios') return 'Creative Teams'
+  return industry
+}
+
 export default function ProofLinks({ caseStudies }: { caseStudies: CaseStudy[] }) {
   if (caseStudies.length === 0) {
     return (
@@ -49,7 +56,7 @@ export default function ProofLinks({ caseStudies }: { caseStudies: CaseStudy[] }
               )}
             </div>
             <div className="p-5 sm:p-6">
-              <p className="text-xs font-medium uppercase tracking-widest text-[var(--text-primary)]/45">{study.industry}</p>
+              <p className="text-xs font-medium uppercase tracking-widest text-[var(--text-primary)]/45">{industryLabel(study.industry)}</p>
               <h3 className="mt-3 text-lg font-semibold leading-snug text-[var(--text-primary)] group-hover:underline">{study.title}</h3>
               <p className="mt-3 text-sm leading-6 text-[#3f3f3f]">{study.excerpt}</p>
             </div>

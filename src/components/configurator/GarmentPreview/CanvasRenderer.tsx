@@ -43,6 +43,17 @@ type NeckLabelView = (typeof NECK_LABEL_VIEWS)[number];
 const BASE_GARMENT_INSET_PERCENT = 2;
 const ENLARGED_GARMENT_INSET_PERCENT = -8.3;
 
+/**
+ * The high-definition Regular Fit Tee front/back assets are tightly framed:
+ * garment pixels reach the source canvas edges. The older preview assets had
+ * much more empty padding and therefore needed the negative inset above.
+ *
+ * Keep a small positive inset for these HD photographic assets so the
+ * shoulder/collar silhouette is fully visible even though GarmentPreview
+ * applies its existing 1.10 presentation scale.
+ */
+const REGULAR_FIT_TEE_HD_INSET_PERCENT = 1;
+
 const NECK_LABEL_PX_PER_MM: Record<NeckLabelView, number> = {
   neck: 2.4,
 };
@@ -331,6 +342,13 @@ export default function CanvasRenderer({
   const [dragMode, setDragMode] = useState<DragMode | null>(null);
   const garmentFolder = getGarmentFolder(productId);
 
+  const garmentInsetPercent =
+    garmentFolder === "regular-fit-tee" && (view === "front" || view === "back")
+      ? REGULAR_FIT_TEE_HD_INSET_PERCENT
+      : view === "front" || view === "back"
+        ? ENLARGED_GARMENT_INSET_PERCENT
+        : BASE_GARMENT_INSET_PERCENT;
+
   const showBox = DRAGGABLE_VIEWS.includes(view);
   const activeArtwork = view === "front" ? artwork.front : view === "back" ? artwork.back : undefined;
   const boxState =
@@ -557,10 +575,7 @@ export default function CanvasRenderer({
       <div
         className="absolute"
         style={{
-          inset:
-            view === "front" || view === "back"
-              ? `${ENLARGED_GARMENT_INSET_PERCENT}%`
-              : `${BASE_GARMENT_INSET_PERCENT}%`,
+          inset: `${garmentInsetPercent}%`,
         }}
       >
         {/* Immediate colour fallback while the detail-rich canvas composite loads. */}
