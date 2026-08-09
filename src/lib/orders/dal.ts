@@ -34,12 +34,13 @@ export function listCustomerOrders(
 
 export async function getCustomerOrder(supabase: OrderClient, customerUserId: string, orderNumber: string) {
   const order = await supabase.from("orders").select("id, order_number, order_type, customer_user_id, status, public_status, currency, subtotal_paise, discount_paise, taxable_value_paise, tax_paise, total_paise, amount_paid_paise, customer_reference, requested_delivery_date, shipping_snapshot, billing_snapshot, customer_snapshot, business_snapshot, configuration_snapshot, shipping_charge_paise, shipping_payment_status, confirmed_at, created_at").eq("customer_user_id", customerUserId).eq("order_number", orderNumber).maybeSingle();
-  if (order.error || !order.data) return { order, items: { data: null, error: null }, history: { data: null, error: null }, payments: { data: [], error: null }, invoices: { data: [], error: null } };
-  const [items, history, payments, invoices] = await Promise.all([
+  if (order.error || !order.data) return { order, items: { data: null, error: null }, history: { data: null, error: null }, payments: { data: [], error: null }, invoices: { data: [], error: null }, artworkRequirements: { data: [], error: null } };
+  const [items, history, payments, invoices, artworkRequirements] = await Promise.all([
     supabase.from("order_items").select("id, line_number, product_name, product_snapshot, colour_snapshot, decoration_snapshot, artwork_snapshot, neck_label_snapshot, size_breakdown, quantity, unit_price_paise, line_total_paise").eq("order_id", order.data.id).order("line_number"),
     supabase.rpc("customer_order_history", { p_order_id: order.data.id }),
     supabase.rpc("customer_payment_summaries", { p_order_id: order.data.id }),
     supabase.from("invoices").select("id, invoice_number, status, total_paise, pdf_file_id, created_at").eq("order_id", order.data.id).order("created_at", { ascending: false }),
+    supabase.rpc("customer_artwork_requirements", { p_order_id: order.data.id }),
   ]);
-  return { order, items, history, payments, invoices };
+  return { order, items, history, payments, invoices, artworkRequirements };
 }

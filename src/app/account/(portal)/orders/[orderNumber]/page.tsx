@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import InvoiceDownloadButton from "@/components/account/InvoiceDownloadButton";
+import CustomerArtworkReplacementForm from "@/components/account/CustomerArtworkReplacementForm";
 import ShippingPaymentButton from "@/components/account/ShippingPaymentButton";
 import PortalPlaceholder from "@/components/portal/PortalPlaceholder";
 import { requireCustomer } from "@/lib/auth/guards";
@@ -32,7 +33,7 @@ import { formatGstRate, GST_RATE_BASIS_POINTS } from "@/lib/tax";
 import type { Enums, Tables } from "@/types/database.generated";
 
 type OrderDetail = Pick<Tables<"orders">,
-  | "order_number" | "public_status" | "subtotal_paise" | "discount_paise"
+  | "id" | "order_number" | "status" | "public_status" | "subtotal_paise" | "discount_paise"
   | "taxable_value_paise" | "tax_paise" | "amount_paid_paise" | "total_paise"
   | "requested_delivery_date" | "configuration_snapshot" | "shipping_snapshot"
   | "billing_snapshot" | "customer_snapshot" | "business_snapshot"
@@ -64,6 +65,15 @@ type CustomerPaymentRow = {
 type InvoiceRow = Pick<Tables<"invoices">,
   "id" | "invoice_number" | "status" | "total_paise" | "pdf_file_id" | "created_at"
 >;
+type ArtworkRequirementRow = {
+  requirement_key: string;
+  revision: number;
+  file_id: string;
+  safe_filename: string;
+  review_status: Enums<"artwork_review_status">;
+  review_reason: string | null;
+  upload_status: string;
+};
 
 function record(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -117,7 +127,7 @@ export default async function AccountOrderDetailPage({ params }: { params: Promi
   const { supabase, user } = await requireCustomer(`/account/orders/${parsed.data}`);
   const result = await getCustomerOrder(supabase, user.id, parsed.data);
   if (result.order.error || !result.order.data) notFound();
-  if (result.items.error || result.history.error || result.payments.error || result.invoices.error) {
+  if (result.items.error || result.history.error || result.payments.error || result.invoices.error || result.artworkRequirements.error) {
     return <PortalPlaceholder title="Order unavailable" description="The complete order record could not be loaded." />;
   }
 
@@ -126,6 +136,8 @@ export default async function AccountOrderDetailPage({ params }: { params: Promi
   const history = (result.history.data ?? []) as unknown as CustomerHistoryRow[];
   const payments = (result.payments.data ?? []) as unknown as CustomerPaymentRow[];
   const invoices = (result.invoices.data ?? []) as unknown as InvoiceRow[];
+  const artworkRequirements = (result.artworkRequirements.data ?? []) as unknown as ArtworkRequirementRow[];
+  const artworkLocked = ["production_approved","material_preparation","printing_embroidery","stitching","quality_check","packing","ready_to_dispatch","dispatched","delivered"].includes(order.status);
   const shippingPayment = payments.find((payment) => payment.purpose === "shipping");
   const shipping = record(order.shipping_snapshot);
   const billing = record(order.billing_snapshot);
@@ -168,6 +180,7 @@ export default async function AccountOrderDetailPage({ params }: { params: Promi
 
     <div className="grid gap-5 xl:grid-cols-[1.35fr_0.65fr]">
       <div className="space-y-5">
+        <section className="techpack-surface rounded border p-6"><div className="flex items-center gap-2"><FileText size={18} className="text-[var(--color-accent)]" /><h2 className="font-semibold">Artwork revisions</h2></div>{artworkLocked ? <p className="mt-3 rounded border border-black/8 bg-black/[0.03] p-3 text-sm text-black/60">Artwork is locked because your order has entered production. Contact Garmops if a controlled revision is required.</p> : <div className="mt-3 space-y-3">{artworkRequirements.length ? artworkRequirements.map((requirement) => { const label = requirement.requirement_key.split(":").at(-1)?.replaceAll("_", " ") ?? "artwork"; const replacementOpen = ["changes_requested","rejected"].includes(requirement.review_status) || ["failed","expired"].includes(requirement.upload_status); return <div key={requirement.requirement_key} className="rounded border border-black/8 p-3"><p className="text-sm font-semibold capitalize">{label} · revision {requirement.revision}</p><p className="mt-1 text-xs text-black/50">{requirement.safe_filename} · {humanize(requirement.review_status)}</p>{requirement.review_reason ? <p className="mt-2 text-xs text-amber-800">{requirement.review_reason}</p> : null}{replacementOpen ? <CustomerArtworkReplacementForm orderId={order.id} fileId={requirement.file_id} requirementLabel={label} /> : null}</div>; }) : <p className="text-sm text-black/45">This order has no customer artwork requirements.</p>}</div>}</section>
         <section className="techpack-surface rounded border p-6">
           <div className="flex items-center gap-2"><Shirt size={18} className="text-[var(--color-accent)]" /><h2 className="font-semibold">Configured products</h2></div>
           <div className="mt-4 space-y-4">

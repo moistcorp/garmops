@@ -11,6 +11,7 @@ import {
   renderBrandedEmail,
 } from "@/lib/email/brand";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { cleanupExpiredPrivateUploads } from "@/lib/r2/cleanup";
 
 type IntegrationJob = Readonly<{
   id: string;
@@ -217,12 +218,19 @@ export async function processIntegrationJobs(options?: {
   completed: number;
   retry: number;
   dead: number;
+  expiredUploads: Readonly<{ claimed: number; deleted: number }>;
   results: readonly JobResult[];
 }> {
   const environment = getServerEnvironment();
   const admin = createAdminClient();
   const workerId = options?.workerId ?? `${environment.JOB_WORKER_ID}:${crypto.randomUUID()}`;
   const batchSize = Math.min(options?.batchSize ?? environment.JOB_BATCH_SIZE, 100);
+  const expiredUploads = await cleanupExpiredPrivateUploads().catch((error) => {
+    console.error("Expired upload housekeeping could not run", {
+      error: error instanceof Error ? error.message : "unknown",
+    });
+    return { claimed: 0, deleted: 0 };
+  });
   const { data, error } = await admin.rpc("claim_integration_jobs", {
     p_worker_id: workerId,
     p_limit: batchSize,
@@ -267,6 +275,7 @@ export async function processIntegrationJobs(options?: {
     completed: results.filter((entry) => entry.status === "completed").length,
     retry: results.filter((entry) => entry.status === "retry").length,
     dead: results.filter((entry) => entry.status === "dead").length,
+    expiredUploads,
     results: Object.freeze(results),
   };
 }

@@ -258,12 +258,12 @@ export type Database = {
           initiated_at: string | null
           last_reconciled_at: string | null
           last_reconciliation_error: string | null
-          reconciliation_attempts: number
           paid_at: string | null
           provider: string
           provider_merchant_txn_id: string
           provider_payment_id: string | null
           raw_verified_snapshot: Json | null
+          reconciliation_attempts: number
           status: Database["public"]["Enums"]["payment_status"]
           updated_at: string
         }
@@ -285,12 +285,12 @@ export type Database = {
           initiated_at?: string | null
           last_reconciled_at?: string | null
           last_reconciliation_error?: string | null
-          reconciliation_attempts?: number
           paid_at?: string | null
           provider?: string
           provider_merchant_txn_id: string
           provider_payment_id?: string | null
           raw_verified_snapshot?: Json | null
+          reconciliation_attempts?: number
           status?: Database["public"]["Enums"]["payment_status"]
           updated_at?: string
         }
@@ -312,12 +312,12 @@ export type Database = {
           initiated_at?: string | null
           last_reconciled_at?: string | null
           last_reconciliation_error?: string | null
-          reconciliation_attempts?: number
           paid_at?: string | null
           provider?: string
           provider_merchant_txn_id?: string
           provider_payment_id?: string | null
           raw_verified_snapshot?: Json | null
+          reconciliation_attempts?: number
           status?: Database["public"]["Enums"]["payment_status"]
           updated_at?: string
         }
@@ -772,6 +772,71 @@ export type Database = {
           },
         ]
       }
+      discount_reservations: {
+        Row: {
+          checkout_session_id: string
+          created_at: string
+          customer_user_id: string
+          discount_code_id: string
+          expires_at: string
+          id: string
+          redeemed_order_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          checkout_session_id: string
+          created_at?: string
+          customer_user_id: string
+          discount_code_id: string
+          expires_at: string
+          id?: string
+          redeemed_order_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          checkout_session_id?: string
+          created_at?: string
+          customer_user_id?: string
+          discount_code_id?: string
+          expires_at?: string
+          id?: string
+          redeemed_order_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discount_reservations_checkout_session_id_fkey"
+            columns: ["checkout_session_id"]
+            isOneToOne: true
+            referencedRelation: "custom_checkout_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_reservations_customer_user_id_fkey"
+            columns: ["customer_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_reservations_discount_code_id_fkey"
+            columns: ["discount_code_id"]
+            isOneToOne: false
+            referencedRelation: "discount_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_reservations_redeemed_order_id_fkey"
+            columns: ["redeemed_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integration_jobs: {
         Row: {
           attempts: number
@@ -904,6 +969,24 @@ export type Database = {
           },
         ]
       }
+      legal_document_versions: {
+        Row: {
+          current_version: string
+          document_kind: string
+          updated_at: string
+        }
+        Insert: {
+          current_version: string
+          document_kind: string
+          updated_at?: string
+        }
+        Update: {
+          current_version?: string
+          document_kind?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       number_counters: {
         Row: {
           calendar_year: number
@@ -922,6 +1005,84 @@ export type Database = {
         }
         Relationships: []
       }
+      order_artwork_requirements: {
+        Row: {
+          captured_at: string
+          created_by: string
+          file_id: string
+          id: string
+          is_active: boolean
+          order_id: string
+          order_item_id: string | null
+          requirement_key: string
+          revision: number
+          superseded_at: string | null
+          superseded_by_requirement_id: string | null
+        }
+        Insert: {
+          captured_at?: string
+          created_by: string
+          file_id: string
+          id?: string
+          is_active?: boolean
+          order_id: string
+          order_item_id?: string | null
+          requirement_key: string
+          revision: number
+          superseded_at?: string | null
+          superseded_by_requirement_id?: string | null
+        }
+        Update: {
+          captured_at?: string
+          created_by?: string
+          file_id?: string
+          id?: string
+          is_active?: boolean
+          order_id?: string
+          order_item_id?: string | null
+          requirement_key?: string
+          revision?: number
+          superseded_at?: string | null
+          superseded_by_requirement_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_artwork_requirements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_artwork_requirements_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "order_files"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_artwork_requirements_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_artwork_requirements_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_artwork_requirements_superseded_by_fkey"
+            columns: ["superseded_by_requirement_id"]
+            isOneToOne: false
+            referencedRelation: "order_artwork_requirements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_configuration_revisions: {
         Row: {
           changed_by: string
@@ -930,7 +1091,11 @@ export type Database = {
           id: string
           next_snapshot: Json
           order_id: string
+          previous_order_status:
+            | Database["public"]["Enums"]["order_status"]
+            | null
           previous_snapshot: Json
+          production_revision: boolean
           reason: string
           revision_number: number
         }
@@ -941,7 +1106,11 @@ export type Database = {
           id?: string
           next_snapshot: Json
           order_id: string
+          previous_order_status?:
+            | Database["public"]["Enums"]["order_status"]
+            | null
           previous_snapshot: Json
+          production_revision?: boolean
           reason: string
           revision_number: number
         }
@@ -952,7 +1121,11 @@ export type Database = {
           id?: string
           next_snapshot?: Json
           order_id?: string
+          previous_order_status?:
+            | Database["public"]["Enums"]["order_status"]
+            | null
           previous_snapshot?: Json
+          production_revision?: boolean
           reason?: string
           revision_number?: number
         }
@@ -961,8 +1134,8 @@ export type Database = {
             foreignKeyName: "order_configuration_revisions_changed_by_fkey"
             columns: ["changed_by"]
             isOneToOne: false
-            referencedRelation: "staff_members"
-            referencedColumns: ["user_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "order_configuration_revisions_order_id_fkey"
@@ -985,6 +1158,8 @@ export type Database = {
           finalized_at: string | null
           id: string
           kind: Database["public"]["Enums"]["file_kind"]
+          object_cleanup_attempted_at: string | null
+          object_cleanup_completed_at: string | null
           object_etag: string | null
           object_key: string
           order_id: string | null
@@ -1015,6 +1190,8 @@ export type Database = {
           finalized_at?: string | null
           id?: string
           kind: Database["public"]["Enums"]["file_kind"]
+          object_cleanup_attempted_at?: string | null
+          object_cleanup_completed_at?: string | null
           object_etag?: string | null
           object_key: string
           order_id?: string | null
@@ -1045,6 +1222,8 @@ export type Database = {
           finalized_at?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["file_kind"]
+          object_cleanup_attempted_at?: string | null
+          object_cleanup_completed_at?: string | null
           object_etag?: string | null
           object_key?: string
           order_id?: string | null
@@ -1238,6 +1417,9 @@ export type Database = {
           billing_snapshot: Json
           business_snapshot: Json
           cancelled_at: string | null
+          configuration_reopen_previous_status:
+            | Database["public"]["Enums"]["order_status"]
+            | null
           configuration_reopen_reason: string | null
           configuration_reopened_at: string | null
           configuration_reopened_by: string | null
@@ -1265,6 +1447,7 @@ export type Database = {
           order_source: Database["public"]["Enums"]["order_source"]
           order_type: Database["public"]["Enums"]["order_type"]
           pricing_version: string
+          production_approved_configuration_revision: number | null
           production_started_at: string | null
           public_status: Database["public"]["Enums"]["public_order_status"]
           refund_reference: string | null
@@ -1292,6 +1475,9 @@ export type Database = {
           billing_snapshot: Json
           business_snapshot?: Json
           cancelled_at?: string | null
+          configuration_reopen_previous_status?:
+            | Database["public"]["Enums"]["order_status"]
+            | null
           configuration_reopen_reason?: string | null
           configuration_reopened_at?: string | null
           configuration_reopened_by?: string | null
@@ -1319,6 +1505,7 @@ export type Database = {
           order_source: Database["public"]["Enums"]["order_source"]
           order_type: Database["public"]["Enums"]["order_type"]
           pricing_version: string
+          production_approved_configuration_revision?: number | null
           production_started_at?: string | null
           public_status: Database["public"]["Enums"]["public_order_status"]
           refund_reference?: string | null
@@ -1346,6 +1533,9 @@ export type Database = {
           billing_snapshot?: Json
           business_snapshot?: Json
           cancelled_at?: string | null
+          configuration_reopen_previous_status?:
+            | Database["public"]["Enums"]["order_status"]
+            | null
           configuration_reopen_reason?: string | null
           configuration_reopened_at?: string | null
           configuration_reopened_by?: string | null
@@ -1373,6 +1563,7 @@ export type Database = {
           order_source?: Database["public"]["Enums"]["order_source"]
           order_type?: Database["public"]["Enums"]["order_type"]
           pricing_version?: string
+          production_approved_configuration_revision?: number | null
           production_started_at?: string | null
           public_status?: Database["public"]["Enums"]["public_order_status"]
           refund_reference?: string | null
@@ -1461,7 +1652,6 @@ export type Database = {
           initiated_at: string | null
           last_reconciled_at: string | null
           last_reconciliation_error: string | null
-          reconciliation_attempts: number
           order_id: string
           paid_at: string | null
           provider: string
@@ -1469,6 +1659,7 @@ export type Database = {
           provider_payment_id: string | null
           purpose: Database["public"]["Enums"]["payment_purpose"]
           raw_verified_snapshot: Json | null
+          reconciliation_attempts: number
           status: Database["public"]["Enums"]["payment_status"]
           updated_at: string
         }
@@ -1487,7 +1678,6 @@ export type Database = {
           initiated_at?: string | null
           last_reconciled_at?: string | null
           last_reconciliation_error?: string | null
-          reconciliation_attempts?: number
           order_id: string
           paid_at?: string | null
           provider?: string
@@ -1495,6 +1685,7 @@ export type Database = {
           provider_payment_id?: string | null
           purpose: Database["public"]["Enums"]["payment_purpose"]
           raw_verified_snapshot?: Json | null
+          reconciliation_attempts?: number
           status?: Database["public"]["Enums"]["payment_status"]
           updated_at?: string
         }
@@ -1513,7 +1704,6 @@ export type Database = {
           initiated_at?: string | null
           last_reconciled_at?: string | null
           last_reconciliation_error?: string | null
-          reconciliation_attempts?: number
           order_id?: string
           paid_at?: string | null
           provider?: string
@@ -1521,6 +1711,7 @@ export type Database = {
           provider_payment_id?: string | null
           purpose?: Database["public"]["Enums"]["payment_purpose"]
           raw_verified_snapshot?: Json | null
+          reconciliation_attempts?: number
           status?: Database["public"]["Enums"]["payment_status"]
           updated_at?: string
         }
@@ -1972,9 +2163,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_legal_terms: {
+        Args: { p_privacy_version: string; p_terms_version: string }
+        Returns: boolean
+      }
       archive_cloud_design: {
         Args: { p_design_project_id: string; p_expected_revision: number }
         Returns: boolean
+      }
+      claim_expired_private_uploads: {
+        Args: { p_limit?: number }
+        Returns: {
+          file_id: string
+          object_key: string
+        }[]
       }
       claim_integration_jobs: {
         Args: { p_limit: number; p_worker_id: string }
@@ -2011,9 +2213,17 @@ export type Database = {
         }
         Returns: undefined
       }
+      complete_expired_private_upload_cleanup: {
+        Args: { p_file_ids: string[] }
+        Returns: number
+      }
       complete_integration_job: {
         Args: { p_job_id: string; p_worker_id: string }
         Returns: boolean
+      }
+      configuration_artwork_file_ids: {
+        Args: { p_snapshot: Json }
+        Returns: string[]
       }
       consume_auth_rate_limit: {
         Args: {
@@ -2065,6 +2275,7 @@ export type Database = {
           p_kind: Database["public"]["Enums"]["file_kind"]
           p_order_id: string
           p_original_filename: string
+          p_replacement_for_file_id: string
           p_safe_filename: string
           p_sha256: string
           p_staff_quote_id: string
@@ -2075,6 +2286,10 @@ export type Database = {
           object_key: string
         }[]
       }
+      create_shipping_payment_attempt: {
+        Args: { p_amount_paise: number; p_order_id: string }
+        Returns: string
+      }
       current_account_type: {
         Args: never
         Returns: Database["public"]["Enums"]["account_type"]
@@ -2082,6 +2297,18 @@ export type Database = {
       current_staff_role: {
         Args: never
         Returns: Database["public"]["Enums"]["staff_role"]
+      }
+      customer_artwork_requirements: {
+        Args: { p_order_id: string }
+        Returns: {
+          file_id: string
+          requirement_key: string
+          review_reason: string
+          review_status: Database["public"]["Enums"]["artwork_review_status"]
+          revision: number
+          safe_filename: string
+          upload_status: string
+        }[]
       }
       customer_order_history: {
         Args: { p_order_id: string }
@@ -2128,6 +2355,11 @@ export type Database = {
         Args: { p_privacy_version: string; p_terms_version: string }
         Returns: string
       }
+      ensure_customer_account_validated: {
+        Args: { p_privacy_version: string; p_terms_version: string }
+        Returns: string
+      }
+      expire_private_upload_slots: { Args: never; Returns: number }
       fail_integration_job: {
         Args: {
           p_error: string
@@ -2228,6 +2460,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      record_payment_reconciliation_attempt: {
+        Args: {
+          p_attempt_id: string
+          p_custom_checkout: boolean
+          p_error?: string
+        }
+        Returns: boolean
+      }
       record_payu_payment_state: {
         Args: {
           p_failure_code?: string
@@ -2245,18 +2485,20 @@ export type Database = {
         Args: { p_order_id: string; p_reason: string }
         Returns: boolean
       }
-      record_payment_reconciliation_attempt: {
-        Args: { p_attempt_id: string; p_custom_checkout: boolean; p_error?: string | null }
-        Returns: boolean
-      }
-      retry_integration_job: {
-        Args: { p_job_id: string }
-        Returns: boolean
+      replace_configuration_artwork_file: {
+        Args: {
+          p_file_id: string
+          p_line_number: number
+          p_slot: string
+          p_snapshot: Json
+        }
+        Returns: Json
       }
       request_order_cancellation: {
         Args: { p_order_id: string; p_reason: string }
         Returns: string
       }
+      retry_integration_job: { Args: { p_job_id: string }; Returns: boolean }
       review_artwork_file: {
         Args: {
           p_decision: Database["public"]["Enums"]["artwork_review_status"]
@@ -2285,6 +2527,20 @@ export type Database = {
           title: string
         }[]
       }
+      save_customer_checkout_defaults: {
+        Args: {
+          p_billing_address: Json
+          p_billing_email: string
+          p_billing_entity: string
+          p_billing_same_as_shipping: boolean
+          p_first_name: string
+          p_gstin: string
+          p_last_name: string
+          p_phone: string
+          p_shipping_address: Json
+        }
+        Returns: undefined
+      }
       set_shipping_payment_link: {
         Args: {
           p_amount_paise: number
@@ -2292,6 +2548,10 @@ export type Database = {
           p_reference?: string
           p_url: string
         }
+        Returns: boolean
+      }
+      set_staff_active: {
+        Args: { p_active: boolean; p_user_id: string }
         Returns: boolean
       }
       soft_delete_file: { Args: { p_file_id: string }; Returns: boolean }
@@ -2336,7 +2596,23 @@ export type Database = {
         }
         Returns: boolean
       }
+      update_my_profile: {
+        Args: {
+          p_department?: string
+          p_first_name: string
+          p_job_title?: string
+          p_last_name: string
+          p_locale?: string
+          p_phone?: string
+          p_timezone?: string
+        }
+        Returns: boolean
+      }
       update_order_configuration: {
+        Args: { p_next_snapshot: Json; p_order_id: string; p_reason: string }
+        Returns: number
+      }
+      update_order_configuration_validated: {
         Args: { p_next_snapshot: Json; p_order_id: string; p_reason: string }
         Returns: number
       }

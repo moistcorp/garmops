@@ -66,7 +66,7 @@ export async function recordPaymentReconciliation(input: {
     {
       p_attempt_id: input.attemptId,
       p_custom_checkout: input.customCheckout,
-      p_error: input.error ?? null,
+      p_error: input.error ?? undefined,
     },
   );
   if (error) {

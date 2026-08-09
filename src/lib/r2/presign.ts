@@ -2,6 +2,7 @@ import "server-only";
 
 import {
   ChecksumMode,
+  DeleteObjectCommand,
   GetObjectCommand,
   HeadObjectCommand,
   PutObjectCommand,
@@ -103,6 +104,13 @@ export async function inspectPrivateObject(input: {
   );
 
   return verifyPrivateObjectHead(input, object);
+}
+
+export async function deletePrivateObject(objectKey: string): Promise<void> {
+  await getR2Client().send(new DeleteObjectCommand({
+    Bucket: getPrivateBucketName(),
+    Key: objectKey,
+  }));
 }
 
 export async function createPresignedDownload(input: {

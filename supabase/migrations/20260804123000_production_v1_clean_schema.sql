@@ -1,13 +1,26 @@
--- Garmops production-v1 schema.
--- This migration is intentionally destructive because the project owner confirmed
--- that the connected Supabase project contains no genuine customers, orders,
--- payments, invoices, or staff records. Supabase Auth remains intact; only the
--- application-owned public schema is rebuilt.
+-- Garmops production-v1 baseline for a new, empty application schema.
+-- Existing deployments already record this version as applied. On a fresh setup
+-- the historical version markers before this file create no objects, so this
+-- baseline can build the current schema without deleting anything. If any public
+-- relations already exist, fail closed and require an explicit reviewed upgrade.
 
 begin;
 
-drop schema if exists public cascade;
-create schema public;
+do $$
+begin
+  if exists (
+    select 1
+    from pg_class c
+    join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public'
+      and c.relkind in ('r', 'p', 'v', 'm', 'S', 'f')
+  ) then
+    raise exception 'PRODUCTION_BASELINE_REQUIRES_EMPTY_PUBLIC_SCHEMA';
+  end if;
+end;
+$$;
+
+create schema if not exists public;
 
 grant usage on schema public to postgres, anon, authenticated, service_role;
 grant all on schema public to postgres, service_role;

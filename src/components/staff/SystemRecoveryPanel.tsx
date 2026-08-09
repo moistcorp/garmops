@@ -56,6 +56,8 @@ function isHealthy(run: JobRun | undefined, maximumAgeMinutes: number): boolean 
 export default async function SystemRecoveryPanel() {
   const context = await requireStaffPermission("view_all_orders");
   const admin = createAdminClient();
+  // This is request-time server data, not client render state.
+  // eslint-disable-next-line react-hooks/purity
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const [runsResult, pendingResult, failedResult, queuedResult] = await Promise.all([
     admin.from("system_job_runs").select("id, job_name, status, trigger_source, started_at, completed_at, error_message, summary").order("started_at", { ascending: false }).limit(20),

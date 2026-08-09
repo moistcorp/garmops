@@ -109,6 +109,10 @@ export async function updateOrderConfigurationAction(
           ? "Printing technique cannot be changed after payment. Cancel and place a new order."
           : /ORDER_LINE_(?:STRUCTURE|IDENTITY)_IMMUTABLE/.test(error.message)
             ? "Cart lines and their paid design identities cannot be added, removed, or replaced after payment."
+            : /ARTWORK_REVISION_REQUIRED/.test(error.message)
+              ? "Artwork files must be replaced through the controlled artwork revision flow."
+              : /ORDER_PRODUCTION_LOCKED/.test(error.message)
+                ? "Physical production has started. A Founder must open a controlled production revision first."
             : /LOCKED/.test(error.message)
               ? "This order is locked against configuration edits."
               : "Configuration changes could not be saved.";
@@ -116,6 +120,41 @@ export async function updateOrderConfigurationAction(
   }
   revalidatePath(`/orders/${orderNumber.data}`);
   return staffActionSuccess("Configuration revision saved with an audit trail.");
+}
+
+export async function updateOrderNotesAction(
+  _state: StaffActionState,
+  formData: FormData,
+): Promise<StaffActionState> {
+  const context = await requireStaffPermission("edit_order_configuration");
+  const parsed = z.object({
+    orderId: z.string().uuid(),
+    orderNumber: z.string().regex(/^(GAR|SAM)-\d{4}-\d{6}$/),
+    orderNotes: z.string().trim().max(2000),
+    reason: z.string().trim().min(3).max(1000),
+  }).safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) return staffActionError("Check the order note and reason.");
+
+  const { data: order, error: readError } = await context.supabase
+    .from("orders")
+    .select("configuration_snapshot")
+    .eq("id", parsed.data.orderId)
+    .maybeSingle();
+  if (readError || !order || !order.configuration_snapshot || Array.isArray(order.configuration_snapshot) || typeof order.configuration_snapshot !== "object") {
+    return staffActionError("The current order configuration is unavailable.");
+  }
+  const nextSnapshot = {
+    ...order.configuration_snapshot,
+    orderNotes: parsed.data.orderNotes || null,
+  };
+  const { error } = await callRpc(context.supabase, "update_order_configuration", {
+    p_order_id: parsed.data.orderId,
+    p_next_snapshot: nextSnapshot,
+    p_reason: parsed.data.reason,
+  });
+  if (error) return staffActionError("The administrative order note could not be saved.");
+  revalidatePath(`/orders/${parsed.data.orderNumber}`);
+  return staffActionSuccess("Administrative note updated without changing production status.");
 }
 
 export async function setShippingPaymentLinkAction(
@@ -526,11 +565,11 @@ export async function reopenOrderConfigurationAction(
 ): Promise<StaffActionState> {
   const context = await requireStaffPermission("override_order_workflow");
   const parsed = z.object({ orderId: z.string().uuid(), orderNumber: z.string().regex(/^(GAR|SAM)-\d{4}-\d{6}$/), reason: z.string().trim().min(3).max(1000) }).safeParse(Object.fromEntries(formData.entries()));
-  if (!parsed.success) return staffActionError("Add a clear reason to reopen this dispatched configuration.");
+  if (!parsed.success) return staffActionError("Add a clear reason to open a controlled production revision.");
   const { error } = await callRpc(context.supabase, "reopen_order_configuration", { p_order_id: parsed.data.orderId, p_reason: parsed.data.reason });
-  if (error) return staffActionError("Configuration could not be reopened.");
+  if (error) return staffActionError("The production revision could not be opened.");
   revalidatePath(`/orders/${parsed.data.orderNumber}`);
-  return staffActionSuccess("Configuration reopened for one audited revision.");
+  return staffActionSuccess("Production paused and returned to artwork review for one audited revision.");
 }
 
 export async function recordOrderRefundAction(

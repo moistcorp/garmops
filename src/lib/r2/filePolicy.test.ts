@@ -72,6 +72,22 @@ describe("private upload policy", () => {
     ).toEqual({ ok: false, error: "Invalid upload request" });
   });
 
+  it("accepts an order artwork replacement identity only for order artwork", () => {
+    expect(validateUploadRequest({
+      ...validArtwork,
+      replacementForFileId: "cccccccc-3333-4333-8333-333333333333",
+    })).toMatchObject({
+      ok: true,
+      value: { replacementForFileId: "cccccccc-3333-4333-8333-333333333333" },
+    });
+    expect(validateUploadRequest({
+      ...validArtwork,
+      orderId: undefined,
+      designProjectId: "bbbbbbbb-2222-4222-8222-222222222222",
+      replacementForFileId: "cccccccc-3333-4333-8333-333333333333",
+    })).toEqual({ ok: false, error: "Invalid upload request" });
+  });
+
   it("rejects MIME/extension mismatches and browser-system files", () => {
     expect(
       validateUploadRequest({
