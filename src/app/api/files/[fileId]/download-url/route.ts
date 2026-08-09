@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server";
 import { authenticateFileApi, hasExpectedOrigin, jsonError, jsonPrivate, privateUploadsAvailable } from "@/lib/r2/api";
 import { createPresignedDownload } from "@/lib/r2/presign";
+import { getServerEnvironment } from "@/lib/config/env";
+import { isPrivateFileDownloadAllowed } from "@/lib/security/fileQuarantine";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,6 +21,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
   const staff = Array.isArray(accessResult.data) ? accessResult.data[0] : null;
   const isStaff = Boolean(staff?.active && staff?.mfa_satisfied);
   if (fileResult.error || !file || file.bucket_name !== "garmops-private-orders" || file.deleted_at || file.upload_status !== "finalized" || file.scan_status === "rejected") return jsonError("File not found", 404);
+  if (!isPrivateFileDownloadAllowed(file.scan_status, getServerEnvironment().MALWARE_SCANNING_ENABLED)) return jsonError("File is quarantined pending a clean malware scan", 423);
   if (!isStaff) {
     const safeScan = file.scan_status === "clean" || file.scan_status === "not_required";
     const approved = file.kind !== "customer_artwork" || file.review_status === "approved";

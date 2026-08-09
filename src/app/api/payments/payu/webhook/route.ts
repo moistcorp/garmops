@@ -8,6 +8,8 @@ import {
   readBoundedJson,
   readBoundedUrlEncoded,
 } from "@/lib/http/requestBody";
+import { requestIdFrom, withRequestId } from "@/lib/http/requestId";
+import { captureOperationalError } from "@/lib/monitoring/sentry";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -59,8 +61,9 @@ async function readPayload(request: NextRequest): Promise<PayuIncomingFields> {
 }
 
 export async function POST(request: NextRequest) {
+  const requestId = requestIdFrom(request);
   if (!durableOrdersAvailable()) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return withRequestId(NextResponse.json({ error: "Not found" }, { status: 404 }), requestId);
   }
 
   try {
@@ -75,11 +78,12 @@ export async function POST(request: NextRequest) {
         });
       });
     }
-    return NextResponse.json({ ok: true, duplicate: result.duplicate });
+    return withRequestId(NextResponse.json({ ok: true, duplicate: result.duplicate }), requestId);
   } catch (error) {
+    captureOperationalError(error, { area: "payu_webhook", requestId });
     console.error("PayU webhook rejected", {
       error: error instanceof Error ? error.message : "unknown",
     });
-    return NextResponse.json({ ok: false }, { status: 400 });
+    return withRequestId(NextResponse.json({ ok: false }, { status: 400 }), requestId);
   }
 }

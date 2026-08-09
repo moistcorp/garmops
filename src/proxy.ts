@@ -13,6 +13,7 @@ import {
   isStaffSurface,
   staffAppUrl,
 } from '@/lib/config/appSurface'
+import { requestIdFrom, withRequestId } from '@/lib/http/requestId'
 
 const CONTENT_SIGNAL = 'ai-train=no, search=yes, ai-input=yes'
 const STAFF_AUTH_PATHS = new Set([
@@ -80,7 +81,7 @@ function redirectWithSession(
   )
 }
 
-export async function proxy(request: NextRequest) {
+async function routeRequest(request: NextRequest) {
   const pathname = normalizeAgentPath(request.nextUrl.pathname)
   const staffSurface = isStaffSurface()
 
@@ -198,6 +199,10 @@ export async function proxy(request: NextRequest) {
   }
 
   return session.response
+}
+
+export async function proxy(request: NextRequest) {
+  return withRequestId(await routeRequest(request), requestIdFrom(request))
 }
 
 export const config = {

@@ -12,6 +12,9 @@ import {
 } from "@/lib/email/brand";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { cleanupExpiredPrivateUploads } from "@/lib/r2/cleanup";
+import { createPresignedDownload } from "@/lib/r2/presign";
+import { scanPrivateFile } from "@/lib/security/malwareScanner";
+import { isMalwareScanTerminal } from "@/lib/security/fileQuarantine";
 
 type IntegrationJob = Readonly<{
   id: string;
@@ -127,7 +130,7 @@ async function sendOrderConfirmation(job: IntegrationJob): Promise<void> {
       statusLabel: "Full payment verified",
       statusTone: "success",
       action: { label: "View order", url: orderUrl },
-      footerNote: "Shipping is quoted separately by the Garmops operations team through a secure PayU payment link.",
+      footerNote: "Shipping is free for all current Garmops orders.",
       bodyHtml: `
         <p style="margin: 0 0 10px;">Hi ${escapeEmailHtml(payment.customer_name, 160)},</p>
         <p style="margin: 0 0 16px; color: ${EMAIL_THEME.muted};">We verified your full payment of <strong style="color: ${EMAIL_THEME.ink};">${escapeEmailHtml(amount, 100)}</strong> for order <strong style="color: ${EMAIL_THEME.ink};">${escapeEmailHtml(order.order_number, 100)}</strong>.</p>
@@ -165,6 +168,42 @@ function retryableFrom(error: unknown): boolean {
 
 async function handleJob(job: IntegrationJob): Promise<void> {
   const payload = record(job.payload);
+  if (job.job_type === "malware_scan_private_file") {
+    const fileId = typeof payload.fileId === "string" ? payload.fileId : null;
+    if (!fileId) throw Object.assign(new Error("Malware scan job has no file"), { retryable: false });
+    const admin = createAdminClient();
+    const { data: file, error } = await admin.from("order_files").select("id,object_key,safe_filename,content_type,sha256,scan_status").eq("id", fileId).maybeSingle();
+    if (error || !file) throw Object.assign(new Error("Malware scan file not found"), { retryable: false });
+    if (isMalwareScanTerminal(file.scan_status)) return;
+    try {
+      const download = await createPresignedDownload({ objectKey: file.object_key, filename: file.safe_filename, contentType: file.content_type });
+      const result = await scanPrivateFile({ downloadUrl: download.url, sha256: file.sha256 });
+      await admin.from("order_files").update({ scan_status: result.status }).eq("id", file.id);
+      return;
+    } catch (scanError) {
+      const unavailable = Boolean(scanError && typeof scanError === "object" && "scannerUnavailable" in scanError);
+      await admin.from("order_files").update({ scan_status: unavailable ? "scanner_unavailable" : "scan_failed" }).eq("id", file.id);
+      throw scanError;
+    }
+  }
+  if (job.job_type === "send_saved_design_recovery") {
+    const environment = getServerEnvironment();
+    if (!environment.ABANDONED_DESIGN_EMAILS_ENABLED) return;
+    const designId = typeof payload.designId === "string" ? payload.designId : null;
+    const customerUserId = typeof payload.customerUserId === "string" ? payload.customerUserId : null;
+    if (!designId || !customerUserId) throw Object.assign(new Error("Saved design recovery job is incomplete"), { retryable: false });
+    const admin = createAdminClient();
+    const [{ data: preference }, { data: design }, userResult] = await Promise.all([
+      admin.from("customer_privacy_preferences").select("recovery_messages_enabled").eq("customer_user_id", customerUserId).maybeSingle(),
+      admin.from("design_projects").select("id,status,archived_at,recovery_last_sent_at").eq("id", designId).eq("created_by", customerUserId).maybeSingle(),
+      admin.auth.admin.getUserById(customerUserId),
+    ]);
+    if (!preference?.recovery_messages_enabled || !design || design.status !== "draft" || design.archived_at || !userResult.data.user?.email) return;
+    const url = new URL(`/account/designs/${encodeURIComponent(design.id)}`, environment.NEXT_PUBLIC_CUSTOMER_APP_URL).toString();
+    await sendResendEmail({ to: userResult.data.user.email, subject: "Your Garmops design is saved", idempotencyKey: `garmops-design-recovery-${job.id}`, html: renderBrandedEmail({ preheader: "Continue your saved Garmops design.", eyebrow: "Saved design", title: "Your design is ready when you are", action: { label: "Continue design", url }, bodyHtml: `<p style="margin:0;color:${EMAIL_THEME.muted};">Your saved design remains available securely in your account. You can opt out of these reminders in your privacy settings.</p>` }) });
+    await admin.from("design_projects").update({ recovery_last_sent_at: new Date().toISOString() }).eq("id", design.id);
+    return;
+  }
   if (job.job_type === "generate_tax_invoice") {
     const orderId = typeof payload.orderId === "string" ? payload.orderId : null;
     if (!orderId) throw Object.assign(new Error("Invoice job has no order"), { retryable: false });

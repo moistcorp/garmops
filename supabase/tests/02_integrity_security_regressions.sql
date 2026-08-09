@@ -8,7 +8,7 @@ insert into public.orders(
   subtotal_paise,discount_paise,taxable_value_paise,tax_paise,total_paise,
   amount_paid_paise,pricing_version,configuration_schema_version,
   billing_snapshot,shipping_snapshot,customer_snapshot,terms_snapshot,
-  configuration_snapshot,shipping_payment_status
+  configuration_snapshot
 ) values (
   'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','GAR-2026-900001',
   'custom_bulk','customer_checkout','11111111-1111-4111-8111-111111111111',
@@ -28,12 +28,12 @@ insert into public.orders(
     ),
     'sizeQuantities',jsonb_build_object('M',50),
     'orderNotes',null
-  ),'not_required'
+  )
 ),(
   'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','GAR-2026-900002',
   'custom_bulk','customer_checkout','44444444-4444-4444-8444-444444444444',
   'order_review','order_received',10000,0,10000,500,10500,10500,
-  'test-v1',1,'{}','{}','{}','{}','{}','not_required'
+  'test-v1',1,'{}','{}','{}','{}','{}'
 );
 
 insert into public.order_items(
@@ -168,7 +168,7 @@ select is((select status::text from public.orders where id='aaaaaaaa-aaaa-4aaa-8
 select is((select review_status::text from public.order_files where id=(select file_id from public.order_artwork_requirements where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and is_active)),'pending_review','configuration revision invalidates active artwork approval');
 
 reset role;
-update public.orders set status='printing_embroidery',public_status='in_production'
+update public.orders set status='printing',public_status='in_production'
 where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 set local role authenticated;
 select set_config('request.jwt.claims','{"sub":"55555555-5555-4555-8555-555555555555","role":"authenticated","aal":"aal2"}',true);
@@ -186,7 +186,7 @@ select lives_ok(
     'Administrative delivery note')$$,
   'administrative note remains editable during printing'
 );
-select is((select status::text from public.orders where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),'printing_embroidery','administrative edit does not rewind production');
+select is((select status::text from public.orders where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),'printing','administrative edit does not rewind production');
 
 select set_config('request.jwt.claims','{"sub":"44444444-4444-4444-8444-444444444444","role":"authenticated","aal":"aal2"}',true);
 select lives_ok(
@@ -203,7 +203,7 @@ select lives_ok(
     'Apply Founder-authorised revision')$$,
   'manufacturing edit succeeds only after controlled production revision'
 );
-select is((select previous_order_status::text from public.order_configuration_revisions where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' order by revision_number desc limit 1),'printing_embroidery','revision audit preserves previous physical production status');
+select is((select previous_order_status::text from public.order_configuration_revisions where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' order by revision_number desc limit 1),'printing','revision audit preserves previous physical production status');
 
 select lives_ok(
   $$select public.review_artwork_file(

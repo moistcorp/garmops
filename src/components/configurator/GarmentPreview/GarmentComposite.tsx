@@ -575,6 +575,7 @@ export default function GarmentComposite({
     colourHex,
     exclusiveCacheScope,
     maskSrc,
+    renderProfile,
     textureSrc,
     shadowSrc,
     highlightSrc,

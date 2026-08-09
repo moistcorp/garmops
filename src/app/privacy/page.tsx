@@ -19,7 +19,7 @@ const sections = [
     title: '2. Information we collect',
     paragraphs: [
       'When you create an account, we collect information such as your name, company name, email address, phone number and password credentials. We do not store your plain-text password.',
-      'When you use our services, we may collect order and quote details, artwork and other files you submit, delivery information, payment and invoice references, account activity, device information and technical logs needed to keep the service secure.',
+      'When you use our services, we collect order and quote details, private artwork and other files you submit, delivery and billing/GST information, payment and invoice references, account activity, and limited operational and security logs.',
       'We may receive limited information from service providers that help us authenticate accounts, prevent abuse, deliver email, process payments or provide hosting and storage.',
     ],
   },
@@ -33,7 +33,7 @@ const sections = [
   {
     title: '4. Sharing and service providers',
     paragraphs: [
-      'We may share information with trusted providers that host our application and database, store files, send email, support payments, provide analytics or help us manufacture and deliver your order. They may use information only to provide services to us and must protect it appropriately.',
+      'We use service-provider categories including application hosting, Supabase database/authentication, private Cloudflare R2 file storage, PayU payments, Resend email, and—only after your choice—PostHog product analytics. Optional analytics does not include artwork filenames, contact details, addresses, GSTIN, or payment payloads, and session replay is disabled.',
       'We may also disclose information where necessary to comply with law, respond to lawful requests, protect our rights or safety, investigate abuse, or support a business transfer. We do not sell customer personal information.',
     ],
   },
@@ -54,7 +54,7 @@ const sections = [
   {
     title: '7. Cookies and updates',
     paragraphs: [
-      'Garmops uses essential storage and similar technologies to keep the site working, remember selected preferences and support the shopping experience. Some embedded services may set their own cookies or use similar technologies under their own policies.',
+      'Garmops uses essential storage to keep the site working, remember selected preferences and support ordering. Optional product analytics is off until accepted and can be withdrawn at any time through the equally accessible Manage analytics control.',
       'We may update this policy as our services or legal obligations change. The current version and effective date will always be published on this page.',
     ],
   },

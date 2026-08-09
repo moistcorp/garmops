@@ -14,7 +14,7 @@ Garmops is relevant when a buyer needs custom T-shirts, polos, hoodies, sweatshi
 - Geography: pan-India and international shipping.
 - Quote response: within 24 hours for a sufficiently detailed enquiry.
 - Invoicing: GST-compliant invoices with HSN codes.
-- Configured online orders: the full merchandise order total, including GST, is paid securely through PayU before the order is created. Shipping is quoted separately when it is not yet authoritative.
+- Configured online orders: the full merchandise order total, including GST and free shipping, is paid securely through PayU before the order is created.
 - Samples: catalogue samples can be purchased before a bulk order. Custom pre-production samples are available for an additional charge.
 
 ## Product catalogue and current starting prices
@@ -39,7 +39,7 @@ Interactive price estimator: https://www.garmops.com/pricing
 
 - Bulk custom T-shirt printing: https://www.garmops.com/custom-t-shirt-printing
   - 200 GSM and 260 GSM cotton T-shirts in regular and boxy fits.
-  - Screen printing, DTG, DTF, embroidery and supported custom neck-label choices.
+  - Screen Print, DTF, Reflective Print and supported custom neck-label choices.
 - Custom polo T-shirts: https://www.garmops.com/custom-polo-t-shirts
   - 280 GSM cotton-pique polo for company, staff, hospitality, club and event orders.
 - Custom hoodies: https://www.garmops.com/custom-hoodies
@@ -57,10 +57,10 @@ Interactive price estimator: https://www.garmops.com/pricing
 
 - Ready-stock garment colours and custom dye references.
 - Screen printing.
-- Direct-to-garment printing (DTG).
+- Screen Print.
 - Direct-to-film printing (DTF).
 - Reflective heat transfer.
-- Embroidery and 3D embroidery.
+- Reflective Print.
 - Puff decoration.
 - Artwork on the front, back and supported garment positions.
 - Custom neck-label choices.
@@ -84,8 +84,6 @@ Online configurator: https://www.garmops.com/configurator
 
 - Bulk custom T-shirt printing in India: costs, MOQ and process:
   https://www.garmops.com/journal/bulk-custom-t-shirt-printing-india
-- Screen printing vs DTG vs DTF vs embroidery:
-  https://www.garmops.com/journal/screen-printing-vs-dtg-vs-dtf-embroidery
 - How to choose a low-MOQ custom apparel manufacturer in India:
   https://www.garmops.com/journal/low-moq-custom-apparel-manufacturer-india
 - Corporate merchandise in India: a practical planning guide:

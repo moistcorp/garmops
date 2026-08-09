@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next'
+import { withSentryConfig } from '@sentry/nextjs'
 
 function configuredOrigin(value: string | undefined) {
   if (!value) return undefined
@@ -12,6 +13,8 @@ function configuredOrigin(value: string | undefined) {
 const supabaseOrigin = configuredOrigin(process.env.NEXT_PUBLIC_SUPABASE_URL)
 const r2Origin = configuredOrigin(process.env.R2_S3_ENDPOINT)
 const downloadsOrigin = configuredOrigin(process.env.NEXT_PUBLIC_DOWNLOADS_BASE_URL)
+const posthogOrigin = configuredOrigin(process.env.NEXT_PUBLIC_POSTHOG_HOST)
+const sentryOrigin = configuredOrigin(process.env.NEXT_PUBLIC_SENTRY_DSN)
 const isDevelopment = process.env.NODE_ENV === 'development'
 const productionHeaders = process.env.NODE_ENV === 'production'
   ? [{ key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' }]
@@ -24,11 +27,6 @@ const nextConfig: NextConfig = {
         source: '/:path*',
         has: [{ type: 'host', value: 'garmops.com' }],
         destination: 'https://www.garmops.com/:path*',
-        permanent: true,
-      },
-      {
-        source: '/journal/screen-print-vs-dtg',
-        destination: '/journal/screen-printing-vs-dtg-vs-dtf-embroidery',
         permanent: true,
       },
       ...(downloadsOrigin
@@ -70,6 +68,10 @@ const nextConfig: NextConfig = {
 
     return [
       {
+        source: '/garments/:path*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      },
+      {
         source: '/(.*)',
         headers: [
           { key: 'X-Frame-Options', value: 'DENY' },
@@ -86,7 +88,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://api.fontshare.com https://fonts.googleapis.com",
               "font-src 'self' https://cdn.fontshare.com https://fonts.gstatic.com",
               "img-src 'self' data: blob: https:",
-              `connect-src 'self' https://api.resend.com https://formspree.io https://secure.payu.in https://test.payu.in https://challenges.cloudflare.com${supabaseOrigin ? ` ${supabaseOrigin}` : ''}${r2Origin ? ` ${r2Origin}` : ''}`,
+              `connect-src 'self' https://api.resend.com https://secure.payu.in https://test.payu.in https://challenges.cloudflare.com${supabaseOrigin ? ` ${supabaseOrigin}` : ''}${r2Origin ? ` ${r2Origin}` : ''}${posthogOrigin ? ` ${posthogOrigin}` : ''}${sentryOrigin ? ` ${sentryOrigin}` : ''}`,
               "frame-src https://secure.payu.in https://test.payu.in https://challenges.cloudflare.com",
               "form-action 'self' https://secure.payu.in https://test.payu.in",
             ].join('; '),
@@ -171,4 +173,7 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default nextConfig
+export default withSentryConfig(nextConfig, {
+  silent: true,
+  sourcemaps: { disable: process.env.SENTRY_ENABLED !== 'true' },
+})

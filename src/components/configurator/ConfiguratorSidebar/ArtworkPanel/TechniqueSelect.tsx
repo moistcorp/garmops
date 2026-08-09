@@ -16,13 +16,13 @@ export const TECHNIQUE_LABELS = CUSTOMER_PRINT_TECHNIQUE_LABELS;
 const TECHNIQUE_ORDER: CustomerArtworkTechnique[] = [
   "screen_print",
   "dtf",
-  "reflective_heat_transfer",
+  "reflective_print",
 ];
 
 const TECHNIQUE_DESCRIPTIONS: Record<CustomerArtworkTechnique, string> = {
   screen_print: "Bold graphics & repeat bulk production",
   dtf: "Detailed and multi-colour artwork",
-  reflective_heat_transfer: "Light-reactive speciality finish",
+  reflective_print: "Light-reactive speciality finish",
 };
 
 export function TechniqueSelect({ value, fileType, side = "front", onChange }: TechniqueSelectProps) {

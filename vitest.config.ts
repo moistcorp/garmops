@@ -1,12 +1,14 @@
-import { resolve } from "node:path";
-
 import { defineConfig } from "vitest/config";
+import { fileURLToPath } from "node:url";
 
 export default defineConfig({
   resolve: {
     alias: {
-      "@": resolve(__dirname, "src"),
-      "server-only": resolve(__dirname, "src/test/server-only.ts"),
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+      "server-only": fileURLToPath(new URL("./scripts/vitest-server-only.ts", import.meta.url)),
     },
+  },
+  test: {
+    exclude: ["e2e/**", "node_modules/**", ".next/**"],
   },
 });

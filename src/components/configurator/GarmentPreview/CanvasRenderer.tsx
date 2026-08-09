@@ -30,6 +30,8 @@ import {
   LEFT_CHEST_PLACEMENT,
 } from "@/components/configurator/ConfiguratorSidebar/ArtworkPanel/GuidelinesToggles";
 import GarmentComposite, { getDisplayPreviewHex } from "./GarmentComposite";
+import { garmentAssetPath, getGarmentFolder } from "./garmentAssets";
+import { useGarmentAssetPrefetch } from "./useGarmentAssetPrefetch";
 
 // Matches the small top margin PositionControls/the box default use as the
 // garment's overall printable boundary — the guideline overlays anchor here
@@ -112,32 +114,6 @@ interface DragOrigin {
   startHeightCm: number;
   startFromNeckCm: number;
   startFromCenterCm: number;
-}
-
-function getGarmentFolder(productId: ProductId): string | null {
-  if (productId.includes("canvas-tote")) return "canvas-tote-bag";
-  if (productId.includes("boxy-fit-hoodie")) return "boxy-fit-hoodie";
-  if (productId.includes("regular-fit-hoodie")) return "regular-fit-hoodie";
-  if (productId.includes("regular-fit-sweatshirt")) return "regular-fit-sweatshirt";
-  if (productId.includes("longsleeve")) return "longsleeve-tee";
-  if (productId.includes("polo")) return "polo";
-  if (productId.includes("boxy-fit-tee")) return "boxy-fit-tee";
-  if (productId.includes("regular-fit-tee")) return "regular-fit-tee";
-  return null;
-}
-
-function assetPath(productId: ProductId, view: GarmentView, layer: string): string {
-  const garmentFolder = getGarmentFolder(productId);
-  if (!garmentFolder) return "";
-
-  // Both hoodie styles use the same neck artwork, so keep only one copy.
-  const assetFolder =
-    view === "neck" && garmentFolder === "regular-fit-hoodie"
-      ? "boxy-fit-hoodie"
-      : garmentFolder;
-  const extension = layer === "mask" ? "png" : "webp";
-
-  return `/garments/${assetFolder}/${view}/${layer}.${extension}`;
 }
 
 function isRenderableImage(fileUrl?: string, fileType?: ArtworkSide["fileType"]): boolean {
@@ -346,6 +322,7 @@ export default function CanvasRenderer({
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const [dragMode, setDragMode] = useState<DragMode | null>(null);
   const garmentFolder = getGarmentFolder(productId);
+  useGarmentAssetPrefetch(productId, view);
 
   const garmentInsetPercent =
     garmentFolder === "regular-fit-tee" && (view === "front" || view === "back")
@@ -591,8 +568,8 @@ export default function CanvasRenderer({
           className="absolute inset-0"
           style={{
             backgroundColor: getDisplayPreviewHex(colourHex),
-            WebkitMaskImage: `url(${assetPath(productId, view, "mask")})`,
-            maskImage: `url(${assetPath(productId, view, "mask")})`,
+            WebkitMaskImage: `url(${garmentAssetPath(productId, view, "mask")})`,
+            maskImage: `url(${garmentAssetPath(productId, view, "mask")})`,
             WebkitMaskSize: "contain",
             maskSize: "contain",
             WebkitMaskRepeat: "no-repeat",
@@ -602,10 +579,10 @@ export default function CanvasRenderer({
           }}
         />
         <GarmentComposite
-          maskSrc={assetPath(productId, view, "mask")}
-          textureSrc={assetPath(productId, view, "texture")}
-          shadowSrc={assetPath(productId, view, "shadow")}
-          highlightSrc={assetPath(productId, view, "highlight")}
+          maskSrc={garmentAssetPath(productId, view, "mask")}
+          textureSrc={garmentAssetPath(productId, view, "texture")}
+          shadowSrc={garmentAssetPath(productId, view, "shadow")}
+          highlightSrc={garmentAssetPath(productId, view, "highlight")}
           colourHex={colourHex}
           cacheScope={garmentFolder ?? productId}
           exclusiveCacheScope={exclusiveLayerCache}

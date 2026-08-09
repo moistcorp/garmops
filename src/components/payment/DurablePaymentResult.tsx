@@ -72,7 +72,6 @@ export default function DurablePaymentResult({ result }: { result: Result }) {
   const presentation = PRESENTATION[state];
   const { Icon } = presentation;
   const sampleOrder = result.orderType === "sample_purchase";
-  const shippingPayment = result.paymentPurpose === "shipping";
   const orderHref = `/account/orders/${encodeURIComponent(result.orderNumber)}`;
   const canClearCart = state === "success" && result.paymentStatus === "paid";
   const invoiceLabel = result.invoiceNumber
@@ -85,11 +84,11 @@ export default function DurablePaymentResult({ result }: { result: Result }) {
 
   return (
     <main className="techpack-canvas flex min-h-[80vh] items-center justify-center px-4 py-8 sm:px-6 sm:py-10">
-      {!shippingPayment && (sampleOrder ? (
+      {sampleOrder ? (
         <ClearPaidSampleCart paid={canClearCart} />
       ) : (
         <ClearPaidCustomCart cartId={result.cartId} paid={canClearCart} />
-      ))}
+      )}
 
       <section
         className="techpack-surface w-full max-w-xl rounded-[4px] border p-6 sm:p-9"
@@ -123,8 +122,7 @@ export default function DurablePaymentResult({ result }: { result: Result }) {
             <dt className="text-[10px] uppercase tracking-wider text-black/40">Payment</dt>
             <dd className="mt-1 font-semibold">{paymentStatusLabel(state)}</dd>
           </div>
-          {!shippingPayment ? (
-            <div>
+          <div>
               <dt className="text-[10px] uppercase tracking-wider text-black/40">
                 {sampleOrder ? "Tax document" : "Invoice"}
               </dt>
@@ -132,11 +130,10 @@ export default function DurablePaymentResult({ result }: { result: Result }) {
               {state === "success" && !result.invoicePdfFileId ? (
                 <p className="mt-1 text-xs text-black/45">It will appear in your order once ready.</p>
               ) : null}
-            </div>
-          ) : null}
+          </div>
         </dl>
 
-        {state === "success" && !shippingPayment ? (
+        {state === "success" ? (
           <div className="mt-6 border-t border-black/8 pt-5">
             <h2 className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-black/45">What happens next</h2>
             <ol className="mt-3 space-y-2 text-sm text-black/60">
@@ -153,9 +150,7 @@ export default function DurablePaymentResult({ result }: { result: Result }) {
               ? "View your order →"
               : state === "pending"
                 ? "View order"
-                : shippingPayment
-                  ? "Return to order →"
-                  : "Try payment again →"}
+                : "Try payment again →"}
           </Link>
           {state === "success" && result.invoicePdfFileId ? (
             <InvoiceDownloadButton fileId={result.invoicePdfFileId} />

@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerEnvironment } from "@/lib/config/env";
 import { isFeatureEnabled } from "@/lib/config/featureFlags";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requestIdFrom, withRequestId } from "@/lib/http/requestId";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,8 +34,9 @@ function freshCompletedRun(
 
 /** Authenticated deployment, queue and recurring-job health for uptime checks. */
 export async function GET(request: NextRequest) {
+  const requestId = requestIdFrom(request);
   if (!authorised(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return withRequestId(NextResponse.json({ error: "Unauthorized" }, { status: 401 }), requestId);
   }
 
   const environment = getServerEnvironment();
@@ -78,10 +80,14 @@ export async function GET(request: NextRequest) {
     integrationHealthy &&
     payuHealthy &&
     (failedJobsResult.count ?? 0) === 0;
+  const scannerHealth = environment.MALWARE_SCANNING_ENABLED && environment.MALWARE_SCANNER_URL
+    ? await fetch(new URL("/health", environment.MALWARE_SCANNER_URL), { cache: "no-store", signal: AbortSignal.timeout(3_000) }).then(response => response.ok).catch(() => false)
+    : null;
+  const overallHealthy = healthy && scannerHealth !== false;
 
-  return NextResponse.json(
+  return withRequestId(NextResponse.json(
     {
-      status: healthy ? "ok" : "degraded",
+      status: overallHealthy ? "ok" : "degraded",
       environment: environment.APP_ENV,
       jobBackend: environment.JOB_PROCESSING_BACKEND,
       jobs: {
@@ -90,6 +96,7 @@ export async function GET(request: NextRequest) {
         queuedCount: queueResult.count ?? null,
         failedCount: failedJobsResult.count ?? null,
         pendingPaymentCount: pendingPaymentsResult.count ?? null,
+        malwareScannerHealthy: scannerHealth,
       },
       features: {
         accounts: isFeatureEnabled("NEXT_PUBLIC_ACCOUNTS_ENABLED"),
@@ -108,8 +115,8 @@ export async function GET(request: NextRequest) {
       ].filter(Boolean),
     },
     {
-      status: healthy ? 200 : 503,
+      status: overallHealthy ? 200 : 503,
       headers: { "Cache-Control": "no-store" },
     },
-  );
+  ), requestId);
 }

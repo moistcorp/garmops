@@ -51,7 +51,7 @@ export function CartSummarySidebar({
         {promoDiscount > 0 && (
           <SummaryRow label="Promo discount" value={`− ${formatInr(promoDiscount)}`} />
         )}
-        <SummaryRow label="Shipping" value={shippingFee > 0 ? formatInr(shippingFee) : "Not yet priced"} />
+        <SummaryRow label="Shipping" value={shippingFee === 0 ? "Free" : formatInr(shippingFee)} />
         <SummaryRow label={`GST (${formatGstRate()})`} value={formatInr(gst)} />
         <div className="border-t border-[var(--color-rule)] pt-3">
           <SummaryRow label="Order total" value={formatInr(total)} strong />
@@ -65,10 +65,10 @@ export function CartSummarySidebar({
             {delivery ? (
               <>
                 <p className="font-medium text-[var(--text-primary)]">Target: {delivery}</p>
-                <p className="mt-1">Shipping is not yet priced.</p>
+                <p className="mt-1">Shipping is free.</p>
               </>
             ) : (
-              <p className="font-medium text-[var(--text-primary)]">Shipping is not yet priced.</p>
+              <p className="font-medium text-[var(--text-primary)]">Shipping is free.</p>
             )}
           </div>
         </div>

@@ -66,7 +66,7 @@ export default function GarmopsLoadingScreen() {
         <div className="garmops-loader-copy">
           <div>
             <GarmopsLogo className="h-3 w-auto" />
-            <h1>Preparing your workspace</h1>
+            <p className="garmops-loader-title">Preparing your workspace</p>
             <p>Loading product specifications, orders and production details.</p>
           </div>
           <ol className="garmops-loader-steps" aria-hidden="true">

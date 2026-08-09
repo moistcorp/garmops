@@ -15,6 +15,7 @@ import type {
 import { verifyPayuPayment } from "@/lib/providers/payu/verify";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Enums, Json } from "@/types/database.generated";
+import { captureServerAnalytics, customerAllowsAnalytics } from "@/lib/analytics/server";
 
 type IncomingSource = "callback" | "webhook";
 type PaymentOutcome = "success" | "failure" | "pending";
@@ -61,8 +62,23 @@ type CustomCheckoutAttempt = {
     status: string;
     final_order_number: string | null;
     final_payment_attempt_id: string | null;
+    customer_user_id: string;
   };
 };
+
+async function captureVerifiedPaymentOutcome(customerUserId: string, outcome: PaymentOutcome) {
+  const consent = await customerAllowsAnalytics(customerUserId);
+  captureServerAnalytics({
+    event: outcome === "success" ? "payment_completed" : outcome === "failure" ? "payment_failed" : "payment_started",
+    supabaseUserId: customerUserId,
+    consent,
+    properties: { source: "verified_server" },
+  });
+  if (outcome === "success") {
+    captureServerAnalytics({ event: "durable_order_submitted", supabaseUserId: customerUserId, consent, properties: { source: "verified_server" } });
+    captureServerAnalytics({ event: "order_confirmed", supabaseUserId: customerUserId, consent, properties: { source: "verified_server" } });
+  }
+}
 
 function storedPayload(fields: PayuIncomingFields): Json {
   return {
@@ -299,6 +315,7 @@ async function applyCustomVerification(
       verifiedAmountPaise: verification.amountPaise,
       verifiedSnapshot: toJson(verification.snapshot),
     });
+    await captureVerifiedPaymentOutcome(attempt.custom_checkout_sessions.customer_user_id, "success");
     return {
       outcome: "success",
       attemptId: finalized.paymentAttemptId,
@@ -330,6 +347,7 @@ async function applyCustomVerification(
     .eq("id", attempt.checkout_session_id)
     .neq("status", "finalized");
   if (sessionError) throw new Error(sessionError.message);
+  if (failed) await captureVerifiedPaymentOutcome(attempt.custom_checkout_sessions.customer_user_id, "failure");
 
   return {
     outcome: failed ? "failure" : "pending",
@@ -346,7 +364,7 @@ async function readCustomAttemptByTransaction(
   const { data, error } = await admin
     .from("custom_checkout_payment_attempts")
     .select(
-      "id, checkout_session_id, amount_paise, currency, provider_merchant_txn_id, expected_product_info, customer_email, customer_name, status, provider_payment_id, raw_verified_snapshot, custom_checkout_sessions!inner(id, cart_id, return_path, status, final_order_number, final_payment_attempt_id)",
+      "id, checkout_session_id, amount_paise, currency, provider_merchant_txn_id, expected_product_info, customer_email, customer_name, status, provider_payment_id, raw_verified_snapshot, custom_checkout_sessions!inner(id, cart_id, return_path, status, final_order_number, final_payment_attempt_id, customer_user_id)",
     )
     .eq("provider_merchant_txn_id", transactionId)
     .maybeSingle();
@@ -521,7 +539,7 @@ export async function processPayuEvent(
   const { data: attempt, error } = await admin
     .from("payment_attempts")
     .select(
-      "id, order_id, amount_paise, currency, provider_merchant_txn_id, purpose, expected_product_info, customer_email, customer_name, orders!inner(order_number)",
+      "id, order_id, amount_paise, currency, provider_merchant_txn_id, purpose, expected_product_info, customer_email, customer_name, orders!inner(order_number, customer_user_id)",
     )
     .eq("provider_merchant_txn_id", fields.txnid)
     .maybeSingle();
@@ -602,6 +620,8 @@ export async function processPayuEvent(
     const verification = await verifyPayuPayment(fields.txnid);
     await persistVerificationEvent(attempt.id, "verify_api", verification);
     const outcome = await applyVerification(attempt, verification);
+    const customerUserId = (attempt.orders as unknown as { customer_user_id: string }).customer_user_id;
+    await captureVerifiedPaymentOutcome(customerUserId, outcome);
 
     const { error: processedError } = await admin
       .from("payment_events")

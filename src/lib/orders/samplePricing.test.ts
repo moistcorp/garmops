@@ -8,7 +8,7 @@ import {
 } from "./samplePricing";
 
 describe("durable sample-order pricing", () => {
-  it("prices catalogue items with 5% GST and excludes shipping", () => {
+  it("prices catalogue items with 5% GST and free shipping", () => {
     const result = priceSampleOrder([
       { productId: 1, size: "M", quantity: 2 },
       { productId: 7, size: "One Size", quantity: 1 },
@@ -40,7 +40,7 @@ describe("durable sample-order pricing", () => {
     ).toEqual({ L: 3 });
   });
 
-  it("always leaves shipping for the separate staff-issued payment link", () => {
+  it("always applies canonical free shipping", () => {
     const result = priceSampleOrder([
       { productId: 1, size: "M", quantity: 4 },
     ]);

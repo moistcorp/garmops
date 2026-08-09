@@ -23,10 +23,10 @@ garment configurator, checkout flows, case studies, and a journal.
 
 ## Local setup
 
-Install dependencies:
+Install exact locked dependencies:
 
 ```bash
-npm install
+npm ci
 ```
 
 Copy the environment template and replace the placeholder values when testing
@@ -44,9 +44,10 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-Without PayU credentials, payment initialization uses the local mock flow in
-development. Without a Resend API key, email endpoints return a configuration
-error.
+Without PayU credentials, durable payment initialization is unavailable. Normal
+CI never calls live PayU, Resend, R2, PostHog, Sentry, or the malware scanner.
+Optional integrations remain off until their feature flag and validated
+credentials are configured.
 
 ## Environment variables
 
@@ -59,8 +60,11 @@ error.
 | `RESEND_API_KEY` | Server-side Resend API key |
 | `RESEND_FROM_EMAIL` | Sender on a domain verified by Resend |
 | `CONTACT_TO_EMAIL` | Recipient for contact enquiries and paid sample-order notifications |
-| `NEXT_PUBLIC_FORMSPREE_ENDPOINT` | Optional Formspree endpoint for email capture |
 | `GOOGLE_SITE_VERIFICATION` | Optional Google Search Console HTML-tag verification token; DNS verification is preferred |
+| `NEXT_PUBLIC_ANALYTICS_ENABLED`, `POSTHOG_ENABLED` | Consent-gated client/server PostHog kill switches |
+| `SENTRY_ENABLED` | Privacy-redacted Sentry kill switch |
+| `MALWARE_SCANNING_ENABLED` | Private-file quarantine/scanner kill switch |
+| `ABANDONED_DESIGN_EMAILS_ENABLED` | Consent-gated saved-design recovery kill switch |
 
 Never expose `PAYU_SALT`, `PAYMENT_SIGNING_SECRET`, or `RESEND_API_KEY` with
 a `NEXT_PUBLIC_` prefix.
@@ -71,17 +75,21 @@ Run the checks used before shipping:
 
 ```bash
 npm run lint
-npx tsc --noEmit
+npm run typecheck
+npm test
+npm run db:test
 npm run build
 npm run seo:check
 npm run agent:check
+npm run e2e
+npm run assets:verify
 ```
 
 The SEO check validates the production sitemap, robots rules, canonical metadata,
 index/noindex directives, and image file formats after a successful build. The
 agent-readiness check validates Markdown discovery and negotiation, AI content
 signals, `llms.txt`, and the integrity digest for every published Agent Skill.
-There is currently no general automated test suite.
+GitHub Actions runs these checks, a clean local Supabase migration/test job, and Playwright. Production database backups are scheduled separately; see `docs/operations/database-restore.md`.
 
 ## Project structure
 

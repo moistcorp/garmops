@@ -14,6 +14,7 @@ import {
 import { cloudDesignSnapshotSchema } from "@/lib/designs/schema";
 import { currentCustomTermsEvidence } from "@/lib/orders/terms";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { estimateProductionWindowFromDatabase } from "@/lib/production/server";
 import type { createClient } from "@/lib/supabase/server";
 import type { Json } from "@/types/database.generated";
 
@@ -253,7 +254,7 @@ async function prepareCustomOrder(input: {
     address: addressSnapshot(request.shipping.address, request.shipping.recipientName, request.contact.phone),
     multipleLocations: request.shipping.multipleLocations,
     multipleLocationsNotes: request.shipping.multipleLocationsNotes ?? null,
-    pricing: "quoted_separately",
+    shippingChargePaise: 0,
   };
   const customerSnapshot: Json = {
     userId: user.id,
@@ -466,6 +467,11 @@ export async function finalizeCustomCheckoutPayment(input: {
   verifiedSnapshot: Json;
 }) {
   const admin = adminClient();
+  const { data: checkoutContext } = await admin
+    .from("custom_checkout_payment_attempts")
+    .select("custom_checkout_sessions!inner(rpc_payload)")
+    .eq("id", input.checkoutPaymentAttemptId)
+    .maybeSingle();
   const { data, error } = await admin.rpc("finalize_custom_checkout_full_payment", {
     p_checkout_payment_attempt_id: input.checkoutPaymentAttemptId,
     p_provider_payment_id: input.providerPaymentId,
@@ -475,6 +481,22 @@ export async function finalizeCustomCheckoutPayment(input: {
   });
   const result = data?.[0];
   if (error || !result) throw new Error(error?.message ?? "Verified checkout could not be finalized");
+  try {
+    const session = checkoutContext?.custom_checkout_sessions as unknown as { rpc_payload?: unknown } | undefined;
+    const payload = session?.rpc_payload && typeof session.rpc_payload === "object" && !Array.isArray(session.rpc_payload)
+      ? session.rpc_payload as Record<string, unknown>
+      : {};
+    const items = Array.isArray(payload.items) ? payload.items : [];
+    const quantity = items.reduce((sum, item) => sum + (item && typeof item === "object" ? Number((item as Record<string, unknown>).quantity) || 0 : 0), 0);
+    const configuration = payload.configurationSnapshot && typeof payload.configurationSnapshot === "object" && !Array.isArray(payload.configurationSnapshot)
+      ? payload.configurationSnapshot as Record<string, unknown>
+      : {};
+    const mode = configuration.deliveryType === "rush" || configuration.deliveryType === "flexible" ? configuration.deliveryType : "standard";
+    const window = await estimateProductionWindowFromDatabase({ quantity, requestedMode: mode });
+    await admin.from("orders").update({ estimated_dispatch_at: window.estimatedDispatchDate }).eq("id", result.order_id).is("estimated_dispatch_at", null);
+  } catch {
+    // A verified payment and durable order must not fail because planning data is unavailable.
+  }
   return {
     orderId: result.order_id,
     orderNumber: result.order_number,

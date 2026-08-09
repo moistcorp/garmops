@@ -42,25 +42,10 @@ export {
   type VolumeDiscountTier,
 };
 
-/**
- * Legacy values are retained only so old saved design snapshots can be read.
- * They are never offered in the customer UI and cannot be submitted as a new
- * order. Historical orders retain their immutable pricing snapshots.
- */
-const LEGACY_TECHNIQUE_UNIT_PRICE_DELTAS = {
-  dtg: 28,
-  puff_print: 52,
-  embroidery: 65,
-} as const;
-
 export const TECHNIQUE_UNIT_PRICE_DELTAS = CUSTOMER_PRINT_TECHNIQUE_UNIT_DELTAS;
 
 function techniqueUnitPriceDelta(technique: ArtworkTechnique): number {
-  return CUSTOMER_PRINT_TECHNIQUE_UNIT_DELTAS[
-    technique as keyof typeof CUSTOMER_PRINT_TECHNIQUE_UNIT_DELTAS
-  ] ?? LEGACY_TECHNIQUE_UNIT_PRICE_DELTAS[
-    technique as keyof typeof LEGACY_TECHNIQUE_UNIT_PRICE_DELTAS
-  ];
+  return CUSTOMER_PRINT_TECHNIQUE_UNIT_DELTAS[technique];
 }
 
 /** A private cloud upload is still an artwork asset even when no URL is present. */
@@ -95,7 +80,7 @@ export function getUnitPriceAdjustments(
     adjustments.push({
       label: `${side === "front" ? "Front" : "Back"} ${CUSTOMER_PRINT_TECHNIQUE_LABELS[
         artworkSide.technique as keyof typeof CUSTOMER_PRINT_TECHNIQUE_LABELS
-      ] ?? "legacy decoration"}`,
+      ]}`,
       amount: techniqueUnitPriceDelta(artworkSide.technique),
     });
   });

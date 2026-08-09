@@ -4,11 +4,12 @@ import { calculateTaxPaise, GST_RATE_BASIS_POINTS } from "@/lib/tax";
 import type { Json } from "@/types/database.generated";
 
 import type { SampleOrderItemInput } from "./sampleSchema";
+import { FREE_SHIPPING_PAISE, getShippingPaise } from "./shipping";
 
 export const SAMPLE_ORDER_PRICING_VERSION = "catalogue-samples-2026-01";
 export const SAMPLE_ORDER_SCHEMA_VERSION = 1;
-export const SAMPLE_FREE_SHIPPING_THRESHOLD_PAISE = 0;
-export const SAMPLE_STANDARD_SHIPPING_PAISE = 0;
+export const SAMPLE_FREE_SHIPPING_THRESHOLD_PAISE = FREE_SHIPPING_PAISE;
+export const SAMPLE_STANDARD_SHIPPING_PAISE = FREE_SHIPPING_PAISE;
 export const MAX_SAMPLE_LINES = 50;
 export const MAX_SAMPLE_QUANTITY_PER_LINE = 100;
 
@@ -113,9 +114,9 @@ export function priceSampleOrder(
     throw new Error("Sample subtotal is invalid");
   }
 
-  const shippingPaise = 0;
+  const shippingPaise = getShippingPaise();
   const taxEstimatePaise = calculateTaxPaise(subtotalPaise);
-  const estimatedTotalPaise = subtotalPaise + taxEstimatePaise;
+  const estimatedTotalPaise = subtotalPaise + taxEstimatePaise + shippingPaise;
 
   return Object.freeze({
     subtotalPaise,

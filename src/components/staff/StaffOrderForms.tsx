@@ -3,11 +3,9 @@
 import { useActionState } from "react";
 import {
   decideOrderCancellationAction,
-  markShippingPaidAction,
   requestOrderCancellationAction,
   recordOrderRefundAction,
   reopenOrderConfigurationAction,
-  setShippingPaymentLinkAction,
   transitionOrderAction,
   updateOrderNotesAction,
   updateOrderConfigurationAction,
@@ -35,45 +33,6 @@ export function AdministrativeOrderNotesForm({ orderId, orderNumber, orderNotes 
   const [state, action, pending] = useActionState(updateOrderNotesAction, INITIAL_STAFF_ACTION_STATE);
   return <form action={action} className="space-y-3"><input type="hidden" name="orderId" value={orderId} /><input type="hidden" name="orderNumber" value={orderNumber} /><label className="block text-xs font-semibold">Administrative order note<textarea name="orderNotes" defaultValue={orderNotes} maxLength={2000} rows={3} className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" /></label><label className="block text-xs font-semibold">Reason<textarea name="reason" required minLength={3} rows={2} className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" /></label><p className="text-[11px] text-black/45">This note does not change garment, artwork, quantities, or production status.</p><button disabled={pending} className="w-full rounded border border-black/10 px-3 py-2 text-xs font-semibold" type="submit">{pending ? "Saving…" : "Save administrative note"}</button><Result state={state} /></form>;
 }
-
-export function ShippingPaymentForm({ orderId, orderNumber, founder }: { orderId: string; orderNumber: string; founder: boolean }) {
-  const [linkState, linkAction, linkPending] = useActionState(setShippingPaymentLinkAction, INITIAL_STAFF_ACTION_STATE);
-  const [paidState, paidAction, paidPending] = useActionState(markShippingPaidAction, INITIAL_STAFF_ACTION_STATE);
-  return (
-    <div className="space-y-5">
-      <form action={linkAction} className="space-y-3">
-        <input type="hidden" name="orderId" value={orderId} />
-        <input type="hidden" name="orderNumber" value={orderNumber} />
-        <label className="block text-xs font-semibold">
-          Shipping amount (₹)
-          <input name="amountRupees" type="number" min="1" step="0.01" required className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" />
-        </label>
-        <p className="text-[11px] leading-relaxed text-black/45">
-          Garmops creates the PayU transaction internally. Staff cannot paste or redirect customers to an external payment URL.
-        </p>
-        <button disabled={linkPending} className="techpack-button w-full" type="submit">
-          {linkPending ? "Creating…" : "Create secure PayU payment"}
-        </button>
-        <Result state={linkState} />
-      </form>
-      {founder ? (
-        <form action={paidAction} className="space-y-3 border-t border-black/10 pt-4">
-          <input type="hidden" name="orderId" value={orderId} />
-          <input type="hidden" name="orderNumber" value={orderNumber} />
-          <label className="block text-xs font-semibold">
-            Verified payment / bank reference
-            <input name="reference" required minLength={3} className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" />
-          </label>
-          <button disabled={paidPending} className="w-full rounded border border-black/10 px-3 py-2 text-xs font-semibold" type="submit">
-            {paidPending ? "Recording…" : "Founder: mark shipping paid"}
-          </button>
-          <Result state={paidState} />
-        </form>
-      ) : null}
-    </div>
-  );
-}
-
 
 export function CancellationRequestForm({ orderId, orderNumber }: { orderId: string; orderNumber: string }) {
   const [state, action, pending] = useActionState(requestOrderCancellationAction, INITIAL_STAFF_ACTION_STATE);

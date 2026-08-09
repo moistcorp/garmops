@@ -64,10 +64,7 @@ const encoder = new TextEncoder();
 const TECHNIQUE_LABELS: Record<string, string> = {
   screen_print: "Screen print",
   dtf: "Direct-to-film print",
-  reflective_heat_transfer: "Reflective print",
-  dtg: "Archived decoration",
-  puff_print: "Archived decoration",
-  embroidery: "Archived decoration",
+  reflective_print: "Reflective print",
 };
 
 function sanitizePdfText(value: string): string {
@@ -167,7 +164,7 @@ function artworkLine(side: "Front" | "Back", artwork?: ArtworkSide): string {
     return `${side}: No artwork selected`;
   }
   const technique = artwork.technique
-    ? TECHNIQUE_LABELS[artwork.technique] ?? "Archived decoration"
+    ? TECHNIQUE_LABELS[artwork.technique] ?? "Print technique"
     : "Technique to be recommended";
   const review = artwork.vectorized ? "production file available" : "file preparation review required";
   return `${side}: ${technique}, ${artwork.width} x ${artwork.height} cm, ${artwork.fromNeck} cm below neck (${review})`;
@@ -302,7 +299,7 @@ function buildOverviewPage(
   page.commands.push(pdfText("FULL MERCHANDISE PAYMENT", 58, 278, 8, true, [0.06, 0.38, 0.39]));
   page.commands.push(pdfText(formatInr(options.totals.total), 58, 250, 22, true, [0.06, 0.38, 0.39]));
   page.commands.push(pdfText("Includes configured merchandise and GST.", 310, 258, 9, true));
-  page.commands.push(pdfText("Shipping is reviewed and charged separately through PayU.", 310, 242, 7.5, false, [0.35, 0.35, 0.35]));
+  page.commands.push(pdfText("Shipping is free.", 310, 242, 7.5, false, [0.35, 0.35, 0.35]));
 
   let disclaimerY = 196;
   disclaimerY = addWrappedText(

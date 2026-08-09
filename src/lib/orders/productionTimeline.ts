@@ -22,7 +22,7 @@ const stageIndexByOrderStatus: Readonly<Record<string, number>> = {
   artwork_approved: 2,
   production_approved: 2,
   material_preparation: 3,
-  printing_embroidery: 4,
+  printing: 4,
   stitching: 5,
   quality_check: 6,
   packing: 6,

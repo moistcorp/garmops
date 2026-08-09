@@ -55,7 +55,7 @@ export function getCatalogueBasePriceRupees(productId: string): number {
 export const CUSTOMER_PRINT_TECHNIQUES = [
   "screen_print",
   "dtf",
-  "reflective_heat_transfer",
+  "reflective_print",
 ] as const;
 
 export type CustomerPrintTechnique = (typeof CUSTOMER_PRINT_TECHNIQUES)[number];
@@ -63,13 +63,13 @@ export type CustomerPrintTechnique = (typeof CUSTOMER_PRINT_TECHNIQUES)[number];
 export const CUSTOMER_PRINT_TECHNIQUE_LABELS: Record<CustomerPrintTechnique, string> = {
   screen_print: "Screen Print",
   dtf: "DTF",
-  reflective_heat_transfer: "Reflective Print",
+  reflective_print: "Reflective Print",
 };
 
 export const CUSTOMER_PRINT_TECHNIQUE_UNIT_DELTAS: Record<CustomerPrintTechnique, number> = {
   screen_print: 38,
   dtf: 32,
-  reflective_heat_transfer: 46,
+  reflective_print: 46,
 };
 
 export const CUSTOM_DYE_UNIT_INCREASE_PERCENT = 15.33;

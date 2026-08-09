@@ -103,6 +103,22 @@ const serverEnvironmentSchema = z
     ENABLE_REALTIME_ORDER_UPDATES: booleanValue,
     ENABLE_WHATSAPP_NOTIFICATIONS: booleanValue,
     ENABLE_SMS_NOTIFICATIONS: booleanValue,
+    NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN: optionalText(512),
+    NEXT_PUBLIC_POSTHOG_HOST: optionalUrl,
+    POSTHOG_ENABLED: booleanValue,
+    NEXT_PUBLIC_ANALYTICS_ENABLED: booleanValue,
+    NEXT_PUBLIC_SENTRY_DSN: optionalUrl,
+    SENTRY_DSN: optionalUrl,
+    SENTRY_AUTH_TOKEN: optionalText(2048),
+    SENTRY_ORG: optionalText(200),
+    SENTRY_PROJECT: optionalText(200),
+    SENTRY_ENABLED: booleanValue,
+    ABANDONED_DESIGN_EMAILS_ENABLED: booleanValue,
+    PRODUCTION_CAPACITY_ENABLED: booleanValue,
+    MALWARE_SCANNING_ENABLED: booleanValue,
+    MALWARE_SCANNER_URL: optionalUrl,
+    MALWARE_SCANNER_TOKEN: optionalText(2048),
+    MALWARE_SCAN_TIMEOUT_MS: positiveInteger(15_000, 120_000),
   })
   .passthrough()
   .superRefine((environment, context) => {
@@ -389,6 +405,10 @@ const serverEnvironmentSchema = z
         });
       }
     }
+
+    requireValues(environment.POSTHOG_ENABLED, ["NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN", "NEXT_PUBLIC_POSTHOG_HOST"], "when server analytics is enabled");
+    requireValues(environment.SENTRY_ENABLED, ["SENTRY_DSN"], "when Sentry is enabled");
+    requireValues(environment.MALWARE_SCANNING_ENABLED, ["MALWARE_SCANNER_URL", "MALWARE_SCANNER_TOKEN"], "when malware scanning is enabled");
   });
 
 export type ServerEnvironment = z.output<typeof serverEnvironmentSchema>;

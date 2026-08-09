@@ -18,11 +18,8 @@ const STEP_IDS = new Set(["garment-colour", "artwork", "neck-label"]);
 const ARTWORK_FILE_TYPES = new Set(["jpg", "png", "pdf", "svg", "ai"]);
 const ARTWORK_TECHNIQUES = new Set([
   "screen_print",
-  "dtg",
   "dtf",
-  "reflective_heat_transfer",
-  "puff_print",
-  "embroidery",
+  "reflective_print",
 ]);
 const PRINT_AREAS = new Set(["XS", "S", "M", "L", "XL", "XXL"]);
 const NECK_LABEL_FILE_TYPES = new Set(["svg", "ai"]);

@@ -3,6 +3,7 @@ import './globals.css'
 import AppChrome from '@/components/common/AppChrome'
 import SatoshiFontResources from '@/components/common/SatoshiFontResources'
 import { googleSiteVerification, siteConfig } from '@/lib/seo'
+import AnalyticsPreferences from '@/components/privacy/AnalyticsPreferences'
 
 const googleVerification = googleSiteVerification()
 
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="font-sans bg-white text-[var(--text-primary)] antialiased">
         <AppChrome>{children}</AppChrome>
+        <AnalyticsPreferences />
       </body>
     </html>
   )

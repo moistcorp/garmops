@@ -193,7 +193,7 @@ export default function PricingClient() {
               <PriceRow label={`GST (${formatGstRate()})`} value={formatInr(estimate.gst)} />
             </div>
             <div className="mt-5 flex items-end justify-between gap-4">
-              <div><p className="text-sm font-semibold">Estimated total</p><p className="mt-1 text-xs text-white/45">GST included · shipping quoted after destination review</p></div>
+              <div><p className="text-sm font-semibold">Estimated total</p><p className="mt-1 text-xs text-white/45">GST included · free shipping</p></div>
               <p className="font-mono text-2xl font-bold">{formatInr(estimate.total)}</p>
             </div>
             <Link href={designHref} className="mt-7 flex min-h-12 items-center justify-center gap-2 rounded-[4px] bg-white px-5 py-3 text-sm font-semibold text-[var(--color-navy)] transition hover:bg-[#F4F1EB]">Configure this product <ArrowRight size={16} /></Link>
@@ -209,7 +209,7 @@ export default function PricingClient() {
               [PackageCheck, "Garment", "Fabric weight, fit and product determine the starting unit price."],
               [Check, "Artwork", "Screen Print, DTF or Reflective Print is priced when you choose the technique and placement."],
               [CircleHelp, "Custom details", "Custom dye, back artwork and a custom label update the configured price before checkout."],
-              [Truck, "Delivery & shipping", "Rush production is +₹75 per unit before GST. Shipping is confirmed separately for the destination."],
+              [Truck, "Delivery & shipping", "Rush production is +₹75 per unit before GST. Shipping is free."],
             ].map(([Icon, title, description]) => <article key={String(title)} className="techpack-panel rounded-[4px] border p-5"><Icon size={18} className="text-[var(--color-accent)]" /><h3 className="mt-5 text-base font-semibold">{String(title)}</h3><p className="mt-2 text-sm leading-6 text-[var(--text-primary)]/60">{String(description)}</p></article>)}
           </div>
         </div>

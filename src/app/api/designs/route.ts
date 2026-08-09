@@ -11,6 +11,7 @@ import {
 import { createCloudDesign, listCloudDesigns } from "@/lib/designs/dal";
 import { createDesignRequestSchema } from "@/lib/designs/schema";
 import type { Json } from "@/types/database.generated";
+import { captureServerAnalytics, customerAllowsAnalytics } from "@/lib/analytics/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -88,6 +89,15 @@ export async function POST(request: NextRequest) {
       hint: error?.hint ?? null,
     });
     return designJsonError("Design could not be saved", 403);
+  }
+
+  if (design.created_new) {
+    captureServerAnalytics({
+      event: "saved_design_created",
+      supabaseUserId: auth.user.id,
+      consent: await customerAllowsAnalytics(auth.user.id),
+      properties: { source: parsed.data.source },
+    });
   }
 
   return designJson(

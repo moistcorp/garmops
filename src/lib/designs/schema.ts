@@ -44,11 +44,8 @@ const artworkSideSchema = z
     technique: z
       .enum([
         "screen_print",
-        "dtg",
         "dtf",
-        "reflective_heat_transfer",
-        "puff_print",
-        "embroidery",
+        "reflective_print",
       ])
       .optional(),
     width: z.number().finite().min(0).max(200),

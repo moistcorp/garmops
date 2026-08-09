@@ -53,7 +53,7 @@ export default function StaffQuoteCheckout({ token, totalPaise }: { token: strin
         {pending ? <LoaderCircle size={16} className="animate-spin" /> : <CreditCard size={16} />}
         {pending ? "Opening secure payment…" : `Continue to PayU · ${displayed}`}
       </button>
-      <p className="text-[11px] leading-relaxed text-black/45">The final amount is recalculated server-side. Shipping is excluded and will be collected separately by staff through a PayU payment link.</p>
+      <p className="text-[11px] leading-relaxed text-black/45">The final amount is recalculated server-side and includes free shipping.</p>
       {error ? <p className="text-xs text-red-700" role="alert">{error}</p> : null}
     </div>
   );

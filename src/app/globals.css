@@ -577,7 +577,7 @@ canvas {
   padding: 1.4rem;
 }
 
-.garmops-loader-copy h1 {
+.garmops-loader-copy .garmops-loader-title {
   margin-top: 0.35rem;
   color: var(--color-navy);
   font-size: clamp(1.15rem, 3vw, 1.6rem);

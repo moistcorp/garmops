@@ -1,3 +1,6 @@
+import { captureAnalytics } from "@/lib/analytics/client";
+import type { AnalyticsEvent } from "@/lib/analytics/events";
+
 export type ConfiguratorAnalyticsEvent =
   | "stage_viewed"
   | "stage_completed"
@@ -64,7 +67,6 @@ export function trackConfiguratorEvent(
     ...properties,
   };
 
-  window.dataLayer = window.dataLayer ?? [];
-  window.dataLayer.push(payload);
   window.dispatchEvent(new CustomEvent("garmops:analytics", { detail: payload }));
+  captureAnalytics(event as AnalyticsEvent, properties);
 }

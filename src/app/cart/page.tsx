@@ -3,13 +3,14 @@ import { MAX_SAMPLE_ITEM_QUANTITY, useCartStore } from '@/lib/store'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { getShippingPaise } from '@/lib/orders/shipping'
 
 export default function Cart() {
   const { items, removeItem, updateQuantity, total, hasHydrated } = useCartStore()
   const router = useRouter()
   const cartTotal = total()
-  const shipping = cartTotal >= 2000 ? 0 : 99
-  const grandTotal = cartTotal + shipping
+  const shippingPaise = getShippingPaise()
+  const grandTotal = cartTotal + shippingPaise / 100
 
   if (!hasHydrated) return (
     <div className="techpack-canvas min-h-[70vh] animate-pulse">
@@ -107,11 +108,8 @@ export default function Cart() {
               </div>
               <div className="flex justify-between">
                 <span className="text-[var(--text-primary)]/50">Shipping</span>
-                <span className="font-mono">{shipping === 0 ? 'Free' : `₹${shipping}`}</span>
+                <span className="font-mono">Free</span>
               </div>
-              {shipping > 0 && (
-                <p className="text-xs text-[var(--text-primary)]/40">Add ₹{(2000 - cartTotal).toLocaleString('en-IN')} more for free shipping</p>
-              )}
             </div>
             <div className="flex justify-between font-bold text-base border-t border-[#ECE7DF] pt-4">
               <span>Total</span>

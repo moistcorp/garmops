@@ -28,7 +28,7 @@ describe("customerProductionTimeline", () => {
   });
 
   it("does not claim stitching is complete during decoration", () => {
-    const timeline = customerProductionTimeline("printing_embroidery");
+    const timeline = customerProductionTimeline("printing");
 
     expect(timeline[3].state).toBe("completed");
     expect(timeline[4].state).toBe("current");
@@ -46,7 +46,7 @@ describe("customerProductionTimeline", () => {
   it("preserves the last known production position while an order is on hold", () => {
     const timeline = customerProductionTimeline("on_hold", [
       "payment_confirmed",
-      "printing_embroidery",
+      "printing",
       "on_hold",
     ]);
 

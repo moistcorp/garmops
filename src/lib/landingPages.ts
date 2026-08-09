@@ -504,7 +504,7 @@ export const landingPages = {
         title: 'Ordering and pricing factors',
         features: [
           { title: 'Production inputs', description: 'Quantity, artwork positions, colour count, technique, file preparation, sample needs, packing and deadline all affect the order.' },
-          { title: 'Commercial treatment', description: 'GST and shipping are identified separately from the base product estimate and confirmed after review.' },
+          { title: 'Commercial treatment', description: 'GST is identified separately from the base product estimate; shipping is free.' },
         ],
         links: [
           { label: 'Estimate a branded tote order', href: '/pricing' },
@@ -599,9 +599,9 @@ export const landingPages = {
         title: 'Procurement information to confirm',
         features: [
           { title: 'MOQ and price basis', description: 'The minimum is 50 pieces per style. Compare garment, quantity, decoration, labels, samples, deadline, GST and shipping on like-for-like specifications.' },
-          { title: 'Commercial documents', description: 'GST-compliant invoices are generated after verified full payment. Shipping is quoted separately after staff review.' },
+          { title: 'Commercial documents', description: 'GST-compliant invoices are generated after verified full payment. Shipping is free.' },
           { title: 'Artwork and approvals', description: 'Provide source artwork, physical dimensions, positions, colour references, an approver and an approval deadline.' },
-          { title: 'Timeline and shipping', description: `The standard delivery target is ${DELIVERY_DAYS} days from confirmation. A ${RUSH_DELIVERY_DAYS}-day rush target is subject to order and destination feasibility. Shipping is confirmed separately.` },
+          { title: 'Timeline and shipping', description: `The standard delivery target is ${DELIVERY_DAYS} days from confirmation. A ${RUSH_DELIVERY_DAYS}-day rush target is subject to order and destination feasibility. Shipping is free.` },
         ],
         links: [
           { label: 'Estimate a company apparel order', href: '/pricing' },
@@ -634,7 +634,7 @@ export const landingPages = {
     faqs: [
       { question: 'What is the minimum corporate merchandise order?', answer: 'The minimum is 50 pieces per style. A mixed programme may contain several styles, with each style meeting its applicable minimum.' },
       { question: 'Which products can a company customise?', answer: 'The current catalogue includes regular and heavyweight T-shirts, polos, hoodies, sweatshirts, long-sleeve tees and canvas tote bags.' },
-      { question: 'Does Garmops provide GST invoices?', answer: 'Yes. Garmops generates GST-compliant invoices with HSN codes after verified full payment. Shipping is quoted and collected separately.' },
+      { question: 'Does Garmops provide GST invoices?', answer: 'Yes. Garmops generates GST-compliant invoices with HSN codes after verified full payment. Shipping is free.' },
       { question: 'Can employees choose different sizes?', answer: 'Yes. Allocate the quantity across the available sizes for the selected product, using its approved measurement chart.' },
       { question: 'Can we approve a sample before production?', answer: 'Yes. Catalogue samples can help compare base garments, and paid pre-production samples are available when the complete branded result requires physical approval.' },
       { question: 'How long should a company allow?', answer: `The current standard delivery target is ${DELIVERY_DAYS} days from order confirmation. A ${RUSH_DELIVERY_DAYS}-day rush option is subject to feasibility. Internal sizing, artwork and approval time must be planned before confirmation.` },

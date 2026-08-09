@@ -548,6 +548,27 @@ export type Database = {
           },
         ]
       }
+      customer_privacy_preferences: {
+        Row: {
+          analytics_enabled: boolean
+          customer_user_id: string
+          recovery_messages_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          analytics_enabled?: boolean
+          customer_user_id: string
+          recovery_messages_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          analytics_enabled?: boolean
+          customer_user_id?: string
+          recovery_messages_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       design_project_versions: {
         Row: {
           configuration_snapshot: Json
@@ -605,6 +626,7 @@ export type Database = {
           id: string
           last_saved_at: string
           pricing_input_snapshot: Json | null
+          recovery_last_sent_at: string | null
           schema_version: number
           source: string
           status: string
@@ -623,6 +645,7 @@ export type Database = {
           id?: string
           last_saved_at?: string
           pricing_input_snapshot?: Json | null
+          recovery_last_sent_at?: string | null
           schema_version: number
           source?: string
           status?: string
@@ -641,6 +664,7 @@ export type Database = {
           id?: string
           last_saved_at?: string
           pricing_input_snapshot?: Json | null
+          recovery_last_sent_at?: string | null
           schema_version?: number
           source?: string
           status?: string
@@ -1454,11 +1478,7 @@ export type Database = {
           refund_requested_at: string | null
           refunded_at: string | null
           requested_delivery_date: string | null
-          shipping_charge_paise: number | null
-          shipping_paid_at: string | null
-          shipping_payment_link_url: string | null
-          shipping_payment_reference: string | null
-          shipping_payment_status: Database["public"]["Enums"]["shipping_payment_status"]
+          shipping_charge_paise: number
           shipping_snapshot: Json
           status: Database["public"]["Enums"]["order_status"]
           subtotal_paise: number
@@ -1512,11 +1532,7 @@ export type Database = {
           refund_requested_at?: string | null
           refunded_at?: string | null
           requested_delivery_date?: string | null
-          shipping_charge_paise?: number | null
-          shipping_paid_at?: string | null
-          shipping_payment_link_url?: string | null
-          shipping_payment_reference?: string | null
-          shipping_payment_status?: Database["public"]["Enums"]["shipping_payment_status"]
+          shipping_charge_paise?: number
           shipping_snapshot: Json
           status: Database["public"]["Enums"]["order_status"]
           subtotal_paise: number
@@ -1570,11 +1586,7 @@ export type Database = {
           refund_requested_at?: string | null
           refunded_at?: string | null
           requested_delivery_date?: string | null
-          shipping_charge_paise?: number | null
-          shipping_paid_at?: string | null
-          shipping_payment_link_url?: string | null
-          shipping_payment_reference?: string | null
-          shipping_payment_status?: Database["public"]["Enums"]["shipping_payment_status"]
+          shipping_charge_paise?: number
           shipping_snapshot?: Json
           status?: Database["public"]["Enums"]["order_status"]
           subtotal_paise?: number
@@ -1780,6 +1792,144 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      privacy_requests: {
+        Row: {
+          created_at: string
+          customer_note: string | null
+          customer_user_id: string
+          id: string
+          request_type: Database["public"]["Enums"]["privacy_request_type"]
+          resolution_notes: string | null
+          status: Database["public"]["Enums"]["privacy_request_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_note?: string | null
+          customer_user_id: string
+          id?: string
+          request_type: Database["public"]["Enums"]["privacy_request_type"]
+          resolution_notes?: string | null
+          status?: Database["public"]["Enums"]["privacy_request_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_note?: string | null
+          customer_user_id?: string
+          id?: string
+          request_type?: Database["public"]["Enums"]["privacy_request_type"]
+          resolution_notes?: string | null
+          status?: Database["public"]["Enums"]["privacy_request_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      production_blackout_dates: {
+        Row: {
+          active: boolean
+          created_at: string
+          date: string
+          note: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          date: string
+          note?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          date?: string
+          note?: string | null
+        }
+        Relationships: []
+      }
+      production_capacity_rules: {
+        Row: {
+          active: boolean
+          created_at: string
+          daily_unit_capacity: number
+          effective_from: string
+          id: string
+          product_category: string | null
+          technique: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          daily_unit_capacity: number
+          effective_from: string
+          id?: string
+          product_category?: string | null
+          technique?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          daily_unit_capacity?: number
+          effective_from?: string
+          id?: string
+          product_category?: string | null
+          technique?: string | null
+        }
+        Relationships: []
+      }
+      production_lead_time_rules: {
+        Row: {
+          active: boolean
+          created_at: string
+          custom_dye_extra_days: number
+          id: string
+          product_category: string | null
+          qc_dispatch_buffer_days: number
+          rush_eligible: boolean
+          setup_buffer_days: number
+          technique: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          custom_dye_extra_days?: number
+          id?: string
+          product_category?: string | null
+          qc_dispatch_buffer_days?: number
+          rush_eligible?: boolean
+          setup_buffer_days?: number
+          technique?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          custom_dye_extra_days?: number
+          id?: string
+          product_category?: string | null
+          qc_dispatch_buffer_days?: number
+          rush_eligible?: boolean
+          setup_buffer_days?: number
+          technique?: string | null
+        }
+        Relationships: []
+      }
+      production_working_days: {
+        Row: {
+          is_working: boolean
+          updated_at: string
+          weekday: number
+        }
+        Insert: {
+          is_working?: boolean
+          updated_at?: string
+          weekday: number
+        }
+        Update: {
+          is_working?: boolean
+          updated_at?: string
+          weekday?: number
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -2286,10 +2436,6 @@ export type Database = {
           object_key: string
         }[]
       }
-      create_shipping_payment_attempt: {
-        Args: { p_amount_paise: number; p_order_id: string }
-        Returns: string
-      }
       current_account_type: {
         Args: never
         Returns: Database["public"]["Enums"]["account_type"]
@@ -2350,6 +2496,10 @@ export type Database = {
           last_saved_at: string
           version_number: number
         }[]
+      }
+      enqueue_abandoned_design_recovery: {
+        Args: { p_inactive_interval?: string }
+        Returns: number
       }
       ensure_customer_account: {
         Args: { p_privacy_version: string; p_terms_version: string }
@@ -2422,6 +2572,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      foundry_business_metrics: {
+        Args: { p_from: string; p_to: string }
+        Returns: Json
+      }
       get_staff_access_context: {
         Args: never
         Returns: {
@@ -2437,10 +2591,6 @@ export type Database = {
           p_from: Database["public"]["Enums"]["order_status"]
           p_to: Database["public"]["Enums"]["order_status"]
         }
-        Returns: boolean
-      }
-      mark_shipping_payment_received: {
-        Args: { p_order_id: string; p_reference: string }
         Returns: boolean
       }
       next_number: {
@@ -2540,15 +2690,6 @@ export type Database = {
           p_shipping_address: Json
         }
         Returns: undefined
-      }
-      set_shipping_payment_link: {
-        Args: {
-          p_amount_paise: number
-          p_order_id: string
-          p_reference?: string
-          p_url: string
-        }
-        Returns: boolean
       }
       set_staff_active: {
         Args: { p_active: boolean; p_user_id: string }
@@ -2653,6 +2794,10 @@ export type Database = {
         | "clean"
         | "rejected"
         | "not_required"
+        | "pending_scan"
+        | "infected"
+        | "scan_failed"
+        | "scanner_unavailable"
       file_visibility: "customer" | "staff_only"
       invoice_kind: "tax_invoice" | "credit_note"
       invoice_sync_status:
@@ -2670,7 +2815,7 @@ export type Database = {
         | "artwork_approved"
         | "production_approved"
         | "material_preparation"
-        | "printing_embroidery"
+        | "printing"
         | "stitching"
         | "quality_check"
         | "packing"
@@ -2682,7 +2827,7 @@ export type Database = {
         | "refund_pending"
         | "refunded"
       order_type: "custom_bulk" | "sample_purchase" | "reorder"
-      payment_purpose: "order_full" | "shipping" | "refund"
+      payment_purpose: "order_full" | "refund"
       payment_status:
         | "created"
         | "initiated"
@@ -2694,6 +2839,12 @@ export type Database = {
         | "refunded"
         | "partially_refunded"
         | "disputed"
+      privacy_request_status:
+        | "submitted"
+        | "in_review"
+        | "completed"
+        | "rejected"
+      privacy_request_type: "export" | "delete" | "correction"
       public_order_status:
         | "order_received"
         | "artwork_under_review"
@@ -2706,12 +2857,6 @@ export type Database = {
         | "action_required"
         | "cancelled"
       quote_status: "draft" | "sent" | "expired" | "paid" | "cancelled"
-      shipping_payment_status:
-        | "not_required"
-        | "awaiting_quote"
-        | "link_created"
-        | "paid"
-        | "waived"
       staff_role: "founder" | "operations"
     }
     CompositeTypes: {
@@ -2865,6 +3010,10 @@ export const Constants = {
         "clean",
         "rejected",
         "not_required",
+        "pending_scan",
+        "infected",
+        "scan_failed",
+        "scanner_unavailable",
       ],
       file_visibility: ["customer", "staff_only"],
       invoice_kind: ["tax_invoice", "credit_note"],
@@ -2884,7 +3033,7 @@ export const Constants = {
         "artwork_approved",
         "production_approved",
         "material_preparation",
-        "printing_embroidery",
+        "printing",
         "stitching",
         "quality_check",
         "packing",
@@ -2897,7 +3046,7 @@ export const Constants = {
         "refunded",
       ],
       order_type: ["custom_bulk", "sample_purchase", "reorder"],
-      payment_purpose: ["order_full", "shipping", "refund"],
+      payment_purpose: ["order_full", "refund"],
       payment_status: [
         "created",
         "initiated",
@@ -2910,6 +3059,13 @@ export const Constants = {
         "partially_refunded",
         "disputed",
       ],
+      privacy_request_status: [
+        "submitted",
+        "in_review",
+        "completed",
+        "rejected",
+      ],
+      privacy_request_type: ["export", "delete", "correction"],
       public_order_status: [
         "order_received",
         "artwork_under_review",
@@ -2923,13 +3079,6 @@ export const Constants = {
         "cancelled",
       ],
       quote_status: ["draft", "sent", "expired", "paid", "cancelled"],
-      shipping_payment_status: [
-        "not_required",
-        "awaiting_quote",
-        "link_created",
-        "paid",
-        "waived",
-      ],
       staff_role: ["founder", "operations"],
     },
   },

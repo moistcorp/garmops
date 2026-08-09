@@ -48,7 +48,7 @@ describe("production staff operations rules", () => {
 
   it("allows Operations to progress normal production stages", () => {
     expect(
-      allowedNextStatusesForRole("printing_embroidery", "operations"),
+      allowedNextStatusesForRole("printing", "operations"),
     ).toEqual(["stitching", "on_hold"]);
     expect(
       allowedNextStatusesForRole("ready_to_dispatch", "operations"),

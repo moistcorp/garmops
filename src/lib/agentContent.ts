@@ -89,7 +89,7 @@ function homeMarkdown() {
 - Rush delivery target: ${RUSH_DELIVERY_DAYS} days when the order is feasible.
 - Current catalogue prices start at ₹${lowestPrice.toLocaleString('en-IN')} per piece before GST and shipping.
 - Location: ${siteConfig.address.locality}, ${siteConfig.address.region}, India.
-- GST-compliant invoicing follows verified full payment; shipping is quoted separately by staff.
+- GST-compliant invoicing follows verified full payment; shipping is free.
 
 ## Products
 
@@ -300,7 +300,7 @@ ${table(
 ## What affects the final quote
 
 - The base estimate includes the garment, stitching, a single-colour screen print, and a neck label.
-- GST is ${(GST_RATE * 100).toFixed(0)}%; shipping is calculated separately.
+- GST is ${(GST_RATE * 100).toFixed(0)}%; shipping is free.
 - Additional artwork positions, colours, techniques, sampling, custom dyeing, packaging, and rush production add cost.
 - Standard delivery targets ${DELIVERY_DAYS} days from confirmation.
 - A ${RUSH_DELIVERY_DAYS}-day rush option is subject to feasibility and currently adds a rush fee.
@@ -448,7 +448,7 @@ Garmops produces bulk custom T-shirts, polos, hoodies, sweatshirts, long-sleeve 
 - Rush delivery target: ${RUSH_DELIVERY_DAYS} days for feasible orders.
 - Location: ${siteConfig.address.locality}, ${siteConfig.address.region}, India.
 - Shipping: pan-India and international options.
-- GST-compliant invoicing follows verified full payment; shipping is quoted separately by staff.
+- GST-compliant invoicing follows verified full payment; shipping is free.
 - Catalogue samples and paid custom pre-production samples are available.
 
 ## Useful resources

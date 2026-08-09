@@ -26,6 +26,7 @@ export async function transitionOrderAction(
   _state: StaffActionState,
   formData: FormData,
 ): Promise<StaffActionState> {
+  void _state;
   const context = await requireStaffPermission("change_order_status");
   const parsed = statusTransitionSchema.safeParse({
     orderId: formData.get("orderId"),
@@ -48,7 +49,6 @@ export async function transitionOrderAction(
       [/INVALID_STATUS_TRANSITION/, "That status change is not allowed from the current stage."],
       [/VERIFIED_PAYMENT_REQUIRED/, "Full verified payment is required before production approval."],
       [/ARTWORK_APPROVAL_REQUIRED/, "Approve every required artwork file before production."],
-      [/SHIPPING_PAYMENT_REQUIRED/, "Record or waive the shipping payment before dispatch."],
       [/FOUNDER_APPROVAL_REQUIRED/, "Founder approval is required for cancellation or refunds."],
       [/REASON_REQUIRED/, "Add a reason for this status change."],
     ];
@@ -155,65 +155,6 @@ export async function updateOrderNotesAction(
   if (error) return staffActionError("The administrative order note could not be saved.");
   revalidatePath(`/orders/${parsed.data.orderNumber}`);
   return staffActionSuccess("Administrative note updated without changing production status.");
-}
-
-export async function setShippingPaymentLinkAction(
-  _state: StaffActionState,
-  formData: FormData,
-): Promise<StaffActionState> {
-  const context = await requireStaffPermission("manage_shipping_payments");
-  const parsed = z.object({
-    orderId: z.string().uuid(),
-    orderNumber: z.string().regex(/^(GAR|SAM)-\d{4}-\d{6}$/),
-    amountRupees: z.coerce.number().positive().max(10_000_000),
-  }).safeParse(Object.fromEntries(formData.entries()));
-  if (!parsed.success) return staffActionError("Enter a valid shipping amount.");
-  const { error } = await callRpc(context.supabase, "create_shipping_payment_attempt", {
-    p_order_id: parsed.data.orderId,
-    p_amount_paise: Math.round(parsed.data.amountRupees * 100),
-  });
-  if (error) {
-    const message = /SHIPPING_PAYMENT_IN_PROGRESS/.test(error.message)
-      ? "A shipping payment is already in progress. Reconcile it before replacing the quote."
-      : /SHIPPING_ALREADY_PAID/.test(error.message)
-        ? "Shipping has already been paid."
-        : /SHIPPING_ALREADY_SETTLED/.test(error.message)
-          ? "Shipping is already waived or marked not required."
-          : /ORDER_NOT_PAYABLE/.test(error.message)
-            ? "This order cannot receive a new shipping charge."
-            : "The secure shipping payment could not be created.";
-    return staffActionError(message);
-  }
-  revalidatePath(`/orders/${parsed.data.orderNumber}`);
-  revalidatePath(`/account/orders/${parsed.data.orderNumber}`);
-  return staffActionSuccess("Secure PayU shipping payment created for the customer.");
-}
-
-export async function markShippingPaidAction(
-  _state: StaffActionState,
-  formData: FormData,
-): Promise<StaffActionState> {
-  const context = await requireStaffPermission("manage_refunds");
-  const parsed = z.object({
-    orderId: z.string().uuid(),
-    orderNumber: z.string().regex(/^(GAR|SAM)-\d{4}-\d{6}$/),
-    reference: z.string().trim().min(3).max(200),
-  }).safeParse(Object.fromEntries(formData.entries()));
-  if (!parsed.success) return staffActionError("Add the verified PayU or bank reference.");
-  const { error } = await callRpc(context.supabase, "mark_shipping_payment_received", {
-    p_order_id: parsed.data.orderId,
-    p_reference: parsed.data.reference,
-  });
-  if (error) {
-    const message = /SHIPPING_PAYMENT_IN_PROGRESS/.test(error.message)
-      ? "A PayU shipping payment is already in progress. Reconcile it before recording a manual payment."
-      : /SHIPPING_ALREADY_PAID/.test(error.message)
-        ? "Shipping has already been marked paid."
-        : "Shipping payment could not be marked received.";
-    return staffActionError(message);
-  }
-  revalidatePath(`/orders/${parsed.data.orderNumber}`);
-  return staffActionSuccess("Shipping payment recorded.");
 }
 
 const inviteSchema = z.object({
@@ -638,6 +579,8 @@ export async function processIntegrationJobsNowAction(
   _state: StaffActionState,
   _formData: FormData,
 ): Promise<StaffActionState> {
+  void _state;
+  void _formData;
   const context = await requireStaffPermission("change_order_status");
   const { processIntegrationJobs } = await import("@/lib/jobs/service");
   const { finishSystemJobRun, startSystemJobRun } = await import("@/lib/jobs/health");

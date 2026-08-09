@@ -17,6 +17,7 @@ import type {
 } from "../configurator/types/configurator";
 import { isCustomerArtworkTechnique } from "../configurator/types/configurator";
 import { getArtworkSizeConflict } from "../configurator/artworkSizing";
+import { getShippingPaise } from "./shipping";
 
 export const CUSTOM_ORDER_PRICING_VERSION =
   "custom-configurator-v3-2026-08-05-multi-item";
@@ -180,10 +181,9 @@ export function priceCustomOrder(input: {
   const volumeDiscountPaise = volumeDiscountUnitPaise * quantity;
   const rushSurchargePaise = rushSurchargeUnitPaise * quantity;
   const subtotalPaise = unitPricePaise * quantity;
-  // Shipping is quoted and collected separately by staff after the order is reviewed.
-  const shippingPaise = 0;
+  const shippingPaise = getShippingPaise();
   const taxEstimatePaise = calculateTaxPaise(subtotalPaise);
-  const estimatedTotalPaise = subtotalPaise + taxEstimatePaise;
+  const estimatedTotalPaise = subtotalPaise + taxEstimatePaise + shippingPaise;
 
   const productSnapshot = {
     id: product.id,

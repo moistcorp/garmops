@@ -795,7 +795,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   ]);
 
   useEffect(() => {
-    if (!hasHydrated.current) return;
+    if (!hydrationComplete) return;
     if (saveTimer.current) window.clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(() => {
       const saved = writeBuildDraft(designStorageKey, { colour, artwork, neckLabel, steps, quantity });
@@ -827,6 +827,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
     };
   }, [
     designStorageKey,
+    hydrationComplete,
     colour,
     artwork,
     neckLabel,

@@ -68,7 +68,7 @@ describe("canonical custom-order pricing", () => {
     expect(CUSTOMER_PRINT_TECHNIQUES).toEqual([
       "screen_print",
       "dtf",
-      "reflective_heat_transfer",
+      "reflective_print",
     ]);
   });
 });

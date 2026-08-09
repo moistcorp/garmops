@@ -11,7 +11,7 @@ export default async function StaffQuotes() {
   const { data, error } = await context.supabase.from("staff_quotes").select("id, quote_number, customer_email, customer_name, subtotal_paise, tax_paise, total_paise, status, expires_at, final_order_id, created_at").order("created_at", { ascending: false }).limit(100);
   const quotes = (data ?? []) as unknown as QuoteRow[];
   return <div className="space-y-5">
-    <TechpackPageHeader eyebrow="Foundry" reference="Customer-assisted sales" title="Staff quotations" description="Create a server-priced full-payment quotation. The customer verifies the quoted email and pays through PayU; shipping is collected separately later." />
+    <TechpackPageHeader eyebrow="Foundry" reference="Customer-assisted sales" title="Staff quotations" description="Create a server-priced full-payment quotation. The customer verifies the quoted email and pays once through PayU; shipping is free." />
     {error ? <div className="techpack-notice p-5" data-tone="error">{error.message}</div> : null}
     <div className="grid gap-5 2xl:grid-cols-[0.95fr_1.05fr]">
       <section className="techpack-surface rounded border p-5"><h2 className="font-semibold">Create quotation</h2><p className="mt-1 text-xs text-black/45">Operations and Founder may create quotes. Neither role can type or override the merchandise price.</p><div className="mt-5"><StaffQuoteForm /></div></section>

@@ -180,139 +180,6 @@ export const journalPosts: JournalPost[] = [
     ],
   },
   {
-    slug: 'screen-printing-vs-dtg-vs-dtf-embroidery',
-    title: 'Screen printing vs DTG vs DTF vs embroidery: which should you choose?',
-    seoTitle: 'Screen Printing vs DTG vs DTF vs Embroidery',
-    excerpt: 'Compare the cost drivers, artwork fit, fabric compatibility, feel and best use cases for four common custom-apparel decoration methods.',
-    metaDescription: 'Compare screen printing, DTG, DTF and embroidery by artwork, fabric, quantity, feel and cost to choose the right custom-apparel method.',
-    date: 'July 28, 2026',
-    publishedAt: '2026-07-28',
-    updatedAt: '2026-07-28',
-    category: 'Production guide',
-    readTime: '9 min read',
-    author: 'Garmops Production Team',
-    image: '/images/print-techniques.webp',
-    keywords: [
-      'screen printing vs DTG vs DTF',
-      'best T-shirt printing method',
-      'screen printing India',
-      'custom T-shirt embroidery',
-      'DTF printing for T-shirts',
-    ],
-    takeaways: [
-      'Screen printing is usually the first choice for repeat bulk artwork with a controlled number of solid colours.',
-      'DTG suits detailed or photographic artwork on compatible cotton garments, while DTF supports detailed multi-colour transfers on more fabric types.',
-      'Embroidery is ideal for compact premium marks on polos, hoodies and sweatshirts, but not for every large or highly detailed graphic.',
-      'Always decide using the artwork, fabric, quantity, print size and desired feel—not the technique name alone.',
-    ],
-    sections: [
-      {
-        heading: 'A quick comparison',
-        paragraphs: [
-          'There is no universal “best” decoration method. The right choice is the method that reproduces your artwork well on the selected garment at the required quantity, without creating an unwanted feel or avoidable setup cost.',
-          'Use this comparison as a starting point, then test the actual combination of artwork, ink or thread, fabric and garment colour before bulk production when the result is brand-critical.',
-        ],
-        table: {
-          headers: ['Method', 'Best for', 'Main trade-off'],
-          rows: [
-            ['Screen printing', 'Bulk runs, solid colours, bold graphics and repeatability', 'Every colour and position adds setup'],
-            ['DTG', 'Detailed, photographic and gradient artwork on compatible cotton', 'Fabric and pretreatment strongly affect the result'],
-            ['DTF', 'Detailed multi-colour artwork and mixed compatible fabrics', 'A transfer layer changes the hand feel'],
-            ['Embroidery', 'Small premium logos on polos, hoodies and heavier garments', 'Large or very detailed designs can become heavy or costly'],
-          ],
-        },
-      },
-      {
-        heading: 'When screen printing is the strongest option',
-        paragraphs: [
-          'Screen printing pushes ink through a prepared mesh, one colour at a time. Once the screens are made and aligned, the method is efficient for repeating the same artwork across a bulk run. It is particularly effective for bold logos, typography and illustrations built from solid spot colours.',
-          'The economics improve as setup is spread across more pieces. However, an additional colour, print location or garment colour can require extra preparation. Fine gradients and photographs may need halftones and more technical separation, so the original artwork should be reviewed before quoting.',
-        ],
-        bullets: [
-          'Choose it for repeat bulk orders and controlled spot colours',
-          'Ask whether the quote includes underbase, colour separation and screen setup',
-          'Approve ink colour and print dimensions, not only the digital mock-up',
-          'Check registration on artwork where colours meet closely',
-        ],
-      },
-      {
-        heading: 'When DTG makes sense',
-        paragraphs: [
-          'Direct-to-garment printing applies water-based ink directly to the garment using a digital printer. Because there is no separate screen for each colour, DTG can reproduce photographs, gradients and colour-rich artwork without traditional colour-by-colour setup.',
-          'Results depend on the garment. Cotton content, knit surface, pretreatment, base colour and curing all influence sharpness and wash performance. DTG is not automatically the best choice simply because the artwork has many colours; the order quantity, fabric and required consistency still matter.',
-        ],
-        bullets: [
-          'Use high-resolution artwork at the final print size',
-          'Test fine details and muted colours on the actual garment colour',
-          'Ask how the garment is pretreated and cured',
-          'Follow the supplier’s wash instructions before judging durability',
-        ],
-      },
-      {
-        heading: 'When DTF is useful',
-        paragraphs: [
-          'Direct-to-film printing creates the image on a transfer film and applies it to the garment with heat and pressure. It supports detailed, multi-colour artwork and can work across a wider set of compatible garments than DTG. It is useful when the design would be inefficient to separate for screens or when a short run needs consistent colour.',
-          'The design sits as a transfer layer, so large solid areas can feel more noticeable than ink printed directly into the fabric. Good production balances artwork detail, transfer quality, pressure, temperature and placement. Avoid treating every DTF transfer as identical; material and application quality vary.',
-        ],
-      },
-      {
-        heading: 'When embroidery earns its place',
-        paragraphs: [
-          'Embroidery converts artwork into stitches. It gives a compact logo a dimensional, durable and premium appearance, which is why it is common on polos, hoodies, sweatshirts, uniforms and caps. Thread colour can be matched closely to a brand reference, but thread reflects light differently from printed ink.',
-          'Small text, tight counters and photographic detail may need to be simplified during digitisation. Very large filled areas add weight and can distort lighter fabrics. A stitched sample on the actual garment is the most reliable approval standard.',
-        ],
-        bullets: [
-          'Simplify fine artwork before digitising',
-          'Specify the finished embroidery width and exact position',
-          'Confirm stitch density, backing and thread colours',
-          'Check puckering and garment stability on the sample',
-        ],
-      },
-      {
-        heading: 'How quantity changes the recommendation',
-        paragraphs: [
-          'At higher quantities, screen setup can become economical because it is distributed across the full run. For shorter, complex multi-colour orders, a digital method may reduce setup. Embroidery cost is influenced by stitch count and production time rather than printed colour count.',
-          'Do not compare only the decoration price. Include garment cost, rejects, sampling, setup, packing and the risk of choosing a process that does not suit the artwork. A technically correct method often creates better total value than the lowest decoration line item.',
-        ],
-      },
-      {
-        heading: 'Use a five-question decision rule',
-        paragraphs: [
-          'Send the manufacturer the artwork and answer five questions: what fabric and garment colour will be used, how many pieces are required, how large is the decoration, how should it feel, and what is the budget and deadline? Those answers narrow the choice quickly.',
-          'For a 100-piece order with a two-colour logo, begin by assessing screen printing. For a photographic graphic on a cotton tee, assess DTG. For a detailed multi-colour design across compatible mixed fabrics, assess DTF. For a compact chest mark on a polo or hoodie, assess embroidery. Then sample when the visual outcome is critical.',
-        ],
-        links: [
-          { label: 'Upload artwork in the Garmops configurator', href: '/configurator' },
-          { label: 'Read the bulk custom T-shirt buying guide', href: '/journal/bulk-custom-t-shirt-printing-india' },
-        ],
-      },
-    ],
-    faq: [
-      {
-        q: 'Is screen printing or DTF better for bulk T-shirts?',
-        a: 'Screen printing is often more efficient for a bulk run with a few solid colours. DTF can be a better fit for detailed, multi-colour artwork or smaller quantities. The garment, print size and desired feel should decide the method.',
-      },
-      {
-        q: 'Which T-shirt printing method lasts the longest?',
-        a: 'Durability depends on the complete production process, including fabric, ink or transfer quality, curing or application, and garment care. A well-produced screen print, DTG print, DTF transfer or embroidery can all perform well in the right use case.',
-      },
-      {
-        q: 'Is embroidery suitable for T-shirts?',
-        a: 'Embroidery can work for small marks on stable T-shirt fabrics, but dense or large embroidery may pull or add too much weight. A sample on the actual garment should be checked for puckering and comfort.',
-      },
-      {
-        q: 'Can one order use more than one decoration method?',
-        a: 'Yes. A hoodie can combine a screen-printed back graphic with an embroidered chest mark, for example. Combined methods need careful production sequencing and should be included in the approved specification.',
-      },
-    ],
-    relatedLinks: [
-      { label: 'Build a custom apparel order', href: '/configurator' },
-      { label: 'Explore bulk custom T-shirts', href: '/custom-t-shirt-printing' },
-      { label: 'Compare custom company polos', href: '/custom-polo-t-shirts' },
-      { label: 'Compare custom hoodies', href: '/custom-hoodies' },
-    ],
-  },
-  {
     slug: 'low-moq-custom-apparel-manufacturer-india',
     title: 'How to choose a low-MOQ custom apparel manufacturer in India',
     seoTitle: 'Low-MOQ Custom Apparel Manufacturers in India',
@@ -536,7 +403,7 @@ export const journalPosts: JournalPost[] = [
         heading: 'Build a budget that can survive approval',
         paragraphs: [
           'Set a target cost per recipient and separate essential from optional details. The core cost includes the garment, decoration and quantity. Multiple artwork locations, custom labels, packaging, rush production, tax and shipping can add to it.',
-          'Ask for a GST-compliant quote that describes the complete specification. Garmops collects the full merchandise amount including GST at checkout. Shipping is quoted and collected separately after staff review. Our online estimator shows the product, quantity, volume discount, rush option and GST so a team can establish a working budget before the final production review.',
+          'Ask for a GST-compliant quote that describes the complete specification. Garmops collects the full merchandise amount including GST at checkout, with free shipping. Our online estimator shows the product, quantity, volume discount, rush option and GST so a team can establish a working budget before the final production review.',
         ],
         links: [
           { label: 'Estimate corporate apparel pricing', href: '/pricing' },
@@ -584,7 +451,7 @@ export const journalPosts: JournalPost[] = [
       },
       {
         q: 'Does Garmops provide GST invoices for corporate orders?',
-        a: 'Yes. Garmops provides GST-compliant invoices with HSN codes after verified full payment. Shipping is quoted separately after staff review.',
+        a: 'Yes. Garmops provides GST-compliant invoices with HSN codes after verified full payment. Shipping is free.',
       },
     ],
     relatedLinks: [
@@ -955,4 +822,4 @@ export const journalPosts: JournalPost[] = [
       { label: 'Configure garment and artwork colours', href: '/configurator' },
     ],
   },
-].filter((post) => post.slug !== 'screen-printing-vs-dtg-vs-dtf-embroidery')
+]

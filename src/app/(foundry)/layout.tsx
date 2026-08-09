@@ -18,6 +18,7 @@ export default async function FoundryPortalLayout({ children }: { children: Reac
     ...(staff.role === "founder"
       ? [
           { href: "/discounts", label: "Discounts" },
+          { href: "/analytics", label: "Analytics" },
           { href: "/staff-management", label: "Staff" },
         ]
       : []),

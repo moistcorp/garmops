@@ -10,6 +10,8 @@ import { getServerEnvironment } from "@/lib/config/env";
 import { durableOrdersAvailable } from "@/lib/orders/api";
 import type { PayuIncomingFields } from "@/lib/providers/payu/types";
 import { readBoundedUrlEncoded } from "@/lib/http/requestBody";
+import { requestIdFrom, withRequestId } from "@/lib/http/requestId";
+import { captureOperationalError } from "@/lib/monitoring/sentry";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -69,8 +71,9 @@ function resultRedirect(
 }
 
 export async function POST(request: NextRequest) {
+  const requestId = requestIdFrom(request);
   if (!durableOrdersAvailable()) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return withRequestId(NextResponse.json({ error: "Not found" }, { status: 404 }), requestId);
   }
 
   try {
@@ -83,25 +86,26 @@ export async function POST(request: NextRequest) {
       });
     }
     if (result.redirectPath) {
-      return NextResponse.redirect(
+      return withRequestId(NextResponse.redirect(
         new URL(result.redirectPath, getServerEnvironment().NEXT_PUBLIC_APP_URL),
         303,
-      );
+      ), requestId);
     }
     const path =
       result.outcome === "failure"
         ? "/payment/failure"
         : "/payment/success";
-    return resultRedirect(
+    return withRequestId(resultRedirect(
       path,
       result.orderNumber,
       result.attemptId,
       result.needsReview ? "needs_review" : result.outcome,
-    );
+    ), requestId);
   } catch (error) {
+    captureOperationalError(error, { area: "payu_callback", requestId });
     console.error("PayU callback rejected", {
       error: error instanceof Error ? error.message : "unknown",
     });
-    return resultRedirect("/payment/failure");
+    return withRequestId(resultRedirect("/payment/failure"), requestId);
   }
 }

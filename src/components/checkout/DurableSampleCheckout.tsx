@@ -386,7 +386,7 @@ export default function DurableSampleCheckout({
                   Delivery address
                 </p>
                 <p className="mt-1 text-xs text-[var(--text-primary)]/50">
-                  This address becomes the immutable delivery and billing snapshot for this sample purchase. Shipping is quoted separately by staff.
+                  This address becomes the immutable delivery and billing snapshot for this sample purchase. Shipping is free.
                 </p>
               </div>
               <AddressForm
