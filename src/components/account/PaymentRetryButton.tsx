@@ -34,7 +34,7 @@ export default function PaymentRetryButton({
     <div>
       <button type="button" onClick={startPayment} disabled={pending} className="inline-flex w-full items-center justify-center gap-2 rounded-[4px] bg-[var(--color-accent)] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-accent-dark)] disabled:cursor-wait disabled:opacity-60 sm:w-auto">
         {pending ? <LoaderCircle size={16} className="animate-spin" aria-hidden="true" /> : <CreditCard size={16} aria-hidden="true" />}
-        {pending ? "Opening secure payment…" : "Retry full payment"}
+        {pending ? "Preparing payment…" : "Try payment again →"}
       </button>
       {error ? <p className="mt-3 text-xs leading-relaxed text-red-700" role="alert">{error}</p> : null}
     </div>

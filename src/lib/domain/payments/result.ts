@@ -16,7 +16,7 @@ type Result = {
   version: 1;
   attemptId: string;
   orderNumber: string;
-  outcome: "success" | "failure" | "pending";
+  outcome: "success" | "failure" | "pending" | "needs_review";
   issuedAt: number;
 };
 
@@ -73,7 +73,7 @@ export function decodeDurablePaymentResult(token?: string): Result | null {
       !UUID_PATTERN.test(value.attemptId) ||
       typeof value.orderNumber !== "string" ||
       !ORDER_NUMBER_PATTERN.test(value.orderNumber) ||
-      !["success", "failure", "pending"].includes(String(value.outcome)) ||
+      !["success", "failure", "pending", "needs_review"].includes(String(value.outcome)) ||
       typeof value.issuedAt !== "number" ||
       value.issuedAt > now + CLOCK_SKEW_MS ||
       now - value.issuedAt > RESULT_MAX_AGE_MS

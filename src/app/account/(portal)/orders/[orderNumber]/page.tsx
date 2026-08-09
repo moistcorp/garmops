@@ -25,6 +25,7 @@ import {
   publicOrderStatusLabel,
 } from "@/lib/orders/format";
 import { orderNumberSchema } from "@/lib/orders/schema";
+import { getPaymentDisplayState, paymentStatusLabel } from "@/lib/domain/payments/displayState";
 import { summarizeOrderItemPricing } from "@/lib/orders/presentation";
 import { ORDER_STATUS_LABELS, type OrderStatus } from "@/lib/staff/statuses";
 import { formatGstRate, GST_RATE_BASIS_POINTS } from "@/lib/tax";
@@ -150,7 +151,7 @@ export default async function AccountOrderDetailPage({ params }: { params: Promi
     <section className="techpack-surface rounded border p-6">
       <span className="techpack-stamp" data-tone="accent">{publicOrderStatusLabel(order.public_status)}</span>
       <h1 className="mt-4 text-2xl font-semibold">{formatOrderCode(order.order_number)}</h1>
-      <p className="mt-2 text-sm text-black/50">Full payment confirmed {formatOrderDate(order.confirmed_at)}</p>
+      <p className="mt-2 text-sm text-black/50">Payment confirmed {formatOrderDate(order.confirmed_at)}</p>
       <div className="mt-5">
         <SnapshotRows rows={[
           ["Configured merchandise", formatMoneyPaise(pricingBreakdown.configuredMerchandisePaise || order.subtotal_paise)],
@@ -224,7 +225,7 @@ export default async function AccountOrderDetailPage({ params }: { params: Promi
 
         <section className="techpack-surface rounded border p-6"><div className="flex items-center gap-2"><MapPin size={18} className="text-[var(--color-accent)]" /><h2 className="font-semibold">Delivery</h2></div><div className="mt-4"><p className="font-medium">{textValue(shipping, "recipientName", "name")}</p>{addressLines(shipping).map((line) => <p key={line} className="mt-1 text-sm text-black/60">{line}</p>)}{shipping.multipleLocations ? <p className="mt-3 rounded bg-amber-50 p-3 text-xs text-amber-900">Multiple locations: {textValue(shipping, "multipleLocationsNotes") || "Operations will confirm the split."}</p> : null}</div></section>
 
-        <section className="techpack-surface rounded border p-6"><div className="flex items-center gap-2"><CreditCard size={18} className="text-[var(--color-accent)]" /><h2 className="font-semibold">Payment history</h2></div><div className="mt-4 space-y-3">{payments.length ? payments.map((payment) => <div key={payment.payment_attempt_id} className="rounded border border-black/8 p-3"><p className="text-sm font-semibold">{humanize(payment.purpose)} · {humanize(payment.status)}</p><p className="mt-1 text-xs text-black/45">{formatMoneyPaise(payment.amount_paise)}{payment.paid_at ? ` · Paid ${formatOrderTimestamp(payment.paid_at)}` : ""}</p></div>) : <p className="text-sm text-black/45">No customer-visible payment record.</p>}</div></section>
+        <section className="techpack-surface rounded border p-6"><div className="flex items-center gap-2"><CreditCard size={18} className="text-[var(--color-accent)]" /><h2 className="font-semibold">Payment history</h2></div><div className="mt-4 space-y-3">{payments.length ? payments.map((payment) => <div key={payment.payment_attempt_id} className="rounded border border-black/8 p-3"><p className="text-sm font-semibold">{humanize(payment.purpose)} · {paymentStatusLabel(getPaymentDisplayState({ outcome: "pending", paymentStatus: payment.status }))}</p><p className="mt-1 text-xs text-black/45">{formatMoneyPaise(payment.amount_paise)}{payment.paid_at ? ` · Paid ${formatOrderTimestamp(payment.paid_at)}` : ""}</p></div>) : <p className="text-sm text-black/45">No customer-visible payment record.</p>}</div></section>
 
         <section className="techpack-surface rounded border p-6"><div className="flex items-center gap-2"><ReceiptIndianRupee size={18} className="text-[var(--color-accent)]" /><h2 className="font-semibold">GST invoices</h2></div><div className="mt-4 space-y-4">{invoices.length ? invoices.map((invoice) => <div key={invoice.id} className="rounded border border-black/8 p-3"><p className="font-semibold">{invoice.invoice_number || `Invoice ${humanize(invoice.status)}`}</p><p className="mt-1 text-sm text-black/50">{formatMoneyPaise(invoice.total_paise)}</p>{invoice.pdf_file_id ? <div className="mt-3"><InvoiceDownloadButton fileId={invoice.pdf_file_id} /></div> : <p className="mt-2 text-xs text-black/45">PDF generation is {humanize(invoice.status).toLowerCase()}.</p>}</div>) : <p className="text-sm text-black/45">Invoice generation is pending.</p>}</div></section>
 

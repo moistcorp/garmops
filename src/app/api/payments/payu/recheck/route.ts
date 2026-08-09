@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       });
     }
     return orderJson({
-      outcome: result.outcome,
+      outcome: result.needsReview ? "needs_review" : result.outcome,
       orderNumber: result.orderNumber ?? null,
       confirmationUrl: result.orderNumber
         ? `/account/orders/${encodeURIComponent(result.orderNumber)}/confirmation`

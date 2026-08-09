@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decodeAuthNextCookie, safeInternalPath } from "./redirects";
+import { authCallbackUrl, decodeAuthNextCookie, safeInternalPath } from "./redirects";
 
 describe("authentication return paths", () => {
   it("restores an encoded configurator delivery path", () => {
@@ -16,5 +16,17 @@ describe("authentication return paths", () => {
     expect(safeInternalPath(decodeAuthNextCookie(encodeURIComponent("//evil.test")), "/account/orders"))
       .toBe("/account/orders");
     expect(decodeAuthNextCookie("%not-valid")).toBeUndefined();
+  });
+
+  it("embeds the checkout return path in the canonical OAuth callback", () => {
+    const callback = new URL(authCallbackUrl(
+      "/configurator/cart/cart-123/shipping",
+      "https://garmops.com/",
+    ));
+    expect(callback.origin).toBe("https://garmops.com");
+    expect(callback.pathname).toBe("/auth/callback");
+    expect(callback.searchParams.get("next")).toBe(
+      "/configurator/cart/cart-123/shipping",
+    );
   });
 });

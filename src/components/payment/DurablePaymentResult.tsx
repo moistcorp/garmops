@@ -1,164 +1,172 @@
 import Link from "next/link";
-import { CheckCircle2, Clock3, XCircle } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Clock3,
+  ShieldAlert,
+} from "lucide-react";
 
 import InvoiceDownloadButton from "@/components/account/InvoiceDownloadButton";
 import ClearPaidCustomCart from "@/components/payment/ClearPaidCustomCart";
 import ClearPaidSampleCart from "@/components/payment/ClearPaidSampleCart";
-
 import {
-  formatMoneyPaise,
-  formatOrderCode,
-  formatOrderDate,
-} from "@/lib/orders/format";
+  getPaymentDisplayState,
+  paymentStatusLabel,
+} from "@/lib/domain/payments/displayState";
+import { formatMoneyPaise, formatOrderCode } from "@/lib/orders/format";
 
-export default function DurablePaymentResult({
-  result,
-}: {
-  result: {
-    outcome: "success" | "failure" | "pending";
-    orderNumber: string;
-    orderType: string;
-    submittedAt: string;
-    amountPaise: number;
-    paymentStatus: string;
-    paymentPurpose: string;
-    invoiceStatus: string | null;
-    invoiceNumber: string | null;
-    invoicePdfFileId: string | null;
-    cartId: string | null;
-  };
-}) {
-  const success = result.outcome === "success";
-  const pending = result.outcome === "pending";
+type Result = {
+  outcome: "success" | "failure" | "pending" | "needs_review";
+  orderNumber: string;
+  orderType: string;
+  submittedAt: string;
+  amountPaise: number;
+  paymentStatus: string;
+  paymentPurpose: string;
+  invoiceStatus: string | null;
+  invoiceNumber: string | null;
+  invoicePdfFileId: string | null;
+  cartId: string | null;
+};
+
+const PRESENTATION = {
+  success: {
+    eyebrow: "Payment successful",
+    title: "Payment successful",
+    copy: "Your order has been confirmed.",
+    Icon: CheckCircle2,
+    iconClass: "text-emerald-600",
+  },
+  pending: {
+    eyebrow: "Confirming payment",
+    title: "We're confirming your payment",
+    copy: "PayU hasn't returned a final verified status yet. Don't make another payment while we check it.",
+    Icon: Clock3,
+    iconClass: "text-amber-600",
+  },
+  failure: {
+    eyebrow: "Payment not completed",
+    title: "Payment wasn't completed",
+    copy: "Your saved order details are still available. You can return safely and try again when payment is available.",
+    Icon: AlertTriangle,
+    iconClass: "text-red-600",
+  },
+  needs_review: {
+    eyebrow: "Payment needs review",
+    title: "Payment needs review",
+    copy: "We received an unusual payment status. Don't make another payment. Our payments team is reviewing it.",
+    Icon: ShieldAlert,
+    iconClass: "text-amber-700",
+  },
+  refunded: {
+    eyebrow: "Payment refunded",
+    title: "Payment refunded",
+    copy: "This payment has been refunded. Open your order for the latest details.",
+    Icon: ShieldAlert,
+    iconClass: "text-[var(--color-accent)]",
+  },
+} as const;
+
+export default function DurablePaymentResult({ result }: { result: Result }) {
+  const state = getPaymentDisplayState(result);
+  const presentation = PRESENTATION[state];
+  const { Icon } = presentation;
   const sampleOrder = result.orderType === "sample_purchase";
   const shippingPayment = result.paymentPurpose === "shipping";
-  const reviewRequired = result.paymentStatus === "duplicate_success" || result.paymentStatus === "disputed";
-  const Icon = success ? CheckCircle2 : pending ? Clock3 : XCircle;
-  const invoice = result.invoiceNumber
+  const orderHref = `/account/orders/${encodeURIComponent(result.orderNumber)}`;
+  const canClearCart = state === "success" && result.paymentStatus === "paid";
+  const invoiceLabel = result.invoiceNumber
     ? result.invoiceNumber
-    : reviewRequired
-      ? "Payment review pending"
-      : result.invoiceStatus === "completed"
-        ? "Available in your account"
-        : result.invoiceStatus
-          ? "Being generated"
-          : success
-            ? "Queued"
-            : "Not started";
+    : result.invoiceStatus === "completed"
+      ? "Available in your order"
+      : state === "success"
+        ? "Being generated"
+        : "Not started";
 
   return (
-    <div className="techpack-canvas flex min-h-[80vh] items-center justify-center px-4 py-10 sm:px-6">
+    <main className="techpack-canvas flex min-h-[80vh] items-center justify-center px-4 py-8 sm:px-6 sm:py-10">
       {!shippingPayment && (sampleOrder ? (
-        <ClearPaidSampleCart paid={result.paymentStatus === "paid"} />
+        <ClearPaidSampleCart paid={canClearCart} />
       ) : (
-        <ClearPaidCustomCart
-          cartId={result.cartId}
-          paid={result.paymentStatus === "paid"}
-        />
+        <ClearPaidCustomCart cartId={result.cartId} paid={canClearCart} />
       ))}
-      <div className="techpack-surface w-full max-w-xl rounded-[4px] border p-7 text-center sm:p-10">
-        <Icon
-          size={52}
-          className={`mx-auto ${
-            success
-              ? "text-emerald-600"
-              : pending
-                ? "text-amber-600"
-                : "text-red-600"
-          }`}
-          aria-hidden="true"
-        />
-        <p className="mt-6 text-xs uppercase tracking-[0.2em] text-[var(--color-accent)]">
-          Durable PayU result
-        </p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight">
-          {success
-            ? shippingPayment
-              ? "Shipping payment confirmed"
-              : sampleOrder
-                ? "Sample order confirmed"
-                : "Order confirmed"
-            : reviewRequired
-              ? "Payment requires review"
-              : pending
-                ? "Payment verification pending"
-                : shippingPayment
-                  ? "Shipping payment was not completed"
-                  : "Payment was not completed"}
-        </h1>
-        <p className="mt-3 text-sm leading-relaxed text-black/55">
-          {success
-            ? shippingPayment
-              ? `PayU verified the shipping payment for order ${result.orderNumber}.`
-              : `PayU verified the full payment and created order ${result.orderNumber}.`
-            : reviewRequired
-              ? "PayU reported a duplicate successful payment. Do not pay again; the Founder will review the duplicate for refund."
-              : pending
-                ? "We are reconciling the transaction with PayU. Do not make another payment yet."
-                : shippingPayment
-                  ? "The shipping payment was not confirmed. Return to the order before attempting payment again."
-                  : "No confirmed order was created. You can retry the prepared checkout safely."}
-        </p>
 
-        <dl className="mt-7 grid gap-3 rounded-[4px] border border-black/7 bg-white p-5 text-left sm:grid-cols-2">
+      <section
+        className="techpack-surface w-full max-w-xl rounded-[4px] border p-6 sm:p-9"
+        aria-live="polite"
+      >
+        <div className="text-center">
+          <Icon size={48} className={`mx-auto ${presentation.iconClass}`} aria-hidden="true" />
+          <p className="mt-5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-accent)]">
+            {presentation.eyebrow}
+          </p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+            {presentation.title}
+          </h1>
+          <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-black/55">
+            {presentation.copy}
+          </p>
+        </div>
+
+        <dl className="mt-7 grid gap-4 rounded-[4px] border border-black/8 bg-white p-5 sm:grid-cols-2">
           <div>
-            <dt className="text-[10px] uppercase tracking-wider text-black/35">
-              Order number
-            </dt>
-            <dd className="mt-1 font-semibold">{formatOrderCode(result.orderNumber)}</dd>
+            <dt className="text-[10px] uppercase tracking-wider text-black/40">Order</dt>
+            <dd className="mt-1 break-all font-semibold">{formatOrderCode(result.orderNumber)}</dd>
           </div>
           <div>
-            <dt className="text-[10px] uppercase tracking-wider text-black/35">
-              Order date
+            <dt className="text-[10px] uppercase tracking-wider text-black/40">
+              {state === "success" ? "Amount paid" : "Amount"}
             </dt>
-            <dd className="mt-1 font-semibold">
-              {formatOrderDate(result.submittedAt)}
-            </dd>
+            <dd className="mt-1 font-semibold tabular-nums">{formatMoneyPaise(result.amountPaise)}</dd>
           </div>
           <div>
-            <dt className="text-[10px] uppercase tracking-wider text-black/35">
-              {shippingPayment ? "Shipping payment" : "Full merchandise payment"}
-            </dt>
-            <dd className="mt-1 font-semibold">
-              {formatMoneyPaise(result.amountPaise)}
-            </dd>
+            <dt className="text-[10px] uppercase tracking-wider text-black/40">Payment</dt>
+            <dd className="mt-1 font-semibold">{paymentStatusLabel(state)}</dd>
           </div>
-          <div>
-            <dt className="text-[10px] uppercase tracking-wider text-black/35">
-              Payment status
-            </dt>
-            <dd className="mt-1 font-semibold capitalize">
-              {result.paymentStatus}
-            </dd>
-          </div>
-          <div className="sm:col-span-2">
-            <dt className="text-[10px] uppercase tracking-wider text-black/35">
-              {sampleOrder ? "Tax document" : "Invoice"}
-            </dt>
-            <dd className="mt-1 font-semibold">
-              {invoice}
-            </dd>
-          </div>
+          {!shippingPayment ? (
+            <div>
+              <dt className="text-[10px] uppercase tracking-wider text-black/40">
+                {sampleOrder ? "Tax document" : "Invoice"}
+              </dt>
+              <dd className="mt-1 font-semibold">{invoiceLabel}</dd>
+              {state === "success" && !result.invoicePdfFileId ? (
+                <p className="mt-1 text-xs text-black/45">It will appear in your order once ready.</p>
+              ) : null}
+            </div>
+          ) : null}
         </dl>
 
+        {state === "success" && !shippingPayment ? (
+          <div className="mt-6 border-t border-black/8 pt-5">
+            <h2 className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-black/45">What happens next</h2>
+            <ol className="mt-3 space-y-2 text-sm text-black/60">
+              <li>1&nbsp;&nbsp;Our team reviews your artwork and production details</li>
+              <li>2&nbsp;&nbsp;We&apos;ll contact you if anything needs confirmation</li>
+              <li>3&nbsp;&nbsp;Track production from your order page</li>
+            </ol>
+          </div>
+        ) : null}
+
         <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
-          <Link
-            href={`/account/orders/${encodeURIComponent(result.orderNumber)}`}
-            className="rounded-[4px] bg-[var(--color-accent)] px-5 py-3 text-sm font-semibold text-white"
-          >
-            View order
+          <Link href={orderHref} className="rounded-[4px] bg-[var(--color-accent)] px-5 py-3 text-center text-sm font-semibold text-white">
+            {state === "success" || state === "needs_review" || state === "refunded"
+              ? "View your order →"
+              : state === "pending"
+                ? "View order"
+                : shippingPayment
+                  ? "Return to order →"
+                  : "Try payment again →"}
           </Link>
-          {result.invoicePdfFileId ? (
+          {state === "success" && result.invoicePdfFileId ? (
             <InvoiceDownloadButton fileId={result.invoicePdfFileId} />
           ) : null}
-          <Link
-            href="/account/orders"
-            className="rounded-[4px] border border-black/10 px-5 py-3 text-sm font-semibold"
-          >
-            Return to orders
-          </Link>
+          {state === "needs_review" ? (
+            <Link href="/contact" className="rounded-[4px] border border-black/10 px-5 py-3 text-center text-sm font-semibold">Contact support</Link>
+          ) : (
+            <Link href="/account/orders" className="rounded-[4px] border border-black/10 px-5 py-3 text-center text-sm font-semibold">View all orders</Link>
+          )}
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

@@ -4,12 +4,12 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   CheckCircle2,
-  CreditCard,
   LoaderCircle,
   MapPin,
   ShieldCheck,
   Tag,
 } from "lucide-react";
+import Link from "next/link";
 import {
   isAddressValid,
   type Address,
@@ -38,7 +38,10 @@ import {
   isDeliverySelectionValid,
 } from "@/lib/configurator/delivery";
 import { formatInr } from "@/lib/configurator/pricing";
-import { calculateTaxPaise, formatGstRate } from "@/lib/tax";
+import { hasArtworkAsset } from "@/lib/configurator/pricing";
+import { placementLabel } from "@/lib/configurator/artworkPlacement";
+import { isCustomNeckLabel } from "@/lib/configurator/neckLabel";
+import { calculateTaxPaise } from "@/lib/tax";
 import { formatSpecCode } from "@/lib/orders/format";
 import { getPaymentJourneyStep } from "@/lib/configurator/journey";
 import {
@@ -47,6 +50,7 @@ import {
 } from "@/lib/configurator/colourRules";
 import { getProduct, getProductMinimumOrderQuantity } from "@/lib/configurator/products";
 import CanvasRenderer from "../GarmentPreview/CanvasRenderer";
+import ViewTabs from "../GarmentPreview/ViewTabs";
 import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionContext";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 import { ActionFeedback } from "../ActionFeedback";
@@ -81,7 +85,7 @@ export function ConfirmationStep({
   const [isDraftReady, setIsDraftReady] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [verificationState, setVerificationState] = useState<"idle" | "pending" | "checking" | "failed">(
+  const [verificationState, setVerificationState] = useState<"idle" | "pending" | "checking" | "failed" | "review">(
     paymentOutcome === "pending" ? "pending" : "idle",
   );
   const automaticRecheckStarted = useRef(false);
@@ -110,7 +114,7 @@ export function ConfirmationStep({
         body: JSON.stringify({ checkoutAttemptId }),
       });
       const body = (await response.json().catch(() => ({}))) as {
-        outcome?: "success" | "failure" | "pending";
+        outcome?: "success" | "failure" | "pending" | "needs_review";
         confirmationUrl?: string | null;
         error?: string;
       };
@@ -123,6 +127,11 @@ export function ConfirmationStep({
       if (body.outcome === "failure") {
         setVerificationState("failed");
         setPaymentError("PayU confirmed that the previous payment was not completed. You can start a new payment safely.");
+        return;
+      }
+      if (body.outcome === "needs_review") {
+        setVerificationState("review");
+        setPaymentError("We received an unusual payment status. Don't make another payment. Our payments team is reviewing it.");
         return;
       }
       setVerificationState("pending");
@@ -301,6 +310,11 @@ export function ConfirmationStep({
   const handlePayment = async () => {
     setPaymentError("");
 
+    if (!termsAccepted) {
+      setPaymentError("Accept the order terms and privacy notice before payment.");
+      return;
+    }
+
     const hasValidItems =
       draft.items.length > 0 &&
       draft.items.every((item) => {
@@ -435,19 +449,39 @@ export function ConfirmationStep({
               {formatSpecCode(`CART-${cartId}`)}
             </p>
             <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-              Review &amp; payment
+              Review your order
             </h1>
-            {draft.projectName && (
-              <p className="mt-1 text-sm font-medium text-[var(--text-primary)]/60">
-                {draft.projectName}
-              </p>
-            )}
+            <p className="mt-1 text-sm text-[var(--text-primary)]/55">
+              Check your order, delivery details and total before payment.
+            </p>
+            {draft.projectName ? <p className="mt-2 text-xs font-medium text-[var(--text-primary)]/50">Project: {draft.projectName}</p> : null}
           </div>
 
+        {paymentOutcome ? (
+          <section className="techpack-panel rounded-[4px] border p-5" aria-live="polite">
+            <div className="flex items-start gap-3">
+              {paymentOutcome === "pending" ? <LoaderCircle className="mt-0.5 shrink-0 text-amber-700" size={20} aria-hidden="true" /> : <ShieldCheck className="mt-0.5 shrink-0 text-red-600" size={20} aria-hidden="true" />}
+              <div>
+                <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">{paymentOutcome === "pending" ? "Confirming payment" : "Payment not completed"}</p>
+                <h2 className="mt-1 text-lg font-semibold">{paymentOutcome === "pending" ? "We're confirming your payment" : "Payment wasn't completed"}</h2>
+                <p className="mt-2 text-sm leading-relaxed text-black/55">{paymentOutcome === "pending" ? "PayU hasn't returned a final verified status yet. Don't make another payment while we check it." : "Your configuration is still saved. Review the details below before trying payment again."}</p>
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        <section className="techpack-panel rounded-[4px] border p-5">
+          <p className="mb-2 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">01 / Your order</p>
+          <h2 className="mb-4 text-sm font-medium text-[var(--text-primary)]">Configured products</h2>
+          <div className="space-y-4">
+            {draft.items.map((item, index) => <ProductRecapCard key={item.id} item={item} lineNumber={index + 1} cartId={cartId} />)}
+          </div>
+        </section>
+
         <ReviewSection
-          index="01"
+          index="02"
           icon={<MapPin size={18} />}
-          title="Delivery and billing details"
+          title="Delivery & billing"
           onEdit={() => router.push(`/configurator/cart/${encodeURIComponent(cartId)}/shipping`)}
         >
           <div className="grid gap-5 text-sm text-[var(--text-primary)]/75 md:grid-cols-2">
@@ -513,7 +547,7 @@ export function ConfirmationStep({
               </p>
               <p className="mt-1">
                 {draft.shippingInformation.multipleLocationsNotes ||
-                  "The detailed split and shipping charge will be confirmed by our operations team."}
+                  "The detailed split and shipping charge still need confirmation."}
               </p>
             </div>
           )}
@@ -530,32 +564,22 @@ export function ConfirmationStep({
           </section>
         )}
 
-        <section className="techpack-panel rounded-[4px] border p-5">
-          <p className="mb-2 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">02 / Order specification</p>
-          <h3 className="mb-4 text-sm font-medium text-[var(--text-primary)]">Order summary</h3>
-          <div className="space-y-4">
-            {draft.items.map((item, index) => <ProductRecapCard key={item.id} item={item} lineNumber={index + 1} />)}
-          </div>
-        </section>
-
         <section className="techpack-panel rounded-[4px] border !border-[var(--color-accent)]/25 p-5">
-          <p className="mb-3 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">03 / Production handoff</p>
+          <p className="mb-3 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">03 / What happens next</p>
           <div className="flex items-start gap-3">
             <span className="rounded-[4px] bg-white p-2 text-[var(--color-accent-dark)]"><ShieldCheck size={18} /></span>
             <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-semibold text-[var(--text-primary)]">What happens after payment?</h3>
+              <h3 className="text-sm font-semibold text-[var(--text-primary)]">After payment</h3>
               <div className="mt-3 grid gap-2 text-xs leading-relaxed text-[var(--text-primary)]/65 sm:grid-cols-2">
                 {[
-                  "A merch specialist checks artwork and production feasibility.",
-                  "Shipping is reviewed separately and a PayU shipping-payment link is shared by staff.",
-                  "Production starts after artwork approval and operational review.",
+                  "Payment confirmed",
+                  "Artwork & production review",
+                  "Production",
+                  "Quality check",
+                  "Dispatch & tracking",
                 ].map((item) => (
                   <p key={item} className="flex items-start gap-2"><CheckCircle2 size={14} className="mt-0.5 shrink-0 text-[var(--color-accent-dark)]" />{item}</p>
                 ))}
-              </div>
-              <div className="mt-4 flex items-center gap-2 border-t border-[var(--color-accent)]/20 pt-3 text-xs font-medium text-[var(--text-primary)]/65">
-                <CreditCard size={15} className="text-[var(--color-accent-dark)]" />
-                Your order is created only after PayU verifies the complete merchandise payment.
               </div>
             </div>
           </div>
@@ -570,20 +594,17 @@ export function ConfirmationStep({
               onChange={(event) => setTermsAccepted(event.target.checked)}
               className="mt-0.5 h-4 w-4 accent-[var(--color-accent)]"
             />
-            I agree to the order terms, privacy notice and full merchandise payment shown in this checkout.
+            <span>I agree to the <Link href="/terms" className="underline">order terms</Link> and <Link href="/privacy" className="underline">privacy notice</Link>.</span>
           </label>
-          <p className="mt-3 text-xs leading-relaxed text-[var(--text-primary)]/60">
-            The amount paid now includes the configured merchandise and {formatGstRate()} GST. Shipping is excluded and will be quoted separately by our operations team through a secure PayU payment link.
-          </p>
         </section>
         </div>
 
         <div className="space-y-4 lg:sticky lg:top-36 lg:self-start">
-          <section className="techpack-panel rounded-[4px] border p-4">
-            <div className="flex items-center gap-2">
+          <details className="techpack-panel rounded-[4px] border p-4">
+            <summary className="flex cursor-pointer list-none items-center gap-2">
               <Tag size={16} className="text-[var(--color-accent)]" />
-              <h2 className="text-sm font-semibold text-[var(--text-primary)]">Discount code</h2>
-            </div>
+              <span className="text-sm font-semibold text-[var(--text-primary)]">Have a discount code? +</span>
+            </summary>
             <div className="mt-3 flex gap-2">
               <input
                 value={draft.promoCode}
@@ -619,7 +640,7 @@ export function ConfirmationStep({
                 Codes are checked against your account and current order value.
               </p>
             )}
-          </section>
+          </details>
           <CartSummarySidebar
             subtotal={subtotal}
             volumeDiscount={volumeDiscount}
@@ -633,23 +654,23 @@ export function ConfirmationStep({
           />
           <button
             type="button"
-            disabled={!termsAccepted || isProcessing || verificationState === "pending" || verificationState === "checking" || promoState.status === "checking"}
+            disabled={!termsAccepted || isProcessing || verificationState === "pending" || verificationState === "checking" || verificationState === "review" || promoState.status === "checking"}
             onClick={handlePayment}
             className={`flex w-full items-center justify-center gap-2 rounded-[4px] py-3 text-sm font-semibold transition-colors ${
-              termsAccepted && !isProcessing && verificationState !== "pending" && verificationState !== "checking" && promoState.status !== "checking"
+              termsAccepted && !isProcessing && verificationState !== "pending" && verificationState !== "checking" && verificationState !== "review" && promoState.status !== "checking"
                 ? "bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-dark)]"
                 : "cursor-not-allowed bg-[#E5E5E5] text-[var(--text-primary)]/40"
             }`}
           >
             {isProcessing && <LoaderCircle size={16} className="animate-spin" />}
             {isProcessing
-              ? "Opening secure PayU checkout…"
-              : `Pay securely with PayU — ${formatInr(orderTotal)}`}
+              ? "Opening secure payment…"
+              : `Pay ${formatInr(orderTotal)} securely →`}
           </button>
           {!termsAccepted && (
             <p className="text-center text-xs text-[var(--text-primary)]/55">Accept the order terms to continue.</p>
           )}
-          {paymentError && <ActionFeedback tone={verificationState === "pending" || verificationState === "checking" ? "info" : "error"} title="Order payment" detail={`${paymentError} Your configurator details are safe.`} actionLabel={verificationState === "pending" ? (checkoutAttemptId ? "Check payment status" : undefined) : verificationState === "checking" ? undefined : "Try payment again"} onAction={verificationState === "pending" ? (checkoutAttemptId ? recheckPayment : undefined) : verificationState === "checking" ? undefined : handlePayment} onDismiss={() => setPaymentError("")} />}
+          {paymentError && <ActionFeedback tone={verificationState === "pending" || verificationState === "checking" || verificationState === "review" ? "info" : "error"} title={verificationState === "review" ? "Payment needs review" : verificationState === "pending" || verificationState === "checking" ? "We're confirming your payment" : "Payment wasn't completed"} detail={`${paymentError} Your configuration is still saved.`} actionLabel={verificationState === "pending" ? (checkoutAttemptId ? "Check payment status" : undefined) : verificationState === "checking" || verificationState === "review" ? undefined : "Try payment again"} onAction={verificationState === "pending" ? (checkoutAttemptId ? recheckPayment : undefined) : verificationState === "checking" || verificationState === "review" ? undefined : handlePayment} onDismiss={verificationState === "review" ? undefined : () => setPaymentError("")} />}
         </div>
       </div>
     </>
@@ -703,46 +724,57 @@ function AddressSummary({ address }: { address: Address }) {
   );
 }
 
-function ProductRecapCard({ item, lineNumber }: { item: CartItem; lineNumber: number }) {
+function ProductRecapCard({ item, lineNumber, cartId }: { item: CartItem; lineNumber: number; cartId: string }) {
+  const [view, setView] = useState<"front" | "back" | "neck">("front");
   const units = totalUnits(item.sizeQuantities);
   const unitPrice = getCartItemUnitPrice(item);
   const discountPercent = getCartItemDiscountPercent(item);
   const productSizes = getProduct(item.productId)?.sizes ?? Object.keys(item.sizeQuantities);
 
   return (
-    <div className="techpack-control flex gap-4 rounded-[4px] border p-4">
-      <div className="h-24 w-20 shrink-0 overflow-hidden rounded-[4px] bg-[#F7F7F7]">
-        <ArtworkPositionProvider activeView="front">
+    <article className="techpack-control rounded-[4px] border p-4">
+      <div className="grid gap-5 sm:grid-cols-[132px_minmax(0,1fr)]">
+      <div>
+        <div className="aspect-[4/5] w-full overflow-hidden rounded-[4px] bg-[#F7F7F7]">
+        <ArtworkPositionProvider activeView={view}>
           <CanvasRenderer
-            view="front"
+            view={view}
             colourHex={item.colour.hex}
             productId={item.productId}
             artwork={item.artwork}
             neckLabel={item.neckLabel}
             interactive={false}
-            className="h-full w-full scale-[0.82] bg-[#F7F7F7]"
+            className="h-full w-full scale-[0.9] bg-[#F7F7F7]"
           />
         </ArtworkPositionProvider>
+        </div>
+        <div className="mt-2"><ViewTabs activeView={view} onChange={setView} productId={item.productId} idPrefix={`review-line-${lineNumber}`} /></div>
       </div>
-      <div className="flex-1">
+      <div className="min-w-0">
         <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--color-accent)]">Line {lineNumber}</p>
         <p className="text-sm font-medium text-[var(--text-primary)]">{item.productName}</p>
         <p className="text-xs text-[var(--text-primary)]/60">
-          {item.colour.name || "Bright White"} · <span className="font-mono">{units} units · {formatInr(unitPrice)}/unit</span>
+          {item.colour.name || "Bright White"} · <span className="font-mono">{units} pieces · {formatInr(unitPrice)}/unit</span>
           {discountPercent > 0 ? ` · ${discountPercent}% off` : ""}
         </p>
-        <div
-          className="mt-2 grid gap-1 text-[10px] text-[var(--text-primary)]/60"
-          style={{ gridTemplateColumns: `repeat(${Math.max(1, productSizes.length)}, minmax(0, 1fr))` }}
-        >
-          {productSizes.map((size) => (
-            <div key={size} className="text-center">
-              <div className="font-medium text-[var(--text-primary)]">{size}</div>
-              <div>{item.sizeQuantities[size] ?? 0}</div>
-            </div>
-          ))}
+        <div className="mt-4 grid gap-3 text-xs text-[var(--text-primary)]/65 sm:grid-cols-2">
+          <ArtworkSummary label="Front" side={item.artwork.front} />
+          <ArtworkSummary label="Back" side={item.artwork.back} />
+          <div><p className="font-semibold text-[var(--text-primary)]">Neck label</p><p className="mt-1">{isCustomNeckLabel(item.neckLabel) ? `Custom · ${item.neckLabel?.dimensions.replace("x", " × ")} mm` : "Standard size label"}</p></div>
+          <div><p className="font-semibold text-[var(--text-primary)]">Line total</p><p className="mt-1 font-mono">{formatInr(unitPrice * units)}</p></div>
         </div>
+        <div className="mt-4"><p className="text-xs font-semibold text-[var(--text-primary)]">Sizes</p><div className="mt-2 flex flex-wrap gap-2">{productSizes.filter((size) => (item.sizeQuantities[size] ?? 0) > 0).map((size) => <span key={size} className="rounded-[3px] border border-black/8 px-2 py-1 text-xs">{size} {item.sizeQuantities[size]}</span>)}</div></div>
+        <Link href={`/configurator/build/${encodeURIComponent(item.productId)}?cartId=${encodeURIComponent(cartId)}&itemId=${encodeURIComponent(item.id)}`} className="mt-4 inline-block text-xs font-semibold text-[var(--color-accent-dark)] underline">Edit configuration →</Link>
       </div>
-    </div>
+      </div>
+    </article>
   );
+}
+
+function ArtworkSummary({ label, side }: { label: string; side: CartItem["artwork"]["front"] }) {
+  const present = hasArtworkAsset(side);
+  const technique = side?.technique
+    ? side.technique.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase())
+    : "Technique to confirm";
+  return <div><p className="font-semibold text-[var(--text-primary)]">{label}</p><p className="mt-1">{present ? `${technique} · ${placementLabel(side?.placementPreset)}` : "No artwork"}</p></div>;
 }

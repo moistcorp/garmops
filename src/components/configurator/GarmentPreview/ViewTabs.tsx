@@ -8,6 +8,7 @@ interface ViewTabsProps {
   onChange: (view: GarmentView) => void;
   productId: ProductId;
   hideBackView?: boolean;
+  idPrefix?: string;
 }
 
 const VIEW_OPTIONS: { id: GarmentView; label: string }[] = [
@@ -21,6 +22,7 @@ export default function ViewTabs({
   onChange,
   productId,
   hideBackView = false,
+  idPrefix = "garment-view",
 }: ViewTabsProps) {
   const isTote = productId.includes("tote");
   const viewOptions = VIEW_OPTIONS
@@ -41,7 +43,7 @@ export default function ViewTabs({
           <button
             key={opt.id}
             type="button"
-            id={`garment-view-tab-${opt.id}`}
+            id={`${idPrefix}-tab-${opt.id}`}
             onClick={() => onChange(opt.id)}
             onKeyDown={(event) => {
               if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
@@ -56,7 +58,7 @@ export default function ViewTabs({
               const nextView = viewOptions[nextIndex];
               onChange(nextView.id);
               window.requestAnimationFrame(() => {
-                document.getElementById(`garment-view-tab-${nextView.id}`)?.focus();
+                document.getElementById(`${idPrefix}-tab-${nextView.id}`)?.focus();
               });
             }}
             role="tab"

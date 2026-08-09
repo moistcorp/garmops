@@ -57,7 +57,7 @@ export default async function StaffQuotePaymentPage({
             <div className="flex justify-between"><span>Merchandise subtotal</span><strong>{formatMoneyPaise(quote.subtotalPaise)}</strong></div>
             <div className="mt-2 flex justify-between"><span>GST at {formatGstRate()}</span><strong>{formatMoneyPaise(quote.taxPaise)}</strong></div>
             <div className="mt-4 flex justify-between border-t border-black/10 pt-4 text-lg"><span>Quoted total</span><strong>{formatMoneyPaise(quote.totalPaise)}</strong></div>
-            <p className="mt-3 text-xs text-black/45">A valid Founder-created discount code may reduce the checkout total. The server recalculates GST after discount.</p>
+            <p className="mt-3 text-xs text-black/45">A valid discount code may reduce the checkout total. The server recalculates GST after discount.</p>
           </div>
           <div className="mt-6 grid gap-3 text-xs text-black/55 sm:grid-cols-3"><div className="flex gap-2"><ShieldCheck size={16} className="shrink-0 text-[var(--color-accent)]" />Email-bound secure link</div><div className="flex gap-2"><ReceiptIndianRupee size={16} className="shrink-0 text-[var(--color-accent)]" />Full payment including GST</div><div className="flex gap-2"><Clock3 size={16} className="shrink-0 text-[var(--color-accent)]" />Order created after verification</div></div>
         </section>

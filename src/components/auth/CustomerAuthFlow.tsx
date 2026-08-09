@@ -17,6 +17,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   AUTH_NEXT_COOKIE,
   AUTH_NEXT_COOKIE_MAX_AGE_SECONDS,
+  authCallbackUrl,
   safeInternalPath,
 } from "@/lib/auth/redirects";
 
@@ -161,11 +162,14 @@ export default function CustomerAuthFlow({
         "SameSite=Lax",
         window.location.protocol === "https:" ? "Secure" : "",
       ].filter(Boolean).join("; ");
-      const redirect = new URL("/auth/callback", window.location.origin);
       const { error } = await createClient().auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: redirect.toString(),
+          // Use the configured canonical callback rather than the browser's
+          // current hostname. Supabase falls back to its Site URL when an
+          // unlisted www/apex variant is supplied. Keep `next` in the URL as
+          // well as the cookie so the checkout survives hostname changes.
+          redirectTo: authCallbackUrl(destination),
         },
       });
       if (error) throw error;

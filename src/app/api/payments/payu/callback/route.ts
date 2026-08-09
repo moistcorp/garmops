@@ -45,7 +45,7 @@ function resultRedirect(
   path: string,
   orderNumber?: string,
   attemptId?: string,
-  outcome: "success" | "failure" | "pending" = "failure",
+  outcome: "success" | "failure" | "pending" | "needs_review" = "failure",
 ) {
   const url = new URL(path, getServerEnvironment().NEXT_PUBLIC_APP_URL);
   if (orderNumber) url.searchParams.set("order", orderNumber);
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
       path,
       result.orderNumber,
       result.attemptId,
-      result.outcome,
+      result.needsReview ? "needs_review" : result.outcome,
     );
   } catch (error) {
     console.error("PayU callback rejected", {

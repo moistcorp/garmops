@@ -2,15 +2,19 @@ import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export async function loadDurablePaymentResult(attemptId: string, orderNumber: string) {
+export async function loadDurablePaymentResult(
+  attemptId: string,
+  orderNumber: string,
+  customerUserId: string,
+) {
   const admin = createAdminClient();
   const { data, error } = await admin.from("payment_attempts")
-    .select("id, amount_paise, status, purpose, order_id, orders!inner(order_number, order_type, submitted_at)")
+    .select("id, amount_paise, status, purpose, order_id, orders!inner(order_number, order_type, submitted_at, customer_user_id)")
     .eq("id", attemptId)
     .maybeSingle();
   if (error || !data) return null;
-  const order = data.orders as unknown as { order_number: string; order_type: string; submitted_at: string };
-  if (order.order_number !== orderNumber) return null;
+  const order = data.orders as unknown as { order_number: string; order_type: string; submitted_at: string; customer_user_id: string };
+  if (order.order_number !== orderNumber || order.customer_user_id !== customerUserId) return null;
   const [{ data: invoice }, { data: checkoutSession }] = await Promise.all([
     admin.from("invoices")
       .select("status, invoice_number, pdf_file_id")

@@ -10,24 +10,18 @@ export default function PaymentResultUnavailable() {
           className="mx-auto text-amber-600"
           aria-hidden="true"
         />
-        <p className="mt-6 text-xs uppercase tracking-[0.2em] text-[var(--color-accent)]">
-          Verified order status
-        </p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight">
-          Payment result unavailable
+          We couldn&apos;t open this payment result
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-black/55">
-          This payment-result link is invalid or has expired. For security, Garmops does not reconstruct payment status from the URL or browser storage.
-        </p>
-        <p className="mt-3 text-sm leading-relaxed text-black/55">
-          Open My orders to see the latest status verified against your saved order and PayU payment attempt.
+          For your security, payment status is shown from your saved order. Open My Orders to check the latest verified status.
         </p>
         <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
           <Link
             href="/account/orders"
             className="rounded-[4px] bg-[var(--color-accent)] px-5 py-3 text-sm font-semibold text-white"
           >
-            Open My orders
+            View my orders →
           </Link>
           <Link
             href="/contact"

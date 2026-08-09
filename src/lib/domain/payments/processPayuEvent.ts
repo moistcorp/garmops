@@ -28,6 +28,7 @@ export type ProcessResult = {
   attemptId: string;
   orderNumber?: string;
   duplicate: boolean;
+  needsReview?: boolean;
   redirectPath?: string;
 };
 
@@ -303,6 +304,7 @@ async function applyCustomVerification(
       attemptId: finalized.paymentAttemptId,
       orderNumber: finalized.orderNumber,
       duplicate: finalized.alreadyFinalized || finalized.duplicateSuccess,
+      needsReview: finalized.duplicateSuccess,
     };
   }
 
@@ -397,6 +399,7 @@ async function processCustomCheckoutPayuEvent(
         attemptId: finalized.paymentAttemptId,
         orderNumber: finalized.orderNumber,
         duplicate: true,
+        needsReview: finalized.duplicateSuccess,
       };
     }
     const outcome = outcomeFromAttemptStatus(refreshed.status);

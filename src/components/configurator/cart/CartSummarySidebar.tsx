@@ -22,6 +22,7 @@ interface CartSummarySidebarProps {
 export function CartSummarySidebar({
   subtotal,
   volumeDiscount,
+  shippingFee,
   rushFee = 0,
   promoDiscount = 0,
   gst,
@@ -50,6 +51,7 @@ export function CartSummarySidebar({
         {promoDiscount > 0 && (
           <SummaryRow label="Promo discount" value={`− ${formatInr(promoDiscount)}`} />
         )}
+        <SummaryRow label="Shipping" value={shippingFee > 0 ? formatInr(shippingFee) : "Not yet priced"} />
         <SummaryRow label={`GST (${formatGstRate()})`} value={formatInr(gst)} />
         <div className="border-t border-[var(--color-rule)] pt-3">
           <SummaryRow label="Order total" value={formatInr(total)} strong />
@@ -63,10 +65,10 @@ export function CartSummarySidebar({
             {delivery ? (
               <>
                 <p className="font-medium text-[var(--text-primary)]">Target: {delivery}</p>
-                <p className="mt-1">Shipping charges will be shared separately.</p>
+                <p className="mt-1">Shipping is not yet priced.</p>
               </>
             ) : (
-              <p className="font-medium text-[var(--text-primary)]">Shipping charges will be shared separately.</p>
+              <p className="font-medium text-[var(--text-primary)]">Shipping is not yet priced.</p>
             )}
           </div>
         </div>

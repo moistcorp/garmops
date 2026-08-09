@@ -7,6 +7,7 @@ import {
   decodeDurablePaymentResult,
   DURABLE_PAYMENT_RESULT_COOKIE,
 } from "@/lib/domain/payments/result";
+import { createClient } from "@/lib/supabase/server";
 
 type PaymentResultSearch = {
   order?: string | string[];
@@ -39,7 +40,11 @@ export default async function PaymentFailurePage({
     return <PaymentResultUnavailable />;
   }
 
-  const result = await loadDurablePaymentResult(attemptId, orderNumber);
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) return <PaymentResultUnavailable />;
+
+  const result = await loadDurablePaymentResult(attemptId, orderNumber, userData.user.id);
   if (!result) {
     return <PaymentResultUnavailable />;
   }

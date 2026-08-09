@@ -26,8 +26,9 @@ export function safeInternalPath(
   return value;
 }
 
-export function authCallbackUrl(next: string) {
+export function authCallbackUrl(next: string, configuredAppUrl?: string) {
   const appUrl =
+    configuredAppUrl?.replace(/\/+$/, "") ??
     process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") ??
     "http://localhost:3000";
   const url = new URL("/auth/callback", appUrl);

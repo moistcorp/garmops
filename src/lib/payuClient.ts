@@ -85,8 +85,6 @@ export function submitPayuCheckout(
     document.body.appendChild(form);
 
     let settled = false;
-    let timeoutId: number | undefined;
-
     const cleanup = (removeForm: boolean) => {
       window.removeEventListener("pagehide", navigationStarted);
       window.removeEventListener("beforeunload", navigationStarted);
@@ -104,7 +102,7 @@ export function submitPayuCheckout(
     window.addEventListener("pagehide", navigationStarted, { once: true });
     window.addEventListener("beforeunload", navigationStarted, { once: true });
 
-    timeoutId = window.setTimeout(() => {
+    const timeoutId = window.setTimeout(() => {
       if (settled) return;
       settled = true;
       cleanup(true);
