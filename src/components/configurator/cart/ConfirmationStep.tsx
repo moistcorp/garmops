@@ -733,9 +733,9 @@ function ProductRecapCard({ item, lineNumber, cartId }: { item: CartItem; lineNu
 
   return (
     <article className="techpack-control rounded-[4px] border p-4">
-      <div className="grid gap-5 sm:grid-cols-[132px_minmax(0,1fr)]">
-      <div>
-        <div className="aspect-[4/5] w-full overflow-hidden rounded-[4px] bg-[#F7F7F7]">
+      <div className="grid gap-6 sm:grid-cols-[176px_minmax(0,1fr)] sm:gap-8">
+      <div className="min-w-0">
+        <div className="aspect-[4/5] w-full max-w-[132px] overflow-hidden rounded-[4px] bg-[#F7F7F7]">
         <ArtworkPositionProvider activeView={view}>
           <CanvasRenderer
             view={view}
@@ -748,7 +748,7 @@ function ProductRecapCard({ item, lineNumber, cartId }: { item: CartItem; lineNu
           />
         </ArtworkPositionProvider>
         </div>
-        <div className="mt-2"><ViewTabs activeView={view} onChange={setView} productId={item.productId} idPrefix={`review-line-${lineNumber}`} /></div>
+        <div className="mt-3 overflow-x-auto pb-1"><ViewTabs activeView={view} onChange={setView} productId={item.productId} idPrefix={`review-line-${lineNumber}`} /></div>
       </div>
       <div className="min-w-0">
         <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--color-accent)]">Line {lineNumber}</p>
