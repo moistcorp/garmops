@@ -638,7 +638,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
         })}
         </div>
 
-        <div className="lg:sticky lg:top-36 lg:self-start">
+        <div className="lg:sticky lg:top-40 lg:self-start">
           <CartSummarySidebar
             subtotal={totals.subtotal}
             volumeDiscount={totals.volumeDiscount}
