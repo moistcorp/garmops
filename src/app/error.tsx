@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect } from 'react'
+import { captureAnalyticsException } from '@/lib/analytics/client'
 
 export default function ErrorPage({
   error,
@@ -11,6 +12,7 @@ export default function ErrorPage({
   unstable_retry: () => void
 }) {
   useEffect(() => {
+    captureAnalyticsException(error)
     console.error(error)
   }, [error])
 

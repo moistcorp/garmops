@@ -9,6 +9,7 @@ import CustomerAccountControl from '@/components/auth/CustomerAccountControl'
 import CustomerAuthDialog from '@/components/auth/CustomerAuthDialog'
 import { useCustomerSession } from '@/components/auth/useCustomerSession'
 import GarmopsLogo from '@/components/common/GarmopsLogo'
+import { captureAnalytics } from '@/lib/analytics/client'
 
 const links = [
   { label: 'Products', href: '/products' },
@@ -287,6 +288,7 @@ export default function Navbar() {
               window.dataLayer = window.dataLayer ?? []
               window.dataLayer.push(payload)
               window.dispatchEvent(new CustomEvent('garmops:analytics', { detail: payload }))
+              captureAnalytics('whatsapp_clicked', { source: 'mobile_navigation' })
               closeMenu()
             }}
             className="mt-2 block rounded-[4px] border border-[var(--color-accent)] px-5 py-3 text-center font-mono text-[11px] uppercase tracking-[0.06em] text-[var(--color-accent-dark)]"

@@ -2,7 +2,7 @@ import { initializeAnalytics } from "@/lib/analytics/client";
 import * as Sentry from "@sentry/nextjs";
 import { redactSentryEvent } from "@/lib/monitoring/sentry";
 
-try { initializeAnalytics(); } catch { /* optional instrumentation */ }
+initializeAnalytics();
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,

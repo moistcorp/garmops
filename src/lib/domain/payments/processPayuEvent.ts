@@ -68,15 +68,15 @@ type CustomCheckoutAttempt = {
 
 async function captureVerifiedPaymentOutcome(customerUserId: string, outcome: PaymentOutcome) {
   const consent = await customerAllowsAnalytics(customerUserId);
-  captureServerAnalytics({
+  await captureServerAnalytics({
     event: outcome === "success" ? "payment_completed" : outcome === "failure" ? "payment_failed" : "payment_started",
     supabaseUserId: customerUserId,
     consent,
     properties: { source: "verified_server" },
   });
   if (outcome === "success") {
-    captureServerAnalytics({ event: "durable_order_submitted", supabaseUserId: customerUserId, consent, properties: { source: "verified_server" } });
-    captureServerAnalytics({ event: "order_confirmed", supabaseUserId: customerUserId, consent, properties: { source: "verified_server" } });
+    await captureServerAnalytics({ event: "durable_order_submitted", supabaseUserId: customerUserId, consent, properties: { source: "verified_server" } });
+    await captureServerAnalytics({ event: "order_confirmed", supabaseUserId: customerUserId, consent, properties: { source: "verified_server" } });
   }
 }
 

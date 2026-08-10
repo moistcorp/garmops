@@ -19,7 +19,7 @@ export async function customerAllowsAnalytics(supabaseUserId: string): Promise<b
   }
 }
 
-export function captureServerAnalytics(input: {
+export async function captureServerAnalytics(input: {
   event: AnalyticsEvent;
   supabaseUserId: string;
   consent: boolean;
@@ -27,9 +27,14 @@ export function captureServerAnalytics(input: {
 }) {
   try {
     const environment = getServerEnvironment();
-    if (!input.consent || !environment.POSTHOG_ENABLED || !environment.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN) return;
+    if (
+      !input.consent ||
+      !environment.POSTHOG_ENABLED ||
+      !environment.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN ||
+      !environment.NEXT_PUBLIC_POSTHOG_HOST
+    ) return;
     client ??= new PostHog(environment.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN, {
-      host: environment.NEXT_PUBLIC_POSTHOG_HOST ?? "https://eu.i.posthog.com",
+      host: environment.NEXT_PUBLIC_POSTHOG_HOST,
       flushAt: 1,
       flushInterval: 0,
     });
@@ -38,6 +43,7 @@ export function captureServerAnalytics(input: {
       event: input.event,
       properties: sanitizeAnalyticsProperties(input.properties),
     });
+    await client.flush();
   } catch {
     // Analytics is non-essential and must never affect ordering.
   }
