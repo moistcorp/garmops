@@ -4,7 +4,7 @@ function renderedGarment(page: Page, view: "front" | "back" | "neck") {
   return page.getByRole("main").getByLabel(new RegExp(`${view} garment preview`, "i")).locator("canvas");
 }
 
-for (const colour of ["True Black", "Bright White", "Amparo Blue"]) {
+for (const colour of ["Jet Black", "Classic White", "Navy Blue"]) {
   test(`regular tee renderer signals — ${colour}`, async ({ page }) => {
     await page.goto(`/configurator/build/regular-fit-tee-200gsm?draftId=e2e-visual-${colour.toLowerCase().replaceAll(" ", "-")}`, { waitUntil: "domcontentloaded" });
     await page.getByRole("button", { name: `Select ${colour}` }).click();

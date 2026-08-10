@@ -50,13 +50,17 @@ test("same product can be configured twice and each line enforces MOQ", async ({
 
 test("local draft survives a reload before authentication", async ({ page }) => {
   await page.goto("/configurator/build/regular-fit-tee-200gsm?draftId=66666666-6666-4666-8666-666666666666", { waitUntil: "domcontentloaded" });
-  await page.getByRole("button", { name: "Select True Black" }).click();
-  await expect(page.getByRole("button", { name: "Select True Black" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: /^Select / })).toHaveCount(8);
+  for (const colour of ["Jet Black", "Classic White", "Navy Blue", "Charcoal Grey", "Heather Grey", "Bottle Green", "Burgundy", "Sand"]) {
+    await expect(page.getByRole("button", { name: `Select ${colour}` })).toBeVisible();
+  }
+  await page.getByRole("button", { name: "Select Jet Black" }).click();
+  await expect(page.getByRole("button", { name: "Select Jet Black" })).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("button", { name: /Continue to artwork/ }).click();
   await expect(page.getByRole("button", { name: /Continue without artwork/ })).toBeVisible();
   await page.waitForTimeout(1_000);
   await page.reload({ waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("button", { name: "Select True Black" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "Select Jet Black" })).toHaveAttribute("aria-pressed", "true");
 });
 
 test("configurator exposes only supported techniques", async ({ page }) => {

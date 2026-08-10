@@ -12,8 +12,9 @@ function configuredItem(quantity = 50): CartItem {
     previewImage: "/test.webp",
     colour: {
       type: "signature",
-      name: "Bright White",
-      hex: "#FFFFFF",
+      id: "classic-white",
+      name: "Classic White",
+      hex: "#F5F5F2",
       confirmed: true,
     },
     artwork: {},
@@ -105,8 +106,9 @@ describe("multi-item cart lines", () => {
       previewImage: "/test.webp",
       colour: {
         type: "signature" as const,
-        name: "Bright White",
-        hex: "#FFFFFF",
+        id: "classic-white",
+        name: "Classic White",
+        hex: "#F5F5F2",
         confirmed: true,
       },
       artwork: {},
@@ -151,8 +153,9 @@ describe("multi-item cart lines", () => {
       previewImage: "/test.webp",
       colour: {
         type: "signature" as const,
-        name: "Bright White",
-        hex: "#FFFFFF",
+        id: "classic-white",
+        name: "Classic White",
+        hex: "#F5F5F2",
         confirmed: true,
       },
       artwork: {},
@@ -183,8 +186,9 @@ describe("multi-item cart lines", () => {
       previewImage: "/test.webp",
       colour: {
         type: "signature",
-        name: "Natural",
-        hex: "#F2E8D5",
+        id: "sand",
+        name: "Sand",
+        hex: "#D2C2A8",
         confirmed: true,
       },
       artwork: {},
@@ -211,8 +215,9 @@ describe("multi-item cart lines", () => {
 
     const colour = {
       type: "signature" as const,
-      name: "Bright White",
-      hex: "#FFFFFF",
+      id: "classic-white",
+      name: "Classic White",
+      hex: "#F5F5F2",
       confirmed: true,
     };
     expect(upsertConfiguredCartItem("mixed-cart", {

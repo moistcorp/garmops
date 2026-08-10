@@ -41,7 +41,10 @@ import {
   createStandardNeckLabel,
   isCustomNeckLabel,
 } from "@/lib/configurator/neckLabel";
-import { CUSTOM_DYE_MOQ_UNITS } from "@/lib/configurator/colourRules";
+import {
+  CUSTOM_DYE_MOQ_UNITS,
+  resolveSignatureColour,
+} from "@/lib/configurator/colourRules";
 import {
   readDraft,
   MAX_CONFIGURED_CART_ITEMS,
@@ -139,6 +142,26 @@ function labelSummary(neckLabel?: NeckLabel): string | null {
     !neckLabel.position
   ) return null;
   return `${neckLabel.dimensions.replace("x", " × ")} mm · ${POSITION_LABELS[neckLabel.position]}`;
+}
+
+function resolveRestoredColour(colour: GarmentColour): {
+  colour: GarmentColour;
+  wasObsolete: boolean;
+} {
+  if (colour.type !== "signature") return { colour, wasObsolete: false };
+
+  const current = resolveSignatureColour(colour);
+  if (!current) return { colour: DEFAULT_COLOUR, wasObsolete: true };
+
+  return {
+    colour: {
+      ...colour,
+      id: current.id,
+      name: current.name,
+      hex: current.hex,
+    },
+    wasObsolete: false,
+  };
 }
 
 function stepsForConfiguration(
@@ -364,16 +387,17 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
       restoredQuantity: unknown,
       restoredSteps?: AccordionStepState[]
     ) => {
+      const resolvedColour = resolveRestoredColour(restoredColour);
       const uploads = await restoreConfigurationUploads(
         restoredArtwork,
         restoredNeckLabel
       );
-      setColour(restoredColour);
+      setColour(resolvedColour.colour);
       setArtwork(uploads.artwork);
       setNeckLabel(uploads.neckLabel ?? createStandardNeckLabel());
       setSteps(
         stepsForConfiguration(
-          restoredColour,
+          resolvedColour.colour,
           uploads.artwork,
           uploads.neckLabel,
           restoredSteps
@@ -381,15 +405,22 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
       );
       setQuantity(
         safeQuantity(
-          restoredQuantity,
-          editCartId && editItemId
-            ? 0
-            : getProductMinimumOrderQuantity(productId, {
-                colourType: restoredColour.type,
+            restoredQuantity,
+            editCartId && editItemId
+              ? 0
+              : getProductMinimumOrderQuantity(productId, {
+                colourType: resolvedColour.colour.type,
                 customDyeMinimum: CUSTOM_DYE_MOQ_UNITS,
               })
         )
       );
+      if (resolvedColour.wasObsolete) {
+        setFeedback({
+          tone: "error",
+          title: "The saved garment colour is no longer available",
+          detail: `We selected ${DEFAULT_COLOUR.name} instead. Historical orders remain unchanged.`,
+        });
+      }
       setDraftRestored(true);
     },
     [

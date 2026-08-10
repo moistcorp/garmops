@@ -16,6 +16,7 @@ const safeAssetUrl = z
 const colourSchema = z
   .object({
     type: z.enum(["signature", "custom_dye"]),
+    id: z.string().trim().min(1).max(80).optional(),
     name: z.string().max(120),
     hex: z.string().max(40),
     confirmed: z.boolean(),

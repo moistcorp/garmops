@@ -3,14 +3,14 @@
 import type { SignatureColour } from "@/lib/configurator/colourRules";
 
 interface SignatureColourGridProps {
-  colours: SignatureColour[];
-  selectedName: string;
+  colours: readonly SignatureColour[];
+  selectedId?: string;
   onSelect: (colour: SignatureColour) => void;
 }
 
 export default function SignatureColourGrid({
   colours,
-  selectedName,
+  selectedId,
   onSelect,
 }: SignatureColourGridProps) {
   if (colours.length === 0) {
@@ -24,7 +24,7 @@ export default function SignatureColourGrid({
   return (
     <div className="grid grid-cols-2 gap-3">
       {colours.map((colour) => {
-        const isActive = colour.name.toLowerCase() === selectedName.toLowerCase();
+        const isActive = colour.id === selectedId;
         return (
           <button
             key={colour.name}

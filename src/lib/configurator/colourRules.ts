@@ -3,27 +3,32 @@
 // swatches stay in the initial client bundle without pulling the full library.
 
 export interface SignatureColour {
+  id: string;
   name: string;
   hex: string;
 }
 
-export const SIGNATURE_COLOURS: SignatureColour[] = [
-  { name: "Bright White", hex: "#FBFBF9" },
-  { name: "Ecru", hex: "#E8E1D3" },
-  // Domain data, not UI ink: this literal is the customer-selectable True Black swatch.
-  { name: "True Black", hex: "#111111" },
-  { name: "Oat Milk", hex: "#DCD3C0" },
-  { name: "Indian Almond", hex: "#C9A27E" },
-  { name: "Cocoa Mocha", hex: "#5B4636" },
-  { name: "Buffalo Chip", hex: "#8A7B6C" },
-  { name: "Glacier Lake", hex: "#7FA6B3" },
-  { name: "Silver Bullet", hex: "#B8B8B8" },
-  { name: "Deep Periwinkle", hex: "#6E7FBF" },
-  { name: "Amparo Blue", hex: "#3B5BA5" },
-  { name: "Blue Ribbon", hex: "#1F4FCC" },
-  { name: "Odyssey Gray", hex: "#4A4A48" },
-  { name: "Polar Night", hex: "#0D0D12" },
-];
+export const SIGNATURE_COLOURS = [
+  { id: "jet-black", name: "Jet Black", hex: "#161616" },
+  { id: "classic-white", name: "Classic White", hex: "#F5F5F2" },
+  { id: "navy-blue", name: "Navy Blue", hex: "#202C46" },
+  { id: "charcoal-grey", name: "Charcoal Grey", hex: "#414345" },
+  { id: "heather-grey", name: "Heather Grey", hex: "#B6B7B4" },
+  { id: "bottle-green", name: "Bottle Green", hex: "#234936" },
+  { id: "burgundy", name: "Burgundy", hex: "#722F3D" },
+  { id: "sand", name: "Sand", hex: "#D2C2A8" },
+] as const satisfies readonly SignatureColour[];
+
+export function resolveSignatureColour(
+  colour: { id?: string; name: string; hex: string },
+): SignatureColour | undefined {
+  return SIGNATURE_COLOURS.find(
+    (candidate) =>
+      candidate.id === colour.id ||
+      (candidate.name === colour.name &&
+        candidate.hex.toUpperCase() === colour.hex.toUpperCase()),
+  );
+}
 
 // ============================================================
 // Custom Dye disclosure — MOQ / lead-time tradeoffs vs Signature.

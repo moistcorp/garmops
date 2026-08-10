@@ -18,8 +18,9 @@ function designSnapshot(
     configuration: {
       colour: {
         type: colourType,
-        name: colourType === "signature" ? "Bright White" : "286 U",
-        hex: "#FFFFFF",
+        id: colourType === "signature" ? "classic-white" : undefined,
+        name: colourType === "signature" ? "Classic White" : "286 U",
+        hex: colourType === "signature" ? "#F5F5F2" : "#FFFFFF",
         confirmed: true,
       },
       artwork: {},

@@ -133,7 +133,7 @@ function NeckLabelTypeCard({
       type="button"
       onClick={onClick}
       aria-pressed={selected}
-      className={`flex min-h-[122px] flex-1 flex-col items-start justify-between rounded-[4px] border p-4 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)] ${
+      className={`flex min-h-[122px] flex-1 flex-col items-start justify-start rounded-[4px] border p-4 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)] ${
         selected
           ? 'techpack-selected'
           : 'techpack-control border text-[var(--text-primary)]/75 hover:!bg-white/60'
@@ -152,7 +152,7 @@ function NeckLabelTypeCard({
           {selected && <span className="size-2 rounded-full bg-[var(--color-accent)]" />}
         </span>
       </span>
-      <span>
+      <span className="mt-3 block">
         <span className="block text-sm font-semibold leading-tight tracking-normal">{title}</span>
         <span className="mt-1 block text-xs font-normal leading-relaxed tracking-normal opacity-70">
           {detail}

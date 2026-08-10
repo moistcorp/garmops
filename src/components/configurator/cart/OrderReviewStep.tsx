@@ -181,28 +181,6 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
     setPendingDeleteItemId(null);
   }
 
-  function handleRemoveArtworkSide(itemId: string, side: "front" | "back") {
-    updateDraft((previous) => {
-      const nextItems = previous.items.map((item) => {
-        if (item.id !== itemId) return item;
-        const artwork = { ...item.artwork, [side]: undefined };
-        const updated = { ...item, artwork, baseUnitPrice: undefined };
-        return { ...updated, unitPrice: getCartItemUnitPrice(updated) };
-      });
-      return { ...previous, items: nextItems };
-    });
-    setFeedback({
-      tone: "success",
-      title: `${side === "front" ? "Front" : "Back"} artwork removed`,
-      detail: "The estimate has been recalculated. You can add it again from Edit design.",
-    });
-    trackConfiguratorEvent("cart_item_updated", {
-      cart_id: cartId,
-      item_id: itemId,
-      change: `${side}_artwork_removed`,
-    });
-  }
-
   function handleAddAnotherProduct() {
     router.push(`/configurator?cartId=${encodeURIComponent(cartId)}`);
   }
@@ -465,8 +443,6 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                       >
                         Edit design
                       </button>
-                      {item.artwork.front && <button type="button" onClick={() => handleRemoveArtworkSide(item.id, "front")} className="rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 text-xs text-[var(--text-primary)]/70 hover:border-[var(--color-accent)]">Remove front print</button>}
-                      {item.artwork.back && <button type="button" onClick={() => handleRemoveArtworkSide(item.id, "back")} className="rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 text-xs text-[var(--text-primary)]/70 hover:border-[var(--color-accent)]">Remove back print</button>}
                       {pendingDeleteItemId === item.id ? (
                         <div className="flex items-center gap-2 rounded-[4px] border border-[#E5E5E5] px-2 py-1.5 text-xs text-[var(--text-primary)]/70">
                           <span>Remove this item?</span>

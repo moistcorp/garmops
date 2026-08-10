@@ -416,7 +416,7 @@ function renderPhotographicComposite(
    * not a conventional highlight map. It contains several genuinely bright
    * seam/rim pixels around the neckline and shoulder joins. If those positive
    * values are transferred linearly to the selected colour they become the
-   * grey/white outlines that were visible on True Black, Cocoa Mocha, etc.
+   * grey/white outlines that were visible on very dark garments.
    *
    * Preserve the negative photographic information (knit valleys, folds,
    * stitches and AO) strongly, but compress positive values into a small

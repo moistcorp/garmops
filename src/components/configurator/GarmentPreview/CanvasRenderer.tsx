@@ -175,7 +175,7 @@ function NeckLabelPreview({
   const w = widthMm * NECK_LABEL_PX_PER_MM.neck;
   const h = heightMm * NECK_LABEL_PX_PER_MM.neck;
   const renderable = isRenderableNeckLabel(neckLabel, previewUrl);
-  // Rendering data, not UI text: stitches and fallback label artwork are intentionally true black.
+  // Rendering data, not UI text: stitches and fallback label artwork are intentionally near-black.
   const stitchColor = "#111111";
 
   // Stitch type only applies to a "below neck tape" hang-tag — an "on neck

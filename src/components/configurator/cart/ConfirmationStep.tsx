@@ -754,7 +754,7 @@ function ProductRecapCard({ item, lineNumber, cartId }: { item: CartItem; lineNu
         <p className="font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--color-accent)]">Line {lineNumber}</p>
         <p className="text-sm font-medium text-[var(--text-primary)]">{item.productName}</p>
         <p className="text-xs text-[var(--text-primary)]/60">
-          {item.colour.name || "Bright White"} · <span className="font-mono">{units} pieces · {formatInr(unitPrice)}/unit</span>
+          {item.colour.name || "Classic White"} · <span className="font-mono">{units} pieces · {formatInr(unitPrice)}/unit</span>
           {discountPercent > 0 ? ` · ${discountPercent}% off` : ""}
         </p>
         <div className="mt-4 grid gap-3 text-xs text-[var(--text-primary)]/65 sm:grid-cols-2">

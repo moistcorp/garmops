@@ -56,15 +56,13 @@ function SelectedColourSummary({ value }: { value: GarmentColour }) {
         />
         <div className="min-w-0">
           <p className="truncate text-base font-semibold text-[var(--text-primary)]">{value.name}</p>
-          <p className="mt-0.5 text-xs text-[var(--text-primary)]/55">
-          {isCustom ? "Custom colour reference" : "Signature colour"}
-          </p>
-          {isCustom ? (
-            <p className="mt-1 font-mono text-xs font-semibold uppercase tracking-[0.05em] text-[var(--color-accent)]">
-              Preview only
-            </p>
-          ) : (
-            <p className="mt-1 font-mono text-[10px] text-[var(--text-primary)]/45">{value.hex}</p>
+          {isCustom && (
+            <>
+              <p className="mt-0.5 text-xs text-[var(--text-primary)]/55">Custom colour reference</p>
+              <p className="mt-1 font-mono text-xs font-semibold uppercase tracking-[0.05em] text-[var(--color-accent)]">
+                Preview only
+              </p>
+            </>
           )}
         </div>
       </div>
@@ -130,9 +128,10 @@ export default function GarmentColourPanel({
     setPantoneError("");
   }
 
-  function handleSignatureSelect(colour: { name: string; hex: string }) {
+  function handleSignatureSelect(colour: { id: string; name: string; hex: string }) {
     onChange({
       type: "signature",
+      id: colour.id,
       name: colour.name,
       hex: colour.hex,
       confirmed: value.confirmed,
@@ -204,7 +203,7 @@ export default function GarmentColourPanel({
             </div>
             <SignatureColourGrid
               colours={SIGNATURE_COLOURS}
-              selectedName={value.type === "signature" ? value.name : ""}
+              selectedId={value.type === "signature" ? value.id : undefined}
               onSelect={handleSignatureSelect}
             />
           </div>

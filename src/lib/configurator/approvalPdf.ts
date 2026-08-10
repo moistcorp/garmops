@@ -299,7 +299,6 @@ function buildOverviewPage(
   page.commands.push(pdfText("FULL MERCHANDISE PAYMENT", 58, 278, 8, true, [0.06, 0.38, 0.39]));
   page.commands.push(pdfText(formatInr(options.totals.total), 58, 250, 22, true, [0.06, 0.38, 0.39]));
   page.commands.push(pdfText("Includes configured merchandise and GST.", 310, 258, 9, true));
-  page.commands.push(pdfText("Shipping is free.", 310, 242, 7.5, false, [0.35, 0.35, 0.35]));
 
   let disclaimerY = 196;
   disclaimerY = addWrappedText(

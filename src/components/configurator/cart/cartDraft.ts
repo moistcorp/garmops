@@ -277,6 +277,7 @@ function normalizeCartItem(value: unknown): CartItem | null {
 
   const colour: GarmentColour = {
     type: colourType,
+    id: typeof value.colour.id === "string" ? value.colour.id : undefined,
     name: colourName,
     hex: colourHex,
     confirmed: value.colour.confirmed === true,

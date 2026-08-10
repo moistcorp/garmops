@@ -69,10 +69,11 @@ export const INITIAL_STEPS: AccordionStepState[] = [
 ];
 
 const DEFAULT_SIGNATURE_COLOUR =
-  SIGNATURE_COLOURS.find((colour) => colour.name === "Bright White") ?? SIGNATURE_COLOURS[0];
+  SIGNATURE_COLOURS.find((colour) => colour.id === "classic-white") ?? SIGNATURE_COLOURS[0];
 
 export const DEFAULT_COLOUR: GarmentColour = {
   type: "signature",
+  id: DEFAULT_SIGNATURE_COLOUR.id,
   name: DEFAULT_SIGNATURE_COLOUR.name,
   hex: DEFAULT_SIGNATURE_COLOUR.hex,
   confirmed: false,
@@ -97,7 +98,6 @@ export function ConfiguratorSidebar({
   onQuantityChange,
   isToteProduct = false,
   onResetStep,
-  activeStepSummary,
   draftRestored = false,
   onDismissDraftRestored,
 }: ConfiguratorSidebarProps = {}) {
@@ -155,9 +155,6 @@ export function ConfiguratorSidebar({
       <div className="shrink-0 border-b border-[var(--color-control-border)] bg-white px-4 py-3">
         <div className="min-w-0">
           <h2 className="text-sm font-semibold text-[var(--text-primary)]">{activeStepTitle}</h2>
-          <p className="mt-0.5 truncate text-xs text-[var(--text-primary)]/55" title={activeStepSummary}>
-            {activeStepSummary ?? activeStep.summary ?? "Not added yet"}
-          </p>
         </div>
       </div>
 

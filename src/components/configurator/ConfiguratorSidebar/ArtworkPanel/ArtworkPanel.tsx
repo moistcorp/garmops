@@ -309,7 +309,9 @@ export function ArtworkPanel({ value, onChange, activeView, onViewChange }: Artw
 
       <section id={`artwork-${panelSide}-panel`} role="tabpanel" aria-label={`${SIDE_LABELS[panelSide]} artwork controls`} className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/70">1 — Upload artwork</h3>
+          <h3 className="text-xs font-semibold text-[var(--text-primary)]/70">
+            <span className="whitespace-nowrap">1 —</span> Upload artwork
+          </h3>
           <ArtworkUploadSide side={panelSide} value={current} onChange={(next) => handleSideChange(panelSide, next)} />
         </div>
 
@@ -320,7 +322,9 @@ export function ArtworkPanel({ value, onChange, activeView, onViewChange }: Artw
             {selectedTechnique && (
               <div className="flex flex-col gap-3">
                 <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/70">3 — Position &amp; size</h3>
+                  <h3 className="text-xs font-semibold text-[var(--text-primary)]/70">
+                    <span className="whitespace-nowrap">3 —</span> Position &amp; size
+                  </h3>
                   <p className="mt-1 text-xs leading-relaxed text-[var(--text-primary)]/55">Drag the artwork on the garment to move it. Drag the handle to resize.</p>
                 </div>
 
@@ -396,7 +400,6 @@ export function ArtworkPanel({ value, onChange, activeView, onViewChange }: Artw
         </div>
       </section>
 
-      <p className="text-xs leading-relaxed text-[var(--text-primary)]/45">Low-resolution artwork is a production note, not a blocker. Our team reviews artwork before production.</p>
     </div>
   );
 }

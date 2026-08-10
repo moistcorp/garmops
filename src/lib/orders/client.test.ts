@@ -11,8 +11,9 @@ function cartItem(neckLabel?: CartItem["neckLabel"]): CartItem {
     previewImage: "/garments/regular-fit-tee/front/base.webp",
     colour: {
       type: "signature",
-      name: "True Black",
-      hex: "#111111",
+      id: "jet-black",
+      name: "Jet Black",
+      hex: "#161616",
       confirmed: true,
     },
     artwork: {},

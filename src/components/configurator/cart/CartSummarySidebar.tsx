@@ -1,4 +1,4 @@
-import { ArrowRight, CalendarDays } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { formatInr } from "@/lib/configurator/pricing";
 import { formatGstRate } from "@/lib/tax";
 
@@ -26,7 +26,6 @@ export function CartSummarySidebar({
   rushFee = 0,
   promoDiscount = 0,
   gst,
-  delivery,
   total,
   onNext,
   nextLabel = "Continue",
@@ -55,22 +54,6 @@ export function CartSummarySidebar({
         <SummaryRow label={`GST (${formatGstRate()})`} value={formatInr(gst)} />
         <div className="border-t border-[var(--color-rule)] pt-3">
           <SummaryRow label="Order total" value={formatInr(total)} strong />
-        </div>
-      </div>
-
-      <div className="mt-4 rounded-[4px] bg-[#F7F7F7] p-3 text-xs leading-relaxed text-[var(--text-primary)]/65">
-        <div className="flex items-start gap-2">
-          <CalendarDays size={15} className="mt-0.5 shrink-0 text-[var(--color-accent-dark)]" />
-          <div>
-            {delivery ? (
-              <>
-                <p className="font-medium text-[var(--text-primary)]">Target: {delivery}</p>
-                <p className="mt-1">Shipping is free.</p>
-              </>
-            ) : (
-              <p className="font-medium text-[var(--text-primary)]">Shipping is free.</p>
-            )}
-          </div>
         </div>
       </div>
 

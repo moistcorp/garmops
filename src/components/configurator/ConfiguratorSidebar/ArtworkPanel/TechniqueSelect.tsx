@@ -39,7 +39,7 @@ export function TechniqueSelect({ value, fileType, side = "front", onChange }: T
   return (
     <fieldset className="flex flex-col gap-2" aria-label={`${sideLabel} print method`}>
       <legend className="text-xs font-semibold text-[var(--text-primary)]/70">
-        2 — Choose print method<span aria-hidden="true">*</span>
+        <span className="whitespace-nowrap">2 —</span> Choose print method<span aria-hidden="true">*</span>
       </legend>
       <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Print method">
         {TECHNIQUE_ORDER.map((technique) => {

@@ -4,7 +4,9 @@ export type GarmentColourType = 'signature' | 'custom_dye';
 
 export interface GarmentColour {
   type: GarmentColourType;
-  name: string; // e.g. "Indian Almond" or Pantone code "104 U"
+  /** Stable ID for predefined colours; omitted on legacy snapshots and custom dyes. */
+  id?: string;
+  name: string; // e.g. "Bottle Green" or Pantone code "104 U"
   hex: string;
   confirmed: boolean;
 }

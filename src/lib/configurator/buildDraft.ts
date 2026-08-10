@@ -93,6 +93,7 @@ function normalizeBuildDraft(input: unknown): BuildDraft | null {
       parsed.colour.type !== "custom_dye") ||
     typeof parsed.colour.name !== "string" ||
     typeof parsed.colour.hex !== "string" ||
+    (parsed.colour.id !== undefined && typeof parsed.colour.id !== "string") ||
     typeof parsed.colour.confirmed !== "boolean" ||
     !isRecord(parsed.artwork) ||
     (parsed.artwork.front !== undefined &&

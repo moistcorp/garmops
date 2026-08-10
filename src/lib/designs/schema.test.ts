@@ -14,8 +14,9 @@ const validSnapshot = {
   configuration: {
     colour: {
       type: "signature",
-      name: "Bright White",
-      hex: "#ffffff",
+      id: "classic-white",
+      name: "Classic White",
+      hex: "#F5F5F2",
       confirmed: true,
     },
     artwork: {},
@@ -23,7 +24,7 @@ const validSnapshot = {
       {
         id: "garment-colour",
         title: "Garment Colour",
-        summary: "Bright White",
+        summary: "Classic White",
         confirmed: true,
       },
     ],
