@@ -34,7 +34,6 @@ const STAFF_PORTAL_PREFIXES = [
   '/orders',
   '/artwork-review',
   '/payments',
-  '/quotes',
   '/discounts',
   '/staff-management',
   '/settings',

@@ -11,7 +11,7 @@ insert into public.orders(
   configuration_snapshot
 ) values (
   'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','GAR-2026-900001',
-  'custom_bulk','customer_checkout','11111111-1111-4111-8111-111111111111',
+  'configurator_order','customer_checkout','11111111-1111-4111-8111-111111111111',
   'artwork_pending','artwork_under_review',500000,0,500000,25000,525000,
   525000,'test-v1',1,'{}','{}','{}','{}',
   jsonb_build_object(
@@ -31,7 +31,7 @@ insert into public.orders(
   )
 ),(
   'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','GAR-2026-900002',
-  'custom_bulk','customer_checkout','44444444-4444-4444-8444-444444444444',
+  'configurator_order','customer_checkout','44444444-4444-4444-8444-444444444444',
   'order_review','order_received',10000,0,10000,500,10500,10500,
   'test-v1',1,'{}','{}','{}','{}','{}'
 );
@@ -79,7 +79,7 @@ select is((select count(*) from public.invoices where order_id='bbbbbbbb-bbbb-4b
 select is((select count(*) from public.profiles where id='44444444-4444-4444-8444-444444444444'),0::bigint,'customer A cannot read another profile');
 select throws_ok(
   $$select * from public.create_private_upload_slot(
-    'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',null,null,
+    'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',null,
     'aaaaaaaa-0000-4000-8000-000000000001','customer_artwork','customer',
     'attack.svg','attack.svg','image/svg+xml',1000,'svg',null,
     now()+interval '8 minutes')$$,
@@ -113,7 +113,7 @@ select lives_ok(
 select set_config('request.jwt.claims','{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated","aal":"aal1"}',true);
 select lives_ok(
   $$select * from public.create_private_upload_slot(
-    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',null,null,
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',null,
     'aaaaaaaa-0000-4000-8000-000000000001','customer_artwork','customer',
     'front-v2.svg','front-v2.svg','image/svg+xml',1000,'svg',null,
     now()+interval '8 minutes')$$,
@@ -150,7 +150,7 @@ select is((select count(*) from public.order_artwork_requirements r join public.
 select set_config('request.jwt.claims','{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated","aal":"aal1"}',true);
 select throws_ok(
   $$select * from public.create_private_upload_slot(
-    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',null,null,
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',null,
     (select file_id from public.order_artwork_requirements where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and is_active),
     'customer_artwork','customer','late.svg','late.svg','image/svg+xml',1000,
     'svg',null,now()+interval '8 minutes')$$,
@@ -216,7 +216,7 @@ select set_config('test.current_file_id',(select file_id::text from public.order
 select set_config('request.jwt.claims','{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated","aal":"aal1"}',true);
 select lives_ok(
   $$select * from public.create_private_upload_slot(
-    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',null,null,
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',null,
     current_setting('test.current_file_id')::uuid,
     'customer_artwork','customer','front-v3.svg','front-v3.svg','image/svg+xml',
     1000,'svg',null,now()+interval '8 minutes')$$,
@@ -230,7 +230,7 @@ set local role authenticated;
 select set_config('request.jwt.claims','{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated","aal":"aal1"}',true);
 select lives_ok(
   $$select * from public.create_private_upload_slot(
-    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',null,null,
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',null,
     current_setting('test.v3_file_id')::uuid,
     'customer_artwork','customer','front-v4.svg','front-v4.svg','image/svg+xml',
     1000,'svg',null,now()+interval '8 minutes')$$,
@@ -307,7 +307,7 @@ select is((select status::text from public.orders where id='aaaaaaaa-aaaa-4aaa-8
 
 select ok(has_table_privilege('authenticated','public.customer_privacy_preferences','SELECT'),'authenticated customers can read their privacy preference through RLS');
 select ok(has_table_privilege('authenticated','public.privacy_requests','INSERT'),'authenticated customers can submit privacy requests through RLS');
-select ok(has_table_privilege('authenticated','public.production_capacity_rules','SELECT'),'authenticated staff can read production capacity settings through RLS');
+select ok(to_regclass('public.production_capacity_rules') is null,'production capacity controls removed');
 select set_config('request.jwt.claims','{"sub":"44444444-4444-4444-8444-444444444444","role":"authenticated","aal":"aal1"}',true);
 select is((select count(*) from public.account_principals where user_id='11111111-1111-4111-8111-111111111111'),0::bigint,'Founder AAL1 cannot read customer principals');
 select set_config('request.jwt.claims','{"sub":"44444444-4444-4444-8444-444444444444","role":"authenticated","aal":"aal2"}',true);

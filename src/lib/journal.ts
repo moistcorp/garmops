@@ -85,7 +85,7 @@ export const journalPosts: JournalPost[] = [
       {
         heading: 'What a bulk custom T-shirt quote should include',
         paragraphs: [
-          'A useful quote separates what is included from what changes the price. At Garmops, the base price includes the garment, stitching, a single-colour screen print and a neck label. GST is calculated separately and included in the order total; shipping is excluded. Volume discounts apply as the order quantity increases.',
+          'A useful quote separates what is included from what changes the price. At Garmops, the base price includes the garment, stitching, a single-colour screen print and a neck label. GST is calculated separately and included in the order total; shipping is free. Volume discounts apply as the order quantity increases.',
           'Additional artwork positions, custom dyeing, custom labels, individual packaging, sampling and rush production can change the cost. Ask for every assumption in writing, especially when comparing two suppliers.',
         ],
         bullets: [
@@ -252,7 +252,7 @@ export const journalPosts: JournalPost[] = [
         heading: 'Understand the complete price',
         paragraphs: [
           'A low-MOQ order can carry setup costs that a large run spreads across many units. The quote should show what is included and which choices trigger additional charges. A slightly higher transparent unit price is easier to plan than a low headline price followed by screen, label, sampling and packing additions.',
-          'At Garmops, listed custom-order base prices include fabric, stitching, a single-colour screen print and a neck label. GST is shown separately and shipping is excluded. The price changes with product, quantity, additional decoration, rush delivery and other requirements.',
+          'At Garmops, listed configurator-order base prices include fabric, stitching, a single-colour screen print and a neck label. GST is shown separately and shipping is free. The price changes with product, quantity, additional decoration, rush delivery and other requirements.',
         ],
         bullets: [
           'Garment and decoration included in the unit price',
@@ -402,7 +402,7 @@ export const journalPosts: JournalPost[] = [
       {
         heading: 'Build a budget that can survive approval',
         paragraphs: [
-          'Set a target cost per recipient and separate essential from optional details. The core cost includes the garment, decoration and quantity. Multiple artwork locations, custom labels, packaging, rush production, tax and shipping can add to it.',
+          'Set a target cost per recipient and separate essential from optional details. The core cost includes the garment, decoration, quantity and free shipping. Multiple artwork locations, custom labels, packaging, rush production and tax can add to it.',
           'Ask for a GST-compliant quote that describes the complete specification. Garmops collects the full merchandise amount including GST at checkout, with free shipping. Our online estimator shows the product, quantity, volume discount, rush option and GST so a team can establish a working budget before the final production review.',
         ],
         links: [

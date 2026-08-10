@@ -439,7 +439,7 @@ export function clearPaidCart(cartId: string): void {
     }
 
     window.localStorage.removeItem(cartKey);
-    window.localStorage.removeItem(`garmops:durable-order:${cartId}`);
+    window.localStorage.removeItem(`garmops:configurator-order:${cartId}`);
 
     // A customer may revisit an old paid-order result after starting a new cart.
     // Only clear the active-cart pointer when it still belongs to this paid cart.

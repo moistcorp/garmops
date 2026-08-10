@@ -1,6 +1,5 @@
 import { after, NextRequest, NextResponse } from "next/server";
 
-import { durableOrdersAvailable } from "@/lib/orders/api";
 import { processPayuEvent } from "@/lib/domain/payments/processPayuEvent";
 import { processIntegrationJobsWithHealth } from "@/lib/jobs/run";
 import type { PayuIncomingFields } from "@/lib/providers/payu/types";
@@ -62,10 +61,6 @@ async function readPayload(request: NextRequest): Promise<PayuIncomingFields> {
 
 export async function POST(request: NextRequest) {
   const requestId = requestIdFrom(request);
-  if (!durableOrdersAvailable()) {
-    return withRequestId(NextResponse.json({ error: "Not found" }, { status: 404 }), requestId);
-  }
-
   try {
     const result = await processPayuEvent(
       "webhook",

@@ -54,7 +54,7 @@ import ViewTabs from "../GarmentPreview/ViewTabs";
 import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionContext";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 import { ActionFeedback } from "../ActionFeedback";
-import { prepareCustomCheckoutPayment } from "@/lib/orders/client";
+import { prepareConfiguratorCheckoutPayment } from "@/lib/orders/client";
 
 export interface ConfirmationStepProps {
   cartId: string;
@@ -267,7 +267,7 @@ export function ConfirmationStep({
 
     setPromoState({ status: "checking" });
     try {
-      const response = await fetch("/api/orders/custom/discount", {
+      const response = await fetch("/api/orders/configurator/discount", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -365,7 +365,7 @@ export function ConfirmationStep({
     setIsProcessing(true);
 
     try {
-      const result = await prepareCustomCheckoutPayment({
+      const result = await prepareConfiguratorCheckoutPayment({
         cartId,
         draft,
       });

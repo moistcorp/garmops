@@ -178,7 +178,7 @@ const faqGroups: FaqGroup[] = [
       },
       {
         question: 'Is GST included?',
-        answer: `Yes. Custom-order checkout includes ${formatGstRate()} GST on the configured merchandise and applicable production charges. Shipping is excluded from the amount paid at checkout and is quoted separately after destination review.`,
+        answer: `Yes. Configurator checkout includes ${formatGstRate()} GST on the configured merchandise and applicable production charges. Shipping is free and included at no additional charge.`,
       },
       {
         question: 'What happens if my payment fails?',

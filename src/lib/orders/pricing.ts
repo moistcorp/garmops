@@ -19,10 +19,10 @@ import { isCustomerArtworkTechnique } from "../configurator/types/configurator";
 import { getArtworkSizeConflict } from "../configurator/artworkSizing";
 import { getShippingPaise } from "./shipping";
 
-export const CUSTOM_ORDER_PRICING_VERSION =
+export const CONFIGURATOR_ORDER_PRICING_VERSION =
   "custom-configurator-v3-2026-08-05-multi-item";
 
-type PricedCustomOrder = {
+type PricedConfiguratorOrder = {
   productId: string;
   productName: string;
   quantity: number;
@@ -45,7 +45,6 @@ function uniqueFileIds(snapshot: CloudDesignSnapshot): string[] {
 
   return [...new Set(values)];
 }
-
 function ensureCompleteConfiguration(snapshot: CloudDesignSnapshot): void {
   const { configuration } = snapshot;
   if (!configuration.colour.confirmed) {
@@ -79,7 +78,7 @@ function ensureCompleteConfiguration(snapshot: CloudDesignSnapshot): void {
   }
 }
 
-export function priceCustomOrder(input: {
+export function priceConfiguratorOrder(input: {
   snapshot: CloudDesignSnapshot;
   sizeQuantities: Record<string, number>;
   deliveryType: "rush" | "standard" | "flexible";
@@ -87,7 +86,7 @@ export function priceCustomOrder(input: {
   cartItemId?: string;
   designProjectId?: string;
   designVersionId?: string;
-}): PricedCustomOrder {
+}): PricedConfiguratorOrder {
   ensureCompleteConfiguration(input.snapshot);
 
   const product = getProduct(input.snapshot.configId);
@@ -208,7 +207,7 @@ export function priceCustomOrder(input: {
     deliveryType: input.deliveryType,
     rushSurchargeUnitPaise,
     rushSurchargePaise,
-    pricingVersion: CUSTOM_ORDER_PRICING_VERSION,
+    pricingVersion: CONFIGURATOR_ORDER_PRICING_VERSION,
     hsnCode: hsnCodeForProduct(product.id),
     gstRateBasisPoints: GST_RATE_BASIS_POINTS,
     cartItemId: input.cartItemId ?? null,

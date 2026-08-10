@@ -3,13 +3,13 @@ import { z } from "zod";
 
 import {
   authenticateOrderApi,
-  durableCustomOrdersAvailable,
   hasExpectedOrderOrigin,
   orderJson,
   orderJsonError,
   readOrderJson,
 } from "@/lib/orders/api";
-import { reconcileCustomCheckoutPayuAttempt } from "@/lib/domain/payments/processPayuEvent";
+import { isFeatureEnabled } from "@/lib/config/featureFlags";
+import { reconcileCheckoutPayuAttempt } from "@/lib/domain/payments/processPayuEvent";
 import { startSystemJobRun, finishSystemJobRun } from "@/lib/jobs/health";
 import { processIntegrationJobsWithHealth } from "@/lib/jobs/run";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -20,7 +20,6 @@ export const dynamic = "force-dynamic";
 const schema = z.object({ checkoutAttemptId: z.string().uuid() }).strict();
 
 export async function POST(request: NextRequest) {
-  if (!durableCustomOrdersAvailable()) return orderJsonError("Custom checkout is unavailable", 503);
   if (!hasExpectedOrderOrigin(request)) return orderJsonError("Invalid request origin", 403);
   const auth = await authenticateOrderApi();
   if (!auth.ok) return auth.response;
@@ -31,16 +30,23 @@ export async function POST(request: NextRequest) {
 
   const admin = createAdminClient();
   const { data: attempt, error } = await admin
-    .from("custom_checkout_payment_attempts")
-    .select("id, status, last_reconciled_at, custom_checkout_sessions!inner(customer_user_id, final_order_number)")
+    .from("checkout_payment_attempts")
+    .select("id, status, last_reconciled_at, checkout_sessions!inner(customer_user_id, final_order_number, flow)")
     .eq("id", parsed.data.checkoutAttemptId)
     .maybeSingle();
   if (error || !attempt) return orderJsonError("Payment attempt not found", 404);
-  const session = attempt.custom_checkout_sessions as unknown as {
+  const session = attempt.checkout_sessions as unknown as {
     customer_user_id: string;
     final_order_number: string | null;
+    flow: "configurator" | "sample";
   };
   if (session.customer_user_id !== auth.user.id) return orderJsonError("Payment attempt not found", 404);
+  const flowEnabled = session.flow === "sample"
+    ? isFeatureEnabled("SAMPLE_CHECKOUT_ENABLED")
+    : session.flow === "configurator"
+      ? isFeatureEnabled("CONFIGURATOR_CHECKOUT_ENABLED")
+      : false;
+  if (!flowEnabled) return orderJsonError("This checkout is unavailable", 503);
 
   if (
     attempt.last_reconciled_at &&
@@ -63,7 +69,7 @@ export async function POST(request: NextRequest) {
     triggerUserId: auth.user.id,
   });
   try {
-    const result = await reconcileCustomCheckoutPayuAttempt(attempt.id);
+    const result = await reconcileCheckoutPayuAttempt(attempt.id);
     await finishSystemJobRun({ runId, status: "completed", summary: { checked: 1, outcome: result.outcome } });
     if (result.outcome === "success") {
       after(async () => {

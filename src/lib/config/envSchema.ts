@@ -98,8 +98,8 @@ const serverEnvironmentSchema = z
     STAFF_PORTAL_ENABLED: booleanValue,
     R2_PRIVATE_UPLOADS_ENABLED: booleanValue,
     CLOUD_DESIGNS_ENABLED: booleanValue,
-    DURABLE_CUSTOM_CHECKOUT_ENABLED: booleanValue,
-    DURABLE_SAMPLE_CHECKOUT_ENABLED: booleanValue,
+    CONFIGURATOR_CHECKOUT_ENABLED: booleanValue,
+    SAMPLE_CHECKOUT_ENABLED: booleanValue,
     ENABLE_REALTIME_ORDER_UPDATES: booleanValue,
     ENABLE_WHATSAPP_NOTIFICATIONS: booleanValue,
     ENABLE_SMS_NOTIFICATIONS: booleanValue,
@@ -114,7 +114,6 @@ const serverEnvironmentSchema = z
     SENTRY_PROJECT: optionalText(200),
     SENTRY_ENABLED: booleanValue,
     ABANDONED_DESIGN_EMAILS_ENABLED: booleanValue,
-    PRODUCTION_CAPACITY_ENABLED: booleanValue,
     MALWARE_SCANNING_ENABLED: booleanValue,
     MALWARE_SCANNER_URL: optionalUrl,
     MALWARE_SCANNER_TOKEN: optionalText(2048),
@@ -183,8 +182,8 @@ const serverEnvironmentSchema = z
       environment.STAFF_PORTAL_ENABLED ||
       environment.R2_PRIVATE_UPLOADS_ENABLED ||
       environment.CLOUD_DESIGNS_ENABLED ||
-      environment.DURABLE_CUSTOM_CHECKOUT_ENABLED ||
-      environment.DURABLE_SAMPLE_CHECKOUT_ENABLED;
+      environment.CONFIGURATOR_CHECKOUT_ENABLED ||
+      environment.SAMPLE_CHECKOUT_ENABLED;
 
     requireValues(
       supabaseEnabled,
@@ -197,8 +196,8 @@ const serverEnvironmentSchema = z
         environment.STAFF_PORTAL_ENABLED ||
         environment.R2_PRIVATE_UPLOADS_ENABLED ||
         environment.CLOUD_DESIGNS_ENABLED ||
-        environment.DURABLE_CUSTOM_CHECKOUT_ENABLED ||
-        environment.DURABLE_SAMPLE_CHECKOUT_ENABLED) &&
+        environment.CONFIGURATOR_CHECKOUT_ENABLED ||
+        environment.SAMPLE_CHECKOUT_ENABLED) &&
       !environment.SUPABASE_SECRET_KEY &&
       !environment.SUPABASE_SERVICE_ROLE_KEY
     ) {
@@ -352,41 +351,41 @@ const serverEnvironmentSchema = z
       }
     }
 
-    const durableCheckoutEnabled =
-      environment.DURABLE_CUSTOM_CHECKOUT_ENABLED ||
-      environment.DURABLE_SAMPLE_CHECKOUT_ENABLED;
+    const configuratorCheckoutEnabled =
+      environment.CONFIGURATOR_CHECKOUT_ENABLED ||
+      environment.SAMPLE_CHECKOUT_ENABLED;
 
     if (
-      durableCheckoutEnabled &&
+      configuratorCheckoutEnabled &&
       !environment.NEXT_PUBLIC_ACCOUNTS_ENABLED
     ) {
       context.addIssue({
         code: "custom",
         path: ["NEXT_PUBLIC_ACCOUNTS_ENABLED"],
-        message: "Accounts must be enabled before durable checkout",
+        message: "Accounts must be enabled before configurator checkout",
       });
     }
 
     requireValues(
-      durableCheckoutEnabled,
+      configuratorCheckoutEnabled,
       [
         "PAYU_MERCHANT_KEY",
         "PAYU_SALT",
         "PAYMENT_SIGNING_SECRET",
         "CRON_SECRET",
       ],
-      "when durable PayU checkout is enabled"
+      "when customer PayU checkout is enabled"
     );
 
     if (
-      environment.DURABLE_CUSTOM_CHECKOUT_ENABLED &&
+      environment.CONFIGURATOR_CHECKOUT_ENABLED &&
       !environment.CLOUD_DESIGNS_ENABLED
     ) {
       context.addIssue({
         code: "custom",
-        path: ["DURABLE_CUSTOM_CHECKOUT_ENABLED"],
+        path: ["CONFIGURATOR_CHECKOUT_ENABLED"],
         message:
-          "Cloud designs must be enabled before durable custom checkout",
+          "Cloud designs must be enabled before configurator checkout",
       });
     }
 

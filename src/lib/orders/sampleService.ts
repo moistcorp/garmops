@@ -16,9 +16,10 @@ import {
 } from "./samplePricing";
 import type { SubmitSampleOrderRequest } from "./sampleSchema";
 import {
-  CUSTOM_ORDER_PRIVACY_VERSION,
+  CHECKOUT_PRIVACY_VERSION,
   currentSampleTermsEvidence,
 } from "./terms";
+import { FREE_SHIPPING_PAISE } from "./shipping";
 
 type SessionClient = Awaited<ReturnType<typeof createClient>>;
 function adminClient() {
@@ -91,6 +92,7 @@ export async function submitSampleOrder(input: {
   );
   const terms = currentSampleTermsEvidence();
   const payload: Json = {
+    flow: "sample",
     orderType: "sample_purchase",
     pricingVersion: SAMPLE_ORDER_PRICING_VERSION,
     gstRateBasisPoints,
@@ -105,7 +107,7 @@ export async function submitSampleOrder(input: {
     shippingSnapshot: {
       recipientName: request.shipping.recipientName,
       address: shippingAddress,
-      pricing: "quoted_separately",
+      shippingChargePaise: FREE_SHIPPING_PAISE,
     },
     customerSnapshot: {
       userId: user.id,
@@ -118,7 +120,7 @@ export async function submitSampleOrder(input: {
     businessSnapshot: {},
     termsSnapshot: {
       version: terms.version,
-      privacyVersion: CUSTOM_ORDER_PRIVACY_VERSION,
+      privacyVersion: CHECKOUT_PRIVACY_VERSION,
       contentHash: terms.documentHash,
       requestMetadata: { checkoutType: "catalogue_sample_full_payment" },
     },
@@ -141,7 +143,7 @@ export async function submitSampleOrder(input: {
   });
 
   const admin = adminClient();
-  const sessionResult = await admin.from("custom_checkout_sessions")
+  const sessionResult = await admin.from("checkout_sessions")
     .select("id, request_hash, status, final_order_id, final_order_number, final_payment_attempt_id")
     .eq("customer_user_id", user.id)
     .eq("idempotency_key", request.idempotencyKey)
@@ -165,8 +167,9 @@ export async function submitSampleOrder(input: {
 
   const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
   if (!session) {
-    const inserted = await admin.from("custom_checkout_sessions").insert({
+    const inserted = await admin.from("checkout_sessions").insert({
       customer_user_id: user.id,
+      flow: "sample",
       cart_id: `sample:${request.idempotencyKey}`,
       idempotency_key: request.idempotencyKey,
       request_hash: requestHash,
@@ -186,7 +189,7 @@ export async function submitSampleOrder(input: {
 
   if (!session) throw new Error("Checkout session could not be prepared");
 
-  const attempts = await admin.from("custom_checkout_payment_attempts")
+  const attempts = await admin.from("checkout_payment_attempts")
     .select("id, attempt_number, status")
     .eq("checkout_session_id", session.id)
     .order("attempt_number", { ascending: false })
@@ -196,7 +199,7 @@ export async function submitSampleOrder(input: {
   let checkoutPaymentAttemptId = latest?.id as string | undefined;
   if (!latest || !["created", "initiated", "pending"].includes(latest.status)) {
     const id = randomUUID();
-    const attempt = await admin.from("custom_checkout_payment_attempts").insert({
+    const attempt = await admin.from("checkout_payment_attempts").insert({
       id,
       checkout_session_id: session.id,
       attempt_number: Number(latest?.attempt_number ?? 0) + 1,

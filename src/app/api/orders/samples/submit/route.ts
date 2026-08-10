@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 
 import {
   authenticateOrderApi,
-  durableSampleOrdersAvailable,
+  sampleOrdersAvailable,
   hasExpectedOrderOrigin,
   orderJson,
   orderJsonError,
@@ -50,7 +50,7 @@ function safeSubmissionError(error: unknown): {
 }
 
 export async function POST(request: NextRequest) {
-  if (!durableSampleOrdersAvailable()) {
+  if (!sampleOrdersAvailable()) {
     return orderJsonError("Durable sample checkout is unavailable", 503);
   }
   if (!hasExpectedOrderOrigin(request)) {

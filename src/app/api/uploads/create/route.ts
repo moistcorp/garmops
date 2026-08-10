@@ -53,8 +53,6 @@ export async function POST(request: NextRequest) {
     p_order_id: file.orderId ?? (null as unknown as string),
     p_design_project_id:
       file.designProjectId ?? (null as unknown as string),
-    p_staff_quote_id:
-      file.staffQuoteId ?? (null as unknown as string),
     p_replacement_for_file_id:
       file.replacementForFileId ?? (null as unknown as string),
     p_kind: file.kind,

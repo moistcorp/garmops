@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   orderNumberSchema,
-  submitCustomOrderRequestSchema,
+  submitConfiguratorOrderRequestSchema,
 } from "./schema";
 
 function validSubmission() {
@@ -56,7 +56,7 @@ function validSubmission() {
 
 describe("custom order submission schema", () => {
   it("accepts a complete immutable-design submission", () => {
-    expect(submitCustomOrderRequestSchema.safeParse(validSubmission()).success)
+    expect(submitConfiguratorOrderRequestSchema.safeParse(validSubmission()).success)
       .toBe(true);
   });
 
@@ -64,7 +64,7 @@ describe("custom order submission schema", () => {
 
   it("accepts the formatted Indian phone number used by the checkout form", () => {
     const input = validSubmission();
-    const result = submitCustomOrderRequestSchema.safeParse({
+    const result = submitConfiguratorOrderRequestSchema.safeParse({
       ...input,
       contact: { ...input.contact, phone: "98100 00001" },
     });
@@ -74,7 +74,7 @@ describe("custom order submission schema", () => {
 
   it("accepts and normalizes an Indian phone number with country code", () => {
     const input = validSubmission();
-    const result = submitCustomOrderRequestSchema.safeParse({
+    const result = submitConfiguratorOrderRequestSchema.safeParse({
       ...input,
       contact: { ...input.contact, phone: "+91 98100-00001" },
     });
@@ -85,7 +85,7 @@ describe("custom order submission schema", () => {
   it("rejects duplicate cart line identities while allowing repeated products", () => {
     const input = validSubmission();
     expect(
-      submitCustomOrderRequestSchema.safeParse({
+      submitConfiguratorOrderRequestSchema.safeParse({
         ...input,
         items: [input.items[0], { ...input.items[1], cartItemId: input.items[0].cartItemId }],
       }).success,
@@ -94,7 +94,7 @@ describe("custom order submission schema", () => {
 
   it("rejects a submission without accepted terms", () => {
     expect(
-      submitCustomOrderRequestSchema.safeParse({
+      submitConfiguratorOrderRequestSchema.safeParse({
         ...validSubmission(),
         acceptedTerms: false,
       }).success,
@@ -104,7 +104,7 @@ describe("custom order submission schema", () => {
   it("rejects invalid Indian delivery addresses", () => {
     const input = validSubmission();
     expect(
-      submitCustomOrderRequestSchema.safeParse({
+      submitConfiguratorOrderRequestSchema.safeParse({
         ...input,
         shipping: {
           ...input.shipping,

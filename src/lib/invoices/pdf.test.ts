@@ -27,4 +27,16 @@ describe("buildInvoicePdf", () => {
     expect(source).toContain("Configured product line 20");
     expect(source).toContain("/Count 2");
   });
+
+  it("preserves Unicode invoice text and states that shipping is free", () => {
+    const generated = buildInvoicePdf({
+      ...input(1),
+      buyer: { name: "ग्राहक ₹", address: "गौतम बुद्ध नगर, उत्तर प्रदेश", state: "Uttar Pradesh" },
+    });
+    const source = new TextDecoder().decode(generated.bytes);
+    expect(source).toContain("ग्राहक ₹");
+    expect(source).toContain("गौतम बुद्ध नगर");
+    expect(source).toContain("Shipping: Free");
+    expect(source).not.toContain("Shipping is excluded");
+  });
 });

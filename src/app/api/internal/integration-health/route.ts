@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
 
   const environment = getServerEnvironment();
   const admin = createAdminClient();
-  const [runsResult, queueResult, failedJobsResult, pendingPaymentsResult] = await Promise.all([
+  const [runsResult, queueResult, failedJobsResult, staleJobsResult, pendingPaymentsResult] = await Promise.all([
     admin
       .from("system_job_runs")
       .select("job_name, status, trigger_source, started_at, completed_at, error_message")
@@ -56,7 +56,12 @@ export async function GET(request: NextRequest) {
       .select("id", { count: "exact", head: true })
       .in("status", ["retryable_failure", "permanent_failure"]),
     admin
-      .from("custom_checkout_payment_attempts")
+      .from("integration_jobs")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "processing")
+      .lt("locked_at", new Date(Date.now() - 10 * 60_000).toISOString()),
+    admin
+      .from("checkout_payment_attempts")
       .select("id", { count: "exact", head: true })
       .in("status", ["initiated", "pending"]),
   ]);
@@ -65,6 +70,7 @@ export async function GET(request: NextRequest) {
     !runsResult.error &&
     !queueResult.error &&
     !failedJobsResult.error &&
+    !staleJobsResult.error &&
     !pendingPaymentsResult.error;
   const runs = runsResult.data ?? [];
   const latestIntegration = runs.find(
@@ -75,11 +81,13 @@ export async function GET(request: NextRequest) {
   );
   const integrationHealthy = freshCompletedRun(latestIntegration, 15);
   const payuHealthy = freshCompletedRun(latestPayu, 30);
+  const staleProcessingCount = staleJobsResult.count ?? 0;
   const healthy =
     databaseHealthy &&
     integrationHealthy &&
     payuHealthy &&
-    (failedJobsResult.count ?? 0) === 0;
+    (failedJobsResult.count ?? 0) === 0 &&
+    staleProcessingCount === 0;
   const scannerHealth = environment.MALWARE_SCANNING_ENABLED && environment.MALWARE_SCANNER_URL
     ? await fetch(new URL("/health", environment.MALWARE_SCANNER_URL), { cache: "no-store", signal: AbortSignal.timeout(3_000) }).then(response => response.ok).catch(() => false)
     : null;
@@ -95,6 +103,7 @@ export async function GET(request: NextRequest) {
         payuReconciliation: latestPayu ?? null,
         queuedCount: queueResult.count ?? null,
         failedCount: failedJobsResult.count ?? null,
+        staleProcessingCount,
         pendingPaymentCount: pendingPaymentsResult.count ?? null,
         malwareScannerHealthy: scannerHealth,
       },
@@ -104,13 +113,14 @@ export async function GET(request: NextRequest) {
         cloudDesignsApi: isFeatureEnabled("CLOUD_DESIGNS_ENABLED"),
         staff: isFeatureEnabled("STAFF_PORTAL_ENABLED"),
         privateUploads: isFeatureEnabled("R2_PRIVATE_UPLOADS_ENABLED"),
-        durableCustomCheckout: isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED"),
-        durableSampleCheckout: isFeatureEnabled("DURABLE_SAMPLE_CHECKOUT_ENABLED"),
+        configuratorCheckout: isFeatureEnabled("CONFIGURATOR_CHECKOUT_ENABLED"),
+        sampleCheckout: isFeatureEnabled("SAMPLE_CHECKOUT_ENABLED"),
       },
       errors: [
         runsResult.error?.message,
         queueResult.error?.message,
         failedJobsResult.error?.message,
+        staleJobsResult.error?.message,
         pendingPaymentsResult.error?.message,
       ].filter(Boolean),
     },

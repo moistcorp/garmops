@@ -9,7 +9,6 @@ interface ConfirmationPageProps {
   params: Promise<{ cartId: string }>;
   searchParams: Promise<{ payment?: string; checkoutAttempt?: string }>;
 }
-
 async function hasAuthenticatedCustomer(): Promise<boolean> {
   try {
     const supabase = await createClient();
@@ -28,7 +27,7 @@ export default async function ConfirmationPage({ params, searchParams }: Confirm
   const paymentOutcome = query.payment === "failure" || query.payment === "pending" ? query.payment : undefined;
   const checkoutAttemptId = /^[0-9a-f-]{36}$/i.test(query.checkoutAttempt ?? "") ? query.checkoutAttempt : undefined;
 
-  if (!isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED")) {
+  if (!isFeatureEnabled("CONFIGURATOR_CHECKOUT_ENABLED")) {
     return (
       <main className="techpack-cart-page techpack-studio-bg min-h-screen px-4 py-10">
         <div className="mx-auto flex min-h-[70vh] max-w-xl items-center">

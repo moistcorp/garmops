@@ -107,13 +107,13 @@ describe("server environment validation", () => {
     expect(environment.CLOUD_DESIGNS_ENABLED).toBe(true);
   });
 
-  it("requires cloud designs before durable custom checkout", () => {
+  it("requires cloud designs before configurator checkout", () => {
     expect(() =>
       parseServerEnvironment({
-        DURABLE_CUSTOM_CHECKOUT_ENABLED: "true",
+        CONFIGURATOR_CHECKOUT_ENABLED: "true",
       })
     ).toThrow(
-      "Invalid server environment configuration: CRON_SECRET, DURABLE_CUSTOM_CHECKOUT_ENABLED, NEXT_PUBLIC_ACCOUNTS_ENABLED, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, NEXT_PUBLIC_SUPABASE_URL, PAYMENT_SIGNING_SECRET, PAYU_MERCHANT_KEY, PAYU_SALT, SUPABASE_SECRET_KEY"
+      "Invalid server environment configuration: CONFIGURATOR_CHECKOUT_ENABLED, CRON_SECRET, NEXT_PUBLIC_ACCOUNTS_ENABLED, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, NEXT_PUBLIC_SUPABASE_URL, PAYMENT_SIGNING_SECRET, PAYU_MERCHANT_KEY, PAYU_SALT, SUPABASE_SECRET_KEY"
     );
   });
 

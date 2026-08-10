@@ -2,7 +2,7 @@ import "server-only";
 
 import { getServerEnvironment } from "@/lib/config/env";
 import { recordPaymentReconciliation } from "@/lib/jobs/health";
-import { finalizeCustomCheckoutPayment } from "@/lib/orders/service";
+import { finalizeCheckoutPayment } from "@/lib/orders/service";
 import {
   paymentEventFingerprint,
   parseRupeesToPaise,
@@ -43,7 +43,7 @@ type PaymentAttemptForProcessing = {
   created_at?: string;
 };
 
-type CustomCheckoutAttempt = {
+type CheckoutAttempt = {
   id: string;
   checkout_session_id: string;
   amount_paise: number;
@@ -55,7 +55,8 @@ type CustomCheckoutAttempt = {
   status: string;
   provider_payment_id: string | null;
   raw_verified_snapshot: Json | null;
-  custom_checkout_sessions: {
+  created_at?: string;
+  checkout_sessions: {
     id: string;
     cart_id: string;
     return_path: string;
@@ -63,6 +64,7 @@ type CustomCheckoutAttempt = {
     final_order_number: string | null;
     final_payment_attempt_id: string | null;
     customer_user_id: string;
+    flow: string;
   };
 };
 
@@ -250,17 +252,17 @@ function checkoutAdmin() {
   return createAdminClient();
 }
 
-function customReturnPath(
-  attempt: CustomCheckoutAttempt,
+function checkoutReturnPath(
+  attempt: CheckoutAttempt,
   outcome: PaymentOutcome,
 ): string {
-  const separator = attempt.custom_checkout_sessions.return_path.includes("?")
+  const separator = attempt.checkout_sessions.return_path.includes("?")
     ? "&"
     : "?";
-  return `${attempt.custom_checkout_sessions.return_path}${separator}payment=${outcome}&checkoutAttempt=${encodeURIComponent(attempt.id)}`;
+  return `${attempt.checkout_sessions.return_path}${separator}payment=${outcome}&checkoutAttempt=${encodeURIComponent(attempt.id)}`;
 }
 
-async function persistCustomVerificationEvent(
+async function persistCheckoutVerificationEvent(
   attemptId: string,
   source: "verify_api" | "reconciliation",
   verification: PayuVerificationResult,
@@ -271,7 +273,7 @@ async function persistCustomVerificationEvent(
     ...verification.snapshot,
   });
   const { error } = await admin
-    .from("custom_checkout_payment_events")
+    .from("checkout_payment_events")
     .upsert(
       {
         checkout_payment_attempt_id: attemptId,
@@ -293,8 +295,8 @@ async function persistCustomVerificationEvent(
   if (error) throw new Error(error.message);
 }
 
-async function applyCustomVerification(
-  attempt: CustomCheckoutAttempt,
+async function applyCheckoutVerification(
+  attempt: CheckoutAttempt,
   verification: PayuVerificationResult,
 ): Promise<ProcessResult> {
   const admin = checkoutAdmin();
@@ -309,13 +311,13 @@ async function applyCustomVerification(
     if (!verification.providerPaymentId || verification.amountPaise === null) {
       throw new Error("PayU success response is incomplete");
     }
-    const finalized = await finalizeCustomCheckoutPayment({
+    const finalized = await finalizeCheckoutPayment({
       checkoutPaymentAttemptId: attempt.id,
       providerPaymentId: verification.providerPaymentId,
       verifiedAmountPaise: verification.amountPaise,
       verifiedSnapshot: toJson(verification.snapshot),
     });
-    await captureVerifiedPaymentOutcome(attempt.custom_checkout_sessions.customer_user_id, "success");
+    await captureVerifiedPaymentOutcome(attempt.checkout_sessions.customer_user_id, "success");
     return {
       outcome: "success",
       attemptId: finalized.paymentAttemptId,
@@ -329,7 +331,7 @@ async function applyCustomVerification(
   const status = failed ? "failed" : "pending";
   const now = new Date().toISOString();
   const { error: attemptError } = await admin
-    .from("custom_checkout_payment_attempts")
+    .from("checkout_payment_attempts")
     .update({
       status,
       provider_payment_id: verification.providerPaymentId,
@@ -342,48 +344,48 @@ async function applyCustomVerification(
     .not("status", "in", "(paid,duplicate_success)");
   if (attemptError) throw new Error(attemptError.message);
   const { error: sessionError } = await admin
-    .from("custom_checkout_sessions")
+    .from("checkout_sessions")
     .update({ status: failed ? "failed" : "payment_pending" })
     .eq("id", attempt.checkout_session_id)
     .neq("status", "finalized");
   if (sessionError) throw new Error(sessionError.message);
-  if (failed) await captureVerifiedPaymentOutcome(attempt.custom_checkout_sessions.customer_user_id, "failure");
+  if (failed) await captureVerifiedPaymentOutcome(attempt.checkout_sessions.customer_user_id, "failure");
 
   return {
     outcome: failed ? "failure" : "pending",
     attemptId: attempt.id,
     duplicate: false,
-    redirectPath: customReturnPath(attempt, failed ? "failure" : "pending"),
+    redirectPath: checkoutReturnPath(attempt, failed ? "failure" : "pending"),
   };
 }
 
-async function readCustomAttemptByTransaction(
+async function readCheckoutAttemptByTransaction(
   transactionId: string,
-): Promise<CustomCheckoutAttempt | null> {
+): Promise<CheckoutAttempt | null> {
   const admin = checkoutAdmin();
   const { data, error } = await admin
-    .from("custom_checkout_payment_attempts")
+    .from("checkout_payment_attempts")
     .select(
-      "id, checkout_session_id, amount_paise, currency, provider_merchant_txn_id, expected_product_info, customer_email, customer_name, status, provider_payment_id, raw_verified_snapshot, custom_checkout_sessions!inner(id, cart_id, return_path, status, final_order_number, final_payment_attempt_id, customer_user_id)",
+      "id, checkout_session_id, amount_paise, currency, provider_merchant_txn_id, expected_product_info, customer_email, customer_name, status, provider_payment_id, raw_verified_snapshot, created_at, checkout_sessions!inner(id, cart_id, return_path, status, final_order_number, final_payment_attempt_id, customer_user_id, flow)",
     )
     .eq("provider_merchant_txn_id", transactionId)
     .maybeSingle();
   if (error) throw new Error(error.message);
-  return (data as CustomCheckoutAttempt | null) ?? null;
+  return data;
 }
 
-async function processCustomCheckoutPayuEvent(
+async function processCheckoutPayuEvent(
   source: IncomingSource,
   fields: PayuIncomingFields,
 ): Promise<ProcessResult | null> {
-  const attempt = await readCustomAttemptByTransaction(fields.txnid);
+  const attempt = await readCheckoutAttemptByTransaction(fields.txnid);
   if (!attempt) return null;
 
   const admin = checkoutAdmin();
   const environment = getServerEnvironment();
   const fingerprint = paymentEventFingerprint(source, fingerprintPayload(fields));
   const { data: inserted, error: insertError } = await admin
-    .from("custom_checkout_payment_events")
+    .from("checkout_payment_events")
     .insert({
       checkout_payment_attempt_id: attempt.id,
       provider: "payu",
@@ -399,14 +401,14 @@ async function processCustomCheckoutPayuEvent(
     .maybeSingle();
 
   if (insertError?.code === "23505") {
-    const refreshed = await readCustomAttemptByTransaction(fields.txnid);
+    const refreshed = await readCheckoutAttemptByTransaction(fields.txnid);
     if (!refreshed) throw new Error("Checkout payment attempt disappeared");
     if (
       refreshed.status === "paid" &&
       refreshed.provider_payment_id &&
       refreshed.raw_verified_snapshot
     ) {
-      const finalized = await finalizeCustomCheckoutPayment({
+      const finalized = await finalizeCheckoutPayment({
         checkoutPaymentAttemptId: refreshed.id,
         providerPaymentId: refreshed.provider_payment_id,
         verifiedAmountPaise: refreshed.amount_paise,
@@ -425,10 +427,10 @@ async function processCustomCheckoutPayuEvent(
       outcome,
       attemptId: refreshed.id,
       orderNumber:
-        refreshed.custom_checkout_sessions.final_order_number ?? undefined,
+        refreshed.checkout_sessions.final_order_number ?? undefined,
       duplicate: true,
       redirectPath:
-        outcome === "success" ? undefined : customReturnPath(refreshed, outcome),
+        outcome === "success" ? undefined : checkoutReturnPath(refreshed, outcome),
     };
   }
   if (insertError || !inserted) {
@@ -465,17 +467,17 @@ async function processCustomCheckoutPayuEvent(
 
     responseAuthentic = true;
     const { error: authenticError } = await admin
-      .from("custom_checkout_payment_events")
+      .from("checkout_payment_events")
       .update({ authentic: true })
       .eq("id", inserted.id);
     if (authenticError) throw new Error(authenticError.message);
 
     const verification = await verifyPayuPayment(fields.txnid);
-    await persistCustomVerificationEvent(attempt.id, "verify_api", verification);
-    const result = await applyCustomVerification(attempt, verification);
+    await persistCheckoutVerificationEvent(attempt.id, "verify_api", verification);
+    const result = await applyCheckoutVerification(attempt, verification);
 
     const { error: processedError } = await admin
-      .from("custom_checkout_payment_events")
+      .from("checkout_payment_events")
       .update({
         processed: true,
         processed_at: new Date().toISOString(),
@@ -490,7 +492,7 @@ async function processCustomCheckoutPayuEvent(
         ? processingError.message
         : "Checkout payment processing failed";
     await admin
-      .from("custom_checkout_payment_events")
+      .from("checkout_payment_events")
       .update({
         processed: true,
         processed_at: new Date().toISOString(),
@@ -500,7 +502,7 @@ async function processCustomCheckoutPayuEvent(
 
     if (responseAuthentic) {
       await admin
-        .from("custom_checkout_payment_attempts")
+        .from("checkout_payment_attempts")
         .update({
           status: "pending",
           provider_payment_id: fields.mihpayid || null,
@@ -511,7 +513,7 @@ async function processCustomCheckoutPayuEvent(
         .eq("id", attempt.id)
         .not("status", "in", "(paid,duplicate_success)");
       await admin
-        .from("custom_checkout_sessions")
+        .from("checkout_sessions")
         .update({ status: "payment_pending" })
         .eq("id", attempt.checkout_session_id)
         .neq("status", "finalized");
@@ -519,7 +521,7 @@ async function processCustomCheckoutPayuEvent(
         outcome: "pending",
         attemptId: attempt.id,
         duplicate: false,
-        redirectPath: customReturnPath(attempt, "pending"),
+        redirectPath: checkoutReturnPath(attempt, "pending"),
       };
     }
     throw processingError;
@@ -530,8 +532,8 @@ export async function processPayuEvent(
   source: IncomingSource,
   fields: PayuIncomingFields,
 ): Promise<ProcessResult> {
-  const customResult = await processCustomCheckoutPayuEvent(source, fields);
-  if (customResult) return customResult;
+  const checkoutResult = await processCheckoutPayuEvent(source, fields);
+  if (checkoutResult) return checkoutResult;
 
   const admin = createAdminClient();
   const environment = getServerEnvironment();
@@ -545,9 +547,9 @@ export async function processPayuEvent(
     .maybeSingle();
   if (error || !attempt) throw new Error("Unknown payment transaction");
 
-  const orderNumber = (
-    attempt.orders as unknown as { order_number: string }
-  ).order_number;
+  const order = Array.isArray(attempt.orders) ? attempt.orders[0] : attempt.orders;
+  if (!order?.order_number) throw new Error("Payment order is unavailable");
+  const orderNumber = order.order_number;
   const fingerprint = paymentEventFingerprint(source, fingerprintPayload(fields));
   const { data: inserted, error: insertError } = await admin
     .from("payment_events")
@@ -718,33 +720,33 @@ export async function reconcilePayuAttempt(
         : providerVerification;
     await persistVerificationEvent(attempt.id, "reconciliation", verification);
     const outcome = await applyVerification(attempt, verification);
-    await recordPaymentReconciliation({ attemptId, customCheckout: false });
+    await recordPaymentReconciliation({ attemptId, checkout: false });
 
     return { outcome, attemptId, orderNumber, duplicate: false };
   } catch (error) {
     await recordPaymentReconciliation({
       attemptId,
-      customCheckout: false,
+      checkout: false,
       error: error instanceof Error ? error.message : "Unknown reconciliation error",
     });
     throw error;
   }
 }
 
-export async function reconcileCustomCheckoutPayuAttempt(
+export async function reconcileCheckoutPayuAttempt(
   checkoutAttemptId: string,
 ): Promise<ProcessResult> {
   try {
     const admin = checkoutAdmin();
     const { data, error } = await admin
-      .from("custom_checkout_payment_attempts")
+      .from("checkout_payment_attempts")
       .select(
-        "id, checkout_session_id, amount_paise, currency, provider_merchant_txn_id, expected_product_info, customer_email, customer_name, status, provider_payment_id, raw_verified_snapshot, created_at, custom_checkout_sessions!inner(id, cart_id, return_path, status, final_order_number, final_payment_attempt_id)",
+        "id, checkout_session_id, amount_paise, currency, provider_merchant_txn_id, expected_product_info, customer_email, customer_name, status, provider_payment_id, raw_verified_snapshot, created_at, checkout_sessions!inner(id, cart_id, return_path, status, final_order_number, final_payment_attempt_id, customer_user_id, flow)",
       )
       .eq("id", checkoutAttemptId)
       .single();
     if (error || !data) throw new Error("Checkout payment attempt not found");
-    const attempt = data as CustomCheckoutAttempt & { created_at?: string };
+    const attempt = data;
     const providerVerification = await verifyPayuPayment(
       attempt.provider_merchant_txn_id,
     );
@@ -766,14 +768,14 @@ export async function reconcileCustomCheckoutPayuAttempt(
             },
           }
         : providerVerification;
-    await persistCustomVerificationEvent(attempt.id, "reconciliation", verification);
-    const result = await applyCustomVerification(attempt, verification);
-    await recordPaymentReconciliation({ attemptId: checkoutAttemptId, customCheckout: true });
+    await persistCheckoutVerificationEvent(attempt.id, "reconciliation", verification);
+    const result = await applyCheckoutVerification(attempt, verification);
+    await recordPaymentReconciliation({ attemptId: checkoutAttemptId, checkout: true });
     return result;
   } catch (error) {
     await recordPaymentReconciliation({
       attemptId: checkoutAttemptId,
-      customCheckout: true,
+      checkout: true,
       error: error instanceof Error ? error.message : "Unknown reconciliation error",
     });
     throw error;

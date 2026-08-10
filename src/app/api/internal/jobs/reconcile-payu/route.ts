@@ -3,9 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getServerEnvironment } from "@/lib/config/env";
 import { finishSystemJobRun, startSystemJobRun } from "@/lib/jobs/health";
-import { durableOrdersAvailable } from "@/lib/orders/api";
 import {
-  reconcileCustomCheckoutPayuAttempt,
+  reconcileCheckoutPayuAttempt,
   reconcilePayuAttempt,
 } from "@/lib/domain/payments/processPayuEvent";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -29,9 +28,6 @@ function authorised(request: NextRequest): boolean {
 }
 
 export async function GET(request: NextRequest) {
-  if (!durableOrdersAvailable()) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
   if (!authorised(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -63,18 +59,17 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const customAdmin = admin;
-  const { data: customData, error: customError } = await customAdmin
-    .from("custom_checkout_payment_attempts")
+  const { data: checkoutData, error: checkoutError } = await admin
+    .from("checkout_payment_attempts")
     .select("id")
     .in("status", ["initiated", "pending"])
     .lt("updated_at", staleBefore)
     .gte("created_at", createdAfter)
     .order("updated_at")
     .limit(Math.min(environment.JOB_BATCH_SIZE, 50));
-  if (customError) {
-    console.error("Custom checkout PayU reconciliation query failed", {
-      error: customError.message,
+  if (checkoutError) {
+    console.error("Configurator checkout PayU reconciliation query failed", {
+      error: checkoutError.message,
     });
   }
 
@@ -83,7 +78,7 @@ export async function GET(request: NextRequest) {
     success: 0,
     pending: 0,
     failure: 0,
-    errors: customError ? 1 : 0,
+    errors: checkoutError ? 1 : 0,
   };
 
   for (const attempt of data ?? []) {
@@ -105,16 +100,16 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  for (const attempt of customData ?? []) {
+  for (const attempt of checkoutData ?? []) {
     summary.checked += 1;
     try {
-      const result = await reconcileCustomCheckoutPayuAttempt(attempt.id);
+      const result = await reconcileCheckoutPayuAttempt(attempt.id);
       if (result.outcome === "success") summary.success += 1;
       else if (result.outcome === "failure") summary.failure += 1;
       else summary.pending += 1;
     } catch (reconcileError) {
       summary.errors += 1;
-      console.error("Custom checkout PayU reconciliation failed", {
+      console.error("Checkout PayU reconciliation failed", {
         checkoutAttemptId: attempt.id,
         error:
           reconcileError instanceof Error

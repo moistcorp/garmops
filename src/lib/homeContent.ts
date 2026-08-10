@@ -7,7 +7,7 @@ export const homeFaqs = [
   },
   {
     q: 'How long does a custom order take?',
-    a: `Standard delivery is ${DELIVERY_DAYS} days from order confirmation. A ${RUSH_DELIVERY_DAYS}-day rush option may be available where the order and production capacity allow it.`,
+    a: `Standard delivery is ${DELIVERY_DAYS} days from order confirmation. A ${RUSH_DELIVERY_DAYS}-day rush target is available under the stated delivery rules.`,
   },
   {
     q: 'Can I order a sample before placing a bulk order?',

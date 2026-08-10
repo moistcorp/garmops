@@ -3,14 +3,13 @@ import { z } from "zod";
 
 import {
   authenticateOrderApi,
-  durableOrdersAvailable,
   hasExpectedOrderOrigin,
   orderJson,
   orderJsonError,
   readOrderJson,
 } from "@/lib/orders/api";
-import { assertPreparedCheckoutProductionFeasible } from "@/lib/orders/service";
 import { buildPayuCheckout } from "@/lib/providers/payu/client";
+import { isFeatureEnabled } from "@/lib/config/featureFlags";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requestIdFrom, withRequestId } from "@/lib/http/requestId";
 
@@ -29,6 +28,7 @@ type CheckoutSessionSnapshot = {
   expires_at: string;
   final_order_number: string | null;
   rpc_payload: unknown;
+  flow: "configurator" | "sample";
 };
 
 async function initiateCheckoutAttempt(input: {
@@ -37,9 +37,9 @@ async function initiateCheckoutAttempt(input: {
 }) {
   const admin = createAdminClient();
   const { data: attempt, error } = await admin
-    .from("custom_checkout_payment_attempts")
+    .from("checkout_payment_attempts")
     .select(
-      "id, checkout_session_id, status, amount_paise, currency, provider_merchant_txn_id, expected_product_info, customer_email, customer_name, customer_phone, custom_checkout_sessions!inner(id, customer_user_id, status, expires_at, final_order_number, rpc_payload)",
+      "id, checkout_session_id, status, amount_paise, currency, provider_merchant_txn_id, expected_product_info, customer_email, customer_name, customer_phone, checkout_sessions!inner(id, customer_user_id, status, expires_at, final_order_number, rpc_payload, flow)",
     )
     .eq("id", input.requestId)
     .maybeSingle();
@@ -49,13 +49,19 @@ async function initiateCheckoutAttempt(input: {
   }
 
   const session =
-    attempt.custom_checkout_sessions as unknown as CheckoutSessionSnapshot;
+    attempt.checkout_sessions as unknown as CheckoutSessionSnapshot;
   if (session.customer_user_id !== input.userId) {
     return orderJsonError("Payment attempt not found", 404);
   }
   if (attempt.currency !== "INR") {
     return orderJsonError("Unsupported payment currency", 409);
   }
+  const flowEnabled = session.flow === "sample"
+    ? isFeatureEnabled("SAMPLE_CHECKOUT_ENABLED")
+    : session.flow === "configurator"
+      ? isFeatureEnabled("CONFIGURATOR_CHECKOUT_ENABLED")
+      : false;
+  if (!flowEnabled) return orderJsonError("This checkout is unavailable", 503);
   if (session.status === "finalized" || ["paid", "duplicate_success"].includes(attempt.status)) {
     return orderJsonError(
       session.final_order_number
@@ -81,7 +87,6 @@ async function initiateCheckoutAttempt(input: {
   }
 
   try {
-    await assertPreparedCheckoutProductionFeasible(session.rpc_payload);
     const checkout = buildPayuCheckout({
       merchantTransactionId: attempt.provider_merchant_txn_id,
       paymentAttemptId: attempt.id,
@@ -94,7 +99,7 @@ async function initiateCheckoutAttempt(input: {
 
     if (attempt.status === "created") {
       const { data: initiated, error: updateError } = await admin
-        .from("custom_checkout_payment_attempts")
+        .from("checkout_payment_attempts")
         .update({
           status: "initiated",
           initiated_at: new Date().toISOString(),
@@ -109,7 +114,7 @@ async function initiateCheckoutAttempt(input: {
       if (updateError) throw new Error(updateError.message);
       if (!initiated) {
         const { data: current, error: currentError } = await admin
-          .from("custom_checkout_payment_attempts")
+          .from("checkout_payment_attempts")
           .select("status")
           .eq("id", attempt.id)
           .maybeSingle();
@@ -121,7 +126,7 @@ async function initiateCheckoutAttempt(input: {
     }
 
     const { error: sessionUpdateError } = await admin
-      .from("custom_checkout_sessions")
+      .from("checkout_sessions")
       .update({ status: "payment_initiated" })
       .eq("id", session.id)
       .in("status", ["prepared", "payment_initiated"]);
@@ -142,9 +147,6 @@ async function initiateCheckoutAttempt(input: {
 
 export async function POST(request: NextRequest) {
   const requestId = requestIdFrom(request);
-  if (!durableOrdersAvailable()) {
-    return withRequestId(orderJsonError("Order payments are unavailable", 503), requestId);
-  }
   if (!hasExpectedOrderOrigin(request)) {
     return withRequestId(orderJsonError("Invalid request origin", 403), requestId);
   }

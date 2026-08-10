@@ -4,7 +4,7 @@ import type { CloudDesignSnapshot } from "@/lib/designs/schema";
 import { getConfiguredLinePricingPaise } from "@/lib/configurator/pricing";
 import { calculateTaxPaise } from "@/lib/tax";
 
-import { CUSTOM_ORDER_PRICING_VERSION, priceCustomOrder } from "./pricing";
+import { CONFIGURATOR_ORDER_PRICING_VERSION, priceConfiguratorOrder } from "./pricing";
 
 function designSnapshot(
   quantity = 50,
@@ -52,7 +52,7 @@ function designSnapshot(
 
 describe("server custom-order pricing", () => {
   it("recalculates canonical paise totals from the saved design", () => {
-    const result = priceCustomOrder({
+    const result = priceConfiguratorOrder({
       snapshot: designSnapshot(),
       sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 10 },
       deliveryType: "standard",
@@ -69,13 +69,13 @@ describe("server custom-order pricing", () => {
     expect(
       (result.item as { product_snapshot: { pricingVersion: string } })
         .product_snapshot.pricingVersion,
-    ).toBe(CUSTOM_ORDER_PRICING_VERSION);
+    ).toBe(CONFIGURATOR_ORDER_PRICING_VERSION);
   });
 
 
   it("uses the same integer-paise line pricing as the configurator", () => {
     const snapshot = designSnapshot(100);
-    const server = priceCustomOrder({
+    const server = priceConfiguratorOrder({
       snapshot,
       sizeQuantities: { XS: 10, S: 20, M: 30, L: 20, XL: 20 },
       deliveryType: "rush",
@@ -95,7 +95,7 @@ describe("server custom-order pricing", () => {
 
 
   it("keeps duplicate products as separately numbered commercial lines", () => {
-    const first = priceCustomOrder({
+    const first = priceConfiguratorOrder({
       snapshot: designSnapshot(),
       sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 10 },
       deliveryType: "standard",
@@ -104,7 +104,7 @@ describe("server custom-order pricing", () => {
       designProjectId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
       designVersionId: "11111111-1111-4111-8111-111111111111",
     });
-    const second = priceCustomOrder({
+    const second = priceConfiguratorOrder({
       snapshot: designSnapshot(),
       sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 10 },
       deliveryType: "standard",
@@ -131,12 +131,12 @@ describe("server custom-order pricing", () => {
   });
 
   it("adds the rush surcharge after volume discount and before GST", () => {
-    const standard = priceCustomOrder({
+    const standard = priceConfiguratorOrder({
       snapshot: designSnapshot(),
       sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 10 },
       deliveryType: "standard",
     });
-    const rush = priceCustomOrder({
+    const rush = priceConfiguratorOrder({
       snapshot: designSnapshot(),
       sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 10 },
       deliveryType: "rush",
@@ -151,7 +151,7 @@ describe("server custom-order pricing", () => {
 
   it("rejects quantity tampering against the immutable design", () => {
     expect(() =>
-      priceCustomOrder({
+      priceConfiguratorOrder({
         snapshot: designSnapshot(),
       sizeQuantities: { XS: 5, S: 10, M: 14, L: 10, XL: 10 },
         deliveryType: "standard",
@@ -161,7 +161,7 @@ describe("server custom-order pricing", () => {
 
   it("enforces custom-dye minimum quantity on the server", () => {
     expect(() =>
-      priceCustomOrder({
+      priceConfiguratorOrder({
         snapshot: designSnapshot(50, "custom_dye"),
       sizeQuantities: { XS: 5, S: 10, M: 15, L: 10, XL: 10 },
         deliveryType: "standard",
@@ -170,13 +170,13 @@ describe("server custom-order pricing", () => {
   });
 
   it("enforces the product MOQ independently at the lower boundary", () => {
-    expect(() => priceCustomOrder({
+    expect(() => priceConfiguratorOrder({
       snapshot: designSnapshot(49),
       sizeQuantities: { XS: 0, S: 9, M: 20, L: 10, XL: 10 },
       deliveryType: "standard",
     })).toThrow("between 50");
 
-    expect(priceCustomOrder({
+    expect(priceConfiguratorOrder({
       snapshot: designSnapshot(50),
       sizeQuantities: { XS: 0, S: 10, M: 20, L: 10, XL: 10 },
       deliveryType: "standard",
@@ -185,7 +185,7 @@ describe("server custom-order pricing", () => {
 
   it("rejects unavailable product sizes", () => {
     expect(() =>
-      priceCustomOrder({
+      priceConfiguratorOrder({
         snapshot: designSnapshot(),
         sizeQuantities: {
           XS: 5,
@@ -225,7 +225,7 @@ describe("server custom-order pricing", () => {
       confirmed: true,
     };
 
-    expect(() => priceCustomOrder({
+    expect(() => priceConfiguratorOrder({
       snapshot,
       sizeQuantities: { XS: 0, S: 10, M: 20, L: 10, XL: 10 },
       deliveryType: "standard",

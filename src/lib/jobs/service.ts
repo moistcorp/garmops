@@ -34,7 +34,6 @@ function record(value: unknown): Record<string, unknown> {
     ? value as Record<string, unknown>
     : {};
 }
-
 async function sendResendEmail(input: {
   to: string;
   subject: string;
@@ -125,7 +124,7 @@ async function sendOrderConfirmation(job: IntegrationJob): Promise<void> {
     idempotencyKey: `garmops-order-confirmation-${order.id}`,
     html: renderBrandedEmail({
       preheader: `Full payment confirmed for order ${order.order_number}.`,
-      eyebrow: sampleOrder ? "Catalogue samples" : "Custom order",
+      eyebrow: sampleOrder ? "Catalogue samples" : "Configurator order",
       title: "Payment confirmed and order received",
       statusLabel: "Full payment verified",
       statusTone: "success",
@@ -220,34 +219,6 @@ async function handleJob(job: IntegrationJob): Promise<void> {
   }
   if (job.job_type === "finance_duplicate_payment") {
     await sendFinanceAlert(job, "PayU verified more than one successful attempt for the same checkout. Review and refund the duplicate manually.");
-    return;
-  }
-  if (job.job_type === "finance_production_capacity_exception") {
-    await sendFinanceAlert(job, "PayU verified a payment after production feasibility changed. Reconcile the payment and contact the customer before creating or refunding the order.");
-    return;
-  }
-  if (job.job_type === "send_staff_quote") {
-    // Quote email delivery is implemented by the staff quote route, which stores
-    // the one-time token URL in the job payload. Keeping it in the same queue
-    // makes retries idempotent and observable.
-    const to = typeof payload.customerEmail === "string" ? payload.customerEmail : null;
-    const quoteNumber = typeof payload.quoteNumber === "string" ? payload.quoteNumber : null;
-    const paymentUrl = typeof payload.paymentUrl === "string" ? payload.paymentUrl : null;
-    if (!to || !quoteNumber || !paymentUrl) throw Object.assign(new Error("Staff quote job is incomplete"), { retryable: false });
-    await sendResendEmail({
-      to,
-      subject: `Garmops quotation ${quoteNumber}`,
-      idempotencyKey: `garmops-staff-quote-${quoteNumber}`,
-      html: renderBrandedEmail({
-        preheader: `Review and pay quotation ${quoteNumber}.`,
-        eyebrow: "Quotation / payment link",
-        title: "Your Garmops quotation is ready",
-        statusLabel: "Secure link",
-        statusTone: "accent",
-        action: { label: "Review and pay", url: paymentUrl },
-        bodyHtml: `<p style="margin:0;color:${EMAIL_THEME.muted};">This link is tied to the quoted email address and expires automatically. The order is created only after full payment is verified.</p>`,
-      }),
-    });
     return;
   }
   throw Object.assign(new Error(`Unsupported integration job type: ${job.job_type}`), { retryable: false });

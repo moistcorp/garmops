@@ -11,7 +11,6 @@ const FOUNDRY_PORTAL_ROUTES = [
   "/orders",
   "/artwork-review",
   "/payments",
-  "/quotes",
   "/discounts",
   "/staff-management",
   "/settings",

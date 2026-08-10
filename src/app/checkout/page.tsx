@@ -6,7 +6,7 @@ import { isFeatureEnabled } from "@/lib/config/featureFlags";
 export const dynamic = "force-dynamic";
 
 export default async function CheckoutPage() {
-  if (!isFeatureEnabled("DURABLE_SAMPLE_CHECKOUT_ENABLED")) {
+  if (!isFeatureEnabled("SAMPLE_CHECKOUT_ENABLED")) {
     return (
       <div className="techpack-canvas min-h-[70vh] px-4 py-12 sm:px-6">
         <div className="mx-auto max-w-3xl">

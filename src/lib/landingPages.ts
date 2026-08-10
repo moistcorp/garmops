@@ -188,7 +188,7 @@ export const landingPages = {
           { title: 'Garment and quantity', description: 'Fit, fabric weight and total units set the production base; volume tiers can change the unit price.' },
           { title: 'Artwork and positions', description: 'Physical print dimensions, number of positions, colour count and file preparation affect setup and production.' },
           { title: 'Print method', description: 'Screen Print, DTF and Reflective Print have different artwork, material and handling requirements.' },
-          { title: 'Finishing and deadline', description: 'Labels, packaging, sampling, rush production, GST and shipping must be compared as separate requirements.' },
+          { title: 'Finishing and deadline', description: 'Labels, packaging, sampling, rush production and GST must be compared as separate requirements; shipping is free.' },
         ],
         links: [{ label: 'Estimate bulk T-shirt pricing', href: '/pricing' }],
       },

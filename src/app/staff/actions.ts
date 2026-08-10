@@ -1,15 +1,10 @@
 "use server";
 
-import { createHash, randomBytes } from "node:crypto";
+
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireStaffPermission } from "@/lib/auth/guards";
-import { customerAppUrl, staffAppUrl } from "@/lib/config/appSurface";
-import { getServerEnvironment } from "@/lib/config/env";
-import { calculateTaxPaise } from "@/lib/tax";
-import { configuredGstRateBasisPoints } from "@/lib/tax.server";
-import { cloudDesignSnapshotSchema } from "@/lib/designs/schema";
-import { CUSTOM_ORDER_PRICING_VERSION, priceCustomOrder } from "@/lib/orders/pricing";
+import { staffAppUrl } from "@/lib/config/appSurface";
 import {
   staffActionError,
   staffActionSuccess,
@@ -262,165 +257,6 @@ export async function createDiscountCodeAction(
   return staffActionSuccess("Discount code created.");
 }
 
-const quoteAddressSchema = z.object({
-  country: z.literal("India"),
-  addressLine1: z.string().trim().min(1).max(200),
-  addressLine2: z.string().trim().max(200).optional(),
-  zip: z.string().trim().regex(/^[1-9][0-9]{5}$/),
-  city: z.string().trim().min(1).max(100),
-  state: z.string().trim().min(1).max(100),
-});
-
-const createStaffQuoteSchema = z.object({
-  customerEmail: z.string().trim().email().transform((value) => value.toLowerCase()),
-  customerName: z.string().trim().min(1).max(160),
-  customerPhone: z.string().trim().regex(/^(?:\+91|91|0)?[6-9][0-9]{9}$/),
-  configuration: z.string().min(2),
-  sizeQuantities: z.string().min(2),
-  deliveryType: z.enum(["rush", "standard", "flexible"]),
-  billingEntity: z.string().trim().min(1).max(200),
-  billingEmail: z.string().trim().email().transform((value) => value.toLowerCase()),
-  billingGstin: z.string().trim().toUpperCase().optional(),
-  billingAddressLine1: z.string(),
-  billingAddressLine2: z.string().optional(),
-  billingZip: z.string(),
-  billingCity: z.string(),
-  billingState: z.string(),
-  shippingRecipientName: z.string().trim().min(1).max(160),
-  shippingAddressLine1: z.string(),
-  shippingAddressLine2: z.string().optional(),
-  shippingZip: z.string(),
-  shippingCity: z.string(),
-  shippingState: z.string(),
-  expiresInDays: z.coerce.number().int().min(1).max(30).default(7),
-});
-
-function normalizeIndianPhone(value: string): string {
-  const digits = value.replace(/\D/g, "").replace(/^0/, "").replace(/^91(?=[6-9]\d{9}$)/, "");
-  return `+91${digits}`;
-}
-
-export async function createStaffQuoteAction(
-  _state: StaffActionState,
-  formData: FormData,
-): Promise<StaffActionState> {
-  const context = await requireStaffPermission("create_staff_quote");
-  const parsed = createStaffQuoteSchema.safeParse(Object.fromEntries(formData.entries()));
-  if (!parsed.success) return staffActionError("Check the customer, specification, size, billing, and delivery fields.");
-
-  let rawConfiguration: unknown;
-  let rawSizes: unknown;
-  try {
-    rawConfiguration = JSON.parse(parsed.data.configuration);
-    rawSizes = JSON.parse(parsed.data.sizeQuantities);
-  } catch {
-    return staffActionError("Configuration and size allocation must be valid JSON.");
-  }
-  const configuration = cloudDesignSnapshotSchema.safeParse(rawConfiguration);
-  const sizeQuantities = z.record(z.string().min(1).max(20), z.number().int().min(0).max(1_000_000)).safeParse(rawSizes);
-  if (!configuration.success) return staffActionError("The configurator snapshot is incomplete or invalid.");
-  if (!sizeQuantities.success) return staffActionError("The size allocation must map each size to a whole-number quantity.");
-
-  let priced: ReturnType<typeof priceCustomOrder>;
-  try {
-    priced = priceCustomOrder({ snapshot: configuration.data, sizeQuantities: sizeQuantities.data, deliveryType: parsed.data.deliveryType });
-  } catch (error) {
-    return staffActionError(error instanceof Error ? error.message : "The quotation could not be priced.");
-  }
-
-  const billingAddress = quoteAddressSchema.safeParse({
-    country: "India",
-    addressLine1: parsed.data.billingAddressLine1,
-    addressLine2: parsed.data.billingAddressLine2 || undefined,
-    zip: parsed.data.billingZip,
-    city: parsed.data.billingCity,
-    state: parsed.data.billingState,
-  });
-  const shippingAddress = quoteAddressSchema.safeParse({
-    country: "India",
-    addressLine1: parsed.data.shippingAddressLine1,
-    addressLine2: parsed.data.shippingAddressLine2 || undefined,
-    zip: parsed.data.shippingZip,
-    city: parsed.data.shippingCity,
-    state: parsed.data.shippingState,
-  });
-  if (!billingAddress.success || !shippingAddress.success) return staffActionError("Check the Indian billing and delivery addresses.");
-
-  const gstin = parsed.data.billingGstin?.trim() || null;
-  if (gstin && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(gstin)) {
-    return staffActionError("GSTIN format is invalid.");
-  }
-
-  const admin = createAdminClient();
-  const { data: existingPrincipal } = await admin.from("account_principals")
-    .select("account_type")
-    .eq("normalized_email", parsed.data.customerEmail)
-    .maybeSingle();
-  if (existingPrincipal?.account_type === "staff") return staffActionError("That email is reserved for Foundry staff and cannot receive a customer quotation.");
-
-  const taxRateBasisPoints = configuredGstRateBasisPoints();
-  const taxPaise = calculateTaxPaise(priced.subtotalPaise, taxRateBasisPoints);
-  const totalPaise = priced.subtotalPaise + taxPaise;
-  const token = randomBytes(32).toString("base64url");
-  const tokenHash = createHash("sha256").update(token).digest("hex");
-  const numberResult = await admin.rpc("next_number", { p_namespace: "quote", p_prefix: "EST" });
-  if (numberResult.error || !numberResult.data) return staffActionError("Quote number could not be generated.");
-
-  const configurationSnapshot = {
-    schemaVersion: configuration.data.schemaVersion,
-    design: configuration.data,
-    sizeQuantities: sizeQuantities.data,
-    deliveryType: parsed.data.deliveryType,
-    commercialFieldsLockedAfterPayment: ["quantity", "garment", "printingTechnique"],
-  };
-  const billingSnapshot = {
-    entity: parsed.data.billingEntity,
-    email: parsed.data.billingEmail,
-    gstin,
-    address: billingAddress.data,
-    business: gstin ? { legalBusinessName: parsed.data.billingEntity, gstin } : {},
-  };
-  const shippingSnapshot = {
-    recipientName: parsed.data.shippingRecipientName,
-    address: shippingAddress.data,
-    pricing: "quoted_separately",
-  };
-  const result = await admin.from("staff_quotes").insert({
-    quote_number: numberResult.data,
-    created_by: context.user.id,
-    customer_email: parsed.data.customerEmail,
-    customer_name: parsed.data.customerName,
-    customer_phone: normalizeIndianPhone(parsed.data.customerPhone),
-    configuration_snapshot: configurationSnapshot,
-    pricing_snapshot: {
-      pricingVersion: CUSTOM_ORDER_PRICING_VERSION,
-      gstRateBasisPoints: taxRateBasisPoints,
-      items: [priced.item],
-    },
-    billing_snapshot: billingSnapshot,
-    shipping_snapshot: shippingSnapshot,
-    subtotal_paise: priced.subtotalPaise,
-    discount_paise: 0,
-    tax_paise: taxPaise,
-    total_paise: totalPaise,
-    payment_token_hash: tokenHash,
-    expires_at: new Date(Date.now() + parsed.data.expiresInDays * 86_400_000).toISOString(),
-    status: "sent",
-    sent_at: new Date().toISOString(),
-  }).select("id, quote_number").single();
-  if (result.error || !result.data) return staffActionError("Staff quotation could not be created.");
-
-  const paymentUrl = `${customerAppUrl()}/quote/${encodeURIComponent(token)}`;
-  const job = await admin.from("integration_jobs").insert({
-    job_type: "send_staff_quote",
-    deduplication_key: `staff-quote:${result.data.id}`,
-    payload: { quoteId: result.data.id, quoteNumber: result.data.quote_number, customerEmail: parsed.data.customerEmail, paymentUrl },
-  });
-  revalidatePath("/quotes");
-  if (job.error) return staffActionSuccess(`Quotation ${result.data.quote_number} created. Copy payment link: ${paymentUrl}`);
-  return staffActionSuccess(`Quotation ${result.data.quote_number} created and queued for email. Payment link: ${paymentUrl}`);
-}
-
 export async function requestOrderCancellationAction(
   _state: StaffActionState,
   formData: FormData,
@@ -461,45 +297,6 @@ export async function decideOrderCancellationAction(
   return staffActionSuccess(parsed.data.decision === "approve" ? "Order cancelled. Refund workflow is now available." : "Cancellation request rejected.");
 }
 
-export async function finalizeStaffQuoteOfflinePaymentAction(
-  _state: StaffActionState,
-  formData: FormData,
-): Promise<StaffActionState> {
-  const context = await requireStaffPermission("manage_refunds");
-  const parsed = z.object({
-    quoteId: z.string().uuid(),
-    quoteNumber: z.string().regex(/^EST-\d{4}-\d{6}$/),
-    reference: z.string().trim().min(3).max(200),
-    proofFileId: z.string().uuid(),
-  }).safeParse(Object.fromEntries(formData.entries()));
-  if (!parsed.success) return staffActionError("Add the bank reference and finalized payment proof.");
-  const env = getServerEnvironment();
-  const sellerSnapshot = {
-    legalName: env.INVOICE_SELLER_LEGAL_NAME,
-    gstin: env.INVOICE_SELLER_GSTIN,
-    state: env.INVOICE_SELLER_STATE,
-    address: env.INVOICE_SELLER_ADDRESS,
-  };
-  const { data, error } = await callRpc(context.supabase, "finalize_staff_quote_offline_payment", {
-    p_quote_id: parsed.data.quoteId,
-    p_reference: parsed.data.reference,
-    p_proof_file_id: parsed.data.proofFileId,
-    p_seller_snapshot: sellerSnapshot,
-  });
-  if (error) {
-    const message = /CUSTOMER_ACCOUNT_REQUIRED/.test(error.message)
-      ? "The quoted customer must create and verify their customer account first."
-      : /PAYMENT_PROOF_REQUIRED/.test(error.message)
-        ? "Upload and finalize payment proof before recording the bank payment."
-        : "Offline payment could not be finalized.";
-    return staffActionError(message);
-  }
-  const first = Array.isArray(data) ? data[0] : null;
-  revalidatePath("/quotes");
-  revalidatePath("/orders");
-  return staffActionSuccess(`Offline payment verified${first?.order_number ? `; order ${first.order_number} created` : ""}.`);
-}
-
 export async function reopenOrderConfigurationAction(
   _state: StaffActionState,
   formData: FormData,
@@ -529,14 +326,14 @@ export async function recordOrderRefundAction(
   return staffActionSuccess(parsed.data.action === "complete" ? "Refund completed and recorded." : "Refund marked pending with provider reference.");
 }
 
-export async function recheckCustomCheckoutPaymentAction(
+export async function recheckCheckoutPaymentAction(
   _state: StaffActionState,
   formData: FormData,
 ): Promise<StaffActionState> {
   const context = await requireStaffPermission("change_order_status");
   const attemptId = z.string().uuid().safeParse(formData.get("attemptId"));
   if (!attemptId.success) return staffActionError("Payment attempt is invalid.");
-  const { reconcileCustomCheckoutPayuAttempt } = await import("@/lib/domain/payments/processPayuEvent");
+  const { reconcileCheckoutPayuAttempt } = await import("@/lib/domain/payments/processPayuEvent");
   const { finishSystemJobRun, startSystemJobRun } = await import("@/lib/jobs/health");
   const runId = await startSystemJobRun({
     jobName: "payu_reconciliation",
@@ -544,7 +341,7 @@ export async function recheckCustomCheckoutPaymentAction(
     triggerUserId: context.user.id,
   });
   try {
-    const result = await reconcileCustomCheckoutPayuAttempt(attemptId.data);
+    const result = await reconcileCheckoutPayuAttempt(attemptId.data);
     await finishSystemJobRun({ runId, status: "completed", summary: { checked: 1, outcome: result.outcome } });
     revalidatePath("/orders");
     if (result.orderNumber) revalidatePath(`/orders/${result.orderNumber}`);

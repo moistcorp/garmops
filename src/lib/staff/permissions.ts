@@ -3,7 +3,6 @@ export const STAFF_PERMISSIONS = [
   "change_order_status",
   "review_artwork",
   "edit_order_configuration",
-  "create_staff_quote",
   "manage_staff",
   "manage_discounts",
   "manage_refunds",

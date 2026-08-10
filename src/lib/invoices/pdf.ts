@@ -28,12 +28,28 @@ const LINES_PER_PAGE = 12;
 
 function escapeText(value: string) {
   return value
-    .replace(/₹/g, "Rs. ")
-    .replace(/[–—]/g, "-")
-    .replace(/[^\x00-\x7F]/g, "?")
     .replace(/\\/g, "\\\\")
     .replace(/\(/g, "\\(")
     .replace(/\)/g, "\\)");
+}
+function wrap(value: string, maximum: number): string[] {
+  const words = value.trim().split(/\s+/u);
+  const lines: string[] = [];
+  let current = "";
+  for (const word of words) {
+    const next = current ? `${current} ${word}` : word;
+    if (current && Array.from(next).length > maximum) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = next;
+    }
+  }
+  if (current) lines.push(current);
+  return lines.length ? lines : [""];
+}
+function wrappedText(value: string, x: number, y: number, maximum: number, size = 9, bold = false): string[] {
+  return wrap(value, maximum).map((part, index) => text(part, x, y - index * (size + 3), size, bold));
 }
 function text(value: string, x: number, y: number, size = 10, bold = false) {
   return `BT /${bold ? "F2" : "F1"} ${size} Tf 0.07 0.07 0.07 rg 1 0 0 1 ${x} ${y} Tm (${escapeText(value)}) Tj ET`;
@@ -91,11 +107,11 @@ function pageHeader(input: InvoicePdfInput, pageNumber: number, pageCount: numbe
     commands.push(
       text("Seller", 42, 696, 9, true),
       text(input.seller.legalName, 42, 678, 11, true),
-      text(input.seller.address.slice(0, 72), 42, 662, 9),
+      ...wrappedText(input.seller.address, 42, 662, 38),
       text(`GSTIN: ${input.seller.gstin}`, 42, 646, 9),
       text("Bill to", 315, 696, 9, true),
       text(input.buyer.name, 315, 678, 11, true),
-      text(input.buyer.address.slice(0, 72), 315, 662, 9),
+      ...wrappedText(input.buyer.address, 315, 662, 38),
       ...(input.buyer.gstin ? [text(`GSTIN: ${input.buyer.gstin}`, 315, 646, 9)] : []),
       line(624),
     );
@@ -125,13 +141,14 @@ export function buildInvoicePdf(input: InvoicePdfInput): { bytes: Uint8Array; fi
     );
     let y = headingY - 22;
     for (const item of pageLines) {
+      const descriptionLines = wrap(item.description, 48);
       commands.push(
-        text(item.description.slice(0, 52), 42, y, 9),
+        ...descriptionLines.map((description, lineIndex) => text(description, 42, y - lineIndex * 12, 9)),
         text(item.quantity.toLocaleString("en-IN"), 355, y, 9),
         text(item.hsnCode ?? "610910", 410, y, 9),
         text(formatMoneyPaise(item.totalPaise), 488, y, 9),
       );
-      y -= 22;
+      y -= Math.max(22, descriptionLines.length * 12 + 8);
     }
     if (lastPage) {
       y -= 8;
@@ -151,7 +168,7 @@ export function buildInvoicePdf(input: InvoicePdfInput): { bytes: Uint8Array; fi
       );
     }
     commands.push(
-      text("Shipping is excluded and, when required, is billed separately through a staff-issued payment link.", 42, 120, 8),
+      text("Shipping: Free", 42, 120, 8),
       text("This is a system-generated tax invoice based on the verified payment record.", 42, 102, 8),
     );
     return commands;

@@ -39,12 +39,16 @@ export async function createTaxInvoiceForOrder(orderId: string) {
     throw Object.assign(new Error("Invoice generation requires a fully paid order"), { retryable: false });
   }
 
-  let invoiceNumber = invoice.invoice_number as string | null;
-  if (!invoiceNumber) {
-    const { data, error } = await admin.rpc("next_number", { p_namespace: "invoice", p_prefix: "INV" });
-    if (error || !data) throw new Error(error?.message ?? "Invoice number could not be allocated");
-    invoiceNumber = String(data);
+  if (invoice.status === "completed" && invoice.pdf_file_id) {
+    return { invoiceId: invoice.id, invoiceNumber: invoice.invoice_number, pdfFileId: invoice.pdf_file_id };
   }
+
+  const { data: reserved, error: reserveError } = await admin.rpc("reserve_tax_invoice_number", { p_invoice_id: invoice.id });
+  const reservation = Array.isArray(reserved) ? reserved[0] : reserved;
+  if (reserveError || !reservation || typeof reservation.invoice_number !== "string") {
+    throw new Error(reserveError?.message ?? "Invoice number could not be allocated");
+  }
+  const invoiceNumber = reservation.invoice_number;
   const issuedAt = invoice.issued_at ?? new Date().toISOString();
   const buyerSnapshot = record(invoice.buyer_snapshot);
   const buyerAddress = record(buyerSnapshot.address);
@@ -96,33 +100,25 @@ export async function createTaxInvoiceForOrder(orderId: string) {
   let pdfFileId = invoice.pdf_file_id as string | null;
   if (!pdfFileId) {
     const objectKey = `customers/${order.customer_user_id}/orders/${order.id}/invoices/${invoice.id}/${generated.filename}`;
-    const stored = await putPrivatePdf({
-      objectKey,
-      filename: generated.filename,
-      bytes: generated.bytes,
-      metadata: { "invoice-id": invoice.id, "order-id": order.id },
-    });
-    const { data: file, error: fileError } = await admin.from("order_files").insert({
-      order_id: order.id,
-      uploaded_by: order.customer_user_id,
-      kind: "invoice_pdf",
-      visibility: "customer",
-      bucket_name: stored.bucket,
-      object_key: stored.objectKey,
-      original_filename: generated.filename,
-      safe_filename: generated.filename,
-      extension: "pdf",
-      content_type: "application/pdf",
-      byte_size: stored.byteSize,
-      sha256: stored.sha256,
-      object_etag: stored.etag,
-      upload_status: "finalized",
-      scan_status: "not_required",
-      review_status: "approved",
-      finalized_at: new Date().toISOString(),
-    }).select("id").single();
-    if (fileError || !file) throw new Error(fileError?.message ?? "Invoice PDF record could not be created");
-    pdfFileId = file.id;
+    const { data: existingFile } = await admin.from("order_files").select("id").eq("object_key", objectKey).maybeSingle();
+    if (existingFile) {
+      pdfFileId = existingFile.id;
+    } else {
+      const stored = await putPrivatePdf({ objectKey, filename: generated.filename, bytes: generated.bytes, metadata: { "invoice-id": invoice.id, "order-id": order.id } });
+      const { data: file, error: fileError } = await admin.from("order_files").insert({
+        order_id: order.id, uploaded_by: order.customer_user_id, kind: "invoice_pdf", visibility: "customer",
+        bucket_name: stored.bucket, object_key: stored.objectKey, original_filename: generated.filename, safe_filename: generated.filename,
+        extension: "pdf", content_type: "application/pdf", byte_size: stored.byteSize, sha256: stored.sha256, object_etag: stored.etag,
+        upload_status: "finalized", scan_status: "not_required", review_status: "approved", finalized_at: new Date().toISOString(),
+      }).select("id").single();
+      if (fileError || !file) {
+        const { data: racedFile } = await admin.from("order_files").select("id").eq("object_key", objectKey).maybeSingle();
+        if (!racedFile) throw new Error(fileError?.message ?? "Invoice PDF record could not be created");
+        pdfFileId = racedFile.id;
+      } else {
+        pdfFileId = file.id;
+      }
+    }
   }
 
   const { error: updateError } = await admin.from("invoices").update({

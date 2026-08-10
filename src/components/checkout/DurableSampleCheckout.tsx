@@ -479,7 +479,7 @@ export default function DurableSampleCheckout({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[var(--text-primary)]/50">Shipping</span>
-                  <span>Quoted separately</span>
+                  <span>Free</span>
                 </div>
               </div>
               <div className="flex justify-between border-t border-[#ECE7DF] pt-4 text-base font-bold">
@@ -487,7 +487,7 @@ export default function DurableSampleCheckout({
                 <span>{rupees(displayedTotalPaise)}</span>
               </div>
               <p className="text-xs leading-relaxed text-black/40">
-                The server validates every product, size, quantity, price, and GST amount. Staff will issue a separate PayU shipping link.
+                The server validates every product, size, quantity, price, GST amount, and free shipping.
               </p>
               <button
                 type="submit"

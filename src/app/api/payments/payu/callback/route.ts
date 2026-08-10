@@ -7,7 +7,6 @@ import {
 import { processPayuEvent } from "@/lib/domain/payments/processPayuEvent";
 import { processIntegrationJobsWithHealth } from "@/lib/jobs/run";
 import { getServerEnvironment } from "@/lib/config/env";
-import { durableOrdersAvailable } from "@/lib/orders/api";
 import type { PayuIncomingFields } from "@/lib/providers/payu/types";
 import { readBoundedUrlEncoded } from "@/lib/http/requestBody";
 import { requestIdFrom, withRequestId } from "@/lib/http/requestId";
@@ -72,10 +71,6 @@ function resultRedirect(
 
 export async function POST(request: NextRequest) {
   const requestId = requestIdFrom(request);
-  if (!durableOrdersAvailable()) {
-    return withRequestId(NextResponse.json({ error: "Not found" }, { status: 404 }), requestId);
-  }
-
   try {
     const result = await processPayuEvent("callback", await readForm(request));
     if (result.outcome === "success") {

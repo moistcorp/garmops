@@ -239,7 +239,7 @@ export type Database = {
           },
         ]
       }
-      custom_checkout_payment_attempts: {
+      checkout_payment_attempts: {
         Row: {
           amount_paise: number
           attempt_number: number
@@ -323,15 +323,15 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "custom_checkout_payment_attempts_checkout_session_id_fkey"
+            foreignKeyName: "checkout_payment_attempts_checkout_session_id_fkey"
             columns: ["checkout_session_id"]
             isOneToOne: false
-            referencedRelation: "custom_checkout_sessions"
+            referencedRelation: "checkout_sessions"
             referencedColumns: ["id"]
           },
         ]
       }
-      custom_checkout_payment_events: {
+      checkout_payment_events: {
         Row: {
           authentic: boolean
           checkout_payment_attempt_id: string
@@ -379,15 +379,15 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "custom_checkout_payment_events_checkout_payment_attempt_id_fkey"
+            foreignKeyName: "checkout_payment_events_checkout_payment_attempt_id_fkey"
             columns: ["checkout_payment_attempt_id"]
             isOneToOne: false
-            referencedRelation: "custom_checkout_payment_attempts"
+            referencedRelation: "checkout_payment_attempts"
             referencedColumns: ["id"]
           },
         ]
       }
-      custom_checkout_sessions: {
+      checkout_sessions: {
         Row: {
           cart_id: string
           created_at: string
@@ -400,13 +400,13 @@ export type Database = {
           final_order_number: string | null
           final_payment_attempt_id: string | null
           finalized_at: string | null
+          flow: string
           id: string
           idempotency_key: string
           provider_payment_id: string | null
           request_hash: string
           return_path: string
           rpc_payload: Json
-          staff_quote_id: string | null
           status: string
           subtotal_paise: number
           tax_paise: number
@@ -426,13 +426,13 @@ export type Database = {
           final_order_number?: string | null
           final_payment_attempt_id?: string | null
           finalized_at?: string | null
+          flow: string
           id?: string
           idempotency_key: string
           provider_payment_id?: string | null
           request_hash: string
           return_path: string
           rpc_payload: Json
-          staff_quote_id?: string | null
           status?: string
           subtotal_paise: number
           tax_paise: number
@@ -452,13 +452,13 @@ export type Database = {
           final_order_number?: string | null
           final_payment_attempt_id?: string | null
           finalized_at?: string | null
+          flow?: string
           id?: string
           idempotency_key?: string
           provider_payment_id?: string | null
           request_hash?: string
           return_path?: string
           rpc_payload?: Json
-          staff_quote_id?: string | null
           status?: string
           subtotal_paise?: number
           tax_paise?: number
@@ -468,38 +468,31 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "custom_checkout_sessions_customer_user_id_fkey"
+            foreignKeyName: "checkout_sessions_customer_user_id_fkey"
             columns: ["customer_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "custom_checkout_sessions_discount_code_id_fkey"
+            foreignKeyName: "checkout_sessions_discount_code_id_fkey"
             columns: ["discount_code_id"]
             isOneToOne: false
             referencedRelation: "discount_codes"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "custom_checkout_sessions_final_order_id_fkey"
+            foreignKeyName: "checkout_sessions_final_order_id_fkey"
             columns: ["final_order_id"]
             isOneToOne: false
             referencedRelation: "orders"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "custom_checkout_sessions_final_payment_attempt_id_fkey"
+            foreignKeyName: "checkout_sessions_final_payment_attempt_id_fkey"
             columns: ["final_payment_attempt_id"]
             isOneToOne: false
             referencedRelation: "payment_attempts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "custom_checkout_sessions_staff_quote_fk"
-            columns: ["staff_quote_id"]
-            isOneToOne: false
-            referencedRelation: "staff_quotes"
             referencedColumns: ["id"]
           },
         ]
@@ -835,7 +828,7 @@ export type Database = {
             foreignKeyName: "discount_reservations_checkout_session_id_fkey"
             columns: ["checkout_session_id"]
             isOneToOne: true
-            referencedRelation: "custom_checkout_sessions"
+            referencedRelation: "checkout_sessions"
             referencedColumns: ["id"]
           },
           {
@@ -1196,7 +1189,6 @@ export type Database = {
           safe_filename: string
           scan_status: Database["public"]["Enums"]["file_scan_status"]
           sha256: string | null
-          staff_quote_id: string | null
           updated_at: string
           upload_expires_at: string | null
           upload_status: string
@@ -1228,7 +1220,6 @@ export type Database = {
           safe_filename: string
           scan_status?: Database["public"]["Enums"]["file_scan_status"]
           sha256?: string | null
-          staff_quote_id?: string | null
           updated_at?: string
           upload_expires_at?: string | null
           upload_status?: string
@@ -1260,7 +1251,6 @@ export type Database = {
           safe_filename?: string
           scan_status?: Database["public"]["Enums"]["file_scan_status"]
           sha256?: string | null
-          staff_quote_id?: string | null
           updated_at?: string
           upload_expires_at?: string | null
           upload_status?: string
@@ -1295,13 +1285,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "staff_members"
             referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "order_files_staff_quote_fk"
-            columns: ["staff_quote_id"]
-            isOneToOne: false
-            referencedRelation: "staff_quotes"
-            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "order_files_uploaded_by_fkey"
@@ -1826,111 +1809,6 @@ export type Database = {
         }
         Relationships: []
       }
-      production_blackout_dates: {
-        Row: {
-          active: boolean
-          created_at: string
-          date: string
-          note: string | null
-        }
-        Insert: {
-          active?: boolean
-          created_at?: string
-          date: string
-          note?: string | null
-        }
-        Update: {
-          active?: boolean
-          created_at?: string
-          date?: string
-          note?: string | null
-        }
-        Relationships: []
-      }
-      production_capacity_rules: {
-        Row: {
-          active: boolean
-          created_at: string
-          daily_unit_capacity: number
-          effective_from: string
-          id: string
-          product_category: string | null
-          technique: string | null
-        }
-        Insert: {
-          active?: boolean
-          created_at?: string
-          daily_unit_capacity: number
-          effective_from: string
-          id?: string
-          product_category?: string | null
-          technique?: string | null
-        }
-        Update: {
-          active?: boolean
-          created_at?: string
-          daily_unit_capacity?: number
-          effective_from?: string
-          id?: string
-          product_category?: string | null
-          technique?: string | null
-        }
-        Relationships: []
-      }
-      production_lead_time_rules: {
-        Row: {
-          active: boolean
-          created_at: string
-          custom_dye_extra_days: number
-          id: string
-          product_category: string | null
-          qc_dispatch_buffer_days: number
-          rush_eligible: boolean
-          setup_buffer_days: number
-          technique: string | null
-        }
-        Insert: {
-          active?: boolean
-          created_at?: string
-          custom_dye_extra_days?: number
-          id?: string
-          product_category?: string | null
-          qc_dispatch_buffer_days?: number
-          rush_eligible?: boolean
-          setup_buffer_days?: number
-          technique?: string | null
-        }
-        Update: {
-          active?: boolean
-          created_at?: string
-          custom_dye_extra_days?: number
-          id?: string
-          product_category?: string | null
-          qc_dispatch_buffer_days?: number
-          rush_eligible?: boolean
-          setup_buffer_days?: number
-          technique?: string | null
-        }
-        Relationships: []
-      }
-      production_working_days: {
-        Row: {
-          is_working: boolean
-          updated_at: string
-          weekday: number
-        }
-        Insert: {
-          is_working?: boolean
-          updated_at?: string
-          weekday: number
-        }
-        Update: {
-          is_working?: boolean
-          updated_at?: string
-          weekday?: number
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           created_at: string
@@ -2088,129 +1966,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      staff_quotes: {
-        Row: {
-          accepted_at: string | null
-          billing_snapshot: Json
-          configuration_snapshot: Json
-          created_at: string
-          created_by: string
-          customer_email: string
-          customer_name: string
-          customer_phone: string
-          customer_user_id: string | null
-          discount_code_id: string | null
-          discount_paise: number
-          expires_at: string
-          final_order_id: string | null
-          id: string
-          offline_payment_proof_file_id: string | null
-          offline_payment_reference: string | null
-          payment_token_hash: string | null
-          pricing_snapshot: Json
-          quote_number: string
-          sent_at: string | null
-          shipping_snapshot: Json
-          status: Database["public"]["Enums"]["quote_status"]
-          subtotal_paise: number
-          tax_paise: number
-          total_paise: number
-          updated_at: string
-        }
-        Insert: {
-          accepted_at?: string | null
-          billing_snapshot: Json
-          configuration_snapshot: Json
-          created_at?: string
-          created_by: string
-          customer_email: string
-          customer_name: string
-          customer_phone: string
-          customer_user_id?: string | null
-          discount_code_id?: string | null
-          discount_paise?: number
-          expires_at: string
-          final_order_id?: string | null
-          id?: string
-          offline_payment_proof_file_id?: string | null
-          offline_payment_reference?: string | null
-          payment_token_hash?: string | null
-          pricing_snapshot: Json
-          quote_number: string
-          sent_at?: string | null
-          shipping_snapshot: Json
-          status?: Database["public"]["Enums"]["quote_status"]
-          subtotal_paise: number
-          tax_paise: number
-          total_paise: number
-          updated_at?: string
-        }
-        Update: {
-          accepted_at?: string | null
-          billing_snapshot?: Json
-          configuration_snapshot?: Json
-          created_at?: string
-          created_by?: string
-          customer_email?: string
-          customer_name?: string
-          customer_phone?: string
-          customer_user_id?: string | null
-          discount_code_id?: string | null
-          discount_paise?: number
-          expires_at?: string
-          final_order_id?: string | null
-          id?: string
-          offline_payment_proof_file_id?: string | null
-          offline_payment_reference?: string | null
-          payment_token_hash?: string | null
-          pricing_snapshot?: Json
-          quote_number?: string
-          sent_at?: string | null
-          shipping_snapshot?: Json
-          status?: Database["public"]["Enums"]["quote_status"]
-          subtotal_paise?: number
-          tax_paise?: number
-          total_paise?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "staff_quotes_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "staff_members"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "staff_quotes_customer_user_id_fkey"
-            columns: ["customer_user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "staff_quotes_discount_code_id_fkey"
-            columns: ["discount_code_id"]
-            isOneToOne: false
-            referencedRelation: "discount_codes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "staff_quotes_final_order_id_fkey"
-            columns: ["final_order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "staff_quotes_offline_payment_proof_fk"
-            columns: ["offline_payment_proof_file_id"]
-            isOneToOne: false
-            referencedRelation: "order_files"
             referencedColumns: ["id"]
           },
         ]
@@ -2428,7 +2183,6 @@ export type Database = {
           p_replacement_for_file_id: string
           p_safe_filename: string
           p_sha256: string
-          p_staff_quote_id: string
           p_visibility: Database["public"]["Enums"]["file_visibility"]
         }
         Returns: {
@@ -2520,7 +2274,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      finalize_custom_checkout_full_payment: {
+      finalize_checkout_full_payment: {
         Args: {
           p_checkout_payment_attempt_id: string
           p_provider_payment_id: string
@@ -2545,21 +2299,6 @@ export type Database = {
           p_object_etag: string
         }
         Returns: boolean
-      }
-      finalize_staff_quote_offline_payment: {
-        Args: {
-          p_proof_file_id: string
-          p_quote_id: string
-          p_reference: string
-          p_seller_snapshot: Json
-        }
-        Returns: {
-          already_finalized: boolean
-          duplicate_success: boolean
-          order_id: string
-          order_number: string
-          payment_attempt_id: string
-        }[]
       }
       finalize_verified_payment: {
         Args: {
@@ -2611,11 +2350,7 @@ export type Database = {
         Returns: boolean
       }
       record_payment_reconciliation_attempt: {
-        Args: {
-          p_attempt_id: string
-          p_custom_checkout: boolean
-          p_error?: string
-        }
+        Args: { p_attempt_id: string; p_checkout: boolean; p_error?: string }
         Returns: boolean
       }
       record_payu_payment_state: {
@@ -2648,6 +2383,13 @@ export type Database = {
         Args: { p_order_id: string; p_reason: string }
         Returns: string
       }
+      reserve_tax_invoice_number: {
+        Args: { p_invoice_id: string }
+        Returns: {
+          invoice_id: string
+          invoice_number: string
+        }[]
+      }
       retry_integration_job: { Args: { p_job_id: string }; Returns: boolean }
       review_artwork_file: {
         Args: {
@@ -2676,6 +2418,24 @@ export type Database = {
           status: string
           title: string
         }[]
+      }
+      save_customer_address: {
+        Args: {
+          p_address_id: string
+          p_city: string
+          p_contact_name: string
+          p_country_code: string
+          p_label: string
+          p_landmark: string
+          p_line1: string
+          p_line2: string
+          p_phone: string
+          p_postal_code: string
+          p_role: string
+          p_state: string
+          p_use_as_shipping: boolean
+        }
+        Returns: string
       }
       save_customer_checkout_defaults: {
         Args: {
@@ -2807,7 +2567,7 @@ export type Database = {
         | "retryable_failure"
         | "permanent_failure"
         | "voided"
-      order_source: "customer_checkout" | "staff_payment_link" | "reorder"
+      order_source: "customer_checkout" | "reorder"
       order_status:
         | "payment_confirmed"
         | "order_review"
@@ -2826,7 +2586,7 @@ export type Database = {
         | "cancelled"
         | "refund_pending"
         | "refunded"
-      order_type: "custom_bulk" | "sample_purchase" | "reorder"
+      order_type: "configurator_order" | "sample_purchase" | "reorder"
       payment_purpose: "order_full" | "refund"
       payment_status:
         | "created"
@@ -2856,7 +2616,6 @@ export type Database = {
         | "delivered"
         | "action_required"
         | "cancelled"
-      quote_status: "draft" | "sent" | "expired" | "paid" | "cancelled"
       staff_role: "founder" | "operations"
     }
     CompositeTypes: {
@@ -3025,7 +2784,7 @@ export const Constants = {
         "permanent_failure",
         "voided",
       ],
-      order_source: ["customer_checkout", "staff_payment_link", "reorder"],
+      order_source: ["customer_checkout", "reorder"],
       order_status: [
         "payment_confirmed",
         "order_review",
@@ -3045,7 +2804,7 @@ export const Constants = {
         "refund_pending",
         "refunded",
       ],
-      order_type: ["custom_bulk", "sample_purchase", "reorder"],
+      order_type: ["configurator_order", "sample_purchase", "reorder"],
       payment_purpose: ["order_full", "refund"],
       payment_status: [
         "created",
@@ -3078,7 +2837,6 @@ export const Constants = {
         "action_required",
         "cancelled",
       ],
-      quote_status: ["draft", "sent", "expired", "paid", "cancelled"],
       staff_role: ["founder", "operations"],
     },
   },

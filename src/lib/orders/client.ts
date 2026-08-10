@@ -5,8 +5,8 @@ import type { CartItem } from "@/components/configurator/cart/OrderReviewStep";
 import type { BuildDraft } from "@/lib/configurator/buildDraft";
 import { isCustomNeckLabel, createStandardNeckLabel } from "@/lib/configurator/neckLabel";
 import {
-  CUSTOM_ORDER_PRIVACY_VERSION,
-  CUSTOM_ORDER_TERMS_VERSION,
+  CHECKOUT_PRIVACY_VERSION,
+  CONFIGURATOR_ORDER_TERMS_VERSION,
 } from "@/lib/orders/terms";
 import { submitPayuCheckout } from "@/lib/payuClient";
 import {
@@ -16,7 +16,7 @@ import {
   type CloudDesignLink,
 } from "@/lib/designs/client";
 
-const PREPARED_ORDER_PREFIX = "garmops:durable-order:";
+const PREPARED_ORDER_PREFIX = "garmops:configurator-order:";
 
 type PreparedOrderItem = {
   cartItemId: string;
@@ -163,7 +163,7 @@ function localDateInIndia(value: string): string {
   }).format(new Date(value));
 }
 
-export async function prepareCustomCheckoutPayment(input: {
+export async function prepareConfiguratorCheckoutPayment(input: {
   cartId: string;
   draft: CartDraft;
 }): Promise<SubmissionResult> {
@@ -261,7 +261,7 @@ export async function prepareCustomCheckoutPayment(input: {
   const billingAddress = billing.sameAsCompanyAddress
     ? input.draft.shippingInformation.address
     : billing.address;
-  const response = await fetch("/api/orders/custom/prepare", {
+  const response = await fetch("/api/orders/configurator/prepare", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -285,8 +285,8 @@ export async function prepareCustomCheckoutPayment(input: {
       saveShippingToAccount: false,
       saveBillingToAccount: false,
       acceptedTerms: true,
-      acceptedTermsVersion: CUSTOM_ORDER_TERMS_VERSION,
-      acceptedPrivacyVersion: CUSTOM_ORDER_PRIVACY_VERSION,
+      acceptedTermsVersion: CONFIGURATOR_ORDER_TERMS_VERSION,
+      acceptedPrivacyVersion: CHECKOUT_PRIVACY_VERSION,
       idempotencyKey: prepared.idempotencyKey,
     }),
   });

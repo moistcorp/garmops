@@ -31,7 +31,6 @@ export async function startSystemJobRun(input: {
   }
   return data.id;
 }
-
 export async function finishSystemJobRun(input: {
   runId: string | null;
   status: "completed" | "failed";
@@ -58,21 +57,21 @@ export async function finishSystemJobRun(input: {
 
 export async function recordPaymentReconciliation(input: {
   attemptId: string;
-  customCheckout: boolean;
+  checkout: boolean;
   error?: string | null;
 }): Promise<void> {
   const { error } = await createAdminClient().rpc(
     "record_payment_reconciliation_attempt",
     {
       p_attempt_id: input.attemptId,
-      p_custom_checkout: input.customCheckout,
+      p_checkout: input.checkout,
       p_error: input.error ?? undefined,
     },
   );
   if (error) {
     console.error("Payment reconciliation metadata could not be recorded", {
       attemptId: input.attemptId,
-      customCheckout: input.customCheckout,
+      checkout: input.checkout,
       error: error.message,
     });
   }

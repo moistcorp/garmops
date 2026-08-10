@@ -21,8 +21,8 @@ export async function loadDurablePaymentResult(
       .eq("order_id", data.order_id)
       .eq("kind", "tax_invoice")
       .maybeSingle(),
-    order.order_type === "custom_bulk"
-      ? admin.from("custom_checkout_sessions")
+    order.order_type === "configurator_order"
+      ? admin.from("checkout_sessions")
           .select("cart_id")
           .eq("final_order_id", data.order_id)
           .maybeSingle()

@@ -9,65 +9,19 @@ import { configuredGstRateBasisPoints } from "@/lib/tax.server";
 import {
   RUSH_DELIVERY_SURCHARGE_PAISE,
 } from "@/lib/configurator/delivery";
-import { getProduct } from "@/lib/configurator/products";
+import { getRequestedDeliveryDateError } from "@/lib/configurator/delivery";
 import { cloudDesignSnapshotSchema } from "@/lib/designs/schema";
-import { currentCustomTermsEvidence } from "@/lib/orders/terms";
+import { currentConfiguratorTermsEvidence } from "@/lib/orders/terms";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { estimateProductionPlanFromDatabase, estimateProductionWindowFromDatabase } from "@/lib/production/server";
+import { estimateStaticDispatchDate } from "@/lib/orders/deliveryEstimate";
 import type { createClient } from "@/lib/supabase/server";
 import type { Json } from "@/types/database.generated";
 
-import { CUSTOM_ORDER_PRICING_VERSION, priceCustomOrder } from "./pricing";
-import type { SubmitCustomOrderRequest } from "./schema";
+import { CONFIGURATOR_ORDER_PRICING_VERSION, priceConfiguratorOrder } from "./pricing";
+import type { SubmitConfiguratorOrderRequest } from "./schema";
 
 type SessionClient = Awaited<ReturnType<typeof createClient>>;
 type AdminClient = ReturnType<typeof createAdminClient>;
-
-function objectValue(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? value as Record<string, unknown>
-    : {};
-}
-
-function stringValue(value: unknown): string | null {
-  return typeof value === "string" && value.trim() ? value : null;
-}
-
-function productionError(plan: Awaited<ReturnType<typeof estimateProductionPlanFromDatabase>>, mode: "rush" | "standard" | "flexible"): Error | null {
-  if (mode === "rush" && !plan.rushEligible) return new Error("Rush delivery is not available for every production path in this cart");
-  if (plan.requestedDateFeasible) return null;
-  const date = mode === "rush" ? plan.earliestRushDate : plan.earliestStandardDate;
-  return new Error(`The requested delivery date is not production-feasible. Choose ${date ?? plan.earliestStandardDate} or later.`);
-}
-
-export async function assertPreparedCheckoutProductionFeasible(payload: unknown): Promise<void> {
-  const root = objectValue(payload);
-  const snapshot = objectValue(root.configurationSnapshot);
-  const rawItems = Array.isArray(snapshot.items) ? snapshot.items : [];
-  const items = rawItems.map((rawItem) => {
-    const item = objectValue(rawItem);
-    const design = objectValue(item.design);
-    const configuration = objectValue(design.configuration);
-    const artwork = objectValue(configuration.artwork);
-    const front = objectValue(artwork.front);
-    const back = objectValue(artwork.back);
-    const colour = objectValue(configuration.colour);
-    const quantity = Number(item.quantity ?? configuration.quantity);
-    const product = getProduct(stringValue(design.configId) ?? "");
-    return {
-      productCategory: product?.category ?? "global",
-      quantity,
-      techniques: [stringValue(front.technique), stringValue(back.technique)],
-      customDye: colour.type === "custom_dye",
-    };
-  });
-  if (!items.length) throw new Error("Checkout production snapshot is invalid");
-  const mode = snapshot.deliveryType === "rush" || snapshot.deliveryType === "flexible" ? snapshot.deliveryType : "standard";
-  const requestedDate = stringValue(snapshot.requestedDeliveryDate) ?? undefined;
-  const plan = await estimateProductionPlanFromDatabase({ items, requestedMode: mode, requestedDate });
-  const error = productionError(plan, mode);
-  if (error) throw error;
-}
 
 function adminClient(): AdminClient {
   return createAdminClient();
@@ -101,7 +55,7 @@ function phoneE164(value: string): string {
 }
 
 function addressSnapshot(
-  address: SubmitCustomOrderRequest["billing"]["address"],
+  address: SubmitConfiguratorOrderRequest["billing"]["address"],
   contactName: string,
   phone: string,
 ): Json {
@@ -188,10 +142,10 @@ async function validateDesignFiles(input: {
   if (totalBytes > 250 * 1024 * 1024) throw new Error("Artwork files exceed the 250 MB order limit");
 }
 
-async function prepareCustomOrder(input: {
+async function prepareConfiguratorOrder(input: {
   supabase: SessionClient;
   user: User;
-  request: SubmitCustomOrderRequest;
+  request: SubmitConfiguratorOrderRequest;
 }): Promise<PreparedCheckout> {
   const { request, user, supabase } = input;
   await assertCustomerPrincipal(user);
@@ -232,7 +186,7 @@ async function prepareCustomOrder(input: {
     return { requestItem: item, project, version, snapshot };
   });
 
-  const pricedItems = resolvedItems.map((item, index) => priceCustomOrder({
+  const pricedItems = resolvedItems.map((item, index) => priceConfiguratorOrder({
     snapshot: item.snapshot,
     sizeQuantities: item.requestItem.sizeQuantities,
     deliveryType: request.deliveryType,
@@ -242,22 +196,11 @@ async function prepareCustomOrder(input: {
     designVersionId: item.version.id,
   }));
 
-  const productionPlan = await estimateProductionPlanFromDatabase({
-    items: resolvedItems.map((item) => {
-      const product = getProduct(item.snapshot.configId);
-      const artwork = item.snapshot.configuration.artwork;
-      return {
-        productCategory: product?.category ?? "global",
-        quantity: item.snapshot.configuration.quantity,
-        techniques: [artwork.front?.technique ?? null, artwork.back?.technique ?? null],
-        customDye: item.snapshot.configuration.colour.type === "custom_dye",
-      };
-    }),
-    requestedMode: request.deliveryType,
-    requestedDate: request.requestedDeliveryDate,
+  const deliveryError = getRequestedDeliveryDateError({
+    deliveryType: request.deliveryType,
+    requestedDeliveryDate: request.requestedDeliveryDate,
   });
-  const productionErrorResult = productionError(productionPlan, request.deliveryType);
-  if (productionErrorResult) throw productionErrorResult;
+  if (deliveryError) throw new Error(deliveryError);
 
   const admin = adminClient();
   await Promise.all(resolvedItems.map((item, index) => validateDesignFiles({
@@ -318,7 +261,7 @@ async function prepareCustomOrder(input: {
     department: request.contact.department ?? null,
     receiveEmails: request.receiveEmails,
   };
-  const terms = currentCustomTermsEvidence();
+  const terms = currentConfiguratorTermsEvidence();
   if (
     request.acceptedTermsVersion !== terms.version ||
     request.acceptedPrivacyVersion !== terms.privacyVersion
@@ -346,12 +289,13 @@ async function prepareCustomOrder(input: {
   };
   const firstItem = resolvedItems[0];
   const payload = {
-    orderType: "custom_bulk",
+    flow: "configurator",
+    orderType: "configurator_order",
     // Retained for compatibility with existing order-level design links. Every
     // line's immutable design references are also stored in its product snapshot.
     designProjectId: firstItem.project.id,
     designVersionId: firstItem.version.id,
-    pricingVersion: CUSTOM_ORDER_PRICING_VERSION,
+    pricingVersion: CONFIGURATOR_ORDER_PRICING_VERSION,
     gstRateBasisPoints: taxRateBasisPoints,
     configurationSchemaVersion: Math.max(...resolvedItems.map((item) => item.snapshot.schemaVersion)),
     customerReference: request.projectName,
@@ -380,7 +324,7 @@ async function prepareCustomOrder(input: {
     userId: user.id,
     request,
     versionIds: resolvedItems.map((item) => item.version.id),
-    pricingVersion: CUSTOM_ORDER_PRICING_VERSION,
+    pricingVersion: CONFIGURATOR_ORDER_PRICING_VERSION,
     subtotalPaise,
     discountPaise,
     taxPaise,
@@ -410,7 +354,7 @@ async function createCheckoutAttempt(input: {
   const admin = adminClient();
   const id = randomUUID();
   const merchantTransactionId = `G${id.replace(/-/g, "").slice(0, 22)}`;
-  const { data, error } = await admin.from("custom_checkout_payment_attempts").insert({
+  const { data, error } = await admin.from("checkout_payment_attempts").insert({
     id,
     checkout_session_id: input.sessionId,
     attempt_number: input.attemptNumber,
@@ -418,7 +362,7 @@ async function createCheckoutAttempt(input: {
     amount_paise: input.prepared.totalPaise,
     currency: "INR",
     status: "created",
-    expected_product_info: "Garmops custom garment order",
+    expected_product_info: "Garmops configurator production order",
     customer_email: input.prepared.customerEmail,
     customer_name: input.prepared.customerName,
     customer_phone: input.prepared.customerPhone,
@@ -427,16 +371,16 @@ async function createCheckoutAttempt(input: {
   return data;
 }
 
-export async function prepareCustomCheckout(input: {
+export async function prepareConfiguratorCheckout(input: {
   supabase: SessionClient;
   user: User;
-  request: SubmitCustomOrderRequest;
+  request: SubmitConfiguratorOrderRequest;
   cartId: string;
   returnPath: string;
 }) {
-  const prepared = await prepareCustomOrder(input);
+  const prepared = await prepareConfiguratorOrder(input);
   const admin = adminClient();
-  const sessionResult = await admin.from("custom_checkout_sessions")
+  const sessionResult = await admin.from("checkout_sessions")
     .select("id, request_hash, status, final_order_id, final_order_number, final_payment_attempt_id, expires_at")
     .eq("customer_user_id", input.user.id)
     .eq("idempotency_key", input.request.idempotencyKey)
@@ -459,8 +403,9 @@ export async function prepareCustomCheckout(input: {
   }
 
   if (!session) {
-    const { data: inserted, error: insertError } = await admin.from("custom_checkout_sessions").insert({
+    const { data: inserted, error: insertError } = await admin.from("checkout_sessions").insert({
       customer_user_id: input.user.id,
+      flow: "configurator",
       cart_id: input.cartId,
       idempotency_key: input.request.idempotencyKey,
       request_hash: prepared.requestHash,
@@ -478,7 +423,7 @@ export async function prepareCustomCheckout(input: {
     if (insertError || !inserted) throw new Error(insertError?.message ?? "Checkout could not be prepared");
     session = inserted;
   } else if (["prepared", "failed", "expired"].includes(session.status)) {
-    const { error: refreshError } = await admin.from("custom_checkout_sessions").update({
+    const { error: refreshError } = await admin.from("checkout_sessions").update({
       status: "prepared",
       rpc_payload: prepared.payload,
       subtotal_paise: prepared.subtotalPaise,
@@ -494,7 +439,7 @@ export async function prepareCustomCheckout(input: {
 
   if (!session) throw new Error("Checkout session could not be prepared");
 
-  const { data: attempts, error: attemptsError } = await admin.from("custom_checkout_payment_attempts")
+  const { data: attempts, error: attemptsError } = await admin.from("checkout_payment_attempts")
     .select("id, attempt_number, status")
     .eq("checkout_session_id", session.id)
     .order("attempt_number", { ascending: false })
@@ -512,7 +457,7 @@ export async function prepareCustomCheckout(input: {
   return { checkoutSessionId: session.id, checkoutPaymentAttemptId: nextAttempt.id, alreadyFinalized: false };
 }
 
-export async function finalizeCustomCheckoutPayment(input: {
+export async function finalizeCheckoutPayment(input: {
   checkoutPaymentAttemptId: string;
   providerPaymentId: string;
   verifiedAmountPaise: number;
@@ -520,8 +465,8 @@ export async function finalizeCustomCheckoutPayment(input: {
 }) {
   const admin = adminClient();
   const { data: checkoutContext, error: checkoutContextError } = await admin
-    .from("custom_checkout_payment_attempts")
-    .select("custom_checkout_sessions!inner(id,rpc_payload)")
+    .from("checkout_payment_attempts")
+    .select("checkout_sessions!inner(id,rpc_payload)")
     .eq("id", input.checkoutPaymentAttemptId)
     .maybeSingle();
   if (checkoutContextError || !checkoutContext) {
@@ -531,39 +476,7 @@ export async function finalizeCustomCheckoutPayment(input: {
     });
     throw new Error("Verified payment could not be reconciled safely");
   }
-  const session = checkoutContext?.custom_checkout_sessions as unknown as { id?: string; rpc_payload?: unknown } | undefined;
-  try {
-    await assertPreparedCheckoutProductionFeasible(session?.rpc_payload);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Production capacity changed after payment verification";
-    const [{ error: attemptError }, { error: sessionError }, { error: jobError }] = await Promise.all([
-      admin.from("custom_checkout_payment_attempts").update({
-        provider_payment_id: input.providerPaymentId,
-        raw_verified_snapshot: input.verifiedSnapshot,
-        status: "failed",
-        failure_code: "PRODUCTION_CAPACITY_EXCEPTION",
-        failure_message: "Verified payment requires manual production-capacity review",
-        failed_at: new Date().toISOString(),
-      }).eq("id", input.checkoutPaymentAttemptId),
-      admin.from("custom_checkout_sessions").update({ status: "failed" }).eq("id", session?.id ?? ""),
-      admin.from("integration_jobs").insert({
-        job_type: "finance_production_capacity_exception",
-        deduplication_key: `production-capacity-exception:${input.checkoutPaymentAttemptId}`,
-        payload: { checkoutPaymentAttemptId: input.checkoutPaymentAttemptId, providerPaymentId: input.providerPaymentId, reason: message },
-      }),
-    ]);
-    if (attemptError || sessionError || jobError) {
-      console.error("Production capacity exception could not be persisted", {
-        checkoutPaymentAttemptId: input.checkoutPaymentAttemptId,
-        attemptError: attemptError?.message ?? null,
-        sessionError: sessionError?.message ?? null,
-        jobError: jobError?.message ?? null,
-      });
-      throw new Error("Verified payment needs manual reconciliation because production capacity changed");
-    }
-    throw new Error("Verified payment needs manual reconciliation because production capacity changed");
-  }
-  const { data, error } = await admin.rpc("finalize_custom_checkout_full_payment", {
+  const { data, error } = await admin.rpc("finalize_checkout_full_payment", {
     p_checkout_payment_attempt_id: input.checkoutPaymentAttemptId,
     p_provider_payment_id: input.providerPaymentId,
     p_verified_amount_paise: input.verifiedAmountPaise,
@@ -573,18 +486,15 @@ export async function finalizeCustomCheckoutPayment(input: {
   const result = data?.[0];
   if (error || !result) throw new Error(error?.message ?? "Verified checkout could not be finalized");
   try {
-    const session = checkoutContext?.custom_checkout_sessions as unknown as { rpc_payload?: unknown } | undefined;
+    const session = checkoutContext?.checkout_sessions as unknown as { rpc_payload?: unknown } | undefined;
     const payload = session?.rpc_payload && typeof session.rpc_payload === "object" && !Array.isArray(session.rpc_payload)
       ? session.rpc_payload as Record<string, unknown>
       : {};
-    const items = Array.isArray(payload.items) ? payload.items : [];
-    const quantity = items.reduce((sum, item) => sum + (item && typeof item === "object" ? Number((item as Record<string, unknown>).quantity) || 0 : 0), 0);
     const configuration = payload.configurationSnapshot && typeof payload.configurationSnapshot === "object" && !Array.isArray(payload.configurationSnapshot)
       ? payload.configurationSnapshot as Record<string, unknown>
       : {};
     const mode = configuration.deliveryType === "rush" || configuration.deliveryType === "flexible" ? configuration.deliveryType : "standard";
-    const window = await estimateProductionWindowFromDatabase({ quantity, requestedMode: mode });
-    const { error: planningError } = await admin.from("orders").update({ estimated_dispatch_at: window.estimatedDispatchDate }).eq("id", result.order_id).is("estimated_dispatch_at", null);
+    const { error: planningError } = await admin.from("orders").update({ estimated_dispatch_at: estimateStaticDispatchDate(mode as "rush" | "standard" | "flexible") }).eq("id", result.order_id).is("estimated_dispatch_at", null);
     if (planningError) {
       console.error("Estimated production dispatch could not be persisted", { orderId: result.order_id, error: planningError.message });
     }

@@ -249,7 +249,7 @@ describe("paid cart cleanup", () => {
       JSON.stringify({ items: [{ id: "item-1" }] }),
     );
     localStorage.setItem("mf_configurator_cart:active_id", "paid-cart");
-    localStorage.setItem("garmops:durable-order:paid-cart", "prepared");
+    localStorage.setItem("garmops:configurator-order:paid-cart", "prepared");
     localStorage.setItem("mf_configurator_build:cart-item:item-1", "draft");
 
     vi.stubGlobal("window", {
@@ -272,7 +272,7 @@ describe("paid cart cleanup", () => {
 
     expect(localStorage.getItem("mf_configurator_cart:paid-cart")).toBeNull();
     expect(localStorage.getItem("mf_configurator_cart:active_id")).toBeNull();
-    expect(localStorage.getItem("garmops:durable-order:paid-cart")).toBeNull();
+    expect(localStorage.getItem("garmops:configurator-order:paid-cart")).toBeNull();
     expect(
       localStorage.getItem("mf_configurator_build:cart-item:item-1"),
     ).toBeNull();

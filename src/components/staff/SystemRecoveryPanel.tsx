@@ -29,7 +29,7 @@ type PendingAttempt = {
   last_reconciled_at: string | null;
   last_reconciliation_error: string | null;
   updated_at: string;
-  custom_checkout_sessions: {
+  checkout_sessions: {
     cart_id: string;
     status: string;
     final_order_number: string | null;
@@ -42,8 +42,15 @@ type FailedJob = {
   attempts: number;
   last_error: string | null;
   updated_at: string;
+  locked_at: string | null;
   payload: Record<string, unknown>;
 };
+
+const LEASE_TIMEOUT_MS = 10 * 60_000;
+
+function isRecoverableJob(job: FailedJob): boolean {
+  return job.status !== "processing" || Boolean(job.locked_at && Date.now() - new Date(job.locked_at).getTime() >= LEASE_TIMEOUT_MS);
+}
 
 function isHealthy(run: JobRun | undefined, maximumAgeMinutes: number): boolean {
   return Boolean(
@@ -61,15 +68,15 @@ export default async function SystemRecoveryPanel() {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const [runsResult, pendingResult, failedResult, queuedResult] = await Promise.all([
     admin.from("system_job_runs").select("id, job_name, status, trigger_source, started_at, completed_at, error_message, summary").order("started_at", { ascending: false }).limit(20),
-    admin.from("custom_checkout_payment_attempts")
-      .select("id, amount_paise, status, customer_email, provider_merchant_txn_id, reconciliation_attempts, last_reconciled_at, last_reconciliation_error, updated_at, custom_checkout_sessions!inner(cart_id, status, final_order_number)")
+    admin.from("checkout_payment_attempts")
+      .select("id, amount_paise, status, customer_email, provider_merchant_txn_id, reconciliation_attempts, last_reconciled_at, last_reconciliation_error, updated_at, checkout_sessions!inner(cart_id, status, final_order_number)")
       .in("status", ["initiated", "pending"])
       .gte("created_at", sevenDaysAgo)
       .order("updated_at")
       .limit(20),
     admin.from("integration_jobs")
-      .select("id, job_type, status, attempts, last_error, updated_at, payload")
-      .in("status", ["retryable_failure", "permanent_failure"])
+      .select("id, job_type, status, attempts, last_error, updated_at, locked_at, payload")
+      .eq("status", "processing")
       .order("updated_at", { ascending: false })
       .limit(20),
     admin.from("integration_jobs").select("id", { count: "exact", head: true }).in("status", ["queued", "retryable_failure"]),
@@ -77,9 +84,9 @@ export default async function SystemRecoveryPanel() {
 
   const runs = (runsResult.data ?? []) as unknown as JobRun[];
   const pending = ((pendingResult.data ?? []) as unknown as PendingAttempt[]).filter(
-    (attempt) => !attempt.custom_checkout_sessions.final_order_number,
+    (attempt) => !attempt.checkout_sessions.final_order_number,
   );
-  const failedJobs = (failedResult.data ?? []) as unknown as FailedJob[];
+  const failedJobs = ((failedResult.data ?? []) as unknown as FailedJob[]).filter(isRecoverableJob);
   const latestJobs = runs.find(
     (run) => run.job_name === "integration_jobs" && run.trigger_source === "cron",
   );
@@ -106,7 +113,7 @@ export default async function SystemRecoveryPanel() {
     <div className="mt-6 grid gap-5 xl:grid-cols-2">
       <div><div className="flex items-center gap-2"><RefreshCw size={16} className="text-[var(--color-accent)]" /><h3 className="text-sm font-semibold">Pending PayU attempts</h3></div><div className="mt-3 space-y-3">{pending.length ? pending.map((attempt) => <div key={attempt.id} className="rounded border border-black/8 p-3"><div className="flex flex-wrap justify-between gap-3"><div><p className="text-sm font-semibold">{attempt.customer_email}</p><p className="mt-1 font-mono text-[10px] text-black/40">{context.role === "founder" ? attempt.provider_merchant_txn_id : "Provider reference restricted"}</p><p className="mt-1 text-xs text-black/50">{formatMoneyPaise(attempt.amount_paise)} · {attempt.status} · updated {formatOrderTimestamp(attempt.updated_at)}</p><p className="mt-1 text-[10px] text-black/40">Rechecks: {attempt.reconciliation_attempts}{attempt.last_reconciled_at ? ` · last ${formatOrderTimestamp(attempt.last_reconciled_at)}` : ""}</p>{attempt.last_reconciliation_error ? <p className="mt-1 text-xs text-red-700">{attempt.last_reconciliation_error}</p> : null}</div><RecheckPaymentForm attemptId={attempt.id} /></div></div>) : <p className="rounded bg-emerald-50 p-3 text-xs text-emerald-800">No unresolved PayU attempts from the last seven days.</p>}</div></div>
 
-      <div><div className="flex items-center gap-2"><Clock3 size={16} className="text-[var(--color-accent)]" /><h3 className="text-sm font-semibold">Failed integration jobs</h3><span className="text-xs text-black/40">{queuedResult.count ?? 0} ready</span></div><div className="mt-3 space-y-3">{failedJobs.length ? failedJobs.map((job) => <div key={job.id} className="rounded border border-black/8 p-3"><div className="flex flex-wrap justify-between gap-3"><div><p className="text-sm font-semibold">{job.job_type.replaceAll("_", " ")}</p><p className="mt-1 text-xs text-black/50">{job.status.replaceAll("_", " ")} · attempt {job.attempts} · {formatOrderTimestamp(job.updated_at)}</p>{job.last_error ? <p className="mt-1 max-w-xl text-xs text-red-700">{job.last_error}</p> : null}</div><RetryIntegrationJobForm jobId={job.id} /></div></div>) : <p className="rounded bg-emerald-50 p-3 text-xs text-emerald-800">No failed invoice or email jobs.</p>}</div></div>
+      <div><div className="flex items-center gap-2"><Clock3 size={16} className="text-[var(--color-accent)]" /><h3 className="text-sm font-semibold">Stale integration jobs</h3><span className="text-xs text-black/40">{queuedResult.count ?? 0} ready</span></div><div className="mt-3 space-y-3">{failedJobs.length ? failedJobs.map((job) => <div key={job.id} className="rounded border border-black/8 p-3"><div className="flex flex-wrap justify-between gap-3"><div><p className="text-sm font-semibold">{job.job_type.replaceAll("_", " ")}</p><p className="mt-1 text-xs text-black/50">{job.status.replaceAll("_", " ")} · attempt {job.attempts} · {formatOrderTimestamp(job.updated_at)}</p>{job.last_error ? <p className="mt-1 max-w-xl text-xs text-red-700">{job.last_error}</p> : null}</div><RetryIntegrationJobForm jobId={job.id} /></div></div>) : <p className="rounded bg-emerald-50 p-3 text-xs text-emerald-800">No integration jobs have exceeded their ten-minute lease.</p>}</div></div>
     </div>
   </section>;
 }

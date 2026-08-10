@@ -1,7 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { requireCustomer } from "@/lib/auth/guards";
-import { addressMutation, companyDetailsSchema, savedAddressSchema } from "@/lib/account/companyDetails";
+import { companyDetailsSchema, savedAddressSchema } from "@/lib/account/companyDetails";
 import { staffActionError, staffActionSuccess, type StaffActionState } from "@/lib/staff/actionState";
 function formValues(formData: FormData) { return Object.fromEntries(formData.entries()); }
 function invalidForm() { return staffActionError("Check the highlighted details and try again."); }
@@ -15,28 +15,41 @@ export async function updateCompanyDetailsAction(_state: StaffActionState, formD
 }
 
 export async function saveBillingAddressAction(_state: StaffActionState, formData: FormData): Promise<StaffActionState> {
-  const parsed = savedAddressSchema.safeParse(formValues(formData)); if (!parsed.success) return invalidForm(); const context = await requireCustomer("/account/billing"); const userId = context.user.id;
-  const { data: existing, error } = await context.supabase.from("addresses").select("id").eq("user_id", userId).eq("is_default_billing", true).maybeSingle(); if (error) return staffActionError("The billing address could not be loaded.");
-  if (parsed.data.useAsShipping) { const unset = await context.supabase.from("addresses").update({ is_default_shipping: false }).eq("user_id", userId).eq("is_default_shipping", true); if (unset.error) return staffActionError("The default shipping address could not be changed."); }
-  const values = { ...addressMutation(parsed.data), label: parsed.data.label ?? "Billing address", is_default_billing: true, is_default_shipping: parsed.data.useAsShipping, user_id: userId };
-  const result = existing ? await context.supabase.from("addresses").update(values).eq("id", existing.id).eq("user_id", userId).select("id").maybeSingle() : await context.supabase.from("addresses").insert(values).select("id").maybeSingle();
+  const parsed = savedAddressSchema.safeParse(formValues(formData)); if (!parsed.success) return invalidForm(); const context = await requireCustomer("/account/billing");
+  const result = await context.supabase.rpc("save_customer_address", {
+    p_address_id: parsed.data.addressId ?? (null as unknown as string),
+    p_role: "billing",
+    p_label: parsed.data.label ?? "Billing address",
+    p_contact_name: parsed.data.contactName ?? (null as unknown as string),
+    p_phone: parsed.data.phone ?? (null as unknown as string),
+    p_line1: parsed.data.line1,
+    p_line2: parsed.data.line2 ?? (null as unknown as string),
+    p_landmark: parsed.data.landmark ?? (null as unknown as string),
+    p_city: parsed.data.city,
+    p_state: parsed.data.state,
+    p_postal_code: parsed.data.postalCode,
+    p_country_code: "IN",
+    p_use_as_shipping: parsed.data.useAsShipping,
+  });
   if (result.error || !result.data) return staffActionError("The billing address could not be saved."); revalidateBilling(); return staffActionSuccess("Billing address saved.");
 }
 
 export async function saveShippingAddressAction(_state: StaffActionState, formData: FormData): Promise<StaffActionState> {
-  const parsed = savedAddressSchema.safeParse(formValues(formData)); if (!parsed.success) return invalidForm(); const context = await requireCustomer("/account/billing"); const userId = context.user.id;
-  const current = parsed.data.addressId ? await context.supabase.from("addresses").select("id, is_default_shipping, is_default_billing").eq("id", parsed.data.addressId).eq("user_id", userId).maybeSingle() : { data: null, error: null };
-  if (current.error || (parsed.data.addressId && !current.data)) return staffActionError("That address is unavailable.");
-  const defaultResult = await context.supabase.from("addresses").select("id").eq("user_id", userId).eq("is_default_shipping", true).maybeSingle(); if (defaultResult.error) return staffActionError("Shipping addresses could not be loaded.");
-  const makeDefault = parsed.data.useAsShipping || current.data?.is_default_shipping === true || !defaultResult.data;
-  if (makeDefault) { let query = context.supabase.from("addresses").update({ is_default_shipping: false }).eq("user_id", userId).eq("is_default_shipping", true); if (current.data?.id) query = query.neq("id", current.data.id); const unset = await query; if (unset.error) return staffActionError("The default shipping address could not be changed."); }
-  const values = {
-    ...addressMutation(parsed.data),
-    label: parsed.data.label ?? "Shipping address",
-    is_default_billing: current.data?.is_default_billing ?? false,
-    is_default_shipping: makeDefault,
-    user_id: userId,
-  };
-  const result = current.data ? await context.supabase.from("addresses").update(values).eq("id", current.data.id).eq("user_id", userId).select("id").maybeSingle() : await context.supabase.from("addresses").insert(values).select("id").maybeSingle();
+  const parsed = savedAddressSchema.safeParse(formValues(formData)); if (!parsed.success) return invalidForm(); const context = await requireCustomer("/account/billing");
+  const result = await context.supabase.rpc("save_customer_address", {
+    p_address_id: parsed.data.addressId ?? (null as unknown as string),
+    p_role: "shipping",
+    p_label: parsed.data.label ?? "Shipping address",
+    p_contact_name: parsed.data.contactName ?? (null as unknown as string),
+    p_phone: parsed.data.phone ?? (null as unknown as string),
+    p_line1: parsed.data.line1,
+    p_line2: parsed.data.line2 ?? (null as unknown as string),
+    p_landmark: parsed.data.landmark ?? (null as unknown as string),
+    p_city: parsed.data.city,
+    p_state: parsed.data.state,
+    p_postal_code: parsed.data.postalCode,
+    p_country_code: "IN",
+    p_use_as_shipping: parsed.data.useAsShipping,
+  });
   if (result.error || !result.data) return staffActionError("The shipping address could not be saved."); revalidateBilling(); return staffActionSuccess("Shipping address saved.");
 }

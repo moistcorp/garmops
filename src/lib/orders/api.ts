@@ -29,16 +29,12 @@ export function orderJson(
   return NextResponse.json(body, { status, headers: noStoreHeaders });
 }
 
-export function durableCustomOrdersAvailable(): boolean {
-  return isFeatureEnabled("DURABLE_CUSTOM_CHECKOUT_ENABLED");
+export function configuratorOrdersAvailable(): boolean {
+  return isFeatureEnabled("CONFIGURATOR_CHECKOUT_ENABLED");
 }
 
-export function durableSampleOrdersAvailable(): boolean {
-  return isFeatureEnabled("DURABLE_SAMPLE_CHECKOUT_ENABLED");
-}
-
-export function durableOrdersAvailable(): boolean {
-  return durableCustomOrdersAvailable() || durableSampleOrdersAvailable();
+export function sampleOrdersAvailable(): boolean {
+  return isFeatureEnabled("SAMPLE_CHECKOUT_ENABLED");
 }
 
 export function hasExpectedOrderOrigin(request: NextRequest): boolean {

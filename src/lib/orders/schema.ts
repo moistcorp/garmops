@@ -60,15 +60,15 @@ const sizeQuantitiesSchema = z.record(
 ).refine((sizes) => Object.keys(sizes).length > 0, "Size allocation is required")
   .refine((sizes) => Object.values(sizes).some((quantity) => quantity > 0), "At least one size needs a quantity");
 
-const customOrderItemSchema = z.object({
+const configuratorOrderItemSchema = z.object({
   cartItemId: z.string().trim().min(1).max(160),
   designProjectId: z.uuid(),
   designVersion: z.number().int().positive(),
   sizeQuantities: sizeQuantitiesSchema,
 }).strict();
 
-export const submitCustomOrderRequestSchema = z.object({
-  items: z.array(customOrderItemSchema).min(1).max(20).superRefine((items, context) => {
+export const submitConfiguratorOrderRequestSchema = z.object({
+  items: z.array(configuratorOrderItemSchema).min(1).max(20).superRefine((items, context) => {
     const seen = new Set<string>();
     items.forEach((item, index) => {
       if (seen.has(item.cartItemId)) {
@@ -103,5 +103,5 @@ export const orderNumberSchema = z.string().regex(/^(?:GAR|SAM)-[0-9]{4}-[0-9]{6
 export const orderListFilterSchema = z.enum(["all", "active", "completed", "cancelled"]);
 export const orderListPageSchema = z.coerce.number().int().min(1).max(10_000);
 
-export type SubmitCustomOrderRequest = z.infer<typeof submitCustomOrderRequestSchema>;
+export type SubmitConfiguratorOrderRequest = z.infer<typeof submitConfiguratorOrderRequestSchema>;
 export type OrderListFilter = z.infer<typeof orderListFilterSchema>;
