@@ -123,7 +123,7 @@ select lives_ok(
 reset role;
 set local role service_role;
 update public.order_files
-set upload_status='finalized',finalized_at=now(),scan_status='manual_review',
+set upload_status='finalized',finalized_at=now(),scan_status='clean',
     review_status='pending_review'
 where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
   and replacement_for_file_id='aaaaaaaa-0000-4000-8000-000000000001';
