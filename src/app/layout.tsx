@@ -4,6 +4,7 @@ import AppChrome from '@/components/common/AppChrome'
 import SatoshiFontResources from '@/components/common/SatoshiFontResources'
 import { googleSiteVerification, siteConfig } from '@/lib/seo'
 import AnalyticsPreferences from '@/components/privacy/AnalyticsPreferences'
+import { isStaffSurface } from '@/lib/config/appSurface'
 
 const googleVerification = googleSiteVerification()
 
@@ -46,13 +47,15 @@ export const metadata: Metadata = {
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const staffSurface = isStaffSurface()
+
   return (
     <html lang={siteConfig.language} className="font-sans">
       <head>
         <SatoshiFontResources />
       </head>
       <body className="font-sans bg-white text-[var(--text-primary)] antialiased">
-        <AppChrome>{children}</AppChrome>
+        <AppChrome staffSurface={staffSurface}>{children}</AppChrome>
         <AnalyticsPreferences />
       </body>
     </html>

@@ -7,14 +7,32 @@ import Footer from "./Footer";
 import WhatsAppButton from "@/components/ui/WhatsAppButton";
 import { useCartStore } from "@/lib/store";
 
-export default function AppChrome({ children }: { children: React.ReactNode }) {
+const FOUNDRY_PORTAL_ROUTES = [
+  "/orders",
+  "/artwork-review",
+  "/payments",
+  "/quotes",
+  "/discounts",
+  "/staff-management",
+  "/settings",
+] as const;
+
+export default function AppChrome({
+  children,
+  staffSurface,
+}: {
+  children: React.ReactNode;
+  staffSurface: boolean;
+}) {
   const pathname = usePathname();
   const isWithin = (route: string) =>
-    pathname === route || pathname.startsWith(`${route}/`);
-  const isFoundryLogin =
-    process.env.NEXT_PUBLIC_APP_SURFACE === "staff" && pathname === "/login";
+    pathname === route || pathname?.startsWith(`${route}/`);
+  const isFoundryLogin = staffSurface && pathname === "/login";
+  const isFoundryPortal =
+    staffSurface && FOUNDRY_PORTAL_ROUTES.some(isWithin);
   const hasDedicatedChrome =
     isFoundryLogin ||
+    isFoundryPortal ||
     isWithin("/configurator") ||
     isWithin("/account") ||
     isWithin("/staff") ||

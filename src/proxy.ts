@@ -39,6 +39,7 @@ const STAFF_PORTAL_PREFIXES = [
   '/staff-management',
   '/settings',
 ]
+const PUBLIC_ASSET_PATH = /\.(?:avif|gif|ico|jpe?g|png|svg|webp|woff2?|webmanifest)$/i
 
 function markdownRewrite(request: NextRequest, sourcePath: string) {
   const destination = request.nextUrl.clone()
@@ -69,6 +70,10 @@ function isStaffPortalPath(pathname: string): boolean {
   return STAFF_PORTAL_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   )
+}
+
+function isPublicAssetPath(pathname: string): boolean {
+  return PUBLIC_ASSET_PATH.test(pathname)
 }
 
 function redirectWithSession(
@@ -142,6 +147,7 @@ async function routeRequest(request: NextRequest) {
       (request.method === 'GET' || request.method === 'HEAD') &&
       !STAFF_AUTH_PATHS.has(pathname) &&
       !isStaffPortalPath(pathname) &&
+      !isPublicAssetPath(pathname) &&
       !pathname.startsWith('/api/') &&
       !pathname.startsWith('/payment/')
     ) {
