@@ -1,7 +1,7 @@
 create extension if not exists pgtap with schema extensions;
 begin;
 set local search_path = public, extensions;
-select plan(36);
+select plan(50);
 
 insert into public.orders(
   id,order_number,order_type,order_source,customer_user_id,status,public_status,
@@ -121,6 +121,7 @@ select lives_ok(
 );
 
 reset role;
+set local role service_role;
 update public.order_files
 set upload_status='finalized',finalized_at=now(),scan_status='manual_review',
     review_status='pending_review'
@@ -248,6 +249,71 @@ select throws_ok(
   'P0001','ARTWORK_APPROVAL_REQUIRED','production approval rejects a pending current artwork revision'
 );
 select is((select count(*) from public.order_artwork_requirements where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and is_active),1::bigint,'replacement retries never create two active revisions');
+
+-- Human review never changes the independent malware state, and production
+-- approval remains blocked until the scanner has returned clean.
+reset role;
+set local role service_role;
+update public.order_files
+set upload_status='finalized', finalized_at=now(), deleted_at=null,
+    review_status='pending_review', scan_status='pending_scan'
+where id=(select file_id from public.order_artwork_requirements where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and is_active);
+set local role authenticated;
+select set_config('request.jwt.claims','{"sub":"55555555-5555-4555-8555-555555555555","role":"authenticated","aal":"aal2"}',true);
+select lives_ok(
+  $$select public.review_artwork_file((select file_id from public.order_artwork_requirements where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and is_active),'approved',null)$$,
+  'staff approval can review a file still awaiting malware scan'
+);
+select is((select scan_status::text from public.order_files where id=(select file_id from public.order_artwork_requirements where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and is_active)),'pending_scan','pending malware state is not promoted by human approval');
+
+reset role;
+set local role service_role;
+update public.order_files
+set upload_status='finalized', finalized_at=now(), deleted_at=null,
+    review_status='pending_review', scan_status='infected'
+where id=(select file_id from public.order_artwork_requirements where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and is_active);
+set local role authenticated;
+select lives_ok(
+  $$select public.review_artwork_file((select file_id from public.order_artwork_requirements where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and is_active),'approved',null)$$,
+  'staff approval can never overwrite an infected scanner result'
+);
+select is((select scan_status::text from public.order_files where id=(select file_id from public.order_artwork_requirements where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and is_active)),'infected','infected malware state remains terminal');
+
+reset role;
+update public.orders set status='artwork_approved', public_status='approved_for_production'
+where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+set local role authenticated;
+select throws_ok(
+  $$select public.staff_transition_order('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','production_approved',null,null,null)$$,
+  'P0001','ARTWORK_APPROVAL_REQUIRED','infected artwork cannot pass production approval'
+);
+
+reset role;
+set local role service_role;
+update public.order_files
+set upload_status='finalized', finalized_at=now(), deleted_at=null,
+    review_status='pending_review', scan_status='clean'
+where id=(select file_id from public.order_artwork_requirements where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and is_active);
+set local role authenticated;
+select lives_ok(
+  $$select public.review_artwork_file((select file_id from public.order_artwork_requirements where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and is_active),'approved',null)$$,
+  'clean scanner result can be approved for human review'
+);
+select lives_ok(
+  $$select public.staff_transition_order('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','production_approved',null,null,null)$$,
+  'clean and approved artwork can pass production approval'
+);
+select is((select status::text from public.orders where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),'production_approved','production approval succeeds only after clean scan');
+
+select ok(has_table_privilege('authenticated','public.customer_privacy_preferences','SELECT'),'authenticated customers can read their privacy preference through RLS');
+select ok(has_table_privilege('authenticated','public.privacy_requests','INSERT'),'authenticated customers can submit privacy requests through RLS');
+select ok(has_table_privilege('authenticated','public.production_capacity_rules','SELECT'),'authenticated staff can read production capacity settings through RLS');
+select set_config('request.jwt.claims','{"sub":"44444444-4444-4444-8444-444444444444","role":"authenticated","aal":"aal1"}',true);
+select is((select count(*) from public.account_principals where user_id='11111111-1111-4111-8111-111111111111'),0::bigint,'Founder AAL1 cannot read customer principals');
+select set_config('request.jwt.claims','{"sub":"44444444-4444-4444-8444-444444444444","role":"authenticated","aal":"aal2"}',true);
+select is((select count(*) from public.account_principals where user_id='11111111-1111-4111-8111-111111111111'),1::bigint,'Founder AAL2 can read authorized principals');
+select set_config('request.jwt.claims','{"sub":"55555555-5555-4555-8555-555555555555","role":"authenticated","aal":"aal2"}',true);
+select is((select count(*) from public.account_principals where user_id='44444444-4444-4444-8444-444444444444'),0::bigint,'Operations cannot read Founder-only principals');
 
 select * from finish();
 rollback;

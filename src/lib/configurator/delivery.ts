@@ -4,9 +4,15 @@ import { RUSH_DELIVERY_FEE_PER_UNIT } from "@/lib/pricingRules";
 
 const INDIA_TIME_ZONE = "Asia/Kolkata";
 
-function addDays(date: Date, days: number): Date {
-  const result = new Date(date);
-  result.setDate(result.getDate() + days);
+function addWorkingDays(date: Date, days: number): Date {
+  const result = startOfDay(date);
+  let counted = 0;
+  while (counted < days) {
+    result.setDate(result.getDate() + 1);
+    // Production's fallback calendar is Monday-Saturday; Foundry-configured
+    // calendars are applied by the server-authoritative planner at checkout.
+    if (result.getDay() !== 0) counted += 1;
+  }
   return result;
 }
 
@@ -71,8 +77,8 @@ export function parseIsoDateOnly(value: string): Date | null {
 }
 
 export function getDeliveryOptions(orderConfirmedDate: Date, extraLeadTimeDays = 0): DeliveryOptions {
-  const standard = addDays(orderConfirmedDate, 35 + extraLeadTimeDays);
-  const rush = addDays(orderConfirmedDate, 18 + extraLeadTimeDays);
+  const standard = addWorkingDays(orderConfirmedDate, 35 + extraLeadTimeDays);
+  const rush = addWorkingDays(orderConfirmedDate, 18 + extraLeadTimeDays);
 
   return {
     rush,

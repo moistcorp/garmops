@@ -222,6 +222,10 @@ async function handleJob(job: IntegrationJob): Promise<void> {
     await sendFinanceAlert(job, "PayU verified more than one successful attempt for the same checkout. Review and refund the duplicate manually.");
     return;
   }
+  if (job.job_type === "finance_production_capacity_exception") {
+    await sendFinanceAlert(job, "PayU verified a payment after production feasibility changed. Reconcile the payment and contact the customer before creating or refunding the order.");
+    return;
+  }
   if (job.job_type === "send_staff_quote") {
     // Quote email delivery is implemented by the staff quote route, which stores
     // the one-time token URL in the job payload. Keeping it in the same queue

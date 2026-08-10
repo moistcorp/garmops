@@ -6,15 +6,14 @@ import type { User } from "@supabase/supabase-js";
 import { getServerEnvironment } from "@/lib/config/env";
 import { calculateTaxPaise } from "@/lib/tax";
 import { configuredGstRateBasisPoints } from "@/lib/tax.server";
-import { CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS } from "@/lib/configurator/colourRules";
 import {
-  getRequestedDeliveryDateError,
   RUSH_DELIVERY_SURCHARGE_PAISE,
 } from "@/lib/configurator/delivery";
+import { getProduct } from "@/lib/configurator/products";
 import { cloudDesignSnapshotSchema } from "@/lib/designs/schema";
 import { currentCustomTermsEvidence } from "@/lib/orders/terms";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { estimateProductionWindowFromDatabase } from "@/lib/production/server";
+import { estimateProductionPlanFromDatabase, estimateProductionWindowFromDatabase } from "@/lib/production/server";
 import type { createClient } from "@/lib/supabase/server";
 import type { Json } from "@/types/database.generated";
 
@@ -23,6 +22,52 @@ import type { SubmitCustomOrderRequest } from "./schema";
 
 type SessionClient = Awaited<ReturnType<typeof createClient>>;
 type AdminClient = ReturnType<typeof createAdminClient>;
+
+function objectValue(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function stringValue(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
+function productionError(plan: Awaited<ReturnType<typeof estimateProductionPlanFromDatabase>>, mode: "rush" | "standard" | "flexible"): Error | null {
+  if (mode === "rush" && !plan.rushEligible) return new Error("Rush delivery is not available for every production path in this cart");
+  if (plan.requestedDateFeasible) return null;
+  const date = mode === "rush" ? plan.earliestRushDate : plan.earliestStandardDate;
+  return new Error(`The requested delivery date is not production-feasible. Choose ${date ?? plan.earliestStandardDate} or later.`);
+}
+
+export async function assertPreparedCheckoutProductionFeasible(payload: unknown): Promise<void> {
+  const root = objectValue(payload);
+  const snapshot = objectValue(root.configurationSnapshot);
+  const rawItems = Array.isArray(snapshot.items) ? snapshot.items : [];
+  const items = rawItems.map((rawItem) => {
+    const item = objectValue(rawItem);
+    const design = objectValue(item.design);
+    const configuration = objectValue(design.configuration);
+    const artwork = objectValue(configuration.artwork);
+    const front = objectValue(artwork.front);
+    const back = objectValue(artwork.back);
+    const colour = objectValue(configuration.colour);
+    const quantity = Number(item.quantity ?? configuration.quantity);
+    const product = getProduct(stringValue(design.configId) ?? "");
+    return {
+      productCategory: product?.category ?? "global",
+      quantity,
+      techniques: [stringValue(front.technique), stringValue(back.technique)],
+      customDye: colour.type === "custom_dye",
+    };
+  });
+  if (!items.length) throw new Error("Checkout production snapshot is invalid");
+  const mode = snapshot.deliveryType === "rush" || snapshot.deliveryType === "flexible" ? snapshot.deliveryType : "standard";
+  const requestedDate = stringValue(snapshot.requestedDeliveryDate) ?? undefined;
+  const plan = await estimateProductionPlanFromDatabase({ items, requestedMode: mode, requestedDate });
+  const error = productionError(plan, mode);
+  if (error) throw error;
+}
 
 function adminClient(): AdminClient {
   return createAdminClient();
@@ -187,16 +232,6 @@ async function prepareCustomOrder(input: {
     return { requestItem: item, project, version, snapshot };
   });
 
-  const hasCustomDye = resolvedItems.some(
-    (item) => item.snapshot.configuration.colour.type === "custom_dye",
-  );
-  const deliveryDateError = getRequestedDeliveryDateError({
-    deliveryType: request.deliveryType,
-    requestedDeliveryDate: request.requestedDeliveryDate,
-    extraLeadTimeDays: hasCustomDye ? CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS.max : 0,
-  });
-  if (deliveryDateError) throw new Error(deliveryDateError);
-
   const pricedItems = resolvedItems.map((item, index) => priceCustomOrder({
     snapshot: item.snapshot,
     sizeQuantities: item.requestItem.sizeQuantities,
@@ -206,6 +241,23 @@ async function prepareCustomOrder(input: {
     designProjectId: item.project.id,
     designVersionId: item.version.id,
   }));
+
+  const productionPlan = await estimateProductionPlanFromDatabase({
+    items: resolvedItems.map((item) => {
+      const product = getProduct(item.snapshot.configId);
+      const artwork = item.snapshot.configuration.artwork;
+      return {
+        productCategory: product?.category ?? "global",
+        quantity: item.snapshot.configuration.quantity,
+        techniques: [artwork.front?.technique ?? null, artwork.back?.technique ?? null],
+        customDye: item.snapshot.configuration.colour.type === "custom_dye",
+      };
+    }),
+    requestedMode: request.deliveryType,
+    requestedDate: request.requestedDeliveryDate,
+  });
+  const productionErrorResult = productionError(productionPlan, request.deliveryType);
+  if (productionErrorResult) throw productionErrorResult;
 
   const admin = adminClient();
   await Promise.all(resolvedItems.map((item, index) => validateDesignFiles({
@@ -467,11 +519,50 @@ export async function finalizeCustomCheckoutPayment(input: {
   verifiedSnapshot: Json;
 }) {
   const admin = adminClient();
-  const { data: checkoutContext } = await admin
+  const { data: checkoutContext, error: checkoutContextError } = await admin
     .from("custom_checkout_payment_attempts")
-    .select("custom_checkout_sessions!inner(rpc_payload)")
+    .select("custom_checkout_sessions!inner(id,rpc_payload)")
     .eq("id", input.checkoutPaymentAttemptId)
     .maybeSingle();
+  if (checkoutContextError || !checkoutContext) {
+    console.error("Verified checkout production snapshot could not be loaded", {
+      checkoutPaymentAttemptId: input.checkoutPaymentAttemptId,
+      error: checkoutContextError?.message ?? "missing checkout session",
+    });
+    throw new Error("Verified payment could not be reconciled safely");
+  }
+  const session = checkoutContext?.custom_checkout_sessions as unknown as { id?: string; rpc_payload?: unknown } | undefined;
+  try {
+    await assertPreparedCheckoutProductionFeasible(session?.rpc_payload);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Production capacity changed after payment verification";
+    const [{ error: attemptError }, { error: sessionError }, { error: jobError }] = await Promise.all([
+      admin.from("custom_checkout_payment_attempts").update({
+        provider_payment_id: input.providerPaymentId,
+        raw_verified_snapshot: input.verifiedSnapshot,
+        status: "failed",
+        failure_code: "PRODUCTION_CAPACITY_EXCEPTION",
+        failure_message: "Verified payment requires manual production-capacity review",
+        failed_at: new Date().toISOString(),
+      }).eq("id", input.checkoutPaymentAttemptId),
+      admin.from("custom_checkout_sessions").update({ status: "failed" }).eq("id", session?.id ?? ""),
+      admin.from("integration_jobs").insert({
+        job_type: "finance_production_capacity_exception",
+        deduplication_key: `production-capacity-exception:${input.checkoutPaymentAttemptId}`,
+        payload: { checkoutPaymentAttemptId: input.checkoutPaymentAttemptId, providerPaymentId: input.providerPaymentId, reason: message },
+      }),
+    ]);
+    if (attemptError || sessionError || jobError) {
+      console.error("Production capacity exception could not be persisted", {
+        checkoutPaymentAttemptId: input.checkoutPaymentAttemptId,
+        attemptError: attemptError?.message ?? null,
+        sessionError: sessionError?.message ?? null,
+        jobError: jobError?.message ?? null,
+      });
+      throw new Error("Verified payment needs manual reconciliation because production capacity changed");
+    }
+    throw new Error("Verified payment needs manual reconciliation because production capacity changed");
+  }
   const { data, error } = await admin.rpc("finalize_custom_checkout_full_payment", {
     p_checkout_payment_attempt_id: input.checkoutPaymentAttemptId,
     p_provider_payment_id: input.providerPaymentId,
@@ -493,7 +584,10 @@ export async function finalizeCustomCheckoutPayment(input: {
       : {};
     const mode = configuration.deliveryType === "rush" || configuration.deliveryType === "flexible" ? configuration.deliveryType : "standard";
     const window = await estimateProductionWindowFromDatabase({ quantity, requestedMode: mode });
-    await admin.from("orders").update({ estimated_dispatch_at: window.estimatedDispatchDate }).eq("id", result.order_id).is("estimated_dispatch_at", null);
+    const { error: planningError } = await admin.from("orders").update({ estimated_dispatch_at: window.estimatedDispatchDate }).eq("id", result.order_id).is("estimated_dispatch_at", null);
+    if (planningError) {
+      console.error("Estimated production dispatch could not be persisted", { orderId: result.order_id, error: planningError.message });
+    }
   } catch {
     // A verified payment and durable order must not fail because planning data is unavailable.
   }

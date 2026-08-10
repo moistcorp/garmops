@@ -9,6 +9,7 @@ import {
   orderJsonError,
   readOrderJson,
 } from "@/lib/orders/api";
+import { assertPreparedCheckoutProductionFeasible } from "@/lib/orders/service";
 import { buildPayuCheckout } from "@/lib/providers/payu/client";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requestIdFrom, withRequestId } from "@/lib/http/requestId";
@@ -27,6 +28,7 @@ type CheckoutSessionSnapshot = {
   status: string;
   expires_at: string;
   final_order_number: string | null;
+  rpc_payload: unknown;
 };
 
 async function initiateCheckoutAttempt(input: {
@@ -37,7 +39,7 @@ async function initiateCheckoutAttempt(input: {
   const { data: attempt, error } = await admin
     .from("custom_checkout_payment_attempts")
     .select(
-      "id, checkout_session_id, status, amount_paise, currency, provider_merchant_txn_id, expected_product_info, customer_email, customer_name, customer_phone, custom_checkout_sessions!inner(id, customer_user_id, status, expires_at, final_order_number)",
+      "id, checkout_session_id, status, amount_paise, currency, provider_merchant_txn_id, expected_product_info, customer_email, customer_name, customer_phone, custom_checkout_sessions!inner(id, customer_user_id, status, expires_at, final_order_number, rpc_payload)",
     )
     .eq("id", input.requestId)
     .maybeSingle();
@@ -79,6 +81,7 @@ async function initiateCheckoutAttempt(input: {
   }
 
   try {
+    await assertPreparedCheckoutProductionFeasible(session.rpc_payload);
     const checkout = buildPayuCheckout({
       merchantTransactionId: attempt.provider_merchant_txn_id,
       paymentAttemptId: attempt.id,

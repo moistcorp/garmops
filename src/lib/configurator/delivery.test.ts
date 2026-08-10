@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   getIndiaCalendarDate,
+  getDeliveryOptions,
   getRequestedDeliveryDateError,
 } from "./delivery";
 
@@ -10,12 +11,6 @@ function isoDate(date: Date): string {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
-}
-
-function addDays(date: Date, days: number): Date {
-  const result = new Date(date);
-  result.setDate(result.getDate() + days);
-  return result;
 }
 
 describe("delivery date validation", () => {
@@ -31,7 +26,7 @@ describe("delivery date validation", () => {
     expect(
       getRequestedDeliveryDateError({
         deliveryType: "standard",
-        requestedDeliveryDate: isoDate(addDays(today, 35)),
+        requestedDeliveryDate: isoDate(getDeliveryOptions(today).standard),
         now,
       }),
     ).toBeNull();
@@ -41,10 +36,12 @@ describe("delivery date validation", () => {
     const now = new Date("2026-08-05T06:00:00.000Z");
     const today = getIndiaCalendarDate(now);
 
+    const standard = getDeliveryOptions(today).standard;
+    standard.setDate(standard.getDate() - 1);
     expect(
       getRequestedDeliveryDateError({
         deliveryType: "standard",
-        requestedDeliveryDate: isoDate(addDays(today, 34)),
+        requestedDeliveryDate: isoDate(standard),
         now,
       }),
     ).toContain("no longer available");
@@ -57,7 +54,7 @@ describe("delivery date validation", () => {
     expect(
       getRequestedDeliveryDateError({
         deliveryType: "rush",
-        requestedDeliveryDate: isoDate(addDays(today, 33)),
+        requestedDeliveryDate: isoDate(getDeliveryOptions(today, 15).rush),
         extraLeadTimeDays: 15,
         now,
       }),
@@ -68,10 +65,12 @@ describe("delivery date validation", () => {
     const now = new Date("2026-08-05T06:00:00.000Z");
     const today = getIndiaCalendarDate(now);
 
+    const standard = getDeliveryOptions(today).standard;
+    standard.setDate(standard.getDate() - 1);
     expect(
       getRequestedDeliveryDateError({
         deliveryType: "flexible",
-        requestedDeliveryDate: isoDate(addDays(today, 34)),
+        requestedDeliveryDate: isoDate(standard),
         now,
       }),
     ).toContain("on or after");
