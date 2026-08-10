@@ -87,10 +87,13 @@ function writePreparedOrder(cartId: string, value: PreparedOrder): void {
   }
 }
 
-function draftForItem(item: CartItem): BuildDraft {
+export function buildCheckoutDraftForItem(item: CartItem): BuildDraft {
   const hasArtwork = Boolean(item.artwork.front || item.artwork.back);
-  const hasNeckLabel = isCustomNeckLabel(item.neckLabel);
-  const neckLabel = item.neckLabel ?? createStandardNeckLabel();
+  const currentNeckLabel = item.neckLabel ?? createStandardNeckLabel();
+  const hasNeckLabel = isCustomNeckLabel(currentNeckLabel);
+  const neckLabel = hasNeckLabel
+    ? currentNeckLabel
+    : { ...currentNeckLabel, confirmed: true };
   return {
     version: 1,
     savedAt: new Date().toISOString(),
@@ -188,7 +191,7 @@ export async function prepareCustomCheckoutPayment(input: {
         configId: item.productId,
         storageKey,
         productName: item.productName,
-        draft: draftForItem(item),
+        draft: buildCheckoutDraftForItem(item),
         existingLink: readCloudDesignLink(storageKey),
         operationKey: `checkout:${input.cartId}:${item.id}`,
       });
