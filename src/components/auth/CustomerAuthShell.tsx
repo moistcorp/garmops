@@ -15,7 +15,7 @@ export default function CustomerAuthShell({
   return (
     <div className="techpack-canvas techpack-paper-grid min-h-screen px-4 py-10 sm:px-6 sm:py-16">
       <section className="mx-auto w-full max-w-[520px] border border-[var(--color-rule)] bg-white">
-        <div className="flex items-center justify-between border-b border-[var(--color-rule)] px-5 py-3 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--text-primary)]/40 sm:px-10">
+        <div className="flex items-center justify-between border-b border-[var(--color-rule)] px-5 py-3 font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-primary)]/40 sm:px-10">
           <Link href="/" aria-label="Garmops home" className="inline-flex">
             <GarmopsLogo className="h-3 w-auto" />
           </Link>

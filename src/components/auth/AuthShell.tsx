@@ -23,7 +23,7 @@ export default function AuthShell({
               <Link href="/" aria-label="Garmops home" className="inline-flex">
                 <GarmopsLogo inverted className="h-4 w-auto" />
               </Link>
-              <p className="mt-2 font-mono text-[9px] uppercase tracking-[0.14em] text-white/35">Access control / secure</p>
+              <p className="mt-2 font-mono text-xs uppercase tracking-[0.14em] text-white/35">Access control / secure</p>
             </div>
             <div>
               <p className="mb-4 text-xs uppercase tracking-[0.24em] text-white/45">

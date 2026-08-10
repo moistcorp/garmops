@@ -222,7 +222,7 @@ export default async function AccountOrderDetailPage({ params }: { params: Promi
 
         <section className="techpack-surface rounded border p-6">
           <div className="flex items-center gap-2"><Clock3 size={18} className="text-[var(--color-accent)]" /><h2 className="font-semibold">Production timeline</h2></div>
-          <div className="mt-4 space-y-4">{history.map((entry) => <div key={entry.id} className="border-l border-black/10 pl-4"><p className="text-sm font-semibold">{ORDER_STATUS_LABELS[entry.to_status as OrderStatus] ?? publicOrderStatusLabel(entry.public_status)}</p><p className="mt-1 text-xs text-black/50">{entry.customer_message ?? publicOrderStatusLabel(entry.public_status)}</p><p className="mt-1 text-[10px] text-black/35">{formatOrderTimestamp(entry.created_at)}</p></div>)}</div>
+          <div className="mt-4 space-y-4">{history.map((entry) => <div key={entry.id} className="border-l border-black/10 pl-4"><p className="text-sm font-semibold">{ORDER_STATUS_LABELS[entry.to_status as OrderStatus] ?? publicOrderStatusLabel(entry.public_status)}</p><p className="mt-1 text-xs text-black/50">{entry.customer_message ?? publicOrderStatusLabel(entry.public_status)}</p><p className="mt-1 text-xs text-black/35">{formatOrderTimestamp(entry.created_at)}</p></div>)}</div>
         </section>
       </div>
 

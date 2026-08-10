@@ -46,7 +46,7 @@ function Stepper({ label, value, onChange, min, max = MAX_DIM, tooltip, disabled
         {tooltip && (
           <span className="group relative inline-flex">
             <Info className="h-3 w-3 text-neutral-400" />
-            <span className="pointer-events-none absolute bottom-full left-1/2 mb-1 w-40 -translate-x-1/2 rounded bg-neutral-900 px-2 py-1 text-[11px] leading-snug text-white opacity-0  transition-opacity group-hover:opacity-100 z-10">
+            <span className="pointer-events-none absolute bottom-full left-1/2 mb-1 w-40 -translate-x-1/2 rounded bg-neutral-900 px-2 py-1 text-xs leading-relaxed text-white opacity-0  transition-opacity group-hover:opacity-100 z-10">
               {tooltip}
             </span>
           </span>

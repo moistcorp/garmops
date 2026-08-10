@@ -49,7 +49,7 @@ export default function StitchSelect({ value, onChange }: StitchSelectProps): JS
           >
             <StitchDiagram value={option.value} selected={selected} />
             <span className="mt-2 block text-xs font-semibold leading-tight">{option.label}</span>
-            <span className="mt-1 block text-[10px] font-normal leading-tight opacity-65">{option.detail}</span>
+            <span className="mt-1 block text-xs font-normal leading-relaxed opacity-65">{option.detail}</span>
           </button>
         );
       })}

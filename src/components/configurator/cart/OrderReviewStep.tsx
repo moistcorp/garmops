@@ -321,7 +321,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
         {feedback && <ActionFeedback {...feedback} onDismiss={feedback.tone === 'loading' ? undefined : () => setFeedback(null)} actionLabel={feedback.tone === 'error' ? 'Retry PDF' : undefined} onAction={feedback.tone === 'error' ? handleDownloadApprovalPdf : undefined} />}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--color-accent)]">
+            <p className="font-mono text-xs font-medium uppercase tracking-[0.08em] text-[var(--color-accent)]">
               Sizes &amp; quantity
             </p>
             <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Choose sizes &amp; quantity</h1>
@@ -447,7 +447,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                 <div className="min-w-0 flex-1 space-y-5">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--color-accent)]">
+                      <p className="font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--color-accent)]">
                         Line {itemIndex + 1}
                       </p>
                       <h2 className="text-lg font-medium text-[var(--text-primary)]">
@@ -499,14 +499,14 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
 
                   <div className="grid gap-px overflow-hidden border border-[var(--color-rule)] bg-[var(--color-rule)] sm:grid-cols-2">
                     <div className="bg-white px-4 py-3">
-                      <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--text-primary)]/45">Minimum order</p>
+                      <p className="font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--text-primary)]/45">Minimum order</p>
                       <p className="mt-1 font-mono text-xl font-semibold tabular-nums text-[var(--text-primary)]">
                         {itemMinimumUnits.toLocaleString("en-IN")} pieces
                       </p>
                       <p className="mt-1 text-xs text-[var(--text-primary)]/55">Minimum applies to this product configuration.</p>
                     </div>
                     <div className="bg-white px-4 py-3">
-                      <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--color-accent)]">Total quantity</p>
+                        <p className="font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--color-accent)]">Total quantity</p>
                       <p className="mt-1 font-mono text-xl font-semibold tabular-nums text-[var(--text-primary)]">
                         {itemUnits.toLocaleString("en-IN")} pieces
                       </p>
@@ -551,7 +551,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                   {artworkSizeConflict && (
                     <div className="flex flex-col gap-3 rounded-[4px] border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="alert">
                       <div>
-                        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em]">Artwork adjustment needed</p>
+                        <p className="font-mono text-xs font-semibold uppercase tracking-[0.08em]">Artwork adjustment needed</p>
                         <p className="mt-1 text-xs leading-relaxed">
                           Your artwork was positioned for {artworkSizeConflict.configuredFor} and above. You&apos;ve added size {artworkSizeConflict.actualSmallestSize}, which has a smaller printable area.
                         </p>
@@ -587,28 +587,28 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
 
                   <div className="grid gap-4 border-y border-[var(--color-rule)] py-4 sm:grid-cols-2">
                     <div>
-                      <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--text-primary)]/45">Quantity pricing</p>
+                    <p className="font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--text-primary)]/45">Quantity pricing</p>
                       <p className="mt-1 font-mono text-sm font-semibold text-[var(--text-primary)]">
                         {formatInr(itemUnitPrice)} / piece
                       </p>
                     </div>
                     {nextTier && nextTierPricing ? (
                       <div>
-                        <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--text-primary)]/45">Next price break</p>
+                        <p className="font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--text-primary)]/45">Next price break</p>
                         <p className="mt-1 text-xs text-[var(--text-primary)]/70">
                           Add {(nextTier.minQty - itemUnits).toLocaleString("en-IN")} more pieces to reach {nextTier.minQty.toLocaleString("en-IN")} pieces · {formatInr(nextTierPricing.discountedUnitPaise / 100)} / piece
                         </p>
                       </div>
                     ) : (
                       <div>
-                        <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--text-primary)]/45">Price tier</p>
+                        <p className="font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--text-primary)]/45">Price tier</p>
                         <p className="mt-1 text-xs text-[var(--text-primary)]/70">Highest quantity tier reached.</p>
                       </div>
                     )}
                   </div>
 
                   <div className="rounded-[4px] border border-[var(--color-rule)] bg-[#F7F7F7] px-4 py-4 text-sm text-[var(--text-primary)]">
-                    <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--color-accent)]">Size &amp; quantity</p>
+                    <p className="font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--color-accent)]">Size &amp; quantity</p>
                     <div className="mt-3 space-y-1.5">
                       {nonZeroSizes.length ? nonZeroSizes.map((size) => (
                         <div key={size} className="flex items-center justify-between gap-4 text-xs">

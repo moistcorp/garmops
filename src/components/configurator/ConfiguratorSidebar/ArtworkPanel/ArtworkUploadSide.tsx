@@ -305,7 +305,7 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
       ) : (
         <div className="techpack-subtle flex flex-col gap-3 rounded-[4px] p-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-[var(--color-rule)] bg-white text-center text-[10px] font-semibold uppercase tracking-wide text-[var(--text-primary)]/55">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-[var(--color-rule)] bg-white text-center text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/55">
               {value.fileUrl && (value.fileType === "jpg" || value.fileType === "png" || value.fileType === "svg") ? (
                 <img src={value.fileUrl} alt="" className="h-full w-full object-contain p-1" />
               ) : (

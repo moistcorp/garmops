@@ -47,7 +47,7 @@ export default function ProductPickerCartLink() {
       className="relative m-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px] border border-[var(--color-rule)] bg-[var(--color-cream)] text-[var(--color-accent)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)] hover:text-white"
     >
       <ShoppingCart size={21} strokeWidth={1.8} />
-      <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-[4px] border border-[var(--color-accent)] bg-[var(--color-accent)] px-1 font-mono text-[10px] font-medium text-white">
+      <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-[4px] border border-[var(--color-accent)] bg-[var(--color-accent)] px-1 font-mono text-xs font-medium text-white">
         {summary?.itemCount ?? 0}
       </span>
     </Link>

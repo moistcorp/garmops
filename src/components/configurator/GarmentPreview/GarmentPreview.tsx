@@ -61,7 +61,7 @@ export default function GarmentPreview({
       </div>
 
       <div className="pointer-events-none absolute inset-x-4 bottom-2 z-20 flex flex-col items-start gap-2">
-        {quality?.effectivePpi && <p className="text-[11px] text-[var(--text-primary)]/50">Artwork quality is assessed at its current physical size.</p>}
+        {quality?.effectivePpi && <p className="text-xs leading-relaxed text-[var(--text-primary)]/50">Artwork quality is assessed at its current physical size.</p>}
         <div className="pointer-events-auto">
           <ViewTabs
             activeView={activeView}

@@ -126,7 +126,7 @@ export default function Navbar() {
                   key={link.href}
                   href={link.href}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`inline-flex min-h-10 items-center border-b-2 font-mono text-[11px] uppercase tracking-[0.06em] transition-colors ${
+                  className={`inline-flex min-h-10 items-center border-b-2 font-mono text-xs uppercase tracking-[0.06em] transition-colors ${
                     isActive
                       ? 'border-[var(--color-accent)] text-[var(--color-navy)]'
                       : 'border-transparent text-[#444444] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]'
@@ -141,7 +141,7 @@ export default function Navbar() {
           <div className="hidden shrink-0 items-center gap-5 xl:justify-self-end xl:flex">
             <Link
               href="/contact"
-              className="inline-flex min-h-11 items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.06em] text-[#444444] transition-colors hover:text-[var(--color-accent)]"
+              className="inline-flex min-h-11 items-center gap-1.5 font-mono text-xs uppercase tracking-[0.06em] text-[#444444] transition-colors hover:text-[var(--color-accent)]"
             >
               <CircleHelp size={15} aria-hidden="true" />
               Help
@@ -149,21 +149,21 @@ export default function Navbar() {
             {accountsEnabled && <CustomerAccountControl session={customerSession} onOpenAuth={() => setAuthOpen(true)} />}
             <Link
               href="/cart"
-                className="inline-flex min-h-11 items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.06em] text-[#444444] transition-colors hover:text-[var(--color-accent)]"
+              className="inline-flex min-h-11 items-center gap-1.5 font-mono text-xs uppercase tracking-[0.06em] text-[#444444] transition-colors hover:text-[var(--color-accent)]"
               >
               <ShoppingCart size={15} aria-hidden="true" />
               CART{itemCount > 0 ? ` · ${itemCount > 99 ? '99+' : itemCount}` : ''}
             </Link>
             <Link
               href="/configurator"
-              className="inline-flex min-h-11 items-center justify-center rounded-[4px] bg-[var(--color-accent)] px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.06em] text-[var(--color-cream)] transition-colors hover:bg-[var(--color-accent-dark)]"
+              className="inline-flex min-h-11 items-center justify-center rounded-[4px] bg-[var(--color-accent)] px-5 py-2.5 font-mono text-sm uppercase tracking-[0.06em] text-[var(--color-cream)] transition-colors hover:bg-[var(--color-accent-dark)]"
             >
               START DESIGNING
             </Link>
           </div>
 
           <div className="flex shrink-0 items-center gap-2.5 min-[360px]:gap-4 xl:hidden">
-            <Link href="/cart" className="flex min-h-11 items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.06em] text-[var(--text-primary)]/60">
+            <Link href="/cart" className="flex min-h-11 items-center gap-1.5 font-mono text-xs uppercase tracking-[0.06em] text-[var(--text-primary)]/60">
               <ShoppingCart size={15} aria-hidden="true" />
               CART{itemCount > 0 ? ` · ${itemCount > 99 ? '99+' : itemCount}` : ''}
             </Link>
@@ -231,7 +231,7 @@ export default function Navbar() {
                   tabIndex={open ? 0 : -1}
                   aria-current={isActive ? 'page' : undefined}
                   onClick={closeMenu}
-                  className={`border-b-2 px-1 py-3.5 font-mono text-[11px] uppercase tracking-[0.06em] leading-none transition-colors sm:py-4 sm:text-xs ${
+                  className={`border-b-2 px-1 py-3.5 font-mono text-xs uppercase tracking-[0.06em] leading-relaxed transition-colors sm:py-4 sm:text-sm ${
                     isActive ? 'border-[var(--color-accent)] text-[var(--color-navy)]' : 'border-transparent text-[var(--text-primary)]/65'
                   }`}
                 >
@@ -268,7 +268,7 @@ export default function Navbar() {
             href="/configurator"
             tabIndex={open ? 0 : -1}
             onClick={closeMenu}
-            className="mt-5 block rounded-[4px] bg-[var(--color-accent)] px-5 py-3.5 text-center font-mono text-[11px] uppercase tracking-[0.06em] text-[var(--color-cream)] transition-colors hover:bg-[var(--color-accent-dark)]"
+            className="mt-5 block rounded-[4px] bg-[var(--color-accent)] px-5 py-3.5 text-center font-mono text-sm uppercase tracking-[0.06em] text-[var(--color-cream)] transition-colors hover:bg-[var(--color-accent-dark)]"
           >
             START DESIGNING
           </Link>
@@ -289,7 +289,7 @@ export default function Navbar() {
               window.dispatchEvent(new CustomEvent('garmops:analytics', { detail: payload }))
               closeMenu()
             }}
-            className="mt-2 block rounded-[4px] border border-[var(--color-accent)] px-5 py-3 text-center font-mono text-[11px] uppercase tracking-[0.06em] text-[var(--color-accent-dark)]"
+            className="mt-2 block rounded-[4px] border border-[var(--color-accent)] px-5 py-3 text-center font-mono text-sm uppercase tracking-[0.06em] text-[var(--color-accent-dark)]"
           >
             Chat on WhatsApp
           </a>

@@ -28,7 +28,7 @@ const linkClass = 'py-1 transition-colors hover:text-[var(--color-accent)]'
 function PaymentMarks() {
   return (
     <section aria-label="Accepted payment methods" className="mx-auto mt-8 max-w-7xl border-t border-[#ECE7DF] pt-6 sm:mt-10 sm:pt-8">
-      <p className="text-center font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--text-primary)]/40">Secure payments accepted</p>
+      <p className="text-center font-mono text-xs font-medium uppercase tracking-[0.16em] text-[var(--text-primary)]/40">Secure payments accepted</p>
       <div className="mt-4 flex flex-wrap items-center justify-center gap-x-10 gap-y-5 sm:gap-x-14" aria-hidden="true">
         <span className="-skew-x-6 font-sans text-[2.2rem] font-black italic leading-none tracking-[-0.1em] text-[#1434CB]">VISA</span>
         <span className="relative block h-8 w-[52px]" title="Mastercard">

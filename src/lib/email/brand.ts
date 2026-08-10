@@ -43,7 +43,7 @@ export function renderEmailHeader(eyebrow: string): string {
             <td valign="middle">
               <img src="${GARMOPS_BRAND.logoUrl}" width="146" alt="Garmops" style="display: block; width: 146px; max-width: 100%; height: auto; border: 0;">
             </td>
-            <td align="right" valign="middle" style="color: ${EMAIL_THEME.muted}; font-family: 'Courier New', Courier, monospace; font-size: 9px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;">
+            <td align="right" valign="middle" style="color: ${EMAIL_THEME.muted}; font-family: 'Courier New', Courier, monospace; font-size: 12px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;">
               ${escapeEmailHtml(eyebrow, 80)}
             </td>
           </tr>
@@ -64,7 +64,7 @@ export function renderEmailFooter(options?: {
 
   return `
     <tr>
-      <td style="padding: 20px 24px; border-top: 1px solid ${EMAIL_THEME.line}; background: ${EMAIL_THEME.cream}; color: ${EMAIL_THEME.muted}; font-family: Arial, Helvetica, sans-serif; font-size: 11px; line-height: 18px;">
+      <td style="padding: 20px 24px; border-top: 1px solid ${EMAIL_THEME.line}; background: ${EMAIL_THEME.cream}; color: ${EMAIL_THEME.muted}; font-family: Arial, Helvetica, sans-serif; font-size: 12px; line-height: 18px;">
         ${
           safeSupportEmail
             ? `Questions? Reply to this email or contact <a href="mailto:${escapeEmailHtml(safeSupportEmail, 320)}" style="color: ${EMAIL_THEME.accentDark}; text-decoration: underline;">${escapeEmailHtml(safeSupportEmail, 320)}</a>.<br>`
@@ -135,7 +135,7 @@ export function renderBrandedEmail({
                   <td style="padding: 30px 24px 8px; font-family: Arial, Helvetica, sans-serif;">
                     ${
                       statusLabel
-                        ? `<div style="display: inline-block; margin-bottom: 16px; padding: 6px 9px; border: 1px solid ${tone[0]}; border-radius: 4px; background: ${tone[1]}; color: ${tone[0]}; font-family: 'Courier New', Courier, monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;">${escapeEmailHtml(statusLabel, 80)}</div>`
+                        ? `<div style="display: inline-block; margin-bottom: 16px; padding: 6px 9px; border: 1px solid ${tone[0]}; border-radius: 4px; background: ${tone[1]}; color: ${tone[0]}; font-family: 'Courier New', Courier, monospace; font-size: 12px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;">${escapeEmailHtml(statusLabel, 80)}</div>`
                         : ""
                     }
                     <h1 style="margin: 0; color: ${EMAIL_THEME.ink}; font-size: 28px; line-height: 34px; letter-spacing: -0.5px;">${escapeEmailHtml(title, 160)}</h1>
@@ -146,7 +146,7 @@ export function renderBrandedEmail({
                     ${bodyHtml}
                     ${
                       action && actionUrl
-                        ? `<div style="padding-top: 20px;"><a href="${escapeEmailHtml(actionUrl, 1000)}" style="display: inline-block; padding: 12px 18px; border-radius: 4px; background: ${EMAIL_THEME.accent}; color: #FFFFFF; font-family: 'Courier New', Courier, monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.7px; line-height: 16px; text-decoration: none; text-transform: uppercase;">${escapeEmailHtml(action.label, 80)}</a></div>`
+                        ? `<div style="padding-top: 20px;"><a href="${escapeEmailHtml(actionUrl, 1000)}" style="display: inline-block; padding: 12px 18px; border-radius: 4px; background: ${EMAIL_THEME.accent}; color: #FFFFFF; font-family: 'Courier New', Courier, monospace; font-size: 14px; font-weight: 700; letter-spacing: 0.7px; line-height: 18px; text-decoration: none; text-transform: uppercase;">${escapeEmailHtml(action.label, 80)}</a></div>`
                         : ""
                     }
                   </td>

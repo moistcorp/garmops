@@ -43,7 +43,7 @@ export function GuidelinesToggles(props: GuidelinesTogglesProps): JSX.Element {
           <span className="block text-xs font-semibold text-[var(--text-primary)]/80">
             Maximum area
           </span>
-          <span className="block text-[11px] text-[var(--text-primary)]/45">
+          <span className="block text-xs leading-relaxed text-[var(--text-primary)]/45">
             Show the selected size boundary
           </span>
         </span>
@@ -61,7 +61,7 @@ export function GuidelinesToggles(props: GuidelinesTogglesProps): JSX.Element {
         </span>
       </button>
 
-      <p className="text-[11px] leading-relaxed text-[var(--text-primary)]/50">
+      <p className="text-xs leading-relaxed text-[var(--text-primary)]/50">
         The placement presets move the artwork; this guide only shows the selected safe boundary.
       </p>
     </div>

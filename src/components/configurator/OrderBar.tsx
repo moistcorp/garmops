@@ -106,7 +106,7 @@ function VolumeDiscountProgress({ quantity }: { quantity: number }) {
 
   return (
     <div className="techpack-subtle rounded-[4px] px-3 py-2.5">
-      <div className="flex items-start gap-2 text-[11px] font-semibold leading-snug text-[var(--color-accent)]">
+      <div className="flex items-start gap-2 text-xs font-semibold leading-relaxed text-[var(--color-accent)]">
         <TrendingUp size={14} strokeWidth={2.4} className="mt-0.5 shrink-0" aria-hidden="true" />
         <span>{message}</span>
       </div>
@@ -187,7 +187,7 @@ export function OrderBar({
         <div className="min-w-0">
           <label
             htmlFor="configurator-quantity"
-            className="mb-0.5 block text-[9px] font-semibold uppercase tracking-wide text-[var(--text-primary)]/45"
+            className="mb-0.5 block text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/45"
           >
             Planned quantity
           </label>
@@ -235,12 +235,12 @@ export function OrderBar({
         </div>
 
         <div className="min-w-0 border-l border-white/55 pl-2">
-          <div className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text-primary)]/45">
+          <div className="text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/45">
             Unit cost
           </div>
           <div className="mt-1 flex min-w-0 items-baseline gap-1.5">
             {pricingBreakdown.discountPercent > 0 && (
-              <span className="truncate text-[10px] font-medium text-[var(--text-primary)]/45 line-through">
+              <span className="truncate text-xs font-medium text-[var(--text-primary)]/45 line-through">
                 {formatInr(pricingBreakdown.unitPrice)}
               </span>
             )}
@@ -249,14 +249,14 @@ export function OrderBar({
             </span>
           </div>
           {pricingBreakdown.discountPercent > 0 && (
-            <p className="mt-0.5 text-[10px] font-medium text-[#2E7D32]">
+            <p className="mt-0.5 text-xs font-medium text-[#2E7D32]">
               {pricingBreakdown.discountPercent}% off
             </p>
           )}
         </div>
 
         <div className="min-w-0 border-l border-white/55 pl-2">
-          <div className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text-primary)]/45">
+          <div className="text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/45">
             Order total
           </div>
           <div className="mt-1 truncate font-mono text-sm font-semibold text-[var(--text-primary)]">
@@ -277,7 +277,7 @@ export function OrderBar({
       </div>
 
       {ctaErrorMessage && (
-        <p role="alert" className="text-right text-[11px] font-medium text-[#C62828]">
+        <p role="alert" className="text-right text-xs font-medium text-[#C62828]">
           {ctaErrorMessage}
         </p>
       )}

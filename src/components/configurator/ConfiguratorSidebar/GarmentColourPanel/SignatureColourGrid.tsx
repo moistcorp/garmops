@@ -46,7 +46,7 @@ export default function SignatureColourGrid({
             <span className="flex min-w-0 items-center justify-between gap-2">
               <span className="min-w-0 truncate text-xs font-medium">{colour.name}</span>
               {isActive ? (
-                <span className="shrink-0 rounded-full bg-[var(--color-accent)] px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.04em] text-white">
+                <span className="shrink-0 rounded-full bg-[var(--color-accent)] px-1.5 py-0.5 font-mono text-xs font-semibold uppercase tracking-[0.04em] text-white">
                   Selected
                 </span>
               ) : null}

@@ -292,7 +292,7 @@ export default function ShopProductClient({
             </div>
 
             <div className="mt-7 border-y border-[#E5E0D8] py-5">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[var(--text-primary)]/35">Best for</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[var(--text-primary)]/35">Best for</p>
               <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
                 {product.bestFor.map(item => (
                   <span key={item} className="inline-flex items-center gap-1.5 text-sm text-[var(--text-primary)]/65">
@@ -354,7 +354,7 @@ export default function ShopProductClient({
               ['Material', product.selectorMaterial],
             ].map(([label, value], index) => (
               <div key={label} className={`min-h-24 p-4 sm:p-5 ${index % 2 !== 0 ? 'border-l border-[#E5E0D8]' : ''} ${index >= 2 ? 'border-t border-[#E5E0D8] md:border-t-0' : ''} ${index > 0 ? 'md:border-l md:border-[#E5E0D8]' : ''}`}>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--text-primary)]/35">{label}</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-primary)]/35">{label}</p>
                 <p className="mt-2 text-sm font-semibold leading-5 text-[var(--text-primary)]">{value}</p>
               </div>
             ))}
@@ -388,7 +388,7 @@ export default function ShopProductClient({
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-sm font-semibold text-[var(--text-primary)]">{method.name}</h3>
                     {method.recommended && (
-                      <span className="rounded-[3px] bg-[var(--color-accent)]/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent-dark)]">Recommended</span>
+                      <span className="rounded-[3px] bg-[var(--color-accent)]/10 px-2 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-accent-dark)]">Recommended</span>
                     )}
                   </div>
                   <p className="mt-2 text-sm leading-6 text-[var(--text-primary)]/60">{method.description}</p>

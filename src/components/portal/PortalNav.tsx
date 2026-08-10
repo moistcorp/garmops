@@ -23,7 +23,7 @@ export default function PortalNav({ items }: { items: PortalNavItem[] }) {
                 : "border-transparent text-white/65 hover:border-white/15 hover:bg-white/8 hover:text-white"
             }`}
           >
-            <span className="mr-2 font-mono text-[9px] text-white/35">
+            <span className="mr-2 font-mono text-[10px] text-white/35">
               {String(index + 1).padStart(2, "0")}
             </span>
             {item.label}

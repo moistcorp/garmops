@@ -37,7 +37,7 @@ export function CartSummarySidebar({
 }: CartSummarySidebarProps) {
   return (
     <aside className={`techpack-panel rounded-[4px] border p-5 ${sticky ? "lg:sticky lg:top-36" : ""}`}>
-      <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">
+      <p className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">
         Order value
       </p>
       <div className="mt-4 space-y-3 text-sm">

@@ -90,7 +90,7 @@ export default function PricingClient() {
         <div className="grid gap-6 lg:grid-cols-[0.94fr_1.06fr] lg:gap-10">
           <section className="techpack-surface rounded-[4px] border p-5 sm:p-7" aria-label="Starting estimate controls">
             <div>
-              <p id="pricing-product-label" className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--text-primary)]/45">1. Choose a product</p>
+              <p id="pricing-product-label" className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-primary)]/45">1. Choose a product</p>
               <div ref={productPickerRef} className="relative mt-3">
                 <button
                   ref={productPickerButtonRef}
@@ -140,7 +140,7 @@ export default function PricingClient() {
 
             <div className="mt-8">
               <div className="flex items-end justify-between gap-4">
-                <label htmlFor="pricing-quantity" className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--text-primary)]/45">2. Enter quantity</label>
+                <label htmlFor="pricing-quantity" className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-primary)]/45">2. Enter quantity</label>
                 <div className="flex items-center rounded-[4px] border border-[var(--color-rule)] bg-white px-3 py-2">
                   <input
                     id="pricing-quantity"
@@ -164,7 +164,7 @@ export default function PricingClient() {
                 aria-label="Quantity"
                 className="mt-5 w-full accent-[var(--color-accent)]"
               />
-              <div className="mt-1 flex justify-between text-[11px] text-[var(--text-primary)]/40"><span>{minimumQuantity} pcs</span><span>1,000 pcs</span></div>
+              <div className="mt-1 flex justify-between text-xs text-[var(--text-primary)]/40"><span>{minimumQuantity} pcs</span><span>1,000 pcs</span></div>
             </div>
 
             <div className="mt-8 border-t border-[var(--color-rule)] pt-6">
@@ -182,7 +182,7 @@ export default function PricingClient() {
           </section>
 
           <section className="techpack-dark rounded-[4px] border p-5 text-white sm:p-8" aria-live="polite">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-white/45">Starting estimate</p>
+        <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Starting estimate</p>
             <h2 className="mt-3 text-2xl font-bold tracking-tight">{product?.name}</h2>
             <p className="mt-1 text-sm text-white/55">{safeQuantity.toLocaleString("en-IN")} pieces · {rush ? `${RUSH_DELIVERY_DAYS}-day rush target` : `${DELIVERY_DAYS}-day standard target`}</p>
             <div className="mt-7 space-y-3 border-y border-white/10 py-5 text-sm">

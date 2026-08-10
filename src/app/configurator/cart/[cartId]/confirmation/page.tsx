@@ -33,7 +33,7 @@ export default async function ConfirmationPage({ params, searchParams }: Confirm
         <div className="mx-auto flex min-h-[70vh] max-w-xl items-center">
           <section className="techpack-surface w-full rounded-[4px] border p-7 text-center sm:p-10">
             <CreditCard size={42} className="mx-auto text-amber-600" aria-hidden="true" />
-            <p className="mt-6 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">Checkout notice</p>
+            <p className="mt-6 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">Checkout notice</p>
             <h1 className="mt-2 text-2xl font-semibold">Online checkout is unavailable</h1>
             <p className="mt-3 text-sm leading-relaxed text-black/55">Your configuration remains saved in this browser. Online order creation is temporarily disabled, so no payment has been started.</p>
             <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">

@@ -120,7 +120,7 @@ function sectionHeading(
         {icon}
       </span>
       <div>
-        <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">
+        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">
           {index}
         </p>
         <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--text-primary)]">
@@ -607,7 +607,7 @@ export function BillingShippingStep({
         <div className="mx-auto flex max-w-2xl items-start justify-center py-8 sm:py-12">
           <section className="techpack-surface w-full rounded-[4px] border p-6 sm:p-8">
             <span className="flex size-11 items-center justify-center rounded-full bg-[var(--color-accent)]/10 text-[var(--color-accent)]"><CheckCircle2 size={22} aria-hidden="true" /></span>
-            <p className="mt-4 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">Saved account details found</p>
+            <p className="mt-4 font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">Saved account details found</p>
             <h1 className="mt-2 text-2xl font-semibold text-[var(--text-primary)]">Which delivery details should we use?</h1>
             <p className="mt-2 text-sm leading-relaxed text-[var(--text-primary)]/55">You entered checkout details before signing in, and this account already has saved defaults. Nothing will be overwritten until you choose.</p>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -645,7 +645,7 @@ export function BillingShippingStep({
           )}
 
           <div>
-            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-[var(--text-primary)]/50">
+            <p className="font-mono text-xs font-medium uppercase tracking-[0.06em] text-[var(--text-primary)]/50">
               {formatSpecCode(`CART-${cartId}`)}
             </p>
             <h1 className="text-2xl font-semibold text-[var(--text-primary)]">

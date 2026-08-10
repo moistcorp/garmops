@@ -183,7 +183,7 @@ canvas {
   background: transparent;
   color: var(--color-navy);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.06em;
   line-height: 1.2;
@@ -324,7 +324,7 @@ canvas {
   padding: 0.75rem 1rem;
   color: rgba(22, 33, 43, 0.48);
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.12em;
 }
@@ -479,7 +479,7 @@ canvas {
   z-index: 2;
   color: rgba(22, 33, 43, 0.4);
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 10px;
   letter-spacing: 0.12em;
 }
 
@@ -557,7 +557,7 @@ canvas {
   z-index: 5;
   color: rgba(22, 33, 43, 0.42);
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 10px;
   letter-spacing: 0.08em;
 }
 
@@ -608,7 +608,7 @@ canvas {
   border-top: 2px solid rgba(22, 33, 43, 0.13);
   color: rgba(22, 33, 43, 0.38);
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.08em;
   padding-top: 0.45rem;
@@ -618,7 +618,7 @@ canvas {
 .garmops-loader-steps li span {
   display: block;
   margin-bottom: 0.15rem;
-  font-size: 7px;
+  font-size: 9px;
   font-weight: 400;
 }
 

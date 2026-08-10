@@ -60,7 +60,7 @@ function SelectedColourSummary({ value }: { value: GarmentColour }) {
           {isCustom ? "Custom colour reference" : "Signature colour"}
           </p>
           {isCustom ? (
-            <p className="mt-1 font-mono text-[9px] font-semibold uppercase tracking-[0.05em] text-[var(--color-accent)]">
+            <p className="mt-1 font-mono text-xs font-semibold uppercase tracking-[0.05em] text-[var(--color-accent)]">
               Preview only
             </p>
           ) : (
@@ -200,7 +200,7 @@ export default function GarmentColourPanel({
               <h2 className="font-mono text-[10px] font-semibold uppercase tracking-[0.06em] text-[var(--text-primary)]/55">
                 Signature colours
               </h2>
-              <span className="text-[10px] text-[var(--text-primary)]/45">Standard colour</span>
+          <span className="text-xs text-[var(--text-primary)]/45">Standard colour</span>
             </div>
             <SignatureColourGrid
               colours={SIGNATURE_COLOURS}
@@ -208,7 +208,7 @@ export default function GarmentColourPanel({
               onSelect={handleSignatureSelect}
             />
           </div>
-          <p className="text-[11px] leading-relaxed text-[var(--text-primary)]/50">
+          <p className="text-xs leading-relaxed text-[var(--text-primary)]/50">
             Signature colours carry no colour surcharge in the current pricing rules.
           </p>
         </section>
@@ -224,15 +224,15 @@ export default function GarmentColourPanel({
           <div className="grid grid-cols-3 divide-x divide-[var(--color-rule)] rounded-[4px] border border-[var(--color-rule)] bg-white">
             <div className="min-w-0 px-2.5 py-2.5">
               <p className="font-mono text-xs font-semibold text-[var(--text-primary)]">{customDyeMinimum} pcs</p>
-              <p className="mt-1 text-[10px] leading-snug text-[var(--text-primary)]/55">minimum / colour</p>
+              <p className="mt-1 text-xs leading-relaxed text-[var(--text-primary)]/55">minimum / colour</p>
             </div>
             <div className="min-w-0 px-2.5 py-2.5">
               <p className="font-mono text-xs font-semibold text-[var(--text-primary)]">{customDyeDeltaLabel}</p>
-              <p className="mt-1 text-[10px] leading-snug text-[var(--text-primary)]/55">price adjustment</p>
+              <p className="mt-1 text-xs leading-relaxed text-[var(--text-primary)]/55">price adjustment</p>
             </div>
             <div className="min-w-0 px-2.5 py-2.5">
               <p className="font-mono text-xs font-semibold text-[var(--text-primary)]">+{CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS.min}–{CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS.max} days</p>
-              <p className="mt-1 text-[10px] leading-snug text-[var(--text-primary)]/55">production time</p>
+              <p className="mt-1 text-xs leading-relaxed text-[var(--text-primary)]/55">production time</p>
             </div>
           </div>
 

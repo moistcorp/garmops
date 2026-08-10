@@ -70,7 +70,7 @@ export function TechniqueSelect({ value, fileType, side = "front", onChange }: T
                   }`}
                 />
               </span>
-              <span className="mt-2 block text-[11px] leading-relaxed text-[var(--text-primary)]/55">
+              <span className="mt-2 block text-xs leading-relaxed text-[var(--text-primary)]/55">
                 {TECHNIQUE_DESCRIPTIONS[technique]}
               </span>
             </button>

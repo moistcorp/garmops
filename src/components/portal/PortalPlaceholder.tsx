@@ -20,7 +20,7 @@ export default function PortalPlaceholder({
         </div>
       ) : null}
       <div className="techpack-surface rounded-[4px] border p-6 sm:p-8">
-        <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">
+        <p className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">
           Workspace notice
         </p>
         <h2 className="mt-2 text-xl font-semibold">{title}</h2>

@@ -159,7 +159,7 @@ export default function HomeClient() {
                       sizes="(max-width: 640px) 100vw, 40vw"
                     />
                     <div className="absolute left-3 top-3 rounded-[4px] border border-black/10 bg-white/90 px-3 py-2 backdrop-blur-sm">
-                      <p className="text-[9px] uppercase tracking-widest text-[#595959]">Selected</p>
+                      <p className="text-xs uppercase tracking-widest text-[#595959]">Selected</p>
                       <p className="mt-0.5 text-xs font-semibold text-[var(--text-primary)]">Premium Oversized T-Shirt</p>
                     </div>
                   </div>
@@ -182,7 +182,7 @@ export default function HomeClient() {
                     ))}
                     <Link
                       href="/products"
-                      className="mt-auto rounded-[4px] bg-white px-4 py-3 text-center font-mono text-[10px] uppercase tracking-[0.05em] text-[var(--color-navy)] transition-colors hover:bg-white/90"
+                      className="mt-auto rounded-[4px] bg-white px-4 py-3 text-center font-mono text-sm uppercase tracking-[0.05em] text-[var(--color-navy)] transition-colors hover:bg-white/90"
                     >
                       Start with a product →
                     </Link>
@@ -211,7 +211,7 @@ export default function HomeClient() {
             <Reveal>
               <Link href="/products" className="techpack-panel group flex min-h-[250px] flex-col rounded-[4px] border p-6 transition-all hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45 sm:p-8">
                 <div className="mb-10 flex items-center justify-between">
-                  <span className="rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.06em] text-[#595959]">I know the garment</span>
+                  <span className="rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 font-mono text-xs uppercase tracking-[0.06em] text-[#595959]">I know the garment</span>
                   <span className="text-lg text-[var(--color-accent-dark)] transition-transform group-hover:translate-x-0.5">→</span>
                 </div>
                 <h3 className="text-2xl font-semibold tracking-tight text-[var(--text-primary)]">Explore products</h3>
@@ -223,7 +223,7 @@ export default function HomeClient() {
             <Reveal delay={70}>
               <Link href="/industries" className="techpack-panel group flex min-h-[250px] flex-col rounded-[4px] border p-6 transition-all hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45 sm:p-8">
                 <div className="mb-10 flex items-center justify-between">
-                  <span className="rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.06em] text-[#595959]">I know the use case</span>
+                  <span className="rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 font-mono text-xs uppercase tracking-[0.06em] text-[#595959]">I know the use case</span>
                   <span className="text-lg text-[var(--color-accent-dark)] transition-transform group-hover:translate-x-0.5">→</span>
                 </div>
                 <h3 className="text-2xl font-semibold tracking-tight text-[var(--text-primary)]">Find by industry</h3>
@@ -324,7 +324,7 @@ export default function HomeClient() {
                     <p className="mt-2 text-sm leading-6 text-[#4a4a4a]">{industry.description}</p>
                     <div className="mt-5 flex flex-wrap gap-2">
                       {industry.for.slice(0, 3).map(useCase => (
-                        <span key={useCase} className="rounded-[4px] border border-[#E5E5E5] px-2.5 py-1 text-[10px] text-[#595959]">{useCase}</span>
+                      <span key={useCase} className="rounded-[4px] border border-[#E5E5E5] px-2.5 py-1 text-xs text-[#595959]">{useCase}</span>
                       ))}
                     </div>
                     <p className="mt-auto pt-6 text-sm font-medium text-[var(--color-accent-dark)]">Explore recommendations →</p>
@@ -385,13 +385,13 @@ export default function HomeClient() {
                 </p>
                 <div className="mt-6 flex flex-wrap gap-2">
                   {['From 50 pcs per custom product', 'Volume pricing', 'GST invoice'].map(item => (
-                    <span key={item} className="rounded-[4px] border border-white/20 bg-white/10 px-3.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.05em] text-white/85">{item}</span>
+                    <span key={item} className="rounded-[4px] border border-white/20 bg-white/10 px-3.5 py-1.5 font-mono text-xs uppercase tracking-[0.05em] text-white/85">{item}</span>
                   ))}
                 </div>
               </div>
               <Link
                 href="/pricing"
-                className="relative shrink-0 rounded-[4px] bg-white px-6 py-3.5 text-center font-mono text-[10px] uppercase tracking-[0.05em] text-[var(--color-navy)] transition-colors hover:bg-white/90 sm:px-8"
+                className="relative shrink-0 rounded-[4px] bg-white px-6 py-3.5 text-center font-mono text-sm uppercase tracking-[0.05em] text-[var(--color-navy)] transition-colors hover:bg-white/90 sm:px-8"
               >
                 See how pricing works →
               </Link>

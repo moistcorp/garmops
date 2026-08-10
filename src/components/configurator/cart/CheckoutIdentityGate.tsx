@@ -101,7 +101,7 @@ export function CheckoutIdentityGate({
             <span className="mx-auto flex size-11 items-center justify-center rounded-full bg-[var(--color-accent)]/10 text-[var(--color-accent)]">
               <ShieldCheck size={22} aria-hidden="true" />
             </span>
-            <p className="mt-4 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">
+            <p className="mt-4 font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">
               07 / Secure review access
             </p>
             <h1 className="mt-2 text-2xl font-semibold text-[var(--text-primary)]">

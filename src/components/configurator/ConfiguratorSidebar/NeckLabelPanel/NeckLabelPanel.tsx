@@ -158,7 +158,7 @@ function NeckLabelTypeCard({
           {detail}
         </span>
         {price && (
-          <span className="mt-2 block text-[11px] font-semibold leading-none tracking-normal opacity-75">
+          <span className="mt-2 block text-xs font-semibold leading-relaxed tracking-normal opacity-75">
             {price}
           </span>
         )}
@@ -532,7 +532,7 @@ export default function NeckLabelPanel({
                     ) : aiPreviewUrl ? (
                       <img src={aiPreviewUrl} alt="Rendered Illustrator label artwork preview" className="h-full w-full object-contain p-2" />
                     ) : (
-                      <span className="px-1 text-center text-[10px] font-medium leading-tight text-[var(--text-primary)]/50">
+                      <span className="px-1 text-center text-xs font-medium leading-relaxed text-[var(--text-primary)]/50">
                         Preview unavailable
                       </span>
                     )}
@@ -541,7 +541,7 @@ export default function NeckLabelPanel({
                     <p className="truncate text-[13px] font-semibold leading-tight text-[var(--text-primary)]/85">
                       {customDraft.source === 'sample' ? `Garmops sample · ${formatDimensions(customDraft.dimensions)}` : customDraft.fileName ?? `${labelNoun}.${customDraft.fileType ?? 'ai'}`}
                     </p>
-                    <span className="mt-1.5 flex items-center gap-1 text-[11px] font-medium leading-none text-[#2E7D32]">
+                    <span className="mt-1.5 flex items-center gap-1 text-xs font-medium leading-relaxed text-[#2E7D32]">
                       {aiPreviewState === 'preparing' ? 'Preparing preview…' : previewReady ? <><Check size={13} strokeWidth={2.5} aria-hidden="true" /> Preview ready</> : 'Artwork uploaded'}
                     </span>
                   </div>
@@ -604,12 +604,12 @@ export default function NeckLabelPanel({
                   <button key={option} type="button" onClick={() => handleDimensionsSelected(option)} aria-pressed={selected} className={`flex min-h-[98px] flex-col items-center justify-center gap-1 rounded-[4px] border p-2 text-center transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)] ${selected ? 'techpack-selected' : 'techpack-control border text-[var(--text-primary)]/70 hover:!bg-white/60'}`}>
                     <DimensionPreview option={option} selected={selected} />
                     <span className="text-xs font-semibold leading-tight">{formatDimensions(option)}</span>
-                    <span className="text-[10px] font-normal leading-tight opacity-65">{description}</span>
+                    <span className="text-xs font-normal leading-relaxed opacity-65">{description}</span>
                   </button>
                 );
               })}
             </div>
-            <p className="mt-2 text-[11px] leading-relaxed text-[var(--text-primary)]/45">Preview shown approximately to scale.</p>
+            <p className="mt-2 text-xs leading-relaxed text-[var(--text-primary)]/45">Preview shown approximately to scale.</p>
           </section>
 
           <section>
@@ -634,5 +634,5 @@ export default function NeckLabelPanel({
 }
 
 function SectionHeading({ children }: { children: string }) {
-  return <h2 className="mb-2.5 font-mono text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-primary)]/70">{children}</h2>;
+  return <h2 className="mb-2.5 font-mono text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-primary)]/70">{children}</h2>;
 }

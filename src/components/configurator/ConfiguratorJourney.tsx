@@ -105,7 +105,7 @@ export function ConfiguratorJourney({
                     <ArrowLeft size={17} strokeWidth={2} aria-hidden="true" />
                   </Link>
                 ))}
-                {(previousStepHandler || previousStepHref) && <span className="hidden font-mono text-[10px] uppercase tracking-[0.06em] text-[var(--text-primary)]/45 sm:inline">Back</span>}
+                {(previousStepHandler || previousStepHref) && <span className="hidden font-mono text-xs uppercase tracking-[0.06em] text-[var(--text-primary)]/45 sm:inline">Back</span>}
                 <div className="flex min-w-0 items-center gap-3 border-l border-[var(--color-rule)] pl-3">
                   <Link
                     href="/"
@@ -137,7 +137,7 @@ export function ConfiguratorJourney({
             )}
 
             <div className="ml-auto flex items-center gap-3">
-              <div className="text-right font-mono text-[10px] uppercase tracking-[0.06em] text-[var(--color-navy)]">
+              <div className="text-right font-mono text-xs uppercase tracking-[0.06em] text-[var(--color-navy)]">
                 {specCode && <span className="block">{specCode}</span>}
                 <span className="block text-[var(--text-primary)]/45">
                   STEP {String(currentIndex + 1).padStart(2, "0")} / 08
@@ -199,7 +199,7 @@ export function ConfiguratorJourney({
                             : "bg-[rgba(22,33,43,0.3)]"
                       }`}
                     />
-                    <span className={`mt-2 block font-mono text-[9px] uppercase tracking-[0.04em] ${
+                    <span className={`mt-2 block font-mono text-xs uppercase tracking-[0.04em] ${
                       active ? "text-[var(--color-accent)]" : complete ? "text-[var(--color-navy)]" : "text-[rgba(22,33,43,0.5)]"
                     }`}>
                       <span className="sm:hidden">{String(index + 1).padStart(2, "0")}</span>

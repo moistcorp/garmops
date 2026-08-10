@@ -19,7 +19,7 @@ export default function TechpackSectionHeading({
         </span>
       ) : null}
       <div className="min-w-0">
-        <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">
+        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">
           {index} / Specification section
         </p>
         <h2 className="mt-1 text-sm font-semibold uppercase tracking-[0.06em] text-[var(--color-navy)]">

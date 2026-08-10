@@ -7,7 +7,7 @@ export default function HeroScrollVideo() {
   return (
     <section className="techpack-canvas grid lg:min-h-[88vh] lg:grid-cols-2">
       <div className="flex flex-col justify-center px-4 py-14 min-[360px]:px-5 sm:px-8 sm:py-20 md:px-16 lg:py-0">
-        <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.16em] text-[#595959] sm:mb-6 sm:text-xs sm:tracking-widest">
+        <p className="mb-4 text-xs font-medium uppercase tracking-[0.16em] text-[#595959] sm:mb-6 sm:text-sm sm:tracking-widest">
           Custom apparel for businesses
         </p>
         <h1 className="mb-5 max-w-2xl text-[2.45rem] font-bold leading-[1.01] tracking-tight text-[var(--text-primary)] min-[360px]:text-5xl md:text-6xl lg:text-7xl">

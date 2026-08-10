@@ -33,7 +33,7 @@ export function ActionFeedback({
     <div role={tone === "error" ? "alert" : "status"} aria-live="polite" data-tone={tone} className="techpack-notice flex items-start gap-3 p-3 text-xs">
       <Icon size={17} className={`mt-0.5 shrink-0 ${iconClass} ${tone === "loading" ? "animate-spin" : ""}`} aria-hidden="true" />
       <div className="min-w-0 flex-1">
-        <p className="mb-1 font-mono text-[8px] font-semibold uppercase tracking-[0.12em] opacity-45">
+        <p className="mb-1 font-mono text-xs font-semibold uppercase tracking-[0.12em] opacity-45">
           {tone === "error" ? "Action required" : tone === "success" ? "Confirmed" : tone === "loading" ? "Processing" : "Notice"}
         </p>
         <p className="font-semibold">{title}</p>

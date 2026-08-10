@@ -46,7 +46,7 @@ export default async function StaffOrderQueue() {
       <TechpackPageHeader eyebrow="Foundry" reference="Live order register" title="Order queue" description="Review paid orders, approve artwork, and advance production through the database-enforced workflow." actions={<span className="techpack-stamp" data-tone="accent">{rows.length.toLocaleString("en-IN")} records</span>} />
       <SystemRecoveryPanel />
       <section className="techpack-surface overflow-hidden rounded-[4px] border">
-        <div className="hidden grid-cols-[1.25fr_1fr_0.55fr_0.7fr_auto] gap-3 border-b border-[var(--color-rule)] bg-[var(--color-cream-soft)] px-5 py-3 font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-black/40 sm:grid">
+        <div className="hidden grid-cols-[1.25fr_1fr_0.55fr_0.7fr_auto] gap-3 border-b border-[var(--color-rule)] bg-[var(--color-cream-soft)] px-5 py-3 font-mono text-xs font-semibold uppercase tracking-[0.1em] text-black/40 sm:grid">
           <span>Order / customer</span><span>Production state</span><span>Units</span><span>Paid</span><span>Updated</span>
         </div>
         <div className="divide-y divide-[var(--color-rule)]">
@@ -56,9 +56,9 @@ export default async function StaffOrderQueue() {
             return (
               <Link key={order.id} href={`/orders/${order.order_number}`} className="group grid gap-3 px-5 py-5 transition-colors hover:bg-[var(--color-cream-soft)] sm:grid-cols-[1.25fr_1fr_0.55fr_0.7fr_auto] sm:items-center">
                 <div><p className="font-semibold">{formatOrderCode(order.order_number)}</p><p className="mt-1 text-xs text-black/45">{customer}</p></div>
-                <div><span className="techpack-stamp" data-tone="accent">{ORDER_STATUS_LABELS[order.status] ?? order.status}</span><p className="mt-1.5 text-[10px] capitalize text-black/40">{order.order_source.replaceAll("_", " ")}</p></div>
+                <div><span className="techpack-stamp" data-tone="accent">{ORDER_STATUS_LABELS[order.status] ?? order.status}</span><p className="mt-1.5 text-xs capitalize text-black/40">{order.order_source.replaceAll("_", " ")}</p></div>
                 <p className="font-mono text-xs text-black/55">{quantity.toLocaleString("en-IN")}</p>
-                <p className="text-xs font-semibold text-black/65">{formatMoneyPaise(order.amount_paid_paise)}<span className="block text-[10px] font-normal text-black/35">of {formatMoneyPaise(order.total_paise)}</span></p>
+                <p className="text-xs font-semibold text-black/65">{formatMoneyPaise(order.amount_paid_paise)}<span className="block text-xs font-normal text-black/35">of {formatMoneyPaise(order.total_paise)}</span></p>
                 <div className="flex items-center gap-3 text-xs text-black/40"><CalendarDays size={13} aria-hidden="true" />{formatOrderTimestamp(order.updated_at)}<ArrowRight size={16} className="text-[var(--color-accent)] transition-transform group-hover:translate-x-0.5" aria-hidden="true" /></div>
               </Link>
             );

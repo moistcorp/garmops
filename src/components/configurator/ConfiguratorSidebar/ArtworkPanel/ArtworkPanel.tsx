@@ -396,7 +396,7 @@ export function ArtworkPanel({ value, onChange, activeView, onViewChange }: Artw
         </div>
       </section>
 
-      <p className="text-[11px] leading-relaxed text-[var(--text-primary)]/45">Low-resolution artwork is a production note, not a blocker. Our team reviews artwork before production.</p>
+      <p className="text-xs leading-relaxed text-[var(--text-primary)]/45">Low-resolution artwork is a production note, not a blocker. Our team reviews artwork before production.</p>
     </div>
   );
 }

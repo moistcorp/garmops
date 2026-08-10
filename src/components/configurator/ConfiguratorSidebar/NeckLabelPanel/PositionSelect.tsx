@@ -55,7 +55,7 @@ export default function PositionSelect({ value, onChange, isToteProduct = false 
           >
             <PlacementDiagram value={option.value} selected={selected} />
             <span className="mt-1 block text-xs font-semibold leading-tight">{option.label}</span>
-            <span className="mt-1 block text-[11px] font-normal leading-tight opacity-65">{option.detail}</span>
+            <span className="mt-1 block text-xs font-normal leading-relaxed opacity-65">{option.detail}</span>
           </button>
         );
       })}

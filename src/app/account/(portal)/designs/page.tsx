@@ -169,11 +169,11 @@ export default async function SavedDesignsPage({
                   </p>
                   <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
                     <div>
-                      <dt className="font-mono text-[9px] uppercase tracking-[0.08em] text-black/40">Quantity</dt>
+                      <dt className="font-mono text-xs uppercase tracking-[0.08em] text-black/40">Quantity</dt>
                       <dd className="mt-1 font-medium">{configuration.quantity.toLocaleString("en-IN")} pcs</dd>
                     </div>
                     <div>
-                      <dt className="font-mono text-[9px] uppercase tracking-[0.08em] text-black/40">Customisation</dt>
+                      <dt className="font-mono text-xs uppercase tracking-[0.08em] text-black/40">Customisation</dt>
                       <dd className="mt-1 font-medium">{artworkSides || "No artwork"}{configuration.neckLabel ? " · Label" : ""}</dd>
                     </div>
                   </dl>

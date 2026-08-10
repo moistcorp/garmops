@@ -148,7 +148,7 @@ function ArtworkPreview({ side }: { side: ArtworkSide }) {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-white/85 px-2 text-center text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/55">
       <span className="rounded-[4px] border border-[var(--color-rule)] px-2 py-1">{side.fileType.toUpperCase()}</span>
-      <span className="text-[10px] normal-case tracking-normal">Document preview</span>
+      <span className="text-xs normal-case tracking-normal">Document preview</span>
     </div>
   );
 }
@@ -621,7 +621,7 @@ export default function CanvasRenderer({
             <div
               role="status"
               aria-live="polite"
-              className="pointer-events-none absolute left-1/2 top-[calc(100%+30px)] z-30 min-w-max -translate-x-1/2 rounded-[4px] border border-white/65 bg-[#111111]/78 px-3 py-2 font-sans text-[11px] font-semibold leading-4 text-white  "
+              className="pointer-events-none absolute left-1/2 top-[calc(100%+30px)] z-30 min-w-max -translate-x-1/2 rounded-[4px] border border-white/65 bg-[#111111]/78 px-3 py-2 font-sans text-xs font-semibold leading-4 text-white  "
             >
               {dragMode === "move" ? (
                 <>

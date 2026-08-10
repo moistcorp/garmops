@@ -17,7 +17,7 @@ export default function TechpackPageHeader({
     <header className="border-b border-[var(--color-rule)] pb-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2 font-mono text-[9px] font-semibold uppercase tracking-[0.12em]">
+          <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.12em]">
             <span className="text-[var(--color-accent)]">{eyebrow}</span>
             <span aria-hidden="true" className="text-[var(--text-primary)]/25">/</span>
             <span className="text-[var(--text-primary)]/40">{reference}</span>

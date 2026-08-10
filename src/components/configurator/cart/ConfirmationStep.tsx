@@ -445,7 +445,7 @@ export function ConfirmationStep({
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-6">
           <div>
-            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-[var(--text-primary)]/50">
+            <p className="font-mono text-xs font-medium uppercase tracking-[0.06em] text-[var(--text-primary)]/50">
               {formatSpecCode(`CART-${cartId}`)}
             </p>
             <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
@@ -462,7 +462,7 @@ export function ConfirmationStep({
             <div className="flex items-start gap-3">
               {paymentOutcome === "pending" ? <LoaderCircle className="mt-0.5 shrink-0 text-amber-700" size={20} aria-hidden="true" /> : <ShieldCheck className="mt-0.5 shrink-0 text-red-600" size={20} aria-hidden="true" />}
               <div>
-                <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">{paymentOutcome === "pending" ? "Confirming payment" : "Payment not completed"}</p>
+            <p className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">{paymentOutcome === "pending" ? "Confirming payment" : "Payment not completed"}</p>
                 <h2 className="mt-1 text-lg font-semibold">{paymentOutcome === "pending" ? "We're confirming your payment" : "Payment wasn't completed"}</h2>
                 <p className="mt-2 text-sm leading-relaxed text-black/55">{paymentOutcome === "pending" ? "PayU hasn't returned a final verified status yet. Don't make another payment while we check it." : "Your configuration is still saved. Review the details below before trying payment again."}</p>
               </div>
@@ -471,7 +471,7 @@ export function ConfirmationStep({
         ) : null}
 
         <section className="techpack-panel rounded-[4px] border p-5">
-          <p className="mb-2 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">01 / Your order</p>
+          <p className="mb-2 font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">01 / Your order</p>
           <h2 className="mb-4 text-sm font-medium text-[var(--text-primary)]">Configured products</h2>
           <div className="space-y-4">
             {draft.items.map((item, index) => <ProductRecapCard key={item.id} item={item} lineNumber={index + 1} cartId={cartId} />)}
@@ -556,7 +556,7 @@ export function ConfirmationStep({
 
         {draft.projectPreferences.orderNotes && (
           <section className="techpack-panel rounded-[4px] border p-5">
-            <p className="mb-2 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">Supplement / Project notes</p>
+            <p className="mb-2 font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">Supplement / Project notes</p>
             <h3 className="text-sm font-medium text-[var(--text-primary)]">Project notes & communication</h3>
             {draft.projectPreferences.orderNotes && (
               <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[var(--text-primary)]/70">{draft.projectPreferences.orderNotes}</p>
@@ -565,7 +565,7 @@ export function ConfirmationStep({
         )}
 
         <section className="techpack-panel rounded-[4px] border !border-[var(--color-accent)]/25 p-5">
-          <p className="mb-3 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">03 / What happens next</p>
+          <p className="mb-3 font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">03 / What happens next</p>
           <div className="flex items-start gap-3">
             <span className="rounded-[4px] bg-white p-2 text-[var(--color-accent-dark)]"><ShieldCheck size={18} /></span>
             <div className="min-w-0 flex-1">
@@ -586,7 +586,7 @@ export function ConfirmationStep({
         </section>
 
         <section className="techpack-panel rounded-[4px] border p-5">
-          <p className="mb-3 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">04 / Payment authorisation</p>
+          <p className="mb-3 font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">04 / Payment authorisation</p>
           <label className="flex cursor-pointer items-start gap-3 text-sm text-[var(--text-primary)]">
             <input
               type="checkbox"
@@ -692,7 +692,7 @@ function ReviewSection({
 }) {
   return (
     <section className="techpack-panel rounded-[4px] border p-5">
-      <p className="mb-3 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">
+      <p className="mb-3 font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">
         {index} / Review section
       </p>
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -751,7 +751,7 @@ function ProductRecapCard({ item, lineNumber, cartId }: { item: CartItem; lineNu
         <div className="mt-3 overflow-x-auto pb-1"><ViewTabs activeView={view} onChange={setView} productId={item.productId} idPrefix={`review-line-${lineNumber}`} /></div>
       </div>
       <div className="min-w-0">
-        <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--color-accent)]">Line {lineNumber}</p>
+        <p className="font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--color-accent)]">Line {lineNumber}</p>
         <p className="text-sm font-medium text-[var(--text-primary)]">{item.productName}</p>
         <p className="text-xs text-[var(--text-primary)]/60">
           {item.colour.name || "Bright White"} · <span className="font-mono">{units} pieces · {formatInr(unitPrice)}/unit</span>

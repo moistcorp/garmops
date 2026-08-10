@@ -25,7 +25,7 @@ export default function PortalShell({
           <Link href="/" aria-label="Garmops home" className="inline-flex">
             <GarmopsLogo inverted className="h-4 w-auto" />
           </Link>
-          <p className="mt-2 font-mono text-[9px] uppercase tracking-[0.18em] text-white/40">{kind}</p>
+          <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/40">{kind}</p>
           <PortalNav items={nav} />
           <div className="mt-8 border-t border-white/10 pt-5">
             <p className="truncate text-xs text-white/45">{identity}</p>
@@ -39,7 +39,7 @@ export default function PortalShell({
         <section className="min-w-0 p-5 sm:p-8 lg:p-10">
           <header className="mb-8 border-b border-[var(--color-rule)] pb-7">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-accent)]">{kind} / secure workspace</p>
+              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-accent)]">{kind} / secure workspace</p>
               <span className="techpack-stamp" data-tone="success">Authenticated</span>
             </div>
             <h1 className="mt-2 text-3xl font-bold tracking-tight">{title}</h1>

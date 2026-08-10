@@ -48,7 +48,7 @@ function AuthProgress({ step }: { step: Step }) {
         <li
           key={label}
           aria-current={index === activeIndex ? "step" : undefined}
-          className={`border-r border-[var(--color-rule)] px-2 py-2 text-center font-mono text-[8px] font-semibold uppercase tracking-[0.08em] last:border-r-0 ${
+          className={`border-r border-[var(--color-rule)] px-2 py-2 text-center font-mono text-xs font-semibold uppercase tracking-[0.08em] last:border-r-0 ${
             index === activeIndex
               ? "bg-[var(--color-accent)] text-white"
               : index < activeIndex
@@ -290,7 +290,7 @@ export default function CustomerAuthFlow({
         <>
           <div className="my-5 flex items-center gap-3" aria-hidden="true">
             <span className="h-px flex-1 bg-[var(--color-rule)]" />
-            <span className="font-mono text-[9px] uppercase tracking-[0.1em] text-black/35">
+            <span className="font-mono text-xs uppercase tracking-[0.1em] text-black/35">
               or
             </span>
             <span className="h-px flex-1 bg-[var(--color-rule)]" />

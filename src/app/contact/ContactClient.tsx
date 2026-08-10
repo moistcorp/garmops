@@ -322,19 +322,19 @@ export default function ContactClient() {
 
             <dl className="grid gap-x-8 gap-y-6 border-t border-[var(--color-rule)] pt-6 sm:grid-cols-2 lg:border-t-0 lg:pt-0">
               <div>
-                <dt className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-primary)]/40">Legal / business name</dt>
+              <dt className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-[var(--text-primary)]/40">Legal / business name</dt>
                 <dd className="mt-2 text-sm font-semibold text-[var(--color-navy)]">Moist Corp</dd>
               </div>
               <div>
-                <dt className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-primary)]/40">Address</dt>
+              <dt className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-[var(--text-primary)]/40">Address</dt>
                 <dd className="mt-2 text-sm leading-6 text-[var(--text-primary)]/65">Q5, Surajpur Industrial Area, Site-5, Kasna, Greater Noida, UP, India</dd>
               </div>
               <div>
-                <dt className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-primary)]/40">Support email</dt>
+              <dt className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-[var(--text-primary)]/40">Support email</dt>
                 <dd className="mt-2 text-sm"><a href={`mailto:${siteConfig.email}`} className={faqLinkClass}>{siteConfig.email}</a></dd>
               </div>
               <div>
-                <dt className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-primary)]/40">Phone</dt>
+              <dt className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-[var(--text-primary)]/40">Phone</dt>
                 <dd className="mt-2 text-sm"><a href={`tel:${phoneNumber}`} className={faqLinkClass}>{siteConfig.phone}</a></dd>
               </div>
             </dl>

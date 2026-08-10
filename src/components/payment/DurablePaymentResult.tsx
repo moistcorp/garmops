@@ -109,21 +109,21 @@ export default function DurablePaymentResult({ result }: { result: Result }) {
 
         <dl className="mt-7 grid gap-4 rounded-[4px] border border-black/8 bg-white p-5 sm:grid-cols-2">
           <div>
-            <dt className="text-[10px] uppercase tracking-wider text-black/40">Order</dt>
+            <dt className="text-xs uppercase tracking-wider text-black/40">Order</dt>
             <dd className="mt-1 break-all font-semibold">{formatOrderCode(result.orderNumber)}</dd>
           </div>
           <div>
-            <dt className="text-[10px] uppercase tracking-wider text-black/40">
+            <dt className="text-xs uppercase tracking-wider text-black/40">
               {state === "success" ? "Amount paid" : "Amount"}
             </dt>
             <dd className="mt-1 font-semibold tabular-nums">{formatMoneyPaise(result.amountPaise)}</dd>
           </div>
           <div>
-            <dt className="text-[10px] uppercase tracking-wider text-black/40">Payment</dt>
+            <dt className="text-xs uppercase tracking-wider text-black/40">Payment</dt>
             <dd className="mt-1 font-semibold">{paymentStatusLabel(state)}</dd>
           </div>
           <div>
-              <dt className="text-[10px] uppercase tracking-wider text-black/40">
+              <dt className="text-xs uppercase tracking-wider text-black/40">
                 {sampleOrder ? "Tax document" : "Invoice"}
               </dt>
               <dd className="mt-1 font-semibold">{invoiceLabel}</dd>
@@ -135,7 +135,7 @@ export default function DurablePaymentResult({ result }: { result: Result }) {
 
         {state === "success" ? (
           <div className="mt-6 border-t border-black/8 pt-5">
-            <h2 className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-black/45">What happens next</h2>
+            <h2 className="font-mono text-sm font-semibold uppercase tracking-[0.12em] text-black/45">What happens next</h2>
             <ol className="mt-3 space-y-2 text-sm text-black/60">
               <li>1&nbsp;&nbsp;Our team reviews your artwork and production details</li>
               <li>2&nbsp;&nbsp;We&apos;ll contact you if anything needs confirmation</li>

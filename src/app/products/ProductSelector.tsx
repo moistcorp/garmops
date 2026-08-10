@@ -198,7 +198,7 @@ export default function ProductSelector({ products }: { products: Product[] }) {
                     Product photo
                   </span>
                 )}
-                <span className="absolute left-4 top-4 rounded-[3px] border border-black/10 bg-[#FAF8F5]/95 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--text-primary)] shadow-sm backdrop-blur-sm">
+                <span className="absolute left-4 top-4 rounded-[3px] border border-black/10 bg-[#FAF8F5]/95 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-primary)] shadow-sm backdrop-blur-sm">
                   {product.selectorBadge}
                 </span>
               </div>
@@ -215,16 +215,16 @@ export default function ProductSelector({ products }: { products: Product[] }) {
                 </div>
 
                 <div className="mt-5 flex flex-wrap gap-2">
-                  <span className="rounded-[3px] bg-[#F3F0EA] px-2.5 py-1 text-[11px] font-medium text-[var(--text-primary)]/60">
+                  <span className="rounded-[3px] bg-[#F3F0EA] px-2.5 py-1 text-xs font-medium text-[var(--text-primary)]/60">
                     {product.gsm} GSM
                   </span>
-                  <span className="rounded-[3px] bg-[#F3F0EA] px-2.5 py-1 text-[11px] font-medium text-[var(--text-primary)]/60">
+                  <span className="rounded-[3px] bg-[#F3F0EA] px-2.5 py-1 text-xs font-medium text-[var(--text-primary)]/60">
                     {product.selectorMaterial}
                   </span>
                 </div>
 
                 <div className="mt-5">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-[var(--text-primary)]/35">Best for</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.13em] text-[var(--text-primary)]/35">Best for</p>
                   <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1.5">
                     {product.bestFor.map(item => (
                       <span key={item} className="inline-flex items-center gap-1 text-xs text-[var(--text-primary)]/55">
