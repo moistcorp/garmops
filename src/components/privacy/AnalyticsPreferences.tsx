@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { ANALYTICS_CONSENT_KEY, setAnalyticsConsent } from "@/lib/analytics/client";
+import { OPEN_ANALYTICS_PREFERENCES_EVENT } from "./analyticsPreferencesEvents";
 
 export default function AnalyticsPreferences() {
   const choice = useSyncExternalStore(
@@ -10,6 +11,11 @@ export default function AnalyticsPreferences() {
     () => null,
   );
   const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const openPreferences = () => setOpen(true);
+    window.addEventListener(OPEN_ANALYTICS_PREFERENCES_EVENT, openPreferences);
+    return () => window.removeEventListener(OPEN_ANALYTICS_PREFERENCES_EVENT, openPreferences);
+  }, []);
   const choose = (accepted: boolean) => {
     setAnalyticsConsent(accepted);
     setOpen(false);
@@ -24,7 +30,6 @@ export default function AnalyticsPreferences() {
           <button type="button" onClick={() => choose(false)} className="rounded border border-black/10 px-4 py-2 text-sm font-semibold">Reject analytics</button>
         </div>
       </section> : null}
-      {choice !== null && !open ? <button type="button" onClick={() => setOpen(true)} className="fixed bottom-3 right-3 z-[90] rounded border border-black/10 bg-white px-3 py-2 text-xs shadow">Manage analytics</button> : null}
     </>
   );
 }
