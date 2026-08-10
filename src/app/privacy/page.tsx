@@ -54,7 +54,7 @@ const sections = [
   {
     title: '7. Cookies and updates',
     paragraphs: [
-      'Garmops uses essential storage to keep the site working, remember selected preferences and support ordering. Optional product analytics is off until accepted and can be withdrawn at any time through the Manage analytics link in the site footer.',
+      'Garmops uses essential storage to keep the site working, remember selected preferences and support ordering. Optional product analytics is off until accepted and can be withdrawn at any time through the Cookie settings link in the site footer.',
       'We may update this policy as our services or legal obligations change. The current version and effective date will always be published on this page.',
     ],
   },

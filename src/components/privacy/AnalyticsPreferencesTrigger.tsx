@@ -9,7 +9,7 @@ export default function AnalyticsPreferencesTrigger({ className }: { className?:
       onClick={() => window.dispatchEvent(new Event(OPEN_ANALYTICS_PREFERENCES_EVENT))}
       className={`text-left${className ? ` ${className}` : ""}`}
     >
-      Manage analytics
+      Cookie settings
     </button>
   );
 }
