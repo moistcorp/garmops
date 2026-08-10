@@ -7,7 +7,7 @@ export default function AnalyticsPreferencesTrigger({ className }: { className?:
     <button
       type="button"
       onClick={() => window.dispatchEvent(new Event(OPEN_ANALYTICS_PREFERENCES_EVENT))}
-      className={className}
+      className={`text-left${className ? ` ${className}` : ""}`}
     >
       Manage analytics
     </button>
