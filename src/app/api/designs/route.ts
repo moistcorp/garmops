@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (design.created_new) {
-    captureServerAnalytics({
+    await captureServerAnalytics({
       event: "saved_design_created",
       supabaseUserId: auth.user.id,
       consent: await customerAllowsAnalytics(auth.user.id),

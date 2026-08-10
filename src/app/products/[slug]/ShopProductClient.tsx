@@ -18,6 +18,7 @@ import {
 import { MAX_SAMPLE_ITEM_QUANTITY, useCartStore } from '@/lib/store'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import { getSizeChart, type SizeChart, type SizeRow } from '@/lib/sizecharts'
+import { captureAnalytics } from '@/lib/analytics/client'
 
 function displaySize(size: string) {
   return size === 'XXL' ? '2XL' : size
@@ -225,6 +226,12 @@ export default function ShopProductClient({
       quantity,
       image: product.image,
     })
+    captureAnalytics('sample_added_to_cart', {
+      product_id: product.id,
+      product_category: product.selectorCategory,
+      quantity_band: quantity === 1 ? '1' : quantity <= 3 ? '2_to_3' : '4_plus',
+      source: 'product_detail',
+    })
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
   }
@@ -242,6 +249,12 @@ export default function ShopProductClient({
       size: selectedSize || product.sizes[0],
       quantity,
       image: product.image,
+    })
+    captureAnalytics('sample_added_to_cart', {
+      product_id: product.id,
+      product_category: product.selectorCategory,
+      quantity_band: quantity === 1 ? '1' : quantity <= 3 ? '2_to_3' : '4_plus',
+      source: 'buy_now',
     })
     router.push('/cart')
   }

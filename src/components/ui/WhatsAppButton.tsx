@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
+import { captureAnalytics } from '@/lib/analytics/client'
 
 export default function WhatsAppButton() {
   const pathname = usePathname()
@@ -22,6 +23,7 @@ export default function WhatsAppButton() {
         window.dataLayer = window.dataLayer ?? []
         window.dataLayer.push(payload)
         window.dispatchEvent(new CustomEvent('garmops:analytics', { detail: payload }))
+        captureAnalytics('whatsapp_clicked', { source: 'floating_button' })
       }}
       className="fixed bottom-6 right-6 z-40 hidden h-14 w-14 items-center justify-center rounded-[4px] border border-[var(--color-accent)] bg-[var(--color-accent)] text-white transition-colors hover:bg-[var(--color-accent-dark)] sm:flex"
       aria-label="Chat on WhatsApp"

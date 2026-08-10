@@ -11,6 +11,7 @@ import {
 } from "@/lib/orders/api";
 import { submitSampleOrderRequestSchema } from "@/lib/orders/sampleSchema";
 import { submitSampleOrder } from "@/lib/orders/sampleService";
+import { captureServerAnalytics, customerAllowsAnalytics } from "@/lib/analytics/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -76,6 +77,15 @@ export async function POST(request: NextRequest) {
       supabase: auth.supabase,
       user: auth.user,
       request: parsed.data,
+    });
+    await captureServerAnalytics({
+      event: "sample_checkout_submitted",
+      supabaseUserId: auth.user.id,
+      consent: await customerAllowsAnalytics(auth.user.id),
+      properties: {
+        cart_line_count: parsed.data.items.length,
+        source: "sample_checkout",
+      },
     });
     return orderJson({ order: result }, 201);
   } catch (submissionError) {

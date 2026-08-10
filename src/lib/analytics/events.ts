@@ -12,6 +12,7 @@ export const ANALYTICS_EVENTS = [
   "cart_item_updated", "size_allocation_edited", "approval_pdf_started",
   "approval_pdf_downloaded", "approval_pdf_failed", "company_form_started",
   "checkout_validation_error", "durable_order_submitted", "durable_order_failed",
+  "sample_added_to_cart", "sample_checkout_submitted", "whatsapp_clicked",
 ] as const;
 
 export type AnalyticsEvent = (typeof ANALYTICS_EVENTS)[number];

@@ -21,11 +21,15 @@ export function useCustomerSession(enabled: boolean): CustomerSession {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setEmail(null); setLabel(null); resetAnalyticsUser(); return; }
-      identifyAnalyticsUser(user.id);
-      setEmail(user.email ?? null);
       const { data: profile } = await supabase.from("profiles").select("first_name").eq("id", user.id).maybeSingle();
       const metadataName = typeof user.user_metadata?.first_name === "string" ? user.user_metadata.first_name : null;
-      setLabel(profile?.first_name?.trim() || metadataName?.trim() || user.email?.split("@")[0] || "Account");
+      const name = profile?.first_name?.trim() || metadataName?.trim();
+      identifyAnalyticsUser(user.id, {
+        ...(user.email ? { email: user.email } : {}),
+        ...(name ? { name } : {}),
+      });
+      setEmail(user.email ?? null);
+      setLabel(name || user.email?.split("@")[0] || "Account");
     } catch {
       setEmail(null);
       setLabel(null);

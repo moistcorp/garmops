@@ -84,11 +84,12 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ''} https://challenges.cloudflare.com`,
+              `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ''} https://challenges.cloudflare.com https://*.posthog.com`,
               "style-src 'self' 'unsafe-inline' https://api.fontshare.com https://fonts.googleapis.com",
               "font-src 'self' https://cdn.fontshare.com https://fonts.gstatic.com",
               "img-src 'self' data: blob: https:",
               `connect-src 'self' https://api.resend.com https://secure.payu.in https://test.payu.in https://challenges.cloudflare.com${supabaseOrigin ? ` ${supabaseOrigin}` : ''}${r2Origin ? ` ${r2Origin}` : ''}${posthogOrigin ? ` ${posthogOrigin}` : ''}${sentryOrigin ? ` ${sentryOrigin}` : ''}`,
+              "worker-src 'self' blob:",
               "frame-src https://secure.payu.in https://test.payu.in https://challenges.cloudflare.com",
               "form-action 'self' https://secure.payu.in https://test.payu.in",
             ].join('; '),

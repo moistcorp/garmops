@@ -11,18 +11,37 @@ export function analyticsConsent(): boolean {
 }
 
 export function initializeAnalytics() {
-  if (process.env.NEXT_PUBLIC_ANALYTICS_ENABLED !== "true" || !analyticsConsent()) return;
+  if (process.env.NEXT_PUBLIC_ANALYTICS_ENABLED !== "true") return;
+
   const token = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
-  if (!token || posthog.__loaded) return;
+  const host = process.env.NEXT_PUBLIC_POSTHOG_HOST;
+  if (!token) {
+    if (process.env.NODE_ENV === "development") {
+      throw new Error("NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN is configured");
+    }
+    return;
+  }
+  if (!host) {
+    if (process.env.NODE_ENV === "development") {
+      throw new Error("NEXT_PUBLIC_POSTHOG_HOST variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once NEXT_PUBLIC_POSTHOG_HOST is configured");
+    }
+    return;
+  }
+  if (!analyticsConsent() || posthog.__loaded) return;
+
   posthog.init(token, {
-    api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://eu.i.posthog.com",
+    api_host: host,
+    defaults: "2026-01-30",
+    capture_exceptions: {
+      capture_unhandled_errors: true,
+      capture_unhandled_rejections: true,
+      capture_console_errors: false,
+    },
     capture_pageview: true,
     capture_pageleave: true,
-    disable_session_recording: true,
     persistence: "localStorage+cookie",
     person_profiles: "identified_only",
   });
-  posthog.stopSessionRecording();
 }
 
 export function setAnalyticsConsent(accepted: boolean) {
@@ -62,10 +81,24 @@ export function captureAnalytics(event: AnalyticsEvent, properties: AnalyticsPro
   if (posthog.__loaded) posthog.capture(event, sanitizeAnalyticsProperties(properties));
 }
 
-export function identifyAnalyticsUser(supabaseUserId: string) {
+export function captureAnalyticsException(error: unknown) {
+  if (!analyticsConsent()) return;
+  initializeAnalytics();
+  if (posthog.__loaded) posthog.captureException(error);
+}
+
+export type AnalyticsPersonProperties = {
+  email?: string;
+  name?: string;
+};
+
+export function identifyAnalyticsUser(
+  supabaseUserId: string,
+  personProperties: AnalyticsPersonProperties = {},
+) {
   if (!analyticsConsent() || !/^[0-9a-f-]{36}$/i.test(supabaseUserId)) return;
   initializeAnalytics();
-  if (posthog.__loaded) posthog.identify(supabaseUserId);
+  if (posthog.__loaded) posthog.identify(supabaseUserId, personProperties);
 }
 
 export function resetAnalyticsUser() {
