@@ -20,22 +20,16 @@ import type {
 import type { Size } from "./SizeQuantityGrid";
 import { SIZES } from "./SizeQuantityGrid";
 import { scheduleUploadCleanup } from "@/lib/configurator/objectUrls";
-import { MAX_CONFIGURATION_QUANTITY } from "@/lib/configurator/sizeQuantity";
+import {
+  getRecommendedSizeAllocation,
+  MAX_CONFIGURATION_QUANTITY,
+} from "@/lib/configurator/sizeQuantity";
 
 const STORAGE_PREFIX = "mf_configurator_cart:";
 const ACTIVE_CART_KEY = `${STORAGE_PREFIX}active`;
 const ACTIVE_CART_ID_KEY = `${STORAGE_PREFIX}active_id`;
 export const CART_DRAFT_UPDATED_EVENT = "mf-cart-updated";
 export const MAX_CONFIGURED_CART_ITEMS = 20;
-
-const SIZE_DISTRIBUTION: Record<(typeof SIZES)[number], number> = {
-  XS: 0.1,
-  S: 0.25,
-  M: 0.3,
-  L: 0.2,
-  XL: 0.1,
-  XXL: 0.05,
-};
 
 export const emptyAddress: Address = {
   country: "India",
@@ -490,41 +484,7 @@ export function splitQuantityAcrossSizes(
   quantity: number,
   sizes: readonly Size[] = SIZES
 ): Record<Size, number> {
-  const safeQuantity =
-    Number.isFinite(quantity) && quantity > 0 ? Math.max(1, Math.floor(quantity)) : 1;
-  if (sizes.length === 0) return {};
-  if (sizes.length === 1) {
-    return { [sizes[0]]: safeQuantity };
-  }
-
-  const knownApparelSizes = sizes.every((size) =>
-    (SIZES as readonly string[]).includes(size)
-  );
-  const entries = sizes.map((size) => {
-    const weight = knownApparelSizes
-      ? SIZE_DISTRIBUTION[size as (typeof SIZES)[number]]
-      : 1 / sizes.length;
-    const exact = safeQuantity * weight;
-    return {
-      size,
-      qty: Math.floor(exact),
-      remainder: exact - Math.floor(exact),
-    };
-  });
-  let allocated = entries.reduce((sum, entry) => sum + entry.qty, 0);
-
-  [...entries]
-    .sort((a, b) => b.remainder - a.remainder)
-    .forEach((entry) => {
-      if (allocated >= safeQuantity) return;
-      entry.qty += 1;
-      allocated += 1;
-    });
-
-  return entries.reduce(
-    (acc, entry) => ({ ...acc, [entry.size]: entry.qty }),
-    {} as Record<Size, number>
-  );
+  return getRecommendedSizeAllocation(sizes, quantity);
 }
 
 export function upsertConfiguredCartItem(

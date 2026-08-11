@@ -193,9 +193,7 @@ export default function NeckLabelPanel({
 
   const labelNoun = isToteProduct ? 'bag label' : 'neck label';
   const standardTitle = isToteProduct ? 'Standard bag label' : 'Standard size label';
-  const standardDetail = isToteProduct
-    ? 'Bag label only · No custom branding'
-    : 'Size label only · No custom branding';
+  const standardDetail = 'No custom branding';
   const customTitle = isToteProduct ? 'Custom bag label' : 'Custom neck label';
 
   const setPreviewUrl = useCallback((next?: string) => {
@@ -469,7 +467,7 @@ export default function NeckLabelPanel({
     : aiPreviewState === 'ready' && Boolean(aiPreviewUrl);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <div>
         <h1 className="text-xl font-semibold tracking-tight text-[var(--text-primary)]">
           Choose your {labelNoun}
@@ -491,23 +489,13 @@ export default function NeckLabelPanel({
           type="custom"
           selected={selectedCustom}
           title={customTitle}
-          detail={`Add your own branded ${labelNoun} artwork.`}
-          price={`Additional cost · ${formatInr(NECK_LABEL_UNIT_PRICE)} / piece`}
+          detail="Add your branding"
+          price={`+ ${formatInr(NECK_LABEL_UNIT_PRICE)} / piece`}
           onClick={() => chooseLabelType('custom')}
         />
       </div>
 
-      {!selectedCustom ? (
-        <div className="techpack-subtle rounded-[4px] border border-[var(--color-accent)]/15 px-4 py-4">
-          <p className="text-sm font-semibold text-[var(--text-primary)]">{standardTitle} selected</p>
-          <p className="mt-1 text-xs leading-relaxed text-[var(--text-primary)]/60">{standardDetail}</p>
-          <p className="mt-3 text-xs leading-relaxed text-[var(--text-primary)]/55">
-            {isToteProduct
-              ? 'This product keeps its standard bag-label treatment.'
-              : 'Each garment receives the standard size label for its allocated size.'}
-          </p>
-        </div>
-      ) : (
+      {selectedCustom && (
         <>
           <section>
             <SectionHeading>1 — Upload label artwork</SectionHeading>
@@ -624,9 +612,11 @@ export default function NeckLabelPanel({
             </section>
           )}
 
-          <div className="techpack-subtle rounded-[4px] px-4 py-3 text-xs leading-relaxed text-[var(--text-primary)]/65">
-            {hasArtwork ? 'Artwork uploaded. Check the live preview, then continue when the label details look right.' : 'Upload your artwork to see it in the live preview.'}
-          </div>
+          {hasArtwork && (
+            <div className="techpack-subtle rounded-[4px] px-4 py-3 text-xs leading-relaxed text-[var(--text-primary)]/65">
+              Artwork uploaded. Check the live preview, then continue when the label details look right.
+            </div>
+          )}
         </>
       )}
     </div>

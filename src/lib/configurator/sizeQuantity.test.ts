@@ -1,10 +1,38 @@
 import { describe, expect, it } from "vitest";
 import {
+  getRecommendedSizeAllocation,
   getSmallestOrderedSize,
   MAX_CONFIGURATION_QUANTITY,
   normalizeSizeQuantity,
   parseSizeQuantityInput,
 } from "./sizeQuantity";
+
+describe("recommended size allocation", () => {
+  it.each([
+    [["XS", "S", "M", "L", "XL", "XXL"], 50, [3, 8, 14, 14, 8, 3]],
+    [["XS", "S", "M", "L", "XL", "XXL"], 100, [6, 16, 28, 28, 16, 6]],
+    [["XS", "S", "M", "L", "XL", "XXL"], 200, [12, 32, 56, 56, 32, 12]],
+    [["XS", "S", "M", "L", "XL"], 50, [5, 11, 18, 11, 5]],
+    [["S", "M", "L"], 51, [13, 25, 13]],
+  ] as const)("allocates %j pieces across %j", (sizes, target, expected) => {
+    const allocation = getRecommendedSizeAllocation(sizes, target);
+
+    expect(Object.values(allocation)).toEqual(expected);
+    expect(Object.values(allocation).reduce((sum, quantity) => sum + quantity, 0)).toBe(target);
+    expect(Object.values(allocation).every((quantity) => Number.isInteger(quantity) && quantity >= 0)).toBe(true);
+  });
+
+  it("handles one, two, and uncommon size counts", () => {
+    expect(getRecommendedSizeAllocation(["One Size"], 50)).toEqual({ "One Size": 50 });
+    expect(getRecommendedSizeAllocation(["Small", "Large"], 50)).toEqual({ Small: 25, Large: 25 });
+
+    const allocation = getRecommendedSizeAllocation(["1", "2", "3", "4", "5", "6", "7"], 73);
+    expect(Object.values(allocation).reduce((sum, quantity) => sum + quantity, 0)).toBe(73);
+    expect(Object.values(allocation).every((quantity) => Number.isInteger(quantity) && quantity >= 0)).toBe(true);
+    expect(allocation["4"]).toBeGreaterThan(allocation["1"]);
+    expect(allocation["4"]).toBeGreaterThan(allocation["7"]);
+  });
+});
 
 describe("size quantity input", () => {
   it("accepts whole-number keyboard and pasted input", () => {

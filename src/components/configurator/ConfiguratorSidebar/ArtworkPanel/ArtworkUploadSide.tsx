@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Download, FileText, RefreshCw, Trash2, Upload } from "lucide-react";
 import { clampDim, useArtworkPosition } from "@/lib/configurator/ArtworkPositionContext";
+import { DEFAULT_ARTWORK_PRINT_AREA, PRINT_AREA_TOP_OFFSET_CM } from "@/lib/configurator/sizecharts";
 import { persistUploadedFile, revokeObjectUrl } from "@/lib/configurator/objectUrls";
 import type {
   ArtworkFileType,
@@ -65,10 +66,14 @@ function makeDefaultSide(
     placementPreset: "custom",
     width: dimensions.width,
     height: dimensions.height,
-    fromNeck: 5,
+    fromNeck: PRINT_AREA_TOP_OFFSET_CM,
     fromCenter: 0,
-    printArea: previous?.printArea ?? "XS",
-    guidelines: previous?.guidelines ?? { maximumArea: true, leftChest: false },
+    printArea: DEFAULT_ARTWORK_PRINT_AREA,
+    guidelines: {
+      ...previous?.guidelines,
+      maximumArea: true,
+      leftChest: previous?.guidelines?.leftChest ?? false,
+    },
     confirmed: false,
     ...diagnostics,
   };
@@ -178,7 +183,7 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
       return;
     }
     if (pendingObjectUrlRef.current === fileUrl) pendingObjectUrlRef.current = null;
-    updatePosition(side, { widthCm: dimensions.width, heightCm: dimensions.height, fromNeckCm: 5, fromCenterCm: 0 });
+    updatePosition(side, { widthCm: dimensions.width, heightCm: dimensions.height, fromNeckCm: PRINT_AREA_TOP_OFFSET_CM, fromCenterCm: 0 });
     onChange(makeDefaultSide(fileUrl, fileType, dimensions, value, fileKey, fileName, diagnostics));
     setUploadState("uploaded");
   }
@@ -303,31 +308,33 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
           </div>
         </div>
       ) : (
-        <div className="techpack-subtle flex flex-col gap-3 rounded-[4px] p-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-[var(--color-rule)] bg-white text-center text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/55">
+        <div className="techpack-subtle rounded-[4px] px-2.5 py-2">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-[var(--color-rule)] bg-white text-center text-[10px] font-semibold uppercase tracking-wide text-[var(--text-primary)]/55">
               {value.fileUrl && (value.fileType === "jpg" || value.fileType === "png" || value.fileType === "svg") ? (
                 <img src={value.fileUrl} alt="" className="h-full w-full object-contain p-1" />
               ) : (
                 <span className="flex flex-col items-center gap-1">
-                  <FileText size={22} strokeWidth={1.7} aria-hidden="true" />
+                  <FileText size={17} strokeWidth={1.7} aria-hidden="true" />
                   <span>{value.fileType.toUpperCase()}</span>
                 </span>
               )}
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm text-[var(--text-primary)]">{filename || "Artwork"}</p>
+            <div className="min-w-[9rem] flex-1">
+              <p className="flex items-center gap-1.5 truncate text-[13px] font-medium text-[var(--text-primary)]">
+                <span className="truncate">{filename || "Artwork"}</span>
+                {uploadState === "uploaded" && <span className="shrink-0 text-sm font-semibold text-[#1B7F36]" aria-label="Artwork uploaded">✓</span>}
+              </p>
               <p className="mt-0.5 text-xs text-[var(--text-primary)]/50">{value.fileType.toUpperCase()} · {uploadState === "uploaded" ? "Uploaded" : "Added"}</p>
             </div>
-            {uploadState === "uploaded" && <span className="text-sm font-semibold text-[#1B7F36]" aria-label="Artwork uploaded">✓</span>}
-          </div>
-          <div className="flex flex-wrap gap-2 border-t border-[var(--color-rule)] pt-2">
-            <button type="button" onClick={() => inputRef.current?.click()} className="techpack-control inline-flex min-h-9 items-center gap-1.5 rounded-[4px] border px-3 text-xs font-semibold text-[var(--text-primary)]/75 hover:!border-[var(--color-accent)]/45 hover:text-[var(--color-accent-dark)]">
+            <div className="ml-auto flex shrink-0 gap-1.5">
+            <button type="button" onClick={() => inputRef.current?.click()} className="techpack-control inline-flex min-h-8 items-center gap-1 rounded-[4px] border px-2.5 text-xs font-semibold text-[var(--text-primary)]/75 hover:!border-[var(--color-accent)]/45 hover:text-[var(--color-accent-dark)]">
               <RefreshCw size={13} aria-hidden="true" /> Replace
             </button>
-            <button type="button" onClick={handleRemove} className="techpack-control inline-flex min-h-9 items-center gap-1.5 rounded-[4px] border px-3 text-xs font-semibold text-[#B53434] hover:!border-[#B53434]/40">
+            <button type="button" onClick={handleRemove} className="techpack-control inline-flex min-h-8 items-center gap-1 rounded-[4px] border px-2.5 text-xs font-semibold text-[#B53434] hover:!border-[#B53434]/40">
               <Trash2 size={13} aria-hidden="true" /> Remove
             </button>
+            </div>
           </div>
         </div>
       )}

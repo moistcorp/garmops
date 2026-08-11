@@ -40,6 +40,7 @@ import { ActionFeedback, type ActionFeedbackTone } from '../ActionFeedback';
 import { trackConfiguratorEvent } from '@/lib/configurator/analytics';
 import { getArtworkSizeConflict } from '@/lib/configurator/artworkSizing';
 import {
+  getRecommendedSizeAllocation,
   MAX_CONFIGURATION_QUANTITY,
   normalizeSizeQuantity,
 } from '@/lib/configurator/sizeQuantity';
@@ -56,7 +57,7 @@ export interface CartItem {
   baseUnitPrice?: number;
   unitPrice: number;
   rushDelivery?: boolean;
-  /** Earlier Studio quantity, shown only as context until sizes are allocated. */
+  /** Pending quantity from Studio, used only to initialize an unallocated line. */
   plannedQuantity?: number;
 }
 
@@ -87,14 +88,42 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
       if (cancelled) return;
       try {
         const realDraft = readDraft(cartId);
+        let initializedAllocation = false;
         const items = await Promise.all(
           realDraft.items.map(async (item) => {
             const uploads = await restoreConfigurationUploads(item.artwork, item.neckLabel);
-            return { ...item, artwork: uploads.artwork, neckLabel: uploads.neckLabel };
+            const hydratedItem = { ...item, artwork: uploads.artwork, neckLabel: uploads.neckLabel };
+            const currentTotal = totalUnits(hydratedItem.sizeQuantities);
+
+            // New cart lines carry plannedQuantity until they receive their
+            // first size allocation. Once initialized, plannedQuantity is
+            // cleared so a saved/manual zero allocation cannot be mistaken
+            // for an untouched line on a later visit.
+            if (currentTotal > 0 || hydratedItem.plannedQuantity === undefined) {
+              return hydratedItem;
+            }
+
+            const product = getProduct(hydratedItem.productId);
+            const minimumUnits = getProductMinimumOrderQuantity(hydratedItem.productId, {
+              colourType: hydratedItem.colour.type,
+              customDyeMinimum: CUSTOM_DYE_MOQ_UNITS,
+            });
+            const sizes = product?.sizes ?? Object.keys(hydratedItem.sizeQuantities);
+            const targetQuantity = Math.max(minimumUnits, hydratedItem.plannedQuantity);
+            const sizeQuantities = getRecommendedSizeAllocation(sizes, targetQuantity);
+            initializedAllocation = true;
+
+            return {
+              ...hydratedItem,
+              sizeQuantities,
+              unitPrice: getCartItemUnitPrice({ ...hydratedItem, sizeQuantities }),
+              plannedQuantity: undefined,
+            };
           })
         );
         if (cancelled) return;
         const restoredDraft = { ...realDraft, items };
+        if (initializedAllocation) draftNeedsPersistenceRef.current = true;
         setDraft(restoredDraft);
         setActiveView(Object.fromEntries(items.map((item) => [item.id, 'front'])));
         const updatedMessage = window.sessionStorage.getItem('garmops:cart-update');
@@ -155,10 +184,40 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
           ...item,
           sizeQuantities,
           unitPrice: getCartItemUnitPrice({ ...item, sizeQuantities }),
+          plannedQuantity: undefined,
         };
       }),
     }));
     trackConfiguratorEvent("size_allocation_edited", { cart_id: cartId, item_id: itemId, size, quantity: qty });
+  }
+
+  function handleResetRecommendedSplit(item: CartItem) {
+    updateDraft((prev) => ({
+      ...prev,
+      items: prev.items.map((current) => {
+        if (current.id !== item.id) return current;
+
+        const product = getProduct(current.productId);
+        const minimumUnits = getProductMinimumOrderQuantity(current.productId, {
+          colourType: current.colour.type,
+          customDyeMinimum: CUSTOM_DYE_MOQ_UNITS,
+        });
+        const sizes = product?.sizes ?? Object.keys(current.sizeQuantities);
+        const currentTotal = totalUnits(current.sizeQuantities);
+        const targetQuantity = Math.max(
+          minimumUnits,
+          currentTotal || current.plannedQuantity || 0,
+        );
+        const sizeQuantities = getRecommendedSizeAllocation(sizes, targetQuantity);
+
+        return {
+          ...current,
+          sizeQuantities,
+          unitPrice: getCartItemUnitPrice({ ...current, sizeQuantities }),
+          plannedQuantity: undefined,
+        };
+      }),
+    }));
   }
 
   function handleEdit(item: CartItem) {
@@ -304,7 +363,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             </p>
             <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Choose sizes &amp; quantity</h1>
             <p className="mt-1 text-sm text-[var(--text-primary)]/55">
-              Add the number of pieces you need in each size.
+              Confirm your size split.
             </p>
           </div>
           {draftLoaded && items.length > 0 && (
@@ -351,7 +410,6 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             quantity: itemUnits,
           });
           const itemUnitPrice = linePricing.discountedUnitPaise / 100;
-          const garmentTotal = linePricing.discountedSubtotalPaise / 100;
           const nextTier = VOLUME_DISCOUNT_TIERS.find((tier) => tier.minQty > itemUnits);
           const nextTierPricing = nextTier
             ? getConfiguredLinePricingPaise({
@@ -362,9 +420,22 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                 quantity: nextTier.minQty,
               })
             : null;
+          const currentTierMinimum = [...VOLUME_DISCOUNT_TIERS]
+            .reverse()
+            .find((tier) => tier.minQty <= itemUnits)?.minQty ?? 0;
+          const priceBreakProgress = nextTier
+            ? Math.min(
+                100,
+                Math.max(
+                  0,
+                  ((itemUnits - currentTierMinimum) /
+                    Math.max(1, nextTier.minQty - currentTierMinimum)) *
+                    100,
+                ),
+              )
+            : 100;
           const artworkSizeConflict = getArtworkSizeConflict(item.artwork, item.sizeQuantities);
           const quantityShortfall = Math.max(0, itemMinimumUnits - itemUnits);
-          const nonZeroSizes = itemSizes.filter((size) => (item.sizeQuantities[size] ?? 0) > 0);
           const isOneSize = itemSizes.length === 1 && itemSizes[0] === "One Size";
           return (
             <section key={item.id} className="techpack-panel rounded-[4px] border p-5">
@@ -473,40 +544,34 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                     </div>
                   </div>
 
-                  <div className="grid gap-px overflow-hidden border border-[var(--color-rule)] bg-[var(--color-rule)] sm:grid-cols-2">
-                    <div className="bg-white px-4 py-3">
-                      <p className="font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--text-primary)]/45">Minimum order</p>
-                      <p className="mt-1 font-mono text-xl font-semibold tabular-nums text-[var(--text-primary)]">
-                        {itemMinimumUnits.toLocaleString("en-IN")} pieces
-                      </p>
-                      <p className="mt-1 text-xs text-[var(--text-primary)]/55">Minimum applies to this product configuration.</p>
+                  <div className="flex flex-wrap items-end justify-between gap-3 border-y border-[var(--color-rule)] py-2.5">
+                    <div>
+                      <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+                        {isOneSize ? "Choose quantity" : "Allocate by size"}
+                      </h3>
+                      {!isOneSize && (
+                        <p className="mt-0.5 text-xs text-[var(--text-primary)]/55">
+                          Use the prepared split or adjust it below.
+                        </p>
+                      )}
                     </div>
-                    <div className="bg-white px-4 py-3">
-                        <p className="font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--color-accent)]">Total quantity</p>
-                      <p className="mt-1 font-mono text-xl font-semibold tabular-nums text-[var(--text-primary)]">
-                        {itemUnits.toLocaleString("en-IN")} pieces
+                    <div className="flex flex-wrap items-center justify-end gap-3">
+                      <p
+                        className={quantityShortfall ? "text-right text-xs font-medium text-amber-800" : "text-right text-xs font-medium text-[var(--color-accent-dark)]"}
+                        aria-live="polite"
+                      >
+                        {quantityShortfall
+                          ? itemUnits.toLocaleString("en-IN") + " / " + itemMinimumUnits.toLocaleString("en-IN") + " pieces · Add " + quantityShortfall.toLocaleString("en-IN") + " more to continue"
+                          : itemUnits.toLocaleString("en-IN") + " pieces allocated ✓ · Minimum " + itemMinimumUnits.toLocaleString("en-IN")}
                       </p>
-                      <p className={`mt-1 text-xs ${quantityShortfall ? "text-amber-800" : "text-[var(--color-accent-dark)]"}`} aria-live="polite">
-                        {itemUnits === 0
-                          ? "No quantities entered."
-                          : quantityShortfall
-                            ? `${quantityShortfall.toLocaleString("en-IN")} more pieces needed to meet the ${itemMinimumUnits.toLocaleString("en-IN")}-piece minimum.`
-                            : itemUnits === itemMinimumUnits
-                              ? "Minimum order reached ✓"
-                              : "Minimum order met."}
-                      </p>
+                      <button
+                        type="button"
+                        onClick={() => handleResetRecommendedSplit(item)}
+                        className="text-xs font-medium text-[var(--text-primary)]/60 underline decoration-[var(--color-rule)] underline-offset-4 hover:text-[var(--text-primary)]"
+                      >
+                        Reset recommended split
+                      </button>
                     </div>
-                  </div>
-
-                  <div>
-                    <h3 className="text-sm font-semibold text-[var(--text-primary)]">
-                      {isOneSize ? "Choose quantity" : "Allocate by size"}
-                    </h3>
-                    {!isOneSize && (
-                      <p className="mt-1 text-xs text-[var(--text-primary)]/55">
-                        Not sure about your size split? View the size chart to plan quantities.
-                      </p>
-                    )}
                   </div>
 
                   <SizeQuantityGrid
@@ -517,12 +582,6 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                     sizes={itemSizes}
                     idPrefix={item.id}
                   />
-
-                  {!isOneSize && item.plannedQuantity && item.plannedQuantity !== itemUnits && (
-                    <p className="text-xs leading-relaxed text-[var(--text-primary)]/55">
-                      Earlier quantity: {item.plannedQuantity.toLocaleString("en-IN")} pieces. Allocate the pieces you actually need above; this size allocation becomes final.
-                    </p>
-                  )}
 
                   {artworkSizeConflict && (
                     <div className="flex flex-col gap-3 rounded-[4px] border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="alert">
@@ -552,59 +611,36 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                   )}
 
                   {sizeChart && (
-                    <details className="techpack-control rounded-[4px] border p-3 text-xs text-[var(--text-primary)]">
+                    <details className="mt-1 text-xs text-[var(--text-primary)]">
                       <summary className="cursor-pointer font-semibold text-[var(--color-accent-dark)]">View size chart →</summary>
-                      <div className="mt-3 overflow-x-auto">
+                      <div className="mt-3 overflow-x-auto rounded-[4px] border border-[var(--color-rule)] p-3">
                         <SizeChartTable chart={sizeChart} />
                       </div>
                       {sizeChart.note && <p className="mt-2 text-[var(--text-primary)]/55">{sizeChart.note}</p>}
                     </details>
                   )}
 
-                  <div className="grid gap-4 border-y border-[var(--color-rule)] py-4 sm:grid-cols-2">
-                    <div>
-                    <p className="font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--text-primary)]/45">Quantity pricing</p>
-                      <p className="mt-1 font-mono text-sm font-semibold text-[var(--text-primary)]">
+                  <div className="border-y border-[var(--color-rule)] py-3">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <p className="font-mono text-sm font-semibold text-[var(--text-primary)]">
                         {formatInr(itemUnitPrice)} / piece
                       </p>
-                    </div>
                     {nextTier && nextTierPricing ? (
-                      <div>
-                        <p className="font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--text-primary)]/45">Next price break</p>
-                        <p className="mt-1 text-xs text-[var(--text-primary)]/70">
-                          Add {(nextTier.minQty - itemUnits).toLocaleString("en-IN")} more pieces to reach {nextTier.minQty.toLocaleString("en-IN")} pieces · {formatInr(nextTierPricing.discountedUnitPaise / 100)} / piece
-                        </p>
-                      </div>
+                      <p className="text-right text-xs text-[var(--text-primary)]/70">
+                        ↗ Add {(nextTier.minQty - itemUnits).toLocaleString("en-IN")} more pieces to unlock {nextTier.discountPercent}% off
+                      </p>
                     ) : (
-                      <div>
-                        <p className="font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--text-primary)]/45">Price tier</p>
-                        <p className="mt-1 text-xs text-[var(--text-primary)]/70">Highest quantity tier reached.</p>
+                      <p className="text-xs text-[var(--text-primary)]/70">Highest quantity tier reached.</p>
+                    )}
+                    </div>
+                    {nextTier && nextTierPricing && (
+                      <div className="mt-2 h-1 overflow-hidden rounded-full bg-[var(--color-rule)]" aria-hidden="true">
+                        <div
+                          className="h-full bg-[var(--color-accent)] transition-[width]"
+                          style={{ width: `${priceBreakProgress}%` }}
+                        />
                       </div>
                     )}
-                  </div>
-
-                  <div className="rounded-[4px] border border-[var(--color-rule)] bg-[#F7F7F7] px-4 py-4 text-sm text-[var(--text-primary)]">
-                    <p className="font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--color-accent)]">Size &amp; quantity</p>
-                    <div className="mt-3 space-y-1.5">
-                      {nonZeroSizes.length ? nonZeroSizes.map((size) => (
-                        <div key={size} className="flex items-center justify-between gap-4 text-xs">
-                          <span className="font-medium">{isOneSize ? "Quantity" : size}</span>
-                          <span className="font-mono tabular-nums">{(item.sizeQuantities[size] ?? 0).toLocaleString("en-IN")}</span>
-                        </div>
-                      )) : (
-                        <p className="text-xs text-[var(--text-primary)]/55">No quantities entered.</p>
-                      )}
-                    </div>
-                    <div className="mt-3 space-y-1.5 border-t border-[var(--color-rule)] pt-3">
-                      <div className="flex items-center justify-between gap-4 font-semibold">
-                        <span>Total</span>
-                        <span className="font-mono tabular-nums">{itemUnits.toLocaleString("en-IN")} pieces</span>
-                      </div>
-                      <div className="flex items-center justify-between gap-4 text-xs text-[var(--text-primary)]/65">
-                        <span>{formatInr(itemUnitPrice)} / piece</span>
-                        <span className="font-mono font-semibold text-[var(--text-primary)]">{formatInr(garmentTotal)} subtotal</span>
-                      </div>
-                    </div>
                   </div>
 
                 </div>
@@ -621,6 +657,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             shippingFee={totals.shippingFee}
             gst={totals.gst}
             total={totals.total}
+            totalPieces={items.reduce((sum, item) => sum + totalUnits(item.sizeQuantities), 0)}
             onNext={handleNext}
             nextLabel="Continue to delivery"
             nextDisabled={!cartIsValid}

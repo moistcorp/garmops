@@ -41,6 +41,8 @@ const mobileGroups = [
   },
 ]
 
+const desktopUtilityItemClass = 'inline-flex min-h-11 items-center gap-1.5 font-mono text-[13px] leading-none uppercase tracking-[0.04em] text-[#444444] transition-colors hover:text-[var(--color-accent)]'
+
 export default function Navbar() {
   const pathname = usePathname()
   const router = useRouter()
@@ -139,24 +141,20 @@ export default function Navbar() {
           </nav>
 
           <div className="hidden shrink-0 items-center gap-5 xl:justify-self-end xl:flex">
-            <Link
-              href="/contact"
-              className="inline-flex min-h-11 items-center gap-1.5 font-mono text-xs uppercase tracking-[0.06em] text-[#444444] transition-colors hover:text-[var(--color-accent)]"
-            >
-              <CircleHelp size={15} aria-hidden="true" />
-              Help
-            </Link>
-            {accountsEnabled && <CustomerAccountControl session={customerSession} onOpenAuth={() => setAuthOpen(true)} />}
-            <Link
-              href="/cart"
-              className="inline-flex min-h-11 items-center gap-1.5 font-mono text-xs uppercase tracking-[0.06em] text-[#444444] transition-colors hover:text-[var(--color-accent)]"
-              >
-              <ShoppingCart size={15} aria-hidden="true" />
-              CART{itemCount > 0 ? ` · ${itemCount > 99 ? '99+' : itemCount}` : ''}
-            </Link>
+            <div className="flex items-center gap-5">
+              <Link href="/contact" className={desktopUtilityItemClass}>
+                <CircleHelp size={16} aria-hidden="true" />
+                Help
+              </Link>
+              {accountsEnabled && <CustomerAccountControl session={customerSession} onOpenAuth={() => setAuthOpen(true)} desktopClassName={desktopUtilityItemClass} />}
+              <Link href="/cart" className={desktopUtilityItemClass}>
+                <ShoppingCart size={16} aria-hidden="true" />
+                CART{itemCount > 0 ? ` · ${itemCount > 99 ? '99+' : itemCount}` : ''}
+              </Link>
+            </div>
             <Link
               href="/configurator"
-              className="inline-flex min-h-11 items-center justify-center rounded-[4px] bg-[var(--color-accent)] px-5 py-2.5 font-mono text-sm uppercase tracking-[0.06em] text-[var(--color-cream)] transition-colors hover:bg-[var(--color-accent-dark)]"
+              className="ml-2 inline-flex min-h-11 items-center justify-center rounded-[4px] bg-[var(--color-accent)] px-5 py-2.5 font-mono text-sm uppercase tracking-[0.06em] text-[var(--color-cream)] transition-colors hover:bg-[var(--color-accent-dark)]"
             >
               START DESIGNING
             </Link>

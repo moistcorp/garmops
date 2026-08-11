@@ -9,6 +9,7 @@ export interface PrintAreaDimensions {
 
 // Production print areas begin three inches below the neck seam.
 export const PRINT_AREA_TOP_OFFSET_CM = 3 * 2.54;
+export const DEFAULT_ARTWORK_PRINT_AREA: PrintAreaSize = 'L';
 
 export const PRINT_AREA_SIZE_CHART: Record<PrintAreaSize, PrintAreaDimensions> = {
   XS: { width: 31, height: 43 },

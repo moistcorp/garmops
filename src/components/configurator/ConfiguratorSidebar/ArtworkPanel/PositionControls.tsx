@@ -2,20 +2,9 @@
 "use client";
 
 import type { JSX } from "react";
-import {
-  AlignHorizontalJustifyStart,
-  AlignHorizontalJustifyCenter,
-  AlignHorizontalJustifyEnd,
-  AlignVerticalJustifyStart,
-  AlignVerticalJustifyCenter,
-  AlignVerticalJustifyEnd,
-  Lock,
-  Unlock,
-  Info,
-} from "lucide-react";
+import { Info } from "lucide-react";
 import {
   useArtworkPosition,
-  resizeWithAspect,
   clampDim,
   constrainArtworkToPrintArea,
   getArtworkPlacementBounds,
@@ -23,8 +12,6 @@ import {
   MIN_DIM,
   MAX_DIM,
   type PositionControlsState,
-  type HorizontalAlign,
-  type VerticalAlign,
 } from "@/lib/configurator/ArtworkPositionContext";
 import type { PrintAreaDimensions } from "@/lib/configurator/sizecharts";
 
@@ -117,87 +104,16 @@ export function PositionControls({
     updatePosition(targetView, next);
   }
 
-  function setAlignH(alignH: HorizontalAlign) {
-    const fromCenterCm =
-      alignH === "left"
-        ? bounds.minFromCenterCm
-        : alignH === "right"
-          ? bounds.maxFromCenterCm
-          : 0;
-    update({ alignH, fromCenterCm });
-  }
-
-  function setAlignV(alignV: VerticalAlign) {
-    const fromNeckCm =
-      alignV === "top"
-        ? bounds.minFromNeckCm
-        : alignV === "bottom"
-          ? bounds.maxFromNeckCm
-          : (bounds.minFromNeckCm + bounds.maxFromNeckCm) / 2;
-    update({ alignV, fromNeckCm });
-  }
-
   function setWidth(next: number) {
-    update(resizeWithAspect(state, "width", next));
+    update({ widthCm: clampDim(next, MIN_DIM, printAreaDimensions.width) });
   }
 
   function setHeight(next: number) {
-    update(resizeWithAspect(state, "height", next));
+    update({ heightCm: clampDim(next, MIN_DIM, printAreaDimensions.height) });
   }
-
-  const alignHButtons: { value: HorizontalAlign; icon: typeof AlignHorizontalJustifyStart; label: string }[] = [
-    { value: "left", icon: AlignHorizontalJustifyStart, label: "Align left" },
-    { value: "center", icon: AlignHorizontalJustifyCenter, label: "Center horizontally" },
-    { value: "right", icon: AlignHorizontalJustifyEnd, label: "Align right" },
-  ];
-
-  const alignVButtons: { value: VerticalAlign; icon: typeof AlignVerticalJustifyStart; label: string }[] = [
-    { value: "top", icon: AlignVerticalJustifyStart, label: "Align top" },
-    { value: "center", icon: AlignVerticalJustifyCenter, label: "Center vertically" },
-    { value: "bottom", icon: AlignVerticalJustifyEnd, label: "Align bottom" },
-  ];
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <span className="text-xs font-medium text-neutral-600">Alignment (snaps within print area)</span>
-        <div className="mt-1 flex gap-1">
-          {alignHButtons.map(({ value, icon: Icon, label }) => (
-            <button
-              key={value}
-              type="button"
-              aria-label={label}
-              aria-pressed={state.alignH === value}
-              onClick={() => setAlignH(value)}
-              className={`rounded-[4px] border p-1.5 ${
-                state.alignH === value
-                  ? "border-neutral-900 bg-neutral-900 text-white"
-                  : "techpack-control border text-neutral-500 hover:!bg-white/60 hover:text-neutral-900"
-              }`}
-            >
-              <Icon className="h-4 w-4" />
-            </button>
-          ))}
-          <span className="mx-1 w-px bg-neutral-200" />
-          {alignVButtons.map(({ value, icon: Icon, label }) => (
-            <button
-              key={value}
-              type="button"
-              aria-label={label}
-              aria-pressed={state.alignV === value}
-              onClick={() => setAlignV(value)}
-              className={`rounded-[4px] border p-1.5 ${
-                state.alignV === value
-                  ? "border-neutral-900 bg-neutral-900 text-white"
-                  : "techpack-control border text-neutral-500 hover:!bg-white/60 hover:text-neutral-900"
-              }`}
-            >
-              <Icon className="h-4 w-4" />
-            </button>
-          ))}
-        </div>
-      </div>
-
       <div className="flex items-end gap-2">
         <Stepper
           label="Width"
@@ -206,26 +122,12 @@ export function PositionControls({
           min={MIN_DIM}
           max={printAreaDimensions.width}
         />
-        <button
-          type="button"
-          onClick={() => update({ aspectLocked: !state.aspectLocked })}
-          aria-label={state.aspectLocked ? "Unlock aspect ratio" : "Lock aspect ratio"}
-          aria-pressed={state.aspectLocked}
-          className={`mb-1 rounded-[4px] border p-1.5 ${
-            state.aspectLocked
-              ? "border-neutral-900 bg-neutral-900 text-white"
-              : "techpack-control border text-neutral-500 hover:!bg-white/60 hover:text-neutral-900"
-          }`}
-        >
-          {state.aspectLocked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
-        </button>
         <Stepper
           label="Height"
           value={state.heightCm}
           onChange={setHeight}
           min={MIN_DIM}
           max={printAreaDimensions.height}
-          disabled={state.aspectLocked}
         />
       </div>
 

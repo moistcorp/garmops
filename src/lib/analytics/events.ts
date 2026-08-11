@@ -6,7 +6,7 @@ export const ANALYTICS_EVENTS = [
   "order_confirmed", "saved_design_created", "stage_viewed", "stage_completed",
   "product_compared", "target_date_selected", "artwork_upload_started",
   "artwork_upload_failed", "technique_recommended", "artwork_skipped",
-  "artwork_placement_reset", "artwork_left_chest_applied", "artwork_copied_to_back",
+  "artwork_placement_reset", "artwork_left_chest_applied",
   "artwork_copied_to_front", "neck_label_skipped", "configuration_undo",
   "configuration_redo", "configuration_reset", "added_to_cart", "cart_item_duplicated",
   "cart_item_updated", "size_allocation_edited", "approval_pdf_started",

@@ -1,5 +1,5 @@
 import type { Artwork, PrintAreaSize } from './types/configurator';
-import { PRINT_AREA_SIZE_CHART, PRINT_AREA_TOP_OFFSET_CM } from './sizecharts';
+import { DEFAULT_ARTWORK_PRINT_AREA, PRINT_AREA_SIZE_CHART, PRINT_AREA_TOP_OFFSET_CM } from './sizecharts';
 import { getSmallestOrderedSize } from './sizeQuantity';
 
 const SIZE_RANK: Record<PrintAreaSize, number> = {
@@ -12,7 +12,7 @@ const SIZE_RANK: Record<PrintAreaSize, number> = {
 };
 
 export function artworkSmallestSize(artwork: Artwork): PrintAreaSize | undefined {
-  return artwork.smallestSize ?? artwork.front?.printArea ?? artwork.back?.printArea;
+  return artwork.smallestSize ?? artwork.front?.printArea ?? artwork.back?.printArea ?? DEFAULT_ARTWORK_PRINT_AREA;
 }
 
 export function getArtworkSizeConflict(

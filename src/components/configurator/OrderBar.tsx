@@ -105,8 +105,8 @@ function VolumeDiscountProgress({ quantity }: { quantity: number }) {
         : "Volume pricing updates automatically in the Sizes & quantity step";
 
   return (
-    <div className="techpack-subtle rounded-[4px] px-3 py-2.5">
-      <div className="flex items-start gap-2 text-xs font-semibold leading-relaxed text-[var(--color-accent)]">
+    <div className="px-1">
+      <div className="flex items-start gap-2 text-xs font-semibold leading-4 text-[var(--color-accent)]">
         <TrendingUp size={14} strokeWidth={2.4} className="mt-0.5 shrink-0" aria-hidden="true" />
         <span>{message}</span>
       </div>
@@ -117,7 +117,7 @@ function VolumeDiscountProgress({ quantity }: { quantity: number }) {
           aria-valuemin={state.progressMin}
           aria-valuemax={state.progressMax ?? undefined}
           aria-valuenow={Math.min(quantity, state.progressMax ?? quantity)}
-          className="mt-2 h-1.5 overflow-hidden rounded-[4px] bg-[#DCE8E4]"
+          className="mt-1 h-1 overflow-hidden rounded-[4px] bg-[#DCE8E4]"
         >
           <div
             className="h-full rounded-[4px] bg-[var(--color-accent)] transition-[width] duration-200"
@@ -176,12 +176,12 @@ export function OrderBar({
   return (
     <section
       aria-label="Order estimate"
-      className="techpack-stack techpack-surface grid gap-2.5 rounded-[6px] !border-[var(--color-control-border)] !bg-white border p-3"
+      className="techpack-surface rounded-[6px] !border-[var(--color-control-border)] !bg-white border p-2"
     >
       <VolumeDiscountProgress quantity={quantity} />
 
       <div
-        className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)] items-end gap-2 border-t border-white/55 pt-2 sm:grid-cols-[minmax(132px,1.2fr)_minmax(92px,1fr)_minmax(92px,1fr)]"
+        className="mt-1.5 grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-x-3 border-t border-[var(--color-control-border)]/70 pt-1.5 sm:grid-cols-[minmax(132px,1.2fr)_minmax(92px,1fr)_minmax(92px,1fr)]"
         aria-live="polite"
       >
         <div className="min-w-0">
@@ -263,21 +263,22 @@ export function OrderBar({
             {formatInr(pricingBreakdown.total)}
           </div>
         </div>
-        <button
-          type="button"
-          onClick={onCtaClick}
-          className={`col-span-3 min-h-10 w-full rounded-[4px] px-5 py-2 text-sm font-semibold leading-tight text-white transition-all hover:opacity-90 ${
-            flashError
-              ? "bg-[#C62828] ring-2 ring-[#C62828]/40 ring-offset-2"
-              : "bg-[var(--color-accent)] hover:bg-[var(--color-accent-dark)]"
-          }`}
-        >
-          {ctaLabel}
-        </button>
       </div>
 
+      <button
+        type="button"
+        onClick={onCtaClick}
+        className={`mt-2 min-h-11 w-full rounded-[4px] px-4 py-2 text-sm font-semibold leading-tight text-white transition-all hover:opacity-90 ${
+          flashError
+            ? "bg-[#C62828] ring-2 ring-[#C62828]/40 ring-offset-2"
+            : "bg-[var(--color-accent)] hover:bg-[var(--color-accent-dark)]"
+        }`}
+      >
+        {ctaLabel}
+      </button>
+
       {ctaErrorMessage && (
-        <p role="alert" className="text-right text-xs font-medium text-[#C62828]">
+        <p role="alert" className="mt-1 text-center text-xs font-medium text-[#C62828]">
           {ctaErrorMessage}
         </p>
       )}

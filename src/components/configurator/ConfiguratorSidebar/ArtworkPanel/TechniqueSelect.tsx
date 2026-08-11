@@ -20,9 +20,9 @@ const TECHNIQUE_ORDER: CustomerArtworkTechnique[] = [
 ];
 
 const TECHNIQUE_DESCRIPTIONS: Record<CustomerArtworkTechnique, string> = {
-  screen_print: "Bold graphics & repeat bulk production",
-  dtf: "Detailed and multi-colour artwork",
-  reflective_print: "Light-reactive speciality finish",
+  screen_print: "Premium, smooth finish with a soft and durable hand feel.",
+  dtf: "Crisp, smooth finish with a flexible, slightly raised feel.",
+  reflective_print: "Clean, slightly raised finish that becomes reflective under direct light.",
 };
 
 export function TechniqueSelect({ value, fileType, side = "front", onChange }: TechniqueSelectProps) {
@@ -37,9 +37,9 @@ export function TechniqueSelect({ value, fileType, side = "front", onChange }: T
   }
 
   return (
-    <fieldset className="flex flex-col gap-2" aria-label={`${sideLabel} print method`}>
+    <fieldset className="flex flex-col gap-2.5 border-t border-[var(--color-rule)] pt-4" aria-label={`${sideLabel} print method`}>
       <legend className="text-xs font-semibold text-[var(--text-primary)]/70">
-        <span className="whitespace-nowrap">2 —</span> Choose print method<span aria-hidden="true">*</span>
+        <span className="whitespace-nowrap">2 -</span> Print method<span aria-hidden="true">*</span>
       </legend>
       <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Print method">
         {TECHNIQUE_ORDER.map((technique) => {
@@ -51,14 +51,14 @@ export function TechniqueSelect({ value, fileType, side = "front", onChange }: T
               role="radio"
               aria-checked={selected}
               onClick={() => chooseTechnique(technique)}
-              className={`min-h-[92px] rounded-[4px] border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/45 ${
+              className={`flex min-h-11 items-center rounded-[4px] border px-2.5 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/45 ${
                 selected
                   ? "border-[var(--color-accent)] bg-[var(--color-accent)]/8"
                   : "techpack-control hover:!border-[var(--color-accent)]/45"
               }`}
             >
-              <span className="flex items-start justify-between gap-2">
-                <span className="text-sm font-semibold text-[var(--text-primary)]/85">
+              <span className="flex w-full items-center justify-between gap-2">
+                <span className="min-w-0 text-[13px] font-semibold leading-tight text-[var(--text-primary)]/85">
                   {TECHNIQUE_LABELS[technique]}
                 </span>
                 <span
@@ -70,25 +70,20 @@ export function TechniqueSelect({ value, fileType, side = "front", onChange }: T
                   }`}
                 />
               </span>
-              <span className="mt-2 block text-xs leading-relaxed text-[var(--text-primary)]/55">
-                {TECHNIQUE_DESCRIPTIONS[technique]}
-              </span>
             </button>
           );
         })}
       </div>
       {!value && (
-        <p className="text-xs font-medium leading-relaxed text-[#8A6212]">
-          Choose a print method to unlock placement.
+        <p className="text-xs leading-relaxed text-[var(--text-primary)]/50">
+          Choose a print method to continue.
         </p>
       )}
       {value && (
-        <p className="text-xs leading-relaxed text-[var(--text-primary)]/55">
-          {value === "screen_print"
-            ? "Our team will review the artwork for print preparation."
-            : value === "dtf"
-              ? "High-resolution artwork is preferred for detailed prints."
-              : "Clean artwork generally reproduces best with this finish."}
+        <p className="text-xs leading-relaxed text-[var(--text-primary)]/58">
+          <span className="font-semibold text-[var(--text-primary)]/75">{TECHNIQUE_LABELS[value]}</span>
+          <span aria-hidden="true"> · </span>
+          {TECHNIQUE_DESCRIPTIONS[value]}
         </p>
       )}
     </fieldset>

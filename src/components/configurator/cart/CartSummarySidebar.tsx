@@ -11,6 +11,7 @@ interface CartSummarySidebarProps {
   gst: number;
   delivery?: string;
   total: number;
+  totalPieces?: number;
   onNext?: () => void;
   nextLabel?: string;
   nextDisabled?: boolean;
@@ -27,6 +28,7 @@ export function CartSummarySidebar({
   promoDiscount = 0,
   gst,
   total,
+  totalPieces,
   onNext,
   nextLabel = "Continue",
   nextDisabled = false,
@@ -55,6 +57,11 @@ export function CartSummarySidebar({
         <div className="border-t border-[var(--color-rule)] pt-3">
           <SummaryRow label="Order total" value={formatInr(total)} strong />
         </div>
+        {totalPieces !== undefined && (
+          <p className="text-right text-xs text-[var(--text-primary)]/55">
+            {totalPieces.toLocaleString("en-IN")} pieces
+          </p>
+        )}
       </div>
 
       {onNext && (
@@ -62,10 +69,11 @@ export function CartSummarySidebar({
           <button
             type="button"
             aria-disabled={nextDisabled}
+            disabled={nextDisabled && !onDisabledNext}
             onClick={nextDisabled ? onDisabledNext : onNext}
             className={`mt-5 flex w-full items-center justify-center gap-2 rounded-[4px] px-4 py-3 text-sm font-semibold transition-colors ${
               nextDisabled
-                ? "bg-[#E5E5E5] text-[var(--text-primary)]/45"
+                ? "cursor-not-allowed bg-[#E5E5E5] text-[var(--text-primary)]/45"
                 : "bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-dark)]"
             }`}
           >

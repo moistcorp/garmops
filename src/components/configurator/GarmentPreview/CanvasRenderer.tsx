@@ -24,7 +24,7 @@ import {
   constrainArtworkToPrintArea,
   resizeWithAspect,
 } from "@/lib/configurator/ArtworkPositionContext";
-import { PRINT_AREA_SIZE_CHART } from "@/lib/configurator/sizecharts";
+import { DEFAULT_ARTWORK_PRINT_AREA, PRINT_AREA_SIZE_CHART } from "@/lib/configurator/sizecharts";
 import {
   LEFT_CHEST_DIMENSIONS,
   LEFT_CHEST_PLACEMENT,
@@ -146,8 +146,8 @@ function ArtworkPreview({ side }: { side: ArtworkSide }) {
   }
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-white/85 px-2 text-center text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/55">
-      <span className="rounded-[4px] border border-[var(--color-rule)] px-2 py-1">{side.fileType.toUpperCase()}</span>
+    <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-white/60 px-2 text-center text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/38">
+      <span className="rounded-[4px] border border-[var(--color-rule)]/70 px-2 py-1">{side.fileType.toUpperCase()}</span>
       <span className="text-xs normal-case tracking-normal">Document preview</span>
     </div>
   );
@@ -380,7 +380,7 @@ export default function CanvasRenderer({
   // anchored to the garment's fixed boundaries rather than the user's
   // adjustable artwork box.
   const printAreaDims = activeArtwork
-    ? PRINT_AREA_SIZE_CHART[activeArtwork.printArea]
+    ? PRINT_AREA_SIZE_CHART[DEFAULT_ARTWORK_PRINT_AREA]
     : undefined;
   const canEditArtwork = Boolean(
     interactive &&
@@ -389,7 +389,7 @@ export default function CanvasRenderer({
       activeArtwork?.technique &&
       printAreaDims
   );
-  const showMaxArea = showProductionGuides && interactive && showBox && !!activeArtwork?.guidelines.maximumArea && !!printAreaDims;
+  const showMaxArea = showProductionGuides && interactive && showBox && !!activeArtwork && !!printAreaDims;
   const showLeftChest = showProductionGuides && interactive && showBox && !!activeArtwork?.guidelines.leftChest;
 
   const maxAreaWidthPx = printAreaDims ? printAreaDims.width * PX_PER_CM_X : 0;
@@ -660,7 +660,7 @@ export default function CanvasRenderer({
         <div
           role="presentation"
           aria-label="Maximum print area guideline"
-          className="pointer-events-none absolute z-[15] border border-dashed border-[#B534CC]/60"
+          className="pointer-events-none absolute z-[15] border-[0.5px] border-dashed border-[#B534CC]/32"
           style={{
             left: `${(maxAreaLeftPx / CANVAS_SIZE.width) * 100}%`,
             top: `${(maxAreaTopPx / CANVAS_SIZE.height) * 100}%`,
@@ -677,7 +677,7 @@ export default function CanvasRenderer({
         dragMode === "move" && (
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute bottom-[12%] left-1/2 top-[20%] z-[14] border-l border-dashed border-[#B534CC]/60"
+            className="pointer-events-none absolute bottom-[12%] left-1/2 top-[20%] z-[14] border-l-[0.5px] border-dashed border-[#B534CC]/28"
           />
       )}
 
@@ -685,7 +685,7 @@ export default function CanvasRenderer({
         <div
           role="presentation"
           aria-label="Left chest print guideline"
-          className="pointer-events-none absolute z-[15] border border-dashed border-[#B534CC]/60"
+          className="pointer-events-none absolute z-[15] border-[0.5px] border-dashed border-[#B534CC]/32"
           style={{
             left: `${(chestLeftPx / CANVAS_SIZE.width) * 100}%`,
             top: `${(chestTopPx / CANVAS_SIZE.height) * 100}%`,
