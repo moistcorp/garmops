@@ -88,7 +88,7 @@ type FaqGroup = {
   items: FaqItem[]
 }
 
-const faqLinkClass = 'font-semibold text-[var(--color-accent-dark)] underline decoration-[var(--color-accent)]/35 underline-offset-2 transition-colors hover:text-[var(--color-accent)]'
+const faqLinkClass = 'font-semibold text-(--color-accent-dark) underline decoration-(--color-accent)/35 underline-offset-2 transition-colors hover:text-(--color-accent)'
 
 const faqGroups: FaqGroup[] = [
   {
@@ -223,7 +223,7 @@ function DirectContactLink({
     <a
       href={href}
       {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-      className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-[4px] border border-[var(--color-accent)] px-3.5 py-2.5 text-sm font-semibold text-[var(--color-accent-dark)] transition-colors hover:bg-[var(--color-accent)]/5"
+      className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-sm border border-(--color-accent) px-3.5 py-2.5 text-sm font-semibold text-(--color-accent-dark) transition-colors hover:bg-(--color-accent)/5"
     >
       {label} <ArrowRight size={15} aria-hidden="true" />
     </a>
@@ -235,30 +235,30 @@ export default function ContactClient() {
     <main className="techpack-canvas">
       <section className="mx-auto max-w-7xl px-4 pb-16 pt-12 sm:px-6 sm:pb-24 sm:pt-20">
         <div className="max-w-3xl">
-          <p className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--color-accent)]">Help</p>
-          <h1 className="mt-3 text-4xl font-bold tracking-tight text-[var(--color-navy)] sm:text-5xl">Need a hand?</h1>
-          <p className="mt-4 max-w-2xl text-base leading-relaxed text-[var(--text-primary)]/60 sm:text-lg">Find the right place to start, or contact us directly.</p>
+          <p className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-(--color-accent)">Help</p>
+          <h1 className="mt-3 text-4xl font-bold tracking-tight text-(--color-navy) sm:text-5xl">Need a hand?</h1>
+          <p className="mt-4 max-w-2xl text-base leading-relaxed text-(--text-primary)/60 sm:text-lg">Find the right place to start, or contact us directly.</p>
         </div>
 
-        <section className="mt-12 border-t border-[var(--color-rule)] pt-10 sm:mt-16" aria-labelledby="help-intents-heading">
+        <section className="mt-12 border-t border-(--color-rule) pt-10 sm:mt-16" aria-labelledby="help-intents-heading">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--text-primary)]/40">Start here</p>
-              <h2 id="help-intents-heading" className="mt-2 text-2xl font-bold tracking-tight text-[var(--color-navy)] sm:text-3xl">What do you need help with?</h2>
+              <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-primary)/40">Start here</p>
+              <h2 id="help-intents-heading" className="mt-2 text-2xl font-bold tracking-tight text-(--color-navy) sm:text-3xl">What do you need help with?</h2>
             </div>
-            <p className="max-w-md text-sm leading-6 text-[var(--text-primary)]/55">Choose a product → configure → add quantities and sizes → review → pay → track your order.</p>
+            <p className="max-w-md text-sm leading-6 text-(--text-primary)/55">Choose a product → configure → add quantities and sizes → review → pay → track your order.</p>
           </div>
 
           <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {intentOptions.map(({ number, icon: Icon, title, description, label, href }) => (
-              <article key={title} className="flex min-h-56 flex-col rounded-[4px] border border-[var(--color-rule)] bg-white p-5 transition-colors hover:border-[var(--color-accent)]/55 sm:p-6">
+              <article key={title} className="flex min-h-56 flex-col rounded-sm border border-(--color-rule) bg-white p-5 transition-colors hover:border-(--color-accent)/55 sm:p-6">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-[10px] font-semibold tracking-[0.14em] text-[var(--color-accent)]">{number}</span>
-                  <Icon size={19} strokeWidth={1.8} className="text-[var(--color-accent)]" aria-hidden="true" />
+                  <span className="font-mono text-[10px] font-semibold tracking-[0.14em] text-(--color-accent)">{number}</span>
+                  <Icon size={19} strokeWidth={1.8} className="text-(--color-accent)" aria-hidden="true" />
                 </div>
-                <h3 className="mt-8 text-lg font-semibold tracking-tight text-[var(--color-navy)]">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-[var(--text-primary)]/55">{description}</p>
-                <Link href={href} className="mt-auto inline-flex items-center gap-2 pt-6 text-sm font-semibold text-[var(--color-accent-dark)] transition-colors hover:text-[var(--color-accent)]">
+                <h3 className="mt-8 text-lg font-semibold tracking-tight text-(--color-navy)">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-(--text-primary)/55">{description}</p>
+                <Link href={href} className="mt-auto inline-flex items-center gap-2 pt-6 text-sm font-semibold text-(--color-accent-dark) transition-colors hover:text-(--color-accent)">
                   {label} <ArrowRight size={15} aria-hidden="true" />
                 </Link>
               </article>
@@ -266,44 +266,44 @@ export default function ContactClient() {
           </div>
         </section>
 
-        <section id="contact-garmops" className="mt-16 scroll-mt-24 border-t border-[var(--color-rule)] pt-10 sm:mt-20" aria-labelledby="contact-heading">
+        <section id="contact-garmops" className="mt-16 scroll-mt-24 border-t border-(--color-rule) pt-10 sm:mt-20" aria-labelledby="contact-heading">
           <div className="max-w-2xl">
-            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--color-accent)]">Direct support</p>
-            <h2 id="contact-heading" className="mt-2 text-2xl font-bold tracking-tight text-[var(--color-navy)] sm:text-3xl">Contact Garmops</h2>
-            <p className="mt-3 text-sm leading-6 text-[var(--text-primary)]/55">Choose the channel that suits the question. We are available Monday to Saturday, 10:00 AM–7:00 PM.</p>
+            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--color-accent)">Direct support</p>
+            <h2 id="contact-heading" className="mt-2 text-2xl font-bold tracking-tight text-(--color-navy) sm:text-3xl">Contact Garmops</h2>
+            <p className="mt-3 text-sm leading-6 text-(--text-primary)/55">Choose the channel that suits the question. We are available Monday to Saturday, 10:00 AM–7:00 PM.</p>
           </div>
 
           <div className="mt-7 grid gap-3 sm:grid-cols-3">
             {contactMethods.map(({ icon: Icon, title, description, label, href, external }) => (
-              <article key={title} className="flex min-h-52 flex-col rounded-[4px] border border-[var(--color-rule)] bg-white p-5 sm:p-6">
-                <Icon size={20} strokeWidth={1.8} className="text-[var(--color-accent)]" aria-hidden="true" />
-                <h3 className="mt-5 text-lg font-semibold tracking-tight text-[var(--color-navy)]">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-[var(--text-primary)]/55">{description}</p>
+              <article key={title} className="flex min-h-52 flex-col rounded-sm border border-(--color-rule) bg-white p-5 sm:p-6">
+                <Icon size={20} strokeWidth={1.8} className="text-(--color-accent)" aria-hidden="true" />
+                <h3 className="mt-5 text-lg font-semibold tracking-tight text-(--color-navy)">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-(--text-primary)/55">{description}</p>
                 <DirectContactLink href={href} label={label} external={external} />
               </article>
             ))}
           </div>
         </section>
 
-        <section className="mt-16 border-t border-[var(--color-rule)] pt-10 sm:mt-20" aria-labelledby="help-faq-heading">
+        <section className="mt-16 border-t border-(--color-rule) pt-10 sm:mt-20" aria-labelledby="help-faq-heading">
           <div className="max-w-2xl">
-            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--color-accent)]">FAQ</p>
-            <h2 id="help-faq-heading" className="mt-2 text-2xl font-bold tracking-tight text-[var(--color-navy)] sm:text-3xl">Frequently asked questions</h2>
-            <p className="mt-3 text-sm leading-6 text-[var(--text-primary)]/55">Short answers for choosing, configuring, paying for and following a Garmops order.</p>
+            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--color-accent)">FAQ</p>
+            <h2 id="help-faq-heading" className="mt-2 text-2xl font-bold tracking-tight text-(--color-navy) sm:text-3xl">Frequently asked questions</h2>
+            <p className="mt-3 text-sm leading-6 text-(--text-primary)/55">Short answers for choosing, configuring, paying for and following a Garmops order.</p>
           </div>
 
           <div className="mt-8 grid gap-x-10 gap-y-10 lg:grid-cols-2">
             {faqGroups.map((group) => (
               <section key={group.title} aria-labelledby={`faq-group-${group.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
-                <h3 id={`faq-group-${group.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} className="border-b border-[var(--color-rule)] pb-3 text-lg font-semibold tracking-tight text-[var(--color-navy)]">{group.title}</h3>
-                <div className="mt-3 divide-y divide-[var(--color-rule)] border-y border-[var(--color-rule)]">
+                <h3 id={`faq-group-${group.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} className="border-b border-(--color-rule) pb-3 text-lg font-semibold tracking-tight text-(--color-navy)">{group.title}</h3>
+                <div className="mt-3 divide-y divide-(--color-rule) border-y border-(--color-rule)">
                   {group.items.map((faq) => (
                     <details key={faq.question} className="group">
-                      <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 py-4 text-left text-sm font-semibold text-[var(--color-navy)] marker:content-none">
+                      <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 py-4 text-left text-sm font-semibold text-(--color-navy) marker:content-none">
                         <span>{faq.question}</span>
-                        <Plus size={18} className="shrink-0 text-[var(--color-accent)] transition-transform group-open:rotate-45" aria-hidden="true" />
+                        <Plus size={18} className="shrink-0 text-(--color-accent) transition-transform group-open:rotate-45" aria-hidden="true" />
                       </summary>
-                      <div className="pb-5 pr-8 text-sm leading-6 text-[var(--text-primary)]/60">{faq.answer}</div>
+                      <div className="pb-5 pr-8 text-sm leading-6 text-(--text-primary)/60">{faq.answer}</div>
                     </details>
                   ))}
                 </div>
@@ -312,29 +312,29 @@ export default function ContactClient() {
           </div>
         </section>
 
-        <section className="mt-16 border-t border-[var(--color-rule)] pt-10 sm:mt-20" aria-labelledby="business-details-heading">
+        <section className="mt-16 border-t border-(--color-rule) pt-10 sm:mt-20" aria-labelledby="business-details-heading">
           <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
             <div>
-              <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--color-accent)]">Company information</p>
-              <h2 id="business-details-heading" className="mt-2 text-2xl font-bold tracking-tight text-[var(--color-navy)] sm:text-3xl">Business details</h2>
-              <p className="mt-3 max-w-md text-sm leading-6 text-[var(--text-primary)]/55">Garmops is operated by Moist Corp from Greater Noida, India.</p>
+              <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--color-accent)">Company information</p>
+              <h2 id="business-details-heading" className="mt-2 text-2xl font-bold tracking-tight text-(--color-navy) sm:text-3xl">Business details</h2>
+              <p className="mt-3 max-w-md text-sm leading-6 text-(--text-primary)/55">Garmops is operated by Moist Corp from Greater Noida, India.</p>
             </div>
 
-            <dl className="grid gap-x-8 gap-y-6 border-t border-[var(--color-rule)] pt-6 sm:grid-cols-2 lg:border-t-0 lg:pt-0">
+            <dl className="grid gap-x-8 gap-y-6 border-t border-(--color-rule) pt-6 sm:grid-cols-2 lg:border-t-0 lg:pt-0">
               <div>
-              <dt className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-[var(--text-primary)]/40">Legal / business name</dt>
-                <dd className="mt-2 text-sm font-semibold text-[var(--color-navy)]">Moist Corp</dd>
+              <dt className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-(--text-primary)/40">Legal / business name</dt>
+                <dd className="mt-2 text-sm font-semibold text-(--color-navy)">Moist Corp</dd>
               </div>
               <div>
-              <dt className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-[var(--text-primary)]/40">Address</dt>
-                <dd className="mt-2 text-sm leading-6 text-[var(--text-primary)]/65">Q5, Surajpur Industrial Area, Site-5, Kasna, Greater Noida, UP, India</dd>
+              <dt className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-(--text-primary)/40">Address</dt>
+                <dd className="mt-2 text-sm leading-6 text-(--text-primary)/65">Q5, Surajpur Industrial Area, Site-5, Kasna, Greater Noida, UP, India</dd>
               </div>
               <div>
-              <dt className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-[var(--text-primary)]/40">Support email</dt>
+              <dt className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-(--text-primary)/40">Support email</dt>
                 <dd className="mt-2 text-sm"><a href={`mailto:${siteConfig.email}`} className={faqLinkClass}>{siteConfig.email}</a></dd>
               </div>
               <div>
-              <dt className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-[var(--text-primary)]/40">Phone</dt>
+              <dt className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-(--text-primary)/40">Phone</dt>
                 <dd className="mt-2 text-sm"><a href={`tel:${phoneNumber}`} className={faqLinkClass}>{siteConfig.phone}</a></dd>
               </div>
             </dl>

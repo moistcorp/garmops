@@ -214,8 +214,8 @@ export function ArtworkPanel({ value, onChange, activeView, onViewChange }: Artw
   const quality = getArtworkQuality(current);
 
   return (
-    <div className="flex flex-col gap-3.5 text-sm text-[var(--text-primary)]">
-      <div className="grid grid-cols-2 border-b border-[var(--color-rule)]" role="tablist" aria-label="Artwork side">
+    <div className="flex flex-col gap-3.5 text-sm text-(--text-primary)">
+      <div className="grid grid-cols-2 border-b border-(--color-rule)" role="tablist" aria-label="Artwork side">
         {(["front", "back"] as Side[]).map((side) => {
           const hasArtwork = Boolean(artwork[side]);
           const selected = panelSide === side;
@@ -227,7 +227,7 @@ export function ArtworkPanel({ value, onChange, activeView, onViewChange }: Artw
               aria-selected={selected}
               aria-controls={`artwork-${side}-panel`}
               onClick={() => selectSide(side)}
-              className={`min-h-11 border-b-2 px-3 text-left text-xs font-semibold uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/40 ${selected ? "border-[var(--color-accent)] text-[var(--color-accent-dark)]" : "border-transparent text-[var(--text-primary)]/50 hover:text-[var(--text-primary)]"}`}
+              className={`min-h-11 border-b-2 px-3 text-left text-xs font-semibold uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)/40 ${selected ? "border-(--color-accent) text-(--color-accent-dark)" : "border-transparent text-(--text-primary)/50 hover:text-(--text-primary)"}`}
             >
               {SIDE_LABELS[side]} {hasArtwork ? <span aria-label="Artwork added">✓</span> : <span className="font-normal normal-case">· Optional</span>}
             </button>
@@ -237,7 +237,7 @@ export function ArtworkPanel({ value, onChange, activeView, onViewChange }: Artw
 
       <section id={`artwork-${panelSide}-panel`} role="tabpanel" aria-label={`${SIDE_LABELS[panelSide]} artwork controls`} className="flex flex-col gap-3.5">
         <div className="flex flex-col gap-2 pt-4">
-          <h3 className="text-xs font-semibold text-[var(--text-primary)]/70">
+          <h3 className="text-xs font-semibold text-(--text-primary)/70">
             <span className="whitespace-nowrap">1 -</span> Artwork file
           </h3>
           <ArtworkUploadSide side={panelSide} value={current} onChange={(next) => handleSideChange(panelSide, next)} />
@@ -248,12 +248,12 @@ export function ArtworkPanel({ value, onChange, activeView, onViewChange }: Artw
             <TechniqueSelect value={selectedTechnique} fileType={current.fileType} side={panelSide} onChange={(technique) => handleTechniqueChange(panelSide, technique)} />
 
             {selectedTechnique && (
-              <section className="flex flex-col gap-3 border-t border-[var(--color-rule)] pt-4" aria-labelledby="position-size-title">
+              <section className="flex flex-col gap-3 border-t border-(--color-rule) pt-4" aria-labelledby="position-size-title">
                 <div>
-                  <h3 id="position-size-title" className="text-xs font-semibold text-[var(--text-primary)]/70">
+                  <h3 id="position-size-title" className="text-xs font-semibold text-(--text-primary)/70">
                     <span className="whitespace-nowrap">3 - </span> Position &amp; size
                   </h3>
-                  <p className="mt-1 text-xs leading-relaxed text-[var(--text-primary)]/50">Choose a preset or drag the artwork on the garment.</p>
+                  <p className="mt-1 text-xs leading-relaxed text-(--text-primary)/50">Choose a preset or drag the artwork on the garment.</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
@@ -265,7 +265,7 @@ export function ArtworkPanel({ value, onChange, activeView, onViewChange }: Artw
                         type="button"
                         aria-pressed={selected}
                         onClick={() => applyPreset(panelSide, preset.id)}
-                        className={`min-h-10 rounded-[4px] border px-2.5 py-2 text-left text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/40 ${selected ? "border-[var(--color-accent)] bg-[var(--color-accent)]/8 text-[var(--color-accent-dark)]" : "techpack-control hover:!border-[var(--color-accent)]/45"}`}
+                        className={`min-h-10 rounded-sm border px-2.5 py-2 text-left text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)/40 ${selected ? "border-(--color-accent) bg-(--color-accent)/8 text-(--color-accent-dark)" : "techpack-control hover:!border-(--color-accent)/45"}`}
                       >
                         {preset.label}
                       </button>
@@ -280,8 +280,8 @@ export function ArtworkPanel({ value, onChange, activeView, onViewChange }: Artw
                 {quality && (
                   <div role="status">
                     <p className="text-xs font-semibold">Artwork quality</p>
-                    <p className={`mt-0.5 text-sm font-medium ${quality.label.includes("soft") ? "text-[#8A6212]" : "text-[var(--color-accent-dark)]"}`}>{quality.label}</p>
-                    {quality.detail && <p className="mt-1 text-xs leading-relaxed text-[var(--text-primary)]/55">{quality.detail}</p>}
+                    <p className={`mt-0.5 text-sm font-medium ${quality.label.includes("soft") ? "text-[#8A6212]" : "text-(--color-accent-dark)"}`}>{quality.label}</p>
+                    {quality.detail && <p className="mt-1 text-xs leading-relaxed text-(--text-primary)/55">{quality.detail}</p>}
                   </div>
                 )}
 
@@ -292,16 +292,16 @@ export function ArtworkPanel({ value, onChange, activeView, onViewChange }: Artw
       </section>
 
       <details>
-        <summary className="cursor-pointer list-none text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/60 marker:hidden">Artwork summary <span aria-hidden="true" className="font-normal">+</span></summary>
+        <summary className="cursor-pointer list-none text-xs font-semibold uppercase tracking-wide text-(--text-primary)/60 marker:hidden">Artwork summary <span aria-hidden="true" className="font-normal">+</span></summary>
         <div className="mt-2 grid gap-2 sm:grid-cols-2">
           {(["front", "back"] as Side[]).map((side) => {
             const item = artwork[side];
             const technique = isCustomerArtworkTechnique(item?.technique) ? TECHNIQUE_LABELS[item.technique] : "Print method not selected";
             return (
-              <div key={side} className="rounded-[4px] bg-[#F7F7F7] px-3 py-2.5 text-xs">
-                <p className="font-semibold uppercase tracking-wide text-[var(--text-primary)]/65">{SIDE_LABELS[side]}</p>
-                <p className="mt-1 truncate text-[var(--text-primary)]">{item ? artworkFilename(item) : "No artwork"}</p>
-                {item && <p className="mt-0.5 text-[var(--text-primary)]/55">{technique} · {placementLabel(item.placementPreset)} · {item.width} × {item.height} cm</p>}
+              <div key={side} className="rounded-sm bg-[#F7F7F7] px-3 py-2.5 text-xs">
+                <p className="font-semibold uppercase tracking-wide text-(--text-primary)/65">{SIDE_LABELS[side]}</p>
+                <p className="mt-1 truncate text-(--text-primary)">{item ? artworkFilename(item) : "No artwork"}</p>
+                {item && <p className="mt-0.5 text-(--text-primary)/55">{technique} · {placementLabel(item.placementPreset)} · {item.width} × {item.height} cm</p>}
               </div>
             );
           })}

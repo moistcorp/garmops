@@ -37,8 +37,8 @@ export function CartSummarySidebar({
   sticky = true,
 }: CartSummarySidebarProps) {
   return (
-    <aside className={`techpack-panel rounded-[4px] border p-5 ${sticky ? "lg:sticky lg:top-36" : ""}`}>
-      <p className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">
+    <aside className={`techpack-panel rounded-sm border p-5 ${sticky ? "lg:sticky lg:top-36" : ""}`}>
+      <p className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-(--color-accent)">
         Order value
       </p>
       <div className="mt-4 space-y-3 text-sm">
@@ -54,11 +54,11 @@ export function CartSummarySidebar({
         )}
         <SummaryRow label="Shipping" value={shippingFee === 0 ? "Free" : formatInr(shippingFee)} />
         <SummaryRow label={`GST (${formatGstRate()})`} value={formatInr(gst)} />
-        <div className="border-t border-[var(--color-rule)] pt-3">
+        <div className="border-t border-(--color-rule) pt-3">
           <SummaryRow label="Order total" value={formatInr(total)} strong />
         </div>
         {totalPieces !== undefined && (
-          <p className="text-right text-xs text-[var(--text-primary)]/55">
+          <p className="text-right text-xs text-(--text-primary)/55">
             {totalPieces.toLocaleString("en-IN")} pieces
           </p>
         )}
@@ -71,17 +71,17 @@ export function CartSummarySidebar({
             aria-disabled={nextDisabled}
             disabled={nextDisabled && !onDisabledNext}
             onClick={nextDisabled ? onDisabledNext : onNext}
-            className={`mt-5 flex w-full items-center justify-center gap-2 rounded-[4px] px-4 py-3 text-sm font-semibold transition-colors ${
+            className={`mt-5 flex w-full items-center justify-center gap-2 rounded-sm px-4 py-3 text-sm font-semibold transition-colors ${
               nextDisabled
-                ? "cursor-not-allowed bg-[#E5E5E5] text-[var(--text-primary)]/45"
-                : "bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-dark)]"
+                ? "cursor-not-allowed bg-[#E5E5E5] text-(--text-primary)/45"
+                : "bg-(--color-accent) text-white hover:bg-(--color-accent-dark)"
             }`}
           >
             {nextLabel}
             <ArrowRight size={16} />
           </button>
           {nextDisabled && disabledMessage && (
-            <p className="mt-2 text-center text-xs text-[var(--text-primary)]/50">{disabledMessage}</p>
+            <p className="mt-2 text-center text-xs text-(--text-primary)/50">{disabledMessage}</p>
           )}
         </>
       )}
@@ -91,7 +91,7 @@ export function CartSummarySidebar({
 
 function SummaryRow({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
   return (
-    <div className={`flex items-center justify-between gap-4 ${strong ? "font-semibold text-[var(--text-primary)]" : "text-[var(--text-primary)]/65"}`}>
+    <div className={`flex items-center justify-between gap-4 ${strong ? "font-semibold text-(--text-primary)" : "text-(--text-primary)/65"}`}>
       <span>{label}</span>
       <span className="font-mono tabular-nums">{value}</span>
     </div>

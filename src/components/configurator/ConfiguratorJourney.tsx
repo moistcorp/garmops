@@ -70,14 +70,14 @@ export function ConfiguratorJourney({
   const progressPercent = (currentIndex / (STEPS.length - 1)) * 100;
   const specCode = specReference ? formatSpecCode(specReference) : null;
   const backButtonClass =
-    "flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px] border border-[var(--color-rule)] bg-[var(--color-cream)] text-[var(--color-navy)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]";
+    "flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-(--color-rule) bg-(--color-cream) text-(--color-navy) transition-colors hover:border-(--color-accent) hover:text-(--color-accent)";
 
   return (
     <>
       <ConfiguratorStageTracker stage={currentStep} />
       <nav
         aria-label="Configurator progress"
-        className={`border border-[var(--color-rule)] bg-[var(--color-cream)] ${
+        className={`border border-(--color-rule) bg-(--color-cream) ${
           compact ? "px-3 py-2" : "px-4 py-3 sm:px-5"
         } ${className}`}
       >
@@ -105,13 +105,13 @@ export function ConfiguratorJourney({
                     <ArrowLeft size={17} strokeWidth={2} aria-hidden="true" />
                   </Link>
                 ))}
-                {(previousStepHandler || previousStepHref) && <span className="hidden font-mono text-xs uppercase tracking-[0.06em] text-[var(--text-primary)]/45 sm:inline">Back</span>}
-                <div className="flex min-w-0 items-center gap-3 border-l border-[var(--color-rule)] pl-3">
+                {(previousStepHandler || previousStepHref) && <span className="hidden font-mono text-xs uppercase tracking-[0.06em] text-(--text-primary)/45 sm:inline">Back</span>}
+                <div className="flex min-w-0 items-center gap-3 border-l border-(--color-rule) pl-3">
                   <Link
                     href="/"
                     aria-label="Go to Garmops homepage"
                     title="Garmops homepage"
-                    className="shrink-0 rounded-[2px] transition-opacity hover:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-accent)]"
+                    className="shrink-0 rounded-xs transition-opacity hover:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--color-accent)"
                   >
                     <GarmopsLogo className="h-3.5 w-auto" />
                   </Link>
@@ -119,9 +119,9 @@ export function ConfiguratorJourney({
                     <>
                       <span
                         aria-hidden="true"
-                        className="h-4 w-px shrink-0 bg-[var(--text-primary)]/15"
+                        className="h-4 w-px shrink-0 bg-(--text-primary)/15"
                       />
-                      <span className="max-w-40 truncate text-sm font-medium text-[var(--text-primary)]/85 sm:max-w-64">
+                      <span className="max-w-40 truncate text-sm font-medium text-(--text-primary)/85 sm:max-w-64">
                         {productName}
                       </span>
                     </>
@@ -137,14 +137,14 @@ export function ConfiguratorJourney({
             )}
 
             <div className="ml-auto flex items-center gap-3">
-              <div className="text-right font-mono text-xs uppercase tracking-[0.06em] text-[var(--color-navy)]">
+              <div className="text-right font-mono text-xs uppercase tracking-[0.06em] text-(--color-navy)">
                 {specCode && <span className="block">{specCode}</span>}
-                <span className="block text-[var(--text-primary)]/45">
+                <span className="block text-(--text-primary)/45">
                   STEP {String(currentIndex + 1).padStart(2, "0")} / 08
                 </span>
               </div>
               {(onDownloadPdf || showCart) && (
-                <div className="flex min-w-fit items-center gap-2 border-l border-[var(--color-rule)] pl-3">
+                <div className="flex min-w-fit items-center gap-2 border-l border-(--color-rule) pl-3">
                 {onDownloadPdf && (
                   <button
                     type="button"
@@ -154,7 +154,7 @@ export function ConfiguratorJourney({
                       isDownloadingPdf ? "Creating design PDF" : "Download design PDF"
                     }
                     title={isDownloadingPdf ? "Creating design PDF" : "Download design PDF"}
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px] border border-[var(--color-rule)] bg-[var(--color-cream)] text-[var(--color-accent)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)] hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-(--color-rule) bg-(--color-cream) text-(--color-accent) transition-colors hover:border-(--color-accent) hover:bg-(--color-accent) hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
                   >
                     {isDownloadingPdf ? (
                       <LoaderCircle
@@ -175,7 +175,7 @@ export function ConfiguratorJourney({
           </div>
 
           <div className="relative mt-3 px-1 pb-0.5 sm:mt-4">
-            <div aria-hidden="true" className="absolute inset-x-[6.25%] top-[10px] h-[2px] bg-[var(--color-rule)]">
+            <div aria-hidden="true" className="absolute inset-x-[6.25%] top-[10px] h-[2px] bg-(--color-rule)">
               <span
                 className="techpack-progress absolute inset-y-0 left-0 block"
                 style={{ width: `${progressPercent}%` }}
@@ -193,21 +193,21 @@ export function ConfiguratorJourney({
                       aria-hidden="true"
                       className={`mx-auto block h-5 w-[2px] ${
                         active
-                          ? "bg-[var(--color-accent)]"
+                          ? "bg-(--color-accent)"
                           : complete
-                            ? "bg-[var(--color-navy)]"
+                            ? "bg-(--color-navy)"
                             : "bg-[rgba(22,33,43,0.3)]"
                       }`}
                     />
                     <span className={`mt-2 block font-mono text-xs uppercase tracking-[0.04em] ${
-                      active ? "text-[var(--color-accent)]" : complete ? "text-[var(--color-navy)]" : "text-[rgba(22,33,43,0.5)]"
+                      active ? "text-(--color-accent)" : complete ? "text-(--color-navy)" : "text-[rgba(22,33,43,0.5)]"
                     }`}>
                       <span className="sm:hidden">{String(index + 1).padStart(2, "0")}</span>
                       <span className="hidden sm:inline">{String(index + 1).padStart(2, "0")} {step.label}</span>
                     </span>
                   </>
                 );
-                const controlClass = "block min-w-0 text-center transition-colors hover:text-[var(--color-accent)]";
+                const controlClass = "block min-w-0 text-center transition-colors hover:text-(--color-accent)";
                 return (
                   <li key={step.id}>
                     {complete && selectHandler ? (

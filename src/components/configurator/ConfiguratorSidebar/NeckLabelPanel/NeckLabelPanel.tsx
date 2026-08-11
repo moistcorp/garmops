@@ -99,10 +99,10 @@ function DimensionPreview({
   return (
     <span className="flex h-9 items-center justify-center" aria-hidden="true">
       <span
-        className={`block rounded-[2px] border ${
+        className={`block rounded-xs border ${
           selected
             ? 'border-white/90 bg-white/30'
-            : 'border-[var(--color-accent)]/45 bg-[var(--color-accent)]/14'
+            : 'border-(--color-accent)/45 bg-(--color-accent)/14'
         }`}
         style={{
           width: `${Math.max(26, widthMm * 0.72)}px`,
@@ -133,10 +133,10 @@ function NeckLabelTypeCard({
       type="button"
       onClick={onClick}
       aria-pressed={selected}
-      className={`flex min-h-[122px] flex-1 flex-col items-start justify-start rounded-[4px] border p-4 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)] ${
+      className={`flex min-h-[122px] flex-1 flex-col items-start justify-start rounded-sm border p-4 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-accent) ${
         selected
           ? 'techpack-selected'
-          : 'techpack-control border text-[var(--text-primary)]/75 hover:!bg-white/60'
+          : 'techpack-control border text-(--text-primary)/75 hover:!bg-white/60'
       }`}
     >
       <span className="flex w-full items-center justify-between gap-2">
@@ -149,7 +149,7 @@ function NeckLabelTypeCard({
             selected ? 'border-white bg-white/90' : 'border-current/30'
           }`}
         >
-          {selected && <span className="size-2 rounded-full bg-[var(--color-accent)]" />}
+          {selected && <span className="size-2 rounded-full bg-(--color-accent)" />}
         </span>
       </span>
       <span className="mt-3 block">
@@ -469,10 +469,10 @@ export default function NeckLabelPanel({
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight text-[var(--text-primary)]">
+        <h1 className="text-xl font-semibold tracking-tight text-(--text-primary)">
           Choose your {labelNoun}
         </h1>
-        <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-[var(--text-primary)]/60">
+        <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-(--text-primary)/60">
           Keep the standard size label, or add your own branded {labelNoun}.
         </p>
       </div>
@@ -509,8 +509,8 @@ export default function NeckLabelPanel({
                 onChange={(event) => void handleUploadFile(event.target.files?.[0])}
               />
               {hasArtwork ? (
-                <div className="techpack-subtle flex min-h-[104px] items-center gap-3 rounded-[4px] p-3">
-                  <div className="techpack-control flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[4px] border bg-white">
+                <div className="techpack-subtle flex min-h-[104px] items-center gap-3 rounded-sm p-3">
+                  <div className="techpack-control flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-sm border bg-white">
                     {customDraft.source === 'sample' || customDraft.fileType === 'svg' ? (
                       <img
                         src={customDraft.source === 'sample' ? SAMPLE_ARTWORK_HREF : customDraft.fileUrl}
@@ -520,13 +520,13 @@ export default function NeckLabelPanel({
                     ) : aiPreviewUrl ? (
                       <img src={aiPreviewUrl} alt="Rendered Illustrator label artwork preview" className="h-full w-full object-contain p-2" />
                     ) : (
-                      <span className="px-1 text-center text-xs font-medium leading-relaxed text-[var(--text-primary)]/50">
+                      <span className="px-1 text-center text-xs font-medium leading-relaxed text-(--text-primary)/50">
                         Preview unavailable
                       </span>
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13px] font-semibold leading-tight text-[var(--text-primary)]/85">
+                    <p className="truncate text-[13px] font-semibold leading-tight text-(--text-primary)/85">
                       {customDraft.source === 'sample' ? `Garmops sample · ${formatDimensions(customDraft.dimensions)}` : customDraft.fileName ?? `${labelNoun}.${customDraft.fileType ?? 'ai'}`}
                     </p>
                     <span className="mt-1.5 flex items-center gap-1 text-xs font-medium leading-relaxed text-[#2E7D32]">
@@ -536,14 +536,14 @@ export default function NeckLabelPanel({
                   <div className="flex shrink-0 items-center gap-1.5">
                     <label
                       htmlFor={uploadInputId}
-                      className="techpack-control inline-flex min-h-9 cursor-pointer items-center rounded-[4px] border px-2.5 text-xs font-semibold text-[var(--text-primary)]/75 hover:!border-[var(--color-accent)]/45 hover:text-[var(--color-accent-dark)]"
+                      className="techpack-control inline-flex min-h-9 cursor-pointer items-center rounded-sm border px-2.5 text-xs font-semibold text-(--text-primary)/75 hover:!border-(--color-accent)/45 hover:text-(--color-accent-dark)"
                     >
                       Replace
                     </label>
                     <button
                       type="button"
                       onClick={handleRemoveArtwork}
-                      className="techpack-control inline-flex min-h-9 items-center rounded-[4px] border px-2.5 text-xs font-semibold text-[#C62828] hover:!border-[#C62828]/25 hover:!bg-[#FFF1F1]/70"
+                      className="techpack-control inline-flex min-h-9 items-center rounded-sm border px-2.5 text-xs font-semibold text-[#C62828] hover:!border-[#C62828]/25 hover:!bg-[#FFF1F1]/70"
                     >
                       <Trash2 size={14} className="mr-1" aria-hidden="true" /> Remove
                     </button>
@@ -555,23 +555,23 @@ export default function NeckLabelPanel({
                   onDragOver={(event) => { event.preventDefault(); setDragging(true); }}
                   onDragLeave={() => setDragging(false)}
                   onDrop={(event) => { event.preventDefault(); setDragging(false); void handleUploadFile(event.dataTransfer.files?.[0]); }}
-                  className="techpack-dropzone relative flex flex-col items-center overflow-hidden rounded-[4px] px-4 py-5 text-center transition-colors"
+                  className="techpack-dropzone relative flex flex-col items-center overflow-hidden rounded-sm px-4 py-5 text-center transition-colors"
                 >
                   <label
                     htmlFor={uploadInputId}
-                    className="group relative z-10 flex min-h-24 w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[4px] px-3 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--color-accent)]"
+                    className="group relative z-10 flex min-h-24 w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-sm px-3 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-(--color-accent)"
                   >
-                    <span className="techpack-control mb-1 flex h-10 w-10 items-center justify-center rounded-[4px] border text-[var(--color-accent-dark)]">
+                    <span className="techpack-control mb-1 flex h-10 w-10 items-center justify-center rounded-sm border text-(--color-accent-dark)">
                       <Upload size={17} strokeWidth={2.2} aria-hidden="true" />
                     </span>
-                    <span className="text-sm font-medium text-[var(--text-primary)]">Drag artwork here or browse</span>
-                    <span className="text-xs text-[var(--text-primary)]/50">SVG · AI · Up to 20 MB</span>
+                    <span className="text-sm font-medium text-(--text-primary)">Drag artwork here or browse</span>
+                    <span className="text-xs text-(--text-primary)/50">SVG · AI · Up to 20 MB</span>
                   </label>
                   <div className="relative z-10 mt-3 flex flex-wrap items-center justify-center gap-2">
-                    <a href={TEMPLATE_HREF} download className="techpack-control inline-flex min-h-9 items-center gap-1.5 rounded-[4px] border px-3 text-xs font-medium text-[var(--text-primary)]/80 hover:!border-[var(--color-accent)]/45 hover:text-[var(--color-accent-dark)]">
+                    <a href={TEMPLATE_HREF} download className="techpack-control inline-flex min-h-9 items-center gap-1.5 rounded-sm border px-3 text-xs font-medium text-(--text-primary)/80 hover:!border-(--color-accent)/45 hover:text-(--color-accent-dark)">
                       Download label template <Download size={13} strokeWidth={2.2} />
                     </a>
-                    <button type="button" onClick={handleSampleArtwork} className="techpack-control min-h-9 rounded-[4px] border !border-[var(--color-accent)]/30 px-3 text-xs font-semibold text-[var(--color-accent-dark)] hover:!border-[var(--color-accent)]/55 hover:!bg-white/55">
+                    <button type="button" onClick={handleSampleArtwork} className="techpack-control min-h-9 rounded-sm border !border-(--color-accent)/30 px-3 text-xs font-semibold text-(--color-accent-dark) hover:!border-(--color-accent)/55 hover:!bg-white/55">
                       <Plus size={13} strokeWidth={2.4} className="mr-1 inline" /> Try sample label
                     </button>
                   </div>
@@ -579,7 +579,7 @@ export default function NeckLabelPanel({
               )}
             </div>
             {uploadError && <p className="mt-2 text-xs leading-relaxed text-red-600">{uploadError}</p>}
-            {persistenceWarning && <p className="mt-2 rounded-[4px] border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">{persistenceWarning}</p>}
+            {persistenceWarning && <p className="mt-2 rounded-sm border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">{persistenceWarning}</p>}
           </section>
 
           <section>
@@ -589,7 +589,7 @@ export default function NeckLabelPanel({
                 const selected = customDraft.dimensions === option;
                 const description = option === '50x18' ? 'Standard horizontal' : option === '60x20' ? 'Wide horizontal' : option === '65x15' ? 'Slim horizontal' : 'Square';
                 return (
-                  <button key={option} type="button" onClick={() => handleDimensionsSelected(option)} aria-pressed={selected} className={`flex min-h-[98px] flex-col items-center justify-center gap-1 rounded-[4px] border p-2 text-center transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)] ${selected ? 'techpack-selected' : 'techpack-control border text-[var(--text-primary)]/70 hover:!bg-white/60'}`}>
+                  <button key={option} type="button" onClick={() => handleDimensionsSelected(option)} aria-pressed={selected} className={`flex min-h-[98px] flex-col items-center justify-center gap-1 rounded-sm border p-2 text-center transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-accent) ${selected ? 'techpack-selected' : 'techpack-control border text-(--text-primary)/70 hover:!bg-white/60'}`}>
                     <DimensionPreview option={option} selected={selected} />
                     <span className="text-xs font-semibold leading-tight">{formatDimensions(option)}</span>
                     <span className="text-xs font-normal leading-relaxed opacity-65">{description}</span>
@@ -597,7 +597,7 @@ export default function NeckLabelPanel({
                 );
               })}
             </div>
-            <p className="mt-2 text-xs leading-relaxed text-[var(--text-primary)]/45">Preview shown approximately to scale.</p>
+            <p className="mt-2 text-xs leading-relaxed text-(--text-primary)/45">Preview shown approximately to scale.</p>
           </section>
 
           <section>
@@ -613,7 +613,7 @@ export default function NeckLabelPanel({
           )}
 
           {hasArtwork && (
-            <div className="techpack-subtle rounded-[4px] px-4 py-3 text-xs leading-relaxed text-[var(--text-primary)]/65">
+            <div className="techpack-subtle rounded-sm px-4 py-3 text-xs leading-relaxed text-(--text-primary)/65">
               Artwork uploaded. Check the live preview, then continue when the label details look right.
             </div>
           )}
@@ -624,5 +624,5 @@ export default function NeckLabelPanel({
 }
 
 function SectionHeading({ children }: { children: string }) {
-  return <h2 className="mb-2.5 font-mono text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-primary)]/70">{children}</h2>;
+  return <h2 className="mb-2.5 font-mono text-xs font-semibold uppercase tracking-[0.08em] text-(--text-primary)/70">{children}</h2>;
 }

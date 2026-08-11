@@ -358,11 +358,11 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
         {feedback && <ActionFeedback {...feedback} onDismiss={feedback.tone === 'loading' ? undefined : () => setFeedback(null)} actionLabel={feedback.tone === 'error' ? 'Retry PDF' : undefined} onAction={feedback.tone === 'error' ? handleDownloadApprovalPdf : undefined} />}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="font-mono text-xs font-medium uppercase tracking-[0.08em] text-[var(--color-accent)]">
+            <p className="font-mono text-xs font-medium uppercase tracking-[0.08em] text-(--color-accent)">
               Sizes &amp; quantity
             </p>
-            <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Choose sizes &amp; quantity</h1>
-            <p className="mt-1 text-sm text-[var(--text-primary)]/55">
+            <h1 className="text-2xl font-semibold text-(--text-primary)">Choose sizes &amp; quantity</h1>
+            <p className="mt-1 text-sm text-(--text-primary)/55">
               Confirm your size split.
             </p>
           </div>
@@ -371,7 +371,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
               type="button"
               onClick={handleAddAnotherProduct}
               disabled={items.length >= MAX_CONFIGURED_CART_ITEMS}
-              className="rounded-[4px] border border-[var(--color-accent)] px-4 py-2 text-sm font-semibold text-[var(--color-accent-dark)] hover:bg-[var(--color-accent)]/5 disabled:cursor-not-allowed disabled:opacity-45"
+              className="rounded-sm border border-(--color-accent) px-4 py-2 text-sm font-semibold text-(--color-accent-dark) hover:bg-(--color-accent)/5 disabled:cursor-not-allowed disabled:opacity-45"
             >
               {items.length >= MAX_CONFIGURED_CART_ITEMS ? "Cart limit reached" : "Add another product"}
             </button>
@@ -381,15 +381,15 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
         {!draftLoaded && <OrderItemSkeleton />}
 
         {draftLoaded && items.length === 0 && (
-          <section className="techpack-surface rounded-[4px] border p-8 text-center">
-            <h2 className="text-lg font-medium text-[var(--text-primary)]">Your cart is empty</h2>
-            <p className="mt-1 text-sm text-[var(--text-primary)]/60">
+          <section className="techpack-surface rounded-sm border p-8 text-center">
+            <h2 className="text-lg font-medium text-(--text-primary)">Your cart is empty</h2>
+            <p className="mt-1 text-sm text-(--text-primary)/60">
               Add a product to continue your order.
             </p>
             <button
               type="button"
               onClick={handleAddAnotherProduct}
-              className="mt-5 rounded-[4px] bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+              className="mt-5 rounded-sm bg-(--color-accent) px-4 py-2 text-sm font-medium text-white hover:opacity-90"
             >
               Add product
             </button>
@@ -438,10 +438,10 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
           const quantityShortfall = Math.max(0, itemMinimumUnits - itemUnits);
           const isOneSize = itemSizes.length === 1 && itemSizes[0] === "One Size";
           return (
-            <section key={item.id} className="techpack-panel rounded-[4px] border p-5">
+            <section key={item.id} className="techpack-panel rounded-sm border p-5">
               <div className="flex flex-col gap-5 md:flex-row">
                 <div className="w-full shrink-0 md:w-44">
-                  <div className="relative isolate aspect-[3/4] overflow-hidden rounded-[4px] bg-[#F7F7F7]">
+                  <div className="relative isolate aspect-[3/4] overflow-hidden rounded-sm bg-[#F7F7F7]">
                     <div className={`absolute flex items-center justify-center ${
                       selectedView === "neck" ? "inset-0" : "inset-[9%]"
                     }`}>
@@ -496,13 +496,13 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                 <div className="min-w-0 flex-1 space-y-5">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--color-accent)]">
+                      <p className="font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-accent)">
                         Line {itemIndex + 1}
                       </p>
-                      <h2 className="text-lg font-medium text-[var(--text-primary)]">
+                      <h2 className="text-lg font-medium text-(--text-primary)">
                         {item.productName}
                       </h2>
-                      <p className="text-sm text-[var(--text-primary)]/60">
+                      <p className="text-sm text-(--text-primary)/60">
                         {item.colour.name} · <span className="font-mono">{itemUnits ? `${itemUnits.toLocaleString("en-IN")} pieces allocated` : "Ready for size allocation"}</span>
                       </p>
                     </div>
@@ -510,24 +510,24 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                       <button
                         type="button"
                         onClick={() => handleEdit(item)}
-                        className="rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 text-xs text-[var(--text-primary)]/70 hover:border-[var(--color-accent)] hover:text-[var(--text-primary)]"
+                        className="rounded-sm border border-[#E5E5E5] px-3 py-1.5 text-xs text-(--text-primary)/70 hover:border-(--color-accent) hover:text-(--text-primary)"
                       >
                         Edit design
                       </button>
                       {pendingDeleteItemId === item.id ? (
-                        <div className="flex items-center gap-2 rounded-[4px] border border-[#E5E5E5] px-2 py-1.5 text-xs text-[var(--text-primary)]/70">
+                        <div className="flex items-center gap-2 rounded-sm border border-[#E5E5E5] px-2 py-1.5 text-xs text-(--text-primary)/70">
                           <span>Remove this item?</span>
                           <button
                             type="button"
                             onClick={() => setPendingDeleteItemId(null)}
-                            className="font-medium hover:text-[var(--text-primary)]"
+                            className="font-medium hover:text-(--text-primary)"
                           >
                             Cancel
                           </button>
                           <button
                             type="button"
                             onClick={() => handleDelete(item.id)}
-                            className="font-semibold text-[var(--text-primary)] hover:opacity-70"
+                            className="font-semibold text-(--text-primary) hover:opacity-70"
                           >
                             Remove
                           </button>
@@ -536,7 +536,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                         <button
                           type="button"
                           onClick={() => setPendingDeleteItemId(item.id)}
-                          className="rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 text-xs text-[var(--text-primary)]/70 hover:border-[var(--color-accent)] hover:text-[var(--text-primary)]"
+                          className="rounded-sm border border-[#E5E5E5] px-3 py-1.5 text-xs text-(--text-primary)/70 hover:border-(--color-accent) hover:text-(--text-primary)"
                         >
                           Delete
                         </button>
@@ -544,20 +544,20 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-end justify-between gap-3 border-y border-[var(--color-rule)] py-2.5">
+                  <div className="flex flex-wrap items-end justify-between gap-3 border-y border-(--color-rule) py-2.5">
                     <div>
-                      <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+                      <h3 className="text-sm font-semibold text-(--text-primary)">
                         {isOneSize ? "Choose quantity" : "Allocate by size"}
                       </h3>
                       {!isOneSize && (
-                        <p className="mt-0.5 text-xs text-[var(--text-primary)]/55">
+                        <p className="mt-0.5 text-xs text-(--text-primary)/55">
                           Use the prepared split or adjust it below.
                         </p>
                       )}
                     </div>
                     <div className="flex flex-wrap items-center justify-end gap-3">
                       <p
-                        className={quantityShortfall ? "text-right text-xs font-medium text-amber-800" : "text-right text-xs font-medium text-[var(--color-accent-dark)]"}
+                        className={quantityShortfall ? "text-right text-xs font-medium text-amber-800" : "text-right text-xs font-medium text-(--color-accent-dark)"}
                         aria-live="polite"
                       >
                         {quantityShortfall
@@ -567,7 +567,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                       <button
                         type="button"
                         onClick={() => handleResetRecommendedSplit(item)}
-                        className="text-xs font-medium text-[var(--text-primary)]/60 underline decoration-[var(--color-rule)] underline-offset-4 hover:text-[var(--text-primary)]"
+                        className="text-xs font-medium text-(--text-primary)/60 underline decoration-(--color-rule) underline-offset-4 hover:text-(--text-primary)"
                       >
                         Reset recommended split
                       </button>
@@ -584,7 +584,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                   />
 
                   {artworkSizeConflict && (
-                    <div className="flex flex-col gap-3 rounded-[4px] border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="alert">
+                    <div className="flex flex-col gap-3 rounded-sm border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="alert">
                       <div>
                         <p className="font-mono text-xs font-semibold uppercase tracking-[0.08em]">Artwork adjustment needed</p>
                         <p className="mt-1 text-xs leading-relaxed">
@@ -595,14 +595,14 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                         <button
                           type="button"
                           onClick={() => router.push(`/configurator/build/${encodeURIComponent(item.productId)}?cartId=${encodeURIComponent(cartId)}&itemId=${encodeURIComponent(item.id)}&step=artwork&returnTo=size-quantity`)}
-                          className="rounded-[4px] border border-amber-900/25 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-amber-100"
+                          className="rounded-sm border border-amber-900/25 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-amber-100"
                         >
                           Adjust artwork →
                         </button>
                         <button
                           type="button"
                           onClick={() => handleQtyChange(item.id, artworkSizeConflict.actualSmallestSize, 0)}
-                          className="rounded-[4px] border border-amber-900/25 px-3 py-1.5 text-xs font-semibold hover:bg-amber-100"
+                          className="rounded-sm border border-amber-900/25 px-3 py-1.5 text-xs font-semibold hover:bg-amber-100"
                         >
                           Remove {artworkSizeConflict.actualSmallestSize}
                         </button>
@@ -611,32 +611,32 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                   )}
 
                   {sizeChart && (
-                    <details className="mt-1 text-xs text-[var(--text-primary)]">
-                      <summary className="cursor-pointer font-semibold text-[var(--color-accent-dark)]">View size chart →</summary>
-                      <div className="mt-3 overflow-x-auto rounded-[4px] border border-[var(--color-rule)] p-3">
+                    <details className="mt-1 text-xs text-(--text-primary)">
+                      <summary className="cursor-pointer font-semibold text-(--color-accent-dark)">View size chart →</summary>
+                      <div className="mt-3 overflow-x-auto rounded-sm border border-(--color-rule) p-3">
                         <SizeChartTable chart={sizeChart} />
                       </div>
-                      {sizeChart.note && <p className="mt-2 text-[var(--text-primary)]/55">{sizeChart.note}</p>}
+                      {sizeChart.note && <p className="mt-2 text-(--text-primary)/55">{sizeChart.note}</p>}
                     </details>
                   )}
 
-                  <div className="border-y border-[var(--color-rule)] py-3">
+                  <div className="border-y border-(--color-rule) py-3">
                     <div className="flex flex-wrap items-center justify-between gap-3">
-                      <p className="font-mono text-sm font-semibold text-[var(--text-primary)]">
+                      <p className="font-mono text-sm font-semibold text-(--text-primary)">
                         {formatInr(itemUnitPrice)} / piece
                       </p>
                     {nextTier && nextTierPricing ? (
-                      <p className="text-right text-xs text-[var(--text-primary)]/70">
+                      <p className="text-right text-xs text-(--text-primary)/70">
                         ↗ Add {(nextTier.minQty - itemUnits).toLocaleString("en-IN")} more pieces to unlock {nextTier.discountPercent}% off
                       </p>
                     ) : (
-                      <p className="text-xs text-[var(--text-primary)]/70">Highest quantity tier reached.</p>
+                      <p className="text-xs text-(--text-primary)/70">Highest quantity tier reached.</p>
                     )}
                     </div>
                     {nextTier && nextTierPricing && (
-                      <div className="mt-2 h-1 overflow-hidden rounded-full bg-[var(--color-rule)]" aria-hidden="true">
+                      <div className="mt-2 h-1 overflow-hidden rounded-full bg-(--color-rule)" aria-hidden="true">
                         <div
-                          className="h-full bg-[var(--color-accent)] transition-[width]"
+                          className="h-full bg-(--color-accent) transition-[width]"
                           style={{ width: `${priceBreakProgress}%` }}
                         />
                       </div>
@@ -674,20 +674,20 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
 
 function OrderItemSkeleton() {
   return (
-    <section className="techpack-panel rounded-[4px] border p-5" aria-label="Loading order items">
+    <section className="techpack-panel rounded-sm border p-5" aria-label="Loading order items">
       <div className="flex flex-col gap-5 md:flex-row">
-        <div className="h-56 w-full shrink-0 rounded-[4px] bg-[#F7F7F7] md:w-44" />
+        <div className="h-56 w-full shrink-0 rounded-sm bg-[#F7F7F7] md:w-44" />
         <div className="min-w-0 flex-1 space-y-5">
           <div className="space-y-2">
             <div className="h-5 w-44 rounded bg-[#F7F7F7]" />
             <div className="h-4 w-28 rounded bg-[#F7F7F7]" />
           </div>
-          <div className="grid grid-cols-6 gap-px overflow-hidden rounded-[4px] border border-[#E5E5E5] bg-[#E5E5E5]">
+          <div className="grid grid-cols-6 gap-px overflow-hidden rounded-sm border border-[#E5E5E5] bg-[#E5E5E5]">
             {SIZES.map((size) => (
               <div key={size} className="h-16 bg-[#F7F7F7]" />
             ))}
           </div>
-          <div className="h-12 rounded-[4px] bg-[#F7F7F7]" />
+          <div className="h-12 rounded-sm bg-[#F7F7F7]" />
         </div>
       </div>
     </section>
@@ -721,7 +721,7 @@ function SizeChartTable({ chart }: { chart: SizeChart }) {
 
   return (
     <table className="w-full min-w-[360px] text-left">
-      <thead className="text-[var(--text-primary)]/50">
+      <thead className="text-(--text-primary)/50">
         <tr>
           <th className="py-1 pr-3">Size</th>
           {columns.map((column) => (

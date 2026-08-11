@@ -106,7 +106,7 @@ function VolumeDiscountProgress({ quantity }: { quantity: number }) {
 
   return (
     <div className="px-1">
-      <div className="flex items-start gap-2 text-xs font-semibold leading-4 text-[var(--color-accent)]">
+      <div className="flex items-start gap-2 text-xs font-semibold leading-4 text-(--color-accent)">
         <TrendingUp size={14} strokeWidth={2.4} className="mt-0.5 shrink-0" aria-hidden="true" />
         <span>{message}</span>
       </div>
@@ -117,10 +117,10 @@ function VolumeDiscountProgress({ quantity }: { quantity: number }) {
           aria-valuemin={state.progressMin}
           aria-valuemax={state.progressMax ?? undefined}
           aria-valuenow={Math.min(quantity, state.progressMax ?? quantity)}
-          className="mt-1 h-1 overflow-hidden rounded-[4px] bg-[#DCE8E4]"
+          className="mt-1 h-1 overflow-hidden rounded-sm bg-[#DCE8E4]"
         >
           <div
-            className="h-full rounded-[4px] bg-[var(--color-accent)] transition-[width] duration-200"
+            className="h-full rounded-sm bg-(--color-accent) transition-[width] duration-200"
             style={{ width: `${Math.round(state.progress * 100)}%` }}
           />
         </div>
@@ -176,22 +176,22 @@ export function OrderBar({
   return (
     <section
       aria-label="Order estimate"
-      className="techpack-surface rounded-[6px] !border-[var(--color-control-border)] !bg-white border p-2"
+      className="techpack-surface rounded-md !border-(--color-control-border) !bg-white border p-2"
     >
       <VolumeDiscountProgress quantity={quantity} />
 
       <div
-        className="mt-1.5 grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-x-3 border-t border-[var(--color-control-border)]/70 pt-1.5 sm:grid-cols-[minmax(132px,1.2fr)_minmax(92px,1fr)_minmax(92px,1fr)]"
+        className="mt-1.5 grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-x-3 border-t border-(--color-control-border)/70 pt-1.5 sm:grid-cols-[minmax(132px,1.2fr)_minmax(92px,1fr)_minmax(92px,1fr)]"
         aria-live="polite"
       >
         <div className="min-w-0">
           <label
             htmlFor="configurator-quantity"
-            className="mb-0.5 block text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/45"
+            className="mb-0.5 block text-xs font-semibold uppercase tracking-wide text-(--text-primary)/45"
           >
             Planned quantity
           </label>
-          <div className="techpack-control flex h-10 w-full items-center justify-between rounded-[4px] border px-1.5">
+          <div className="techpack-control flex h-10 w-full items-center justify-between rounded-sm border px-1.5">
             <button
               type="button"
               aria-label="Decrease quantity"
@@ -199,7 +199,7 @@ export function OrderBar({
               onClick={() =>
                 onQuantityChange(Math.max(minQuantity, quantity - 1))
               }
-              className="flex h-8 w-8 items-center justify-center rounded-[4px] text-lg leading-none text-[var(--text-primary)]/80 hover:bg-white disabled:cursor-not-allowed disabled:text-[var(--text-primary)]/25"
+              className="flex h-8 w-8 items-center justify-center rounded-sm text-lg leading-none text-(--text-primary)/80 hover:bg-white disabled:cursor-not-allowed disabled:text-(--text-primary)/25"
             >
               −
             </button>
@@ -221,13 +221,13 @@ export function OrderBar({
                   event.currentTarget.blur();
                 }
               }}
-              className="h-full w-10 bg-transparent text-center text-sm font-semibold text-[var(--text-primary)] outline-none"
+              className="h-full w-10 bg-transparent text-center text-sm font-semibold text-(--text-primary) outline-none"
             />
             <button
               type="button"
               aria-label="Increase quantity"
               onClick={() => onQuantityChange(quantity + 1)}
-              className="flex h-8 w-8 items-center justify-center rounded-[4px] text-lg leading-none text-[var(--text-primary)]/80 hover:bg-white"
+              className="flex h-8 w-8 items-center justify-center rounded-sm text-lg leading-none text-(--text-primary)/80 hover:bg-white"
             >
               +
             </button>
@@ -235,16 +235,16 @@ export function OrderBar({
         </div>
 
         <div className="min-w-0 border-l border-white/55 pl-2">
-          <div className="text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/45">
+          <div className="text-xs font-semibold uppercase tracking-wide text-(--text-primary)/45">
             Unit cost
           </div>
           <div className="mt-1 flex min-w-0 items-baseline gap-1.5">
             {pricingBreakdown.discountPercent > 0 && (
-              <span className="truncate text-xs font-medium text-[var(--text-primary)]/45 line-through">
+              <span className="truncate text-xs font-medium text-(--text-primary)/45 line-through">
                 {formatInr(pricingBreakdown.unitPrice)}
               </span>
             )}
-            <span className="truncate font-mono text-sm font-semibold text-[var(--text-primary)]">
+            <span className="truncate font-mono text-sm font-semibold text-(--text-primary)">
               {formatInr(discountedUnitCost)}
             </span>
           </div>
@@ -256,10 +256,10 @@ export function OrderBar({
         </div>
 
         <div className="min-w-0 border-l border-white/55 pl-2">
-          <div className="text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/45">
+          <div className="text-xs font-semibold uppercase tracking-wide text-(--text-primary)/45">
             Order total
           </div>
-          <div className="mt-1 truncate font-mono text-sm font-semibold text-[var(--text-primary)]">
+          <div className="mt-1 truncate font-mono text-sm font-semibold text-(--text-primary)">
             {formatInr(pricingBreakdown.total)}
           </div>
         </div>
@@ -268,10 +268,10 @@ export function OrderBar({
       <button
         type="button"
         onClick={onCtaClick}
-        className={`mt-2 min-h-11 w-full rounded-[4px] px-4 py-2 text-sm font-semibold leading-tight text-white transition-all hover:opacity-90 ${
+        className={`mt-2 min-h-11 w-full rounded-sm px-4 py-2 text-sm font-semibold leading-tight text-white transition-all hover:opacity-90 ${
           flashError
             ? "bg-[#C62828] ring-2 ring-[#C62828]/40 ring-offset-2"
-            : "bg-[var(--color-accent)] hover:bg-[var(--color-accent-dark)]"
+            : "bg-(--color-accent) hover:bg-(--color-accent-dark)"
         }`}
       >
         {ctaLabel}

@@ -68,7 +68,7 @@ export function CheckoutIdentityGate({
           aria-live="polite"
         >
           <LoaderCircle
-            className="animate-spin text-[var(--color-accent)]"
+            className="animate-spin text-(--color-accent)"
             size={28}
             aria-hidden="true"
           />
@@ -96,20 +96,20 @@ export function CheckoutIdentityGate({
       {topBar}
 
       <div className="mx-auto flex min-h-[560px] max-w-xl items-start justify-center py-8 sm:py-12">
-        <section className="techpack-surface w-full rounded-[4px] border p-6 sm:p-8">
+        <section className="techpack-surface w-full rounded-sm border p-6 sm:p-8">
           <div className="mb-6 text-center">
-            <span className="mx-auto flex size-11 items-center justify-center rounded-full bg-[var(--color-accent)]/10 text-[var(--color-accent)]">
+            <span className="mx-auto flex size-11 items-center justify-center rounded-full bg-(--color-accent)/10 text-(--color-accent)">
               <ShieldCheck size={22} aria-hidden="true" />
             </span>
-            <p className="mt-4 font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">
+            <p className="mt-4 font-mono text-xs font-semibold uppercase tracking-[0.12em] text-(--color-accent)">
               07 / Secure review access
             </p>
-            <h1 className="mt-2 text-2xl font-semibold text-[var(--text-primary)]">
+            <h1 className="mt-2 text-2xl font-semibold text-(--text-primary)">
               {signedInEmail
                 ? "Use the order email to continue"
                 : "Verify your email to review your order"}
             </h1>
-            <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-[var(--text-primary)]/55">
+            <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-(--text-primary)/55">
               {signedInEmail
                 ? "The signed-in account and the delivery email must match before payment."
                 : "Verify the delivery email below. Existing customers return to their account; a new customer account is created automatically after OTP verification."}
@@ -117,14 +117,14 @@ export function CheckoutIdentityGate({
           </div>
 
           {deliveryEmail ? (
-            <div className="mb-5 rounded-[4px] border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/5 px-4 py-3 text-sm">
-              <p className="text-xs text-[var(--text-primary)]/50">Order email</p>
-              <p className="mt-0.5 font-medium text-[var(--text-primary)]">
+            <div className="mb-5 rounded-sm border border-(--color-accent)/20 bg-(--color-accent)/5 px-4 py-3 text-sm">
+              <p className="text-xs text-(--text-primary)/50">Order email</p>
+              <p className="mt-0.5 font-medium text-(--text-primary)">
                 {deliveryEmail}
               </p>
               <Link
                 href={`/configurator/cart/${encodeURIComponent(cartId)}/shipping`}
-                className="mt-2 inline-flex text-xs font-semibold text-[var(--color-accent)] hover:underline"
+                className="mt-2 inline-flex text-xs font-semibold text-(--color-accent) hover:underline"
               >
                 Change delivery email
               </Link>
@@ -133,7 +133,7 @@ export function CheckoutIdentityGate({
 
           {signedInEmail ? (
             <div className="space-y-4">
-              <div className="rounded-[4px] border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+              <div className="rounded-sm border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
                 You are signed in as <strong>{signedInEmail}</strong>, but this
                 order uses <strong>{deliveryEmail || "another email"}</strong>.
               </div>
@@ -141,7 +141,7 @@ export function CheckoutIdentityGate({
                 type="button"
                 onClick={signOutAndContinue}
                 disabled={signingOut}
-                className="min-h-11 w-full rounded-[4px] bg-[var(--color-accent)] px-6 py-3 text-sm font-medium text-white disabled:opacity-60"
+                className="min-h-11 w-full rounded-sm bg-(--color-accent) px-6 py-3 text-sm font-medium text-white disabled:opacity-60"
               >
                 {signingOut ? "Signing out…" : "Sign out and verify order email"}
               </button>

@@ -29,12 +29,12 @@ function PlacementDiagram({ value, selected }: { value: NeckLabelPosition; selec
   const onTape = value === 'on_neck_tape';
   return (
     <span className="relative block h-14 w-full max-w-[128px]" aria-hidden="true">
-      <span className="absolute left-1/2 top-1 w-16 -translate-x-1/2 border-t-2 border-[var(--text-primary)]/50" />
-      <span className="absolute left-1/2 top-4 h-2 w-20 -translate-x-1/2 border border-dashed border-[var(--text-primary)]/35 bg-[var(--text-primary)]/5" />
-      <span className={`absolute left-1/2 ${onTape ? 'top-[15px]' : 'top-[27px]'} flex h-5 w-12 -translate-x-1/2 items-center justify-center border ${selected ? 'border-white/80 bg-white/25' : 'border-[var(--color-accent)]/55 bg-[var(--color-accent)]/12'}`}>
+      <span className="absolute left-1/2 top-1 w-16 -translate-x-1/2 border-t-2 border-(--text-primary)/50" />
+      <span className="absolute left-1/2 top-4 h-2 w-20 -translate-x-1/2 border border-dashed border-(--text-primary)/35 bg-(--text-primary)/5" />
+      <span className={`absolute left-1/2 ${onTape ? 'top-[15px]' : 'top-[27px]'} flex h-5 w-12 -translate-x-1/2 items-center justify-center border ${selected ? 'border-white/80 bg-white/25' : 'border-(--color-accent)/55 bg-(--color-accent)/12'}`}>
         <span className="h-px w-7 border-t border-dashed border-current/60" />
       </span>
-      {!onTape && <span className="absolute left-1/2 top-6 h-3 -translate-x-1/2 border-l border-dashed border-[var(--color-accent)]/55" />}
+      {!onTape && <span className="absolute left-1/2 top-6 h-3 -translate-x-1/2 border-l border-dashed border-(--color-accent)/55" />}
     </span>
   );
 }
@@ -51,7 +51,7 @@ export default function PositionSelect({ value, onChange, isToteProduct = false 
             type="button"
             onClick={() => onChange(option.value)}
             aria-pressed={selected}
-            className={`flex min-h-[124px] flex-col items-center rounded-[4px] border px-3 py-3 text-center transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)] ${selected ? 'techpack-selected' : 'techpack-control border text-[var(--text-primary)]/75 hover:!bg-white/60'}`}
+            className={`flex min-h-[124px] flex-col items-center rounded-sm border px-3 py-3 text-center transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-accent) ${selected ? 'techpack-selected' : 'techpack-control border text-(--text-primary)/75 hover:!bg-white/60'}`}
           >
             <PlacementDiagram value={option.value} selected={selected} />
             <span className="mt-1 block text-xs font-semibold leading-tight">{option.label}</span>

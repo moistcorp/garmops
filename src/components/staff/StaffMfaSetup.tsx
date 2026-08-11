@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 const inputClass =
-  "w-full rounded-[4px] border border-[var(--color-rule)] px-4 py-3 font-mono text-sm tracking-[0.18em] outline-none focus:border-[var(--color-accent)]";
+  "w-full rounded-sm border border-(--color-rule) px-4 py-3 font-mono text-sm tracking-[0.18em] outline-none focus:border-(--color-accent)";
 
 type Enrolment = {
   factorId: string;
@@ -98,8 +98,8 @@ export default function StaffMfaSetup({ next = "/orders" }: { next?: string }) {
   }
 
   return (
-    <section className="mx-auto w-full max-w-xl rounded-[4px] border border-[var(--color-rule)] bg-white p-6 sm:p-8">
-      <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-accent)]">
+    <section className="mx-auto w-full max-w-xl rounded-sm border border-(--color-rule) bg-white p-6 sm:p-8">
+      <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-(--color-accent)">
         Foundry security
       </p>
       <h1 className="mt-3 text-3xl font-semibold tracking-tight">Authenticator verification</h1>
@@ -112,9 +112,9 @@ export default function StaffMfaSetup({ next = "/orders" }: { next?: string }) {
           <img
             src={enrolment.qrCode}
             alt="QR code for Garmops Foundry authenticator setup"
-            className="mx-auto size-56 border border-[var(--color-rule)] bg-white p-3"
+            className="mx-auto size-56 border border-(--color-rule) bg-white p-3"
           />
-          <div className="rounded-[4px] bg-black/[0.035] p-4">
+          <div className="rounded-sm bg-black/[0.035] p-4">
             <p className="text-xs uppercase tracking-wide text-black/45">Manual setup key</p>
             <code className="mt-2 block break-all text-sm">{enrolment.secret}</code>
           </div>
@@ -139,7 +139,7 @@ export default function StaffMfaSetup({ next = "/orders" }: { next?: string }) {
             type="button"
             disabled={busy}
             onClick={() => void verify()}
-            className="w-full rounded-[4px] bg-[var(--color-accent)] px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"
+            className="w-full rounded-sm bg-(--color-accent) px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"
           >
             {busy ? "Verifying…" : "Verify and open Foundry"}
           </button>

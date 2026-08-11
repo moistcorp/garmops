@@ -93,12 +93,12 @@ export default function HomeClient() {
       <HeroScrollVideo />
 
       {/* TRUST STRIP */}
-      <section className="border-y border-[#E5E5E5] bg-[var(--color-cream-soft)]/45">
+      <section className="border-y border-[#E5E5E5] bg-(--color-cream-soft)/45">
         <div className="mx-auto grid max-w-7xl grid-cols-2 px-4 sm:px-6 md:grid-cols-5">
           {trustPoints.map((point, index) => (
             <div
               key={point}
-              className={`flex min-h-[76px] items-center py-4 text-xs font-medium text-[var(--text-primary)]/70 md:justify-center md:px-4 md:text-center ${
+              className={`flex min-h-[76px] items-center py-4 text-xs font-medium text-(--text-primary)/70 md:justify-center md:px-4 md:text-center ${
                 index % 2 === 1 && index !== trustPoints.length - 1 ? 'border-l border-[#E5E5E5] pl-4 md:pl-4' : ''
               } ${index >= 2 ? 'border-t border-[#E5E5E5] md:border-t-0' : ''} ${index > 0 ? 'md:border-l md:border-[#E5E5E5]' : ''} ${index === trustPoints.length - 1 ? 'col-span-2 justify-center text-center md:col-span-1' : ''}`}
             >
@@ -114,7 +114,7 @@ export default function HomeClient() {
           <Reveal>
             <div className="mb-9 max-w-2xl sm:mb-12">
               <p className="mb-4 text-xs font-medium uppercase tracking-widest text-[#595959]">How Garmops works</p>
-              <h2 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl">
+              <h2 className="text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">
                 From garment to production in one flow.
               </h2>
               <p className="mt-4 max-w-xl text-sm leading-relaxed text-[#4a4a4a]">
@@ -127,12 +127,12 @@ export default function HomeClient() {
             <div className="grid gap-3 sm:grid-cols-2">
               {workflowSteps.map((step, index) => (
                 <Reveal key={step.number} delay={index * 50}>
-                  <div className="techpack-panel h-full rounded-[4px] border p-5 sm:p-6">
+                  <div className="techpack-panel h-full rounded-sm border p-5 sm:p-6">
                     <div className="mb-8 flex items-center justify-between">
-                      <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--color-accent-dark)]">{step.number}</span>
+                      <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-(--color-accent-dark)">{step.number}</span>
                       <span className="h-px w-10 bg-[#D7D7D7]" />
                     </div>
-                    <h3 className="text-base font-semibold text-[var(--text-primary)]">{step.title}</h3>
+                    <h3 className="text-base font-semibold text-(--text-primary)">{step.title}</h3>
                     <p className="mt-2 text-sm leading-6 text-[#4a4a4a]">{step.description}</p>
                   </div>
                 </Reveal>
@@ -140,17 +140,17 @@ export default function HomeClient() {
             </div>
 
             <Reveal delay={100}>
-              <div className="techpack-dark flex h-full flex-col overflow-hidden rounded-[4px] border p-4 sm:p-6">
+              <div className="techpack-dark flex h-full flex-col overflow-hidden rounded-sm border p-4 sm:p-6">
                 <div className="mb-4 flex items-center justify-between border-b border-white/15 pb-4">
                   <div>
                     <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-white/45">Garmops Studio</p>
                     <p className="mt-1 text-sm font-medium text-white">Build your product specification</p>
                   </div>
-                  <span className="rounded-[4px] border border-white/20 px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.05em] text-white/60">01 / 04</span>
+                  <span className="rounded-sm border border-white/20 px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.05em] text-white/60">01 / 04</span>
                 </div>
 
                 <div className="grid flex-1 gap-4 sm:grid-cols-[1fr_0.9fr]">
-                  <div className="relative min-h-[310px] overflow-hidden rounded-[4px] bg-white/95 sm:min-h-[390px]">
+                  <div className="relative min-h-[310px] overflow-hidden rounded-sm bg-white/95 sm:min-h-[390px]">
                     <Image
                       src="/products/boxy-fit-tee-260gsm.webp"
                       alt="Premium Oversized T-Shirt preview"
@@ -158,9 +158,9 @@ export default function HomeClient() {
                       className="object-cover"
                       sizes="(max-width: 640px) 100vw, 40vw"
                     />
-                    <div className="absolute left-3 top-3 rounded-[4px] border border-black/10 bg-white/90 px-3 py-2 backdrop-blur-sm">
+                    <div className="absolute left-3 top-3 rounded-sm border border-black/10 bg-white/90 px-3 py-2 backdrop-blur-sm">
                       <p className="text-xs uppercase tracking-widest text-[#595959]">Selected</p>
-                      <p className="mt-0.5 text-xs font-semibold text-[var(--text-primary)]">Premium Oversized T-Shirt</p>
+                      <p className="mt-0.5 text-xs font-semibold text-(--text-primary)">Premium Oversized T-Shirt</p>
                     </div>
                   </div>
 
@@ -172,7 +172,7 @@ export default function HomeClient() {
                       ['Print', 'Screen · DTF · Reflective'],
                       ['Order', 'Quantity & sizes'],
                     ].map(([label, value], index) => (
-                      <div key={label} className="rounded-[4px] border border-white/15 bg-white/[0.04] px-4 py-3">
+                      <div key={label} className="rounded-sm border border-white/15 bg-white/[0.04] px-4 py-3">
                         <div className="flex items-center justify-between gap-3">
                           <p className="font-mono text-[9px] uppercase tracking-[0.06em] text-white/40">{label}</p>
                           <span className="font-mono text-[9px] text-white/30">0{index + 1}</span>
@@ -182,7 +182,7 @@ export default function HomeClient() {
                     ))}
                     <Link
                       href="/products"
-                      className="mt-auto rounded-[4px] bg-white px-4 py-3 text-center font-mono text-sm uppercase tracking-[0.05em] text-[var(--color-navy)] transition-colors hover:bg-white/90"
+                      className="mt-auto rounded-sm bg-white px-4 py-3 text-center font-mono text-sm uppercase tracking-[0.05em] text-(--color-navy) transition-colors hover:bg-white/90"
                     >
                       Start with a product →
                     </Link>
@@ -200,7 +200,7 @@ export default function HomeClient() {
           <Reveal>
             <div className="mb-8 max-w-2xl sm:mb-10">
               <p className="mb-4 text-xs font-medium uppercase tracking-widest text-[#595959]">Where to start</p>
-              <h2 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl">Not sure where to start?</h2>
+              <h2 className="text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">Not sure where to start?</h2>
               <p className="mt-3 text-sm leading-relaxed text-[#4a4a4a]">
                 Use the route that matches what you already know. Both paths lead to the same product configurator once you have chosen a garment.
               </p>
@@ -209,26 +209,26 @@ export default function HomeClient() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <Reveal>
-              <Link href="/products" className="techpack-panel group flex min-h-[250px] flex-col rounded-[4px] border p-6 transition-all hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45 sm:p-8">
+              <Link href="/products" className="techpack-panel group flex min-h-[250px] flex-col rounded-sm border p-6 transition-all hover:-translate-y-0.5 hover:!border-(--color-accent)/45 sm:p-8">
                 <div className="mb-10 flex items-center justify-between">
-                  <span className="rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 font-mono text-xs uppercase tracking-[0.06em] text-[#595959]">I know the garment</span>
-                  <span className="text-lg text-[var(--color-accent-dark)] transition-transform group-hover:translate-x-0.5">→</span>
+                  <span className="rounded-sm border border-[#E5E5E5] px-3 py-1.5 font-mono text-xs uppercase tracking-[0.06em] text-[#595959]">I know the garment</span>
+                  <span className="text-lg text-(--color-accent-dark) transition-transform group-hover:translate-x-0.5">→</span>
                 </div>
-                <h3 className="text-2xl font-semibold tracking-tight text-[var(--text-primary)]">Explore products</h3>
+                <h3 className="text-2xl font-semibold tracking-tight text-(--text-primary)">Explore products</h3>
                 <p className="mt-3 max-w-md text-sm leading-6 text-[#4a4a4a]">Compare T-shirts, polos, hoodies, sweatshirts and totes by fit, fabric feel and intended use.</p>
-                <p className="mt-auto pt-8 text-sm font-medium text-[var(--color-accent-dark)]">Choose a garment →</p>
+                <p className="mt-auto pt-8 text-sm font-medium text-(--color-accent-dark)">Choose a garment →</p>
               </Link>
             </Reveal>
 
             <Reveal delay={70}>
-              <Link href="/industries" className="techpack-panel group flex min-h-[250px] flex-col rounded-[4px] border p-6 transition-all hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45 sm:p-8">
+              <Link href="/industries" className="techpack-panel group flex min-h-[250px] flex-col rounded-sm border p-6 transition-all hover:-translate-y-0.5 hover:!border-(--color-accent)/45 sm:p-8">
                 <div className="mb-10 flex items-center justify-between">
-                  <span className="rounded-[4px] border border-[#E5E5E5] px-3 py-1.5 font-mono text-xs uppercase tracking-[0.06em] text-[#595959]">I know the use case</span>
-                  <span className="text-lg text-[var(--color-accent-dark)] transition-transform group-hover:translate-x-0.5">→</span>
+                  <span className="rounded-sm border border-[#E5E5E5] px-3 py-1.5 font-mono text-xs uppercase tracking-[0.06em] text-[#595959]">I know the use case</span>
+                  <span className="text-lg text-(--color-accent-dark) transition-transform group-hover:translate-x-0.5">→</span>
                 </div>
-                <h3 className="text-2xl font-semibold tracking-tight text-[var(--text-primary)]">Find by industry</h3>
+                <h3 className="text-2xl font-semibold tracking-tight text-(--text-primary)">Find by industry</h3>
                 <p className="mt-3 max-w-md text-sm leading-6 text-[#4a4a4a]">Start with company apparel, hospitality, events or another use case and see sensible garment starting points.</p>
-                <p className="mt-auto pt-8 text-sm font-medium text-[var(--color-accent-dark)]">Find recommendations →</p>
+                <p className="mt-auto pt-8 text-sm font-medium text-(--color-accent-dark)">Find recommendations →</p>
               </Link>
             </Reveal>
           </div>
@@ -242,11 +242,11 @@ export default function HomeClient() {
             <Reveal>
               <div>
                 <p className="mb-4 text-xs font-medium uppercase tracking-widest text-[#595959]">Popular starting points</p>
-                <h2 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl">Four easy places to begin.</h2>
+                <h2 className="text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">Four easy places to begin.</h2>
                 <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#4a4a4a]">Start with the garment that best matches how you want the finished apparel to feel and be used.</p>
               </div>
             </Reveal>
-            <Link href="/products" className="text-sm font-medium text-[var(--color-accent-dark)] hover:underline">View all products →</Link>
+            <Link href="/products" className="text-sm font-medium text-(--color-accent-dark) hover:underline">View all products →</Link>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -254,9 +254,9 @@ export default function HomeClient() {
               <Reveal key={product.slug} delay={index * 50}>
                 <Link
                   href={`/products/${product.slug}`}
-                  className="techpack-panel group flex h-full flex-col overflow-hidden rounded-[4px] border transition-all hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45"
+                  className="techpack-panel group flex h-full flex-col overflow-hidden rounded-sm border transition-all hover:-translate-y-0.5 hover:!border-(--color-accent)/45"
                 >
-                  <div className="relative aspect-[4/5] overflow-hidden bg-[var(--color-cream-soft)]">
+                  <div className="relative aspect-[4/5] overflow-hidden bg-(--color-cream-soft)">
                     {product.image && (
                       <Image
                         src={product.image}
@@ -266,18 +266,18 @@ export default function HomeClient() {
                         className="object-cover transition-transform duration-500 group-hover:scale-[1.025]"
                       />
                     )}
-                    <div className="absolute left-3 top-3 rounded-[4px] border border-white/50 bg-white/90 px-3 py-1.5 text-[10px] font-medium text-[var(--text-primary)] backdrop-blur-sm">
+                    <div className="absolute left-3 top-3 rounded-sm border border-white/50 bg-white/90 px-3 py-1.5 text-[10px] font-medium text-(--text-primary) backdrop-blur-sm">
                       {product.selectorBadge}
                     </div>
                   </div>
                   <div className="flex flex-1 flex-col p-5">
-                    <h3 className="text-base font-semibold text-[var(--text-primary)]">{product.name}</h3>
+                    <h3 className="text-base font-semibold text-(--text-primary)">{product.name}</h3>
                     <p className="mt-1 text-xs text-[#595959]">{productMeta(product)}</p>
                     <div className="mt-4 flex flex-wrap gap-2">
-                      <span className="rounded-[4px] border border-[#E5E5E5] px-2.5 py-1 text-[10px] text-[#595959]">{product.gsm} GSM</span>
-                      <span className="rounded-[4px] border border-[#E5E5E5] px-2.5 py-1 text-[10px] text-[#595959]">{product.selectorMaterial}</span>
+                      <span className="rounded-sm border border-[#E5E5E5] px-2.5 py-1 text-[10px] text-[#595959]">{product.gsm} GSM</span>
+                      <span className="rounded-sm border border-[#E5E5E5] px-2.5 py-1 text-[10px] text-[#595959]">{product.selectorMaterial}</span>
                     </div>
-                    <p className="mt-auto pt-5 text-xs font-medium text-[var(--color-accent-dark)]">View product →</p>
+                    <p className="mt-auto pt-5 text-xs font-medium text-(--color-accent-dark)">View product →</p>
                   </div>
                 </Link>
               </Reveal>
@@ -293,11 +293,11 @@ export default function HomeClient() {
             <Reveal>
               <div>
                 <p className="mb-4 text-xs font-medium uppercase tracking-widest text-[#595959]">Find by industry</p>
-                <h2 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl">Start with what you are making.</h2>
+                <h2 className="text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">Start with what you are making.</h2>
                 <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#4a4a4a]">Industry guides connect common use cases to practical garment choices before you enter the configurator.</p>
               </div>
             </Reveal>
-            <Link href="/industries" className="text-sm font-medium text-[var(--color-accent-dark)] hover:underline">Explore all industries →</Link>
+            <Link href="/industries" className="text-sm font-medium text-(--color-accent-dark) hover:underline">Explore all industries →</Link>
           </div>
 
           <div className="grid gap-5 lg:grid-cols-3">
@@ -305,9 +305,9 @@ export default function HomeClient() {
               <Reveal key={industry.id} delay={index * 70}>
                 <Link
                   href={industry.href ?? industry.contactHref ?? '/industries'}
-                  className="techpack-panel group flex h-full flex-col overflow-hidden rounded-[4px] border transition-all hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45"
+                  className="techpack-panel group flex h-full flex-col overflow-hidden rounded-sm border transition-all hover:-translate-y-0.5 hover:!border-(--color-accent)/45"
                 >
-                  <div className="relative h-[290px] overflow-hidden bg-[var(--color-cream-soft)] sm:h-[360px]">
+                  <div className="relative h-[290px] overflow-hidden bg-(--color-cream-soft) sm:h-[360px]">
                     <Image
                       src={industry.image}
                       alt={industry.alt}
@@ -315,19 +315,19 @@ export default function HomeClient() {
                       sizes="(max-width: 1024px) 100vw, 33vw"
                       className="object-cover transition-transform duration-500 group-hover:scale-[1.025]"
                     />
-                    <div className="absolute left-4 top-4 rounded-[4px] border border-white/60 bg-white/90 px-3 py-1.5 text-[10px] font-medium text-[var(--text-primary)] backdrop-blur-sm">
+                    <div className="absolute left-4 top-4 rounded-sm border border-white/60 bg-white/90 px-3 py-1.5 text-[10px] font-medium text-(--text-primary) backdrop-blur-sm">
                       {industry.name}
                     </div>
                   </div>
                   <div className="flex flex-1 flex-col p-5 sm:p-6">
-                    <h3 className="text-xl font-semibold tracking-tight text-[var(--text-primary)]">{industry.name}</h3>
+                    <h3 className="text-xl font-semibold tracking-tight text-(--text-primary)">{industry.name}</h3>
                     <p className="mt-2 text-sm leading-6 text-[#4a4a4a]">{industry.description}</p>
                     <div className="mt-5 flex flex-wrap gap-2">
                       {industry.for.slice(0, 3).map(useCase => (
-                      <span key={useCase} className="rounded-[4px] border border-[#E5E5E5] px-2.5 py-1 text-xs text-[#595959]">{useCase}</span>
+                      <span key={useCase} className="rounded-sm border border-[#E5E5E5] px-2.5 py-1 text-xs text-[#595959]">{useCase}</span>
                       ))}
                     </div>
-                    <p className="mt-auto pt-6 text-sm font-medium text-[var(--color-accent-dark)]">Explore recommendations →</p>
+                    <p className="mt-auto pt-6 text-sm font-medium text-(--color-accent-dark)">Explore recommendations →</p>
                   </div>
                 </Link>
               </Reveal>
@@ -346,7 +346,7 @@ export default function HomeClient() {
           <Reveal>
             <div className="mb-8 max-w-2xl sm:mb-10">
               <p className="mb-4 text-xs font-medium uppercase tracking-widest text-[#595959]">Print methods</p>
-              <h2 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl">Three ways to print.</h2>
+              <h2 className="text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">Three ways to print.</h2>
               <p className="mt-3 text-sm leading-relaxed text-[#4a4a4a]">Keep the technique decision simple. Garmops currently offers Screen Print, DTF and Reflective Print, with suitability depending on the garment and artwork.</p>
             </div>
           </Reveal>
@@ -354,16 +354,16 @@ export default function HomeClient() {
           <div className="grid gap-4 md:grid-cols-3">
             {printMethods.map((method, index) => (
               <Reveal key={method.name} delay={index * 60}>
-                <div className="techpack-panel h-full rounded-[4px] border p-5 sm:p-6">
+                <div className="techpack-panel h-full rounded-sm border p-5 sm:p-6">
                   <div className="mb-9 flex items-center justify-between">
-                    <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--color-accent-dark)]">{method.index}</span>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-(--color-accent-dark)">{method.index}</span>
                     <span className="h-px w-10 bg-[#D7D7D7]" />
                   </div>
-                  <h3 className="text-lg font-semibold text-[var(--text-primary)]">{method.name}</h3>
+                  <h3 className="text-lg font-semibold text-(--text-primary)">{method.name}</h3>
                   <p className="mt-3 text-sm leading-6 text-[#4a4a4a]">{method.description}</p>
                   <div className="mt-6 border-t border-[#E5E5E5] pt-4">
                     <p className="text-[10px] font-medium uppercase tracking-widest text-[#777777]">Good for</p>
-                    <p className="mt-1.5 text-xs leading-5 text-[var(--text-primary)]/75">{method.bestFor}</p>
+                    <p className="mt-1.5 text-xs leading-5 text-(--text-primary)/75">{method.bestFor}</p>
                   </div>
                 </div>
               </Reveal>
@@ -376,7 +376,7 @@ export default function HomeClient() {
       <section className="py-14 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <Reveal>
-            <div className="techpack-dark relative flex flex-col items-stretch justify-between gap-8 overflow-hidden rounded-[4px] border p-6 sm:p-10 md:flex-row md:items-center md:p-14">
+            <div className="techpack-dark relative flex flex-col items-stretch justify-between gap-8 overflow-hidden rounded-sm border p-6 sm:p-10 md:flex-row md:items-center md:p-14">
               <div className="relative max-w-xl">
                 <p className="mb-4 text-xs font-medium uppercase tracking-widest text-white/55">Pricing</p>
                 <h2 className="font-mono text-3xl font-bold tracking-tight text-white md:text-4xl">Clear pricing before production.</h2>
@@ -385,13 +385,13 @@ export default function HomeClient() {
                 </p>
                 <div className="mt-6 flex flex-wrap gap-2">
                   {['From 50 pcs per custom product', 'Volume pricing', 'GST invoice'].map(item => (
-                    <span key={item} className="rounded-[4px] border border-white/20 bg-white/10 px-3.5 py-1.5 font-mono text-xs uppercase tracking-[0.05em] text-white/85">{item}</span>
+                    <span key={item} className="rounded-sm border border-white/20 bg-white/10 px-3.5 py-1.5 font-mono text-xs uppercase tracking-[0.05em] text-white/85">{item}</span>
                   ))}
                 </div>
               </div>
               <Link
                 href="/pricing"
-                className="relative shrink-0 rounded-[4px] bg-white px-6 py-3.5 text-center font-mono text-sm uppercase tracking-[0.05em] text-[var(--color-navy)] transition-colors hover:bg-white/90 sm:px-8"
+                className="relative shrink-0 rounded-sm bg-white px-6 py-3.5 text-center font-mono text-sm uppercase tracking-[0.05em] text-(--color-navy) transition-colors hover:bg-white/90 sm:px-8"
               >
                 See how pricing works →
               </Link>
@@ -407,9 +407,9 @@ export default function HomeClient() {
             <Reveal>
               <div>
                 <p className="mb-4 text-xs font-medium uppercase tracking-widest text-[#595959]">FAQ</p>
-                <h2 className="mb-3 text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl">Common questions</h2>
+                <h2 className="mb-3 text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">Common questions</h2>
                 <p className="text-sm leading-relaxed text-[#4a4a4a]">
-                  Have a requirement that does not fit these answers? <Link href="/contact" className="underline hover:text-[var(--color-accent)]">Get in touch</Link>.
+                  Have a requirement that does not fit these answers? <Link href="/contact" className="underline hover:text-(--color-accent)">Get in touch</Link>.
                 </p>
               </div>
             </Reveal>
@@ -419,7 +419,7 @@ export default function HomeClient() {
                 {faqs.map((item, i) => (
                   <div
                     key={item.q}
-                    className={`border-b border-[#E5E5E5] transition-all duration-300 ${openFaq === i ? 'techpack-panel my-2 rounded-[4px] border px-5' : ''}`}
+                    className={`border-b border-[#E5E5E5] transition-all duration-300 ${openFaq === i ? 'techpack-panel my-2 rounded-sm border px-5' : ''}`}
                   >
                     <button
                       type="button"
@@ -429,10 +429,10 @@ export default function HomeClient() {
                       aria-controls={`homepage-faq-panel-${i}`}
                       className="flex w-full items-center justify-between gap-4 py-5 text-left sm:gap-6 sm:py-6"
                     >
-                      <span className="text-base font-semibold text-[var(--text-primary)]">{item.q}</span>
+                      <span className="text-base font-semibold text-(--text-primary)">{item.q}</span>
                       <svg
                         aria-hidden="true"
-                        className={`h-4 w-4 shrink-0 transition-all duration-300 ${openFaq === i ? 'rotate-45 text-[var(--color-accent)]' : 'text-[#555555]'}`}
+                        className={`h-4 w-4 shrink-0 transition-all duration-300 ${openFaq === i ? 'rotate-45 text-(--color-accent)' : 'text-[#555555]'}`}
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -464,20 +464,20 @@ export default function HomeClient() {
       <section className="techpack-section">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-24">
           <Reveal>
-            <div className="techpack-panel rounded-[4px] border p-6 sm:p-10 md:p-14">
+            <div className="techpack-panel rounded-sm border p-6 sm:p-10 md:p-14">
               <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
                 <div className="max-w-2xl">
                   <p className="mb-4 text-xs font-medium uppercase tracking-widest text-[#595959]">Ready to make something?</p>
-                  <h2 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl">Start with the garment or the use case.</h2>
+                  <h2 className="text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">Start with the garment or the use case.</h2>
                   <p className="mt-4 max-w-xl text-sm leading-relaxed text-[#4a4a4a]">If you already know what you want, browse products. If you need help choosing, start with the industry and use-case recommendations.</p>
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
-                  <Link href="/products" className="rounded-[4px] bg-[var(--color-accent)] px-6 py-3.5 text-center text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent-dark)]">Explore products</Link>
-                  <Link href="/industries" className="rounded-[4px] border border-[var(--text-primary)]/20 px-6 py-3.5 text-center text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--text-primary)]">Find by industry</Link>
+                  <Link href="/products" className="rounded-sm bg-(--color-accent) px-6 py-3.5 text-center text-sm font-medium text-white transition-colors hover:bg-(--color-accent-dark)">Explore products</Link>
+                  <Link href="/industries" className="rounded-sm border border-(--text-primary)/20 px-6 py-3.5 text-center text-sm font-medium text-(--text-primary) transition-colors hover:border-(--text-primary)">Find by industry</Link>
                 </div>
               </div>
               <div className="mt-8 border-t border-[#E5E5E5] pt-5 text-xs text-[#595959]">
-                Have a specific requirement? <Link href="/contact" className="font-medium text-[var(--color-accent-dark)] hover:underline">Contact us →</Link>
+                Have a specific requirement? <Link href="/contact" className="font-medium text-(--color-accent-dark) hover:underline">Contact us →</Link>
               </div>
             </div>
           </Reveal>

@@ -17,7 +17,7 @@ export default function PortalNav({ items }: { items: PortalNavItem[] }) {
             key={item.href}
             href={item.href}
             aria-current={active ? "page" : undefined}
-            className={`whitespace-nowrap rounded-[4px] border px-3 py-2.5 text-sm transition-colors ${
+            className={`whitespace-nowrap rounded-sm border px-3 py-2.5 text-sm transition-colors ${
               active
                 ? "border-white/25 bg-white/12 text-white"
                 : "border-transparent text-white/65 hover:border-white/15 hover:bg-white/8 hover:text-white"

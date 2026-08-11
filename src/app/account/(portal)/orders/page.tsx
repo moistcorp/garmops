@@ -108,7 +108,7 @@ export default async function AccountOrdersPage({
         actions={
           <Link
             href="/configurator"
-            className="inline-flex items-center gap-2 rounded bg-[var(--color-accent)] px-4 py-2.5 text-sm font-semibold text-white"
+            className="inline-flex items-center gap-2 rounded bg-(--color-accent) px-4 py-2.5 text-sm font-semibold text-white"
           >
             <ShoppingBag size={16} />
             Start designing
@@ -132,7 +132,7 @@ export default async function AccountOrdersPage({
             href={ordersHref(entry.value)}
             className={`whitespace-nowrap rounded px-3 py-1.5 text-xs font-semibold ${
               filter === entry.value
-                ? "bg-[var(--color-accent)] text-white"
+                ? "bg-(--color-accent) text-white"
                 : "bg-black/5 text-black/55"
             }`}
           >
@@ -152,7 +152,7 @@ export default async function AccountOrdersPage({
               <Link
                 key={order.id}
                 href={`/account/orders/${encodeURIComponent(order.order_number)}`}
-                className="group techpack-surface grid gap-5 rounded border p-5 transition hover:border-[var(--color-accent)]/30 lg:grid-cols-[1.2fr_0.8fr_0.8fr_auto] lg:items-center"
+                className="group techpack-surface grid gap-5 rounded border p-5 transition hover:border-(--color-accent)/30 lg:grid-cols-[1.2fr_0.8fr_0.8fr_auto] lg:items-center"
               >
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -183,7 +183,7 @@ export default async function AccountOrdersPage({
                   <CalendarDays size={15} />
                   {formatOrderDate(order.confirmed_at || order.created_at)} · {quantity} units
                 </div>
-                <ArrowRight className="text-[var(--color-accent)]" size={18} />
+                <ArrowRight className="text-(--color-accent)" size={18} />
               </Link>
             );
           })}

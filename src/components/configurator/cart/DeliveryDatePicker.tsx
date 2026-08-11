@@ -51,10 +51,10 @@ export function DeliveryDatePicker({
   );
 
   const chipClass = (active: boolean) =>
-    `flex-1 rounded-[4px] border px-5 py-3 text-left transition-colors ${
+    `flex-1 rounded-sm border px-5 py-3 text-left transition-colors ${
       active
-        ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-white"
-        : "techpack-control text-[var(--text-primary)] hover:!border-[var(--color-accent)]"
+        ? "border-(--color-accent) bg-(--color-accent) text-white"
+        : "techpack-control text-(--text-primary) hover:!border-(--color-accent)"
     }`;
 
   const isSame = (a?: Date, b?: Date) =>
@@ -81,7 +81,7 @@ export function DeliveryDatePicker({
 
   return (
     <div className="space-y-3">
-      <p className="text-sm font-medium text-[var(--text-primary)]">
+      <p className="text-sm font-medium text-(--text-primary)">
         Select your target delivery date
       </p>
 
@@ -129,12 +129,12 @@ export function DeliveryDatePicker({
       </div>
 
       {showCalendar && (
-        <div className="techpack-control space-y-2 rounded-[4px] border p-3">
+        <div className="techpack-control space-y-2 rounded-sm border p-3">
           <input
             type="date"
             min={toInputValue(options.standard)}
             value={selectedDate ? toInputValue(selectedDate) : ""}
-            className="techpack-control rounded-[4px] border px-3 py-2 text-sm text-[var(--text-primary)] focus:!border-[var(--color-accent)] focus:outline-none"
+            className="techpack-control rounded-sm border px-3 py-2 text-sm text-(--text-primary) focus:!border-(--color-accent) focus:outline-none"
             onChange={(e) => handleFlexiblePick(e.target.value)}
           />
           {calendarError && (
@@ -149,7 +149,7 @@ export function DeliveryDatePicker({
         </div>
       )}
 
-      <div className="text-xs text-[var(--text-primary)]/60 space-y-1 pt-1">
+      <div className="text-xs text-(--text-primary)/60 space-y-1 pt-1">
         <p>Rush adds ₹{RUSH_DELIVERY_SURCHARGE_RUPEES} per unit before GST.</p>
         <p>Standard follows the regular production and shipping timeline.</p>
         {extraLeadTimeDays > 0 && (

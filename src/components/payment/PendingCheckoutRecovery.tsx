@@ -118,7 +118,7 @@ export default function PendingCheckoutRecovery({
                 type="button"
                 onClick={() => void recheckPayment()}
                 disabled={isChecking}
-                className="inline-flex items-center gap-2 rounded bg-[var(--color-accent)] px-3 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded bg-(--color-accent) px-3 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isChecking ? (
                   <LoaderCircle className="animate-spin" size={14} />

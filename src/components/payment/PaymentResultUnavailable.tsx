@@ -4,7 +4,7 @@ import { CircleAlert } from "lucide-react";
 export default function PaymentResultUnavailable() {
   return (
     <div className="techpack-canvas flex min-h-[80vh] items-center justify-center px-4 py-10 sm:px-6">
-      <div className="techpack-surface w-full max-w-xl rounded-[4px] border p-7 text-center sm:p-10">
+      <div className="techpack-surface w-full max-w-xl rounded-sm border p-7 text-center sm:p-10">
         <CircleAlert
           size={48}
           className="mx-auto text-amber-600"
@@ -19,13 +19,13 @@ export default function PaymentResultUnavailable() {
         <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
           <Link
             href="/account/orders"
-            className="rounded-[4px] bg-[var(--color-accent)] px-5 py-3 text-sm font-semibold text-white"
+            className="rounded-sm bg-(--color-accent) px-5 py-3 text-sm font-semibold text-white"
           >
             View my orders →
           </Link>
           <Link
             href="/contact"
-            className="rounded-[4px] border border-black/10 px-5 py-3 text-sm font-semibold"
+            className="rounded-sm border border-black/10 px-5 py-3 text-sm font-semibold"
           >
             Contact support
           </Link>

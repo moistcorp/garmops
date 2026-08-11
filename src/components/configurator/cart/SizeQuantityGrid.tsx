@@ -48,13 +48,13 @@ export function SizeQuantityGrid({
     const quantity = value[size] ?? 0;
     const maximum = maximumForSize(size);
     return (
-      <div className="ml-auto flex h-10 w-full max-w-52 items-center justify-between border border-[var(--color-rule)] bg-white">
+      <div className="ml-auto flex h-10 w-full max-w-52 items-center justify-between border border-(--color-rule) bg-white">
         <button
           type="button"
           aria-label={`Decrease ${isOneSize ? "quantity" : `${size} quantity`}`}
           disabled={quantity <= 0}
           onClick={() => onChange(size, Math.max(0, quantity - 1))}
-          className="flex h-full w-10 items-center justify-center border-r border-[var(--color-rule)] text-lg leading-none text-[var(--text-primary)]/80 hover:bg-[#F7F7F7] disabled:cursor-not-allowed disabled:text-[var(--text-primary)]/25"
+          className="flex h-full w-10 items-center justify-center border-r border-(--color-rule) text-lg leading-none text-(--text-primary)/80 hover:bg-[#F7F7F7] disabled:cursor-not-allowed disabled:text-(--text-primary)/25"
         >
           −
         </button>
@@ -67,7 +67,7 @@ export function SizeQuantityGrid({
           value={quantity}
           onChange={(event) => handleInputChange(size, event.target.value)}
           aria-describedby={`${inputId(size)}-limit`}
-          className="h-full min-w-0 flex-1 bg-transparent px-2 text-center font-mono text-sm font-semibold tabular-nums text-[var(--text-primary)] outline-none focus:bg-[var(--color-accent)]/5"
+          className="h-full min-w-0 flex-1 bg-transparent px-2 text-center font-mono text-sm font-semibold tabular-nums text-(--text-primary) outline-none focus:bg-(--color-accent)/5"
         />
         <span id={`${inputId(size)}-limit`} className="sr-only">
           Whole numbers from zero to {maximum.toLocaleString("en-IN")}
@@ -77,7 +77,7 @@ export function SizeQuantityGrid({
           aria-label={`Increase ${isOneSize ? "quantity" : `${size} quantity`}`}
           disabled={totalUnits >= maximumUnits}
           onClick={() => onChange(size, Math.min(maximum, quantity + 1))}
-          className="flex h-full w-10 items-center justify-center border-l border-[var(--color-rule)] text-lg leading-none text-[var(--text-primary)]/80 hover:bg-[#F7F7F7] disabled:cursor-not-allowed disabled:text-[var(--text-primary)]/25"
+          className="flex h-full w-10 items-center justify-center border-l border-(--color-rule) text-lg leading-none text-(--text-primary)/80 hover:bg-[#F7F7F7] disabled:cursor-not-allowed disabled:text-(--text-primary)/25"
         >
           +
         </button>
@@ -89,15 +89,15 @@ export function SizeQuantityGrid({
     const size = sizes[0];
     return (
       <div className="w-full">
-        <div className="border-y border-[var(--color-rule)] py-2.5">
+        <div className="border-y border-(--color-rule) py-2.5">
           <div className="flex items-center justify-between gap-5">
-            <label htmlFor={inputId(size)} className="text-sm font-semibold text-[var(--text-primary)]">
+            <label htmlFor={inputId(size)} className="text-sm font-semibold text-(--text-primary)">
               Quantity
             </label>
             {quantityControl(size)}
           </div>
         </div>
-        <p className="mt-3 text-xs text-[var(--text-primary)]/55">
+        <p className="mt-3 text-xs text-(--text-primary)/55">
           Minimum order: {pieceLabel(minimumUnits)}. Minimum applies to this product configuration.
         </p>
       </div>
@@ -106,17 +106,17 @@ export function SizeQuantityGrid({
 
   return (
     <div className="w-full">
-      <div className="grid grid-cols-[minmax(0,1fr)_minmax(180px,208px)] border-y border-[var(--color-rule)] bg-[#F7F7F7] px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--text-primary)]/50">
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(180px,208px)] border-y border-(--color-rule) bg-[#F7F7F7] px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-(--text-primary)/50">
         <span>Size</span>
         <span className="text-center">Quantity</span>
       </div>
-      <div className="divide-y divide-[var(--color-rule)] border-b border-[var(--color-rule)]">
+      <div className="divide-y divide-(--color-rule) border-b border-(--color-rule)">
         {sizes.map((size) => (
           <div
             key={size}
             className="grid grid-cols-[minmax(0,1fr)_minmax(180px,208px)] items-center px-3 py-1.5"
           >
-            <label htmlFor={inputId(size)} className="font-mono text-sm font-semibold text-[var(--text-primary)]">
+            <label htmlFor={inputId(size)} className="font-mono text-sm font-semibold text-(--text-primary)">
               {size}
             </label>
             {quantityControl(size)}

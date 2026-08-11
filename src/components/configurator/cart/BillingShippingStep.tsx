@@ -87,8 +87,8 @@ export type CheckoutAccountContext = Readonly<{
 }>;
 
 const INPUT_CLASS =
-  "techpack-control w-full rounded-[4px] border px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-primary)]/40 focus:!border-[var(--color-accent)] focus:outline-none";
-const LABEL_CLASS = "mb-1 block text-xs font-medium text-[var(--text-primary)]/70";
+  "techpack-control w-full rounded-sm border px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-primary)/40 focus:!border-(--color-accent) focus:outline-none";
+const LABEL_CLASS = "mb-1 block text-xs font-medium text-(--text-primary)/70";
 
 function formatIndianPhone(value: string): string {
   let digits = digitsOnly(value);
@@ -116,17 +116,17 @@ function sectionHeading(
 ) {
   return (
     <div className="mb-5 flex items-start gap-3">
-      <span className="rounded-[4px] bg-[var(--color-accent)]/10 p-2 text-[var(--color-accent-dark)]">
+      <span className="rounded-sm bg-(--color-accent)/10 p-2 text-(--color-accent-dark)">
         {icon}
       </span>
       <div>
-        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">
+        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-(--color-accent)">
           {index}
         </p>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--text-primary)]">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-(--text-primary)">
           {title}
         </h2>
-        <p className="mt-1 text-xs leading-relaxed text-[var(--text-primary)]/55">
+        <p className="mt-1 text-xs leading-relaxed text-(--text-primary)/55">
           {description}
         </p>
       </div>
@@ -569,7 +569,7 @@ export function BillingShippingStep({
   );
 
   if (!isDraftReady) {
-    return <>{topBar}<div className="flex min-h-[360px] items-center justify-center text-sm text-[var(--text-primary)]/50">Loading delivery details…</div></>;
+    return <>{topBar}<div className="flex min-h-[360px] items-center justify-center text-sm text-(--text-primary)/50">Loading delivery details…</div></>;
   }
 
   if (!accountContext) {
@@ -580,12 +580,12 @@ export function BillingShippingStep({
         {topBar}
         <div className="mx-auto max-w-2xl py-8 sm:py-12">
           <div className="mb-6">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--color-accent)]">Delivery · 06 / 06</p>
-            <h1 className="mt-2 text-2xl font-semibold text-[var(--text-primary)]">Delivery details</h1>
-            <p className="mt-1 text-sm text-[var(--text-primary)]/55">Tell us where to deliver your order.</p>
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-(--color-accent)">Delivery · 06 / 06</p>
+            <h1 className="mt-2 text-2xl font-semibold text-(--text-primary)">Delivery details</h1>
+            <p className="mt-1 text-sm text-(--text-primary)/55">Tell us where to deliver your order.</p>
           </div>
           {authNotice ? <div className="mb-4"><ActionFeedback tone="info" title={authNotice} /></div> : null}
-          <section className="techpack-surface w-full rounded-[4px] border p-6 sm:p-8">
+          <section className="techpack-surface w-full rounded-sm border p-6 sm:p-8">
             {sectionHeading("1 — Contact", <ShieldCheck size={18} aria-hidden="true" />, "Verify your email", "We’ll use this email for secure order access and payment updates.")}
             <CustomerAuthFlow
               next={deliveryPath}
@@ -605,16 +605,16 @@ export function BillingShippingStep({
       <>
         {topBar}
         <div className="mx-auto flex max-w-2xl items-start justify-center py-8 sm:py-12">
-          <section className="techpack-surface w-full rounded-[4px] border p-6 sm:p-8">
-            <span className="flex size-11 items-center justify-center rounded-full bg-[var(--color-accent)]/10 text-[var(--color-accent)]"><CheckCircle2 size={22} aria-hidden="true" /></span>
-            <p className="mt-4 font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">Saved account details found</p>
-            <h1 className="mt-2 text-2xl font-semibold text-[var(--text-primary)]">Which delivery details should we use?</h1>
-            <p className="mt-2 text-sm leading-relaxed text-[var(--text-primary)]/55">You entered checkout details before signing in, and this account already has saved defaults. Nothing will be overwritten until you choose.</p>
+          <section className="techpack-surface w-full rounded-sm border p-6 sm:p-8">
+            <span className="flex size-11 items-center justify-center rounded-full bg-(--color-accent)/10 text-(--color-accent)"><CheckCircle2 size={22} aria-hidden="true" /></span>
+            <p className="mt-4 font-mono text-xs font-semibold uppercase tracking-[0.12em] text-(--color-accent)">Saved account details found</p>
+            <h1 className="mt-2 text-2xl font-semibold text-(--text-primary)">Which delivery details should we use?</h1>
+            <p className="mt-2 text-sm leading-relaxed text-(--text-primary)/55">You entered checkout details before signing in, and this account already has saved defaults. Nothing will be overwritten until you choose.</p>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              <button type="button" onClick={useSavedAccountDetails} className="rounded-[4px] bg-[var(--color-accent)] px-5 py-3 text-sm font-semibold text-white">Use saved account details</button>
-              <button type="button" onClick={keepEnteredDetails} className="rounded-[4px] border border-[var(--color-rule)] bg-white px-5 py-3 text-sm font-semibold text-[var(--text-primary)]">Keep details I entered</button>
+              <button type="button" onClick={useSavedAccountDetails} className="rounded-sm bg-(--color-accent) px-5 py-3 text-sm font-semibold text-white">Use saved account details</button>
+              <button type="button" onClick={keepEnteredDetails} className="rounded-sm border border-(--color-rule) bg-white px-5 py-3 text-sm font-semibold text-(--text-primary)">Keep details I entered</button>
             </div>
-            <p className="mt-4 text-xs text-[var(--text-primary)]/45">Signed in as {accountContext.authenticatedEmail}</p>
+            <p className="mt-4 text-xs text-(--text-primary)/45">Signed in as {accountContext.authenticatedEmail}</p>
           </section>
         </div>
       </>
@@ -645,25 +645,25 @@ export function BillingShippingStep({
           )}
 
           <div>
-            <p className="font-mono text-xs font-medium uppercase tracking-[0.06em] text-[var(--text-primary)]/50">
+            <p className="font-mono text-xs font-medium uppercase tracking-[0.06em] text-(--text-primary)/50">
               {formatSpecCode(`CART-${cartId}`)}
             </p>
-            <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
+            <h1 className="text-2xl font-semibold text-(--text-primary)">
               Delivery details
             </h1>
-            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-[var(--text-primary)]/55">
+            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-(--text-primary)/55">
               Tell us where to deliver your order.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-[4px] border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/5 px-4 py-3 text-sm">
-            <div className="flex items-center gap-2"><CheckCircle2 size={16} className="text-[var(--color-accent)]" aria-hidden="true" /><span className="text-[var(--text-primary)]/65"><strong className="text-[var(--text-primary)]">{accountContext.authenticatedEmail}</strong> · Verified</span></div>
-            <span className="text-xs text-[var(--text-primary)]/45">{accountContext.hasSavedDetails ? "Saved details filled from your account." : "Your details can be saved for next time."}</span>
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-sm border border-(--color-accent)/20 bg-(--color-accent)/5 px-4 py-3 text-sm">
+            <div className="flex items-center gap-2"><CheckCircle2 size={16} className="text-(--color-accent)" aria-hidden="true" /><span className="text-(--text-primary)/65"><strong className="text-(--text-primary)">{accountContext.authenticatedEmail}</strong> · Verified</span></div>
+            <span className="text-xs text-(--text-primary)/45">{accountContext.hasSavedDetails ? "Saved details filled from your account." : "Your details can be saved for next time."}</span>
           </div>
 
           <section
             id="contact-details"
-            className="techpack-panel scroll-mt-16 rounded-[4px] border p-5"
+            className="techpack-panel scroll-mt-16 rounded-sm border p-5"
           >
             {sectionHeading(
               "1 — Contact",
@@ -672,13 +672,13 @@ export function BillingShippingStep({
               "Who should receive order updates and coordinate the delivery?"
             )}
             {showSavedSummary ? (
-              <div className="flex flex-wrap items-start justify-between gap-4 text-sm text-[var(--text-primary)]/70">
+              <div className="flex flex-wrap items-start justify-between gap-4 text-sm text-(--text-primary)/70">
                 <div>
-                  <p className="font-medium text-[var(--text-primary)]">{draft.projectContact.firstName} {draft.projectContact.lastName}</p>
+                  <p className="font-medium text-(--text-primary)">{draft.projectContact.firstName} {draft.projectContact.lastName}</p>
                   <p className="mt-1">{draft.projectContact.email} · Verified</p>
                   <p className="mt-1">+91 {formatIndianPhone(draft.projectContact.phone)}</p>
                 </div>
-                <button type="button" onClick={() => setShowSavedSummary(false)} className="text-xs font-semibold text-[var(--color-accent-dark)] underline underline-offset-2">Edit</button>
+                <button type="button" onClick={() => setShowSavedSummary(false)} className="text-xs font-semibold text-(--color-accent-dark) underline underline-offset-2">Edit</button>
               </div>
             ) : <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="sm:col-span-2">
@@ -698,7 +698,7 @@ export function BillingShippingStep({
                   readOnly
                   aria-describedby="verified-email-note"
                 />
-                <p id="verified-email-note" className="mt-1 text-xs text-[var(--text-primary)]/45">Verified account email. Order access and payment will be linked to this address.</p>
+                <p id="verified-email-note" className="mt-1 text-xs text-(--text-primary)/45">Verified account email. Order access and payment will be linked to this address.</p>
                 {draft.projectContact.email &&
                   !isEmailValid(draft.projectContact.email) && (
                     <p className="mt-1 text-xs text-red-600">
@@ -710,11 +710,11 @@ export function BillingShippingStep({
                 <label htmlFor="contact-phone" className={LABEL_CLASS}>
                   Phone number
                 </label>
-                <div className="flex rounded-[4px] border border-[var(--color-control-border)] focus-within:!border-[var(--color-accent)]">
-                  <span className="flex items-center border-r border-[var(--color-rule)] px-3 text-sm text-[var(--text-primary)]/60">+91</span>
+                <div className="flex rounded-sm border border-(--color-control-border) focus-within:!border-(--color-accent)">
+                  <span className="flex items-center border-r border-(--color-rule) px-3 text-sm text-(--text-primary)/60">+91</span>
                   <input id="contact-phone" type="tel" inputMode="tel" autoComplete="tel-national" className={`${INPUT_CLASS} !border-0`} placeholder="98765 43210" value={draft.projectContact.phone} onChange={(event) => updateContact({ ...draft.projectContact, phone: formatIndianPhone(event.target.value) })} />
                 </div>
-                <p className="mt-1 text-xs text-[var(--text-primary)]/45">Used for delivery updates and courier coordination.</p>
+                <p className="mt-1 text-xs text-(--text-primary)/45">Used for delivery updates and courier coordination.</p>
                 {digitsOnly(draft.projectContact.phone).length >= 10 &&
                   !isIndianPhoneValid(draft.projectContact.phone) && (
                     <p className="mt-1 text-xs text-red-600">
@@ -727,7 +727,7 @@ export function BillingShippingStep({
 
           <section
             id="shipping-information"
-            className="techpack-panel scroll-mt-16 rounded-[4px] border p-5"
+            className="techpack-panel scroll-mt-16 rounded-sm border p-5"
           >
             {sectionHeading(
               "2 — Delivery address",
@@ -736,8 +736,8 @@ export function BillingShippingStep({
               "Where should we deliver this order?"
             )}
             {showSavedSummary ? (
-              <div className="text-sm text-[var(--text-primary)]/70">
-                <p className="font-medium text-[var(--text-primary)]">{draft.shippingInformation.recipientName}</p>
+              <div className="text-sm text-(--text-primary)/70">
+                <p className="font-medium text-(--text-primary)">{draft.shippingInformation.recipientName}</p>
                 {draft.shippingInformation.company ? <p>{draft.shippingInformation.company}</p> : null}
                 <p className="mt-1">{draft.shippingInformation.address.addressLine1}</p>
                 {draft.shippingInformation.address.addressLine2 ? <p>{draft.shippingInformation.address.addressLine2}</p> : null}
@@ -746,7 +746,7 @@ export function BillingShippingStep({
             ) : (
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="delivery-company" className={LABEL_CLASS}>Company / organisation <span className="font-normal text-[var(--text-primary)]/45">Optional</span></label>
+                  <label htmlFor="delivery-company" className={LABEL_CLASS}>Company / organisation <span className="font-normal text-(--text-primary)/45">Optional</span></label>
                   <input id="delivery-company" autoComplete="organization" className={INPUT_CLASS} value={draft.shippingInformation.company} onChange={(event) => updateShipping({ ...draft.shippingInformation, company: event.target.value })} />
                 </div>
                 <AddressForm compact showCountry={false} addressLabel="Address" idPrefix="shipping-address" value={draft.shippingInformation.address} onChange={(address) => updateShipping({ ...draft.shippingInformation, address })} />
@@ -756,7 +756,7 @@ export function BillingShippingStep({
 
           <section
             id="billing-information"
-            className="techpack-panel scroll-mt-16 rounded-[4px] border p-5"
+            className="techpack-panel scroll-mt-16 rounded-sm border p-5"
           >
             {sectionHeading(
               "3 — Billing",
@@ -765,7 +765,7 @@ export function BillingShippingStep({
               "Billing matches delivery by default. GST details are optional."
             )}
             <div className="space-y-5">
-              <label className="flex cursor-pointer items-start gap-3 rounded-[4px] border border-[var(--color-rule)] p-3 text-sm text-[var(--text-primary)]/75">
+              <label className="flex cursor-pointer items-start gap-3 rounded-sm border border-(--color-rule) p-3 text-sm text-(--text-primary)/75">
                 <input
                   type="checkbox"
                   checked={draft.billingInformation.sameAsCompanyAddress}
@@ -775,13 +775,13 @@ export function BillingShippingStep({
                       sameAsCompanyAddress: event.target.checked,
                     })
                   }
-                  className="mt-0.5 h-4 w-4 accent-[var(--color-accent)]"
+                  className="mt-0.5 h-4 w-4 accent-(--color-accent)"
                 />
                 <span>
-                  <strong className="block font-medium text-[var(--text-primary)]">
+                  <strong className="block font-medium text-(--text-primary)">
                     Billing address same as delivery address
                   </strong>
-                  <span className="mt-0.5 block text-xs leading-relaxed text-[var(--text-primary)]/50">
+                  <span className="mt-0.5 block text-xs leading-relaxed text-(--text-primary)/50">
                     Uncheck this to enter a different billing address.
                   </span>
                 </span>
@@ -813,13 +813,13 @@ export function BillingShippingStep({
                   }
                   setGstDetailsOpen((open) => !open);
                 }}
-                className="text-sm font-semibold text-[var(--color-accent-dark)] underline underline-offset-4"
+                className="text-sm font-semibold text-(--color-accent-dark) underline underline-offset-4"
               >
                 {gstDetailsOpen ? "Remove GST details" : "+ Add GST details"}
               </button>
 
               {gstDetailsOpen ? (
-                <div id="gst-details" className="grid gap-4 rounded-[4px] border border-[var(--color-rule)] p-4 sm:grid-cols-2">
+                <div id="gst-details" className="grid gap-4 rounded-sm border border-(--color-rule) p-4 sm:grid-cols-2">
                   <div>
                     <label htmlFor="billing-gstin" className={LABEL_CLASS}>GSTIN</label>
                     <input id="billing-gstin" autoComplete="off" className={`${INPUT_CLASS} uppercase`} maxLength={15} placeholder="22AAAAA0000A1Z5" value={draft.billingInformation.gstin} onChange={(event) => updateBilling({ ...draft.billingInformation, gstin: event.target.value.toUpperCase().replace(/[^0-9A-Z]/g, "").slice(0, 15) })} />
@@ -829,24 +829,24 @@ export function BillingShippingStep({
                     <label htmlFor="billing-entity" className={LABEL_CLASS}>Legal business name</label>
                     <input id="billing-entity" autoComplete="organization" className={INPUT_CLASS} value={draft.billingInformation.entity} onChange={(event) => updateBilling({ ...draft.billingInformation, entity: event.target.value })} />
                   </div>
-                  <p className="text-xs leading-relaxed text-[var(--text-primary)]/50 sm:col-span-2">GSTIN format is checked locally. No GST registry lookup is configured, so enter the legal business name exactly as registered.</p>
+                  <p className="text-xs leading-relaxed text-(--text-primary)/50 sm:col-span-2">GSTIN format is checked locally. No GST registry lookup is configured, so enter the legal business name exactly as registered.</p>
                 </div>
               ) : null}
             </div>
           </section>
 
-          <section className="techpack-panel rounded-[4px] border p-5">
-            <label className="flex items-start gap-3 text-sm text-[var(--text-primary)]/75">
+          <section className="techpack-panel rounded-sm border p-5">
+            <label className="flex items-start gap-3 text-sm text-(--text-primary)/75">
               <input
                 type="checkbox"
                 checked={saveDetailsToAccount || !accountContext.hasSavedDetails}
                 disabled={!accountContext.hasSavedDetails}
                 onChange={(event) => setSaveDetailsToAccount(event.target.checked)}
-                className="mt-0.5 h-4 w-4 accent-[var(--color-accent)]"
+                className="mt-0.5 h-4 w-4 accent-(--color-accent)"
               />
               <span>
-                <strong className="block font-medium text-[var(--text-primary)]">{accountContext.hasSavedDetails ? "Save these details to my account" : "Save these details to my new account"}</strong>
-                <span className="mt-0.5 block text-xs leading-relaxed text-[var(--text-primary)]/50">{accountContext.hasSavedDetails ? "Keep this checked to update your default contact, shipping and optional GST billing details. Uncheck it to use these details for this order only." : "Your first completed delivery details become the defaults for future orders. The paid order will still keep its own immutable snapshot."}</span>
+                <strong className="block font-medium text-(--text-primary)">{accountContext.hasSavedDetails ? "Save these details to my account" : "Save these details to my new account"}</strong>
+                <span className="mt-0.5 block text-xs leading-relaxed text-(--text-primary)/50">{accountContext.hasSavedDetails ? "Keep this checked to update your default contact, shipping and optional GST billing details. Uncheck it to use these details for this order only." : "Your first completed delivery details become the defaults for future orders. The paid order will still keep its own immutable snapshot."}</span>
               </span>
             </label>
           </section>

@@ -23,7 +23,7 @@ export default function WhatsAppButton() {
         window.dataLayer.push(payload)
         window.dispatchEvent(new CustomEvent('garmops:analytics', { detail: payload }))
       }}
-      className="fixed bottom-6 right-6 z-40 hidden h-14 w-14 items-center justify-center rounded-[4px] border border-[var(--color-accent)] bg-[var(--color-accent)] text-white transition-colors hover:bg-[var(--color-accent-dark)] sm:flex"
+      className="fixed bottom-6 right-6 z-40 hidden h-14 w-14 items-center justify-center rounded-sm border border-(--color-accent) bg-(--color-accent) text-white transition-colors hover:bg-(--color-accent-dark) sm:flex"
       aria-label="Chat on WhatsApp"
     >
       <svg className="h-7 w-7" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">

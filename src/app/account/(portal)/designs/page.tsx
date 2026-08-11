@@ -85,7 +85,7 @@ export default async function SavedDesignsPage({
         actions={
           <Link
             href="/configurator"
-            className="inline-flex items-center justify-center gap-2 rounded-[4px] bg-[var(--color-accent)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--color-accent-dark)]"
+            className="inline-flex items-center justify-center gap-2 rounded-sm bg-(--color-accent) px-4 py-2.5 text-sm font-semibold text-white hover:bg-(--color-accent-dark)"
           >
             <Plus size={16} aria-hidden="true" /> Start a new design
           </Link>
@@ -94,7 +94,7 @@ export default async function SavedDesignsPage({
 
       <BrowserDraftImporter />
 
-      <div className="flex flex-col gap-3 border-b border-[var(--color-rule)] pb-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-b border-(--color-rule) pb-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex gap-2">
           {[
             { href: "/account/designs?filter=active", value: "active", label: "Active" },
@@ -122,9 +122,9 @@ export default async function SavedDesignsPage({
             name="q"
             defaultValue={q}
             placeholder="Search designs"
-            className="techpack-control w-full rounded-[4px] border px-3 py-2 text-sm outline-none focus:!border-[var(--color-accent)] sm:w-56"
+            className="techpack-control w-full rounded-sm border px-3 py-2 text-sm outline-none focus:!border-(--color-accent) sm:w-56"
           />
-          <button className="techpack-control rounded-[4px] border px-3 py-2 text-sm font-semibold">
+          <button className="techpack-control rounded-sm border px-3 py-2 text-sm font-semibold">
             Search
           </button>
         </form>
@@ -144,11 +144,11 @@ export default async function SavedDesignsPage({
             return (
               <article
                 key={design.id}
-                className="techpack-surface grid gap-4 rounded-[4px] border p-4 sm:grid-cols-[150px_minmax(0,1fr)] sm:p-5"
+                className="techpack-surface grid gap-4 rounded-sm border p-4 sm:grid-cols-[150px_minmax(0,1fr)] sm:p-5"
               >
                 <Link
                   href={`/account/designs/${encodeURIComponent(design.id)}`}
-                  className="group relative flex min-h-40 items-center justify-center overflow-hidden rounded-[4px] border border-[var(--color-rule)] bg-[var(--color-cream-soft)]"
+                  className="group relative flex min-h-40 items-center justify-center overflow-hidden rounded-sm border border-(--color-rule) bg-(--color-cream-soft)"
                   aria-label={`View ${design.title}`}
                 >
                   <Image
@@ -182,7 +182,7 @@ export default async function SavedDesignsPage({
                   </p>
                   <Link
                     href={`/account/designs/${encodeURIComponent(design.id)}`}
-                    className="mt-3 inline-flex items-center gap-1 border-t border-[var(--color-rule)] pt-3 text-sm font-semibold text-[var(--color-accent)] hover:underline"
+                    className="mt-3 inline-flex items-center gap-1 border-t border-(--color-rule) pt-3 text-sm font-semibold text-(--color-accent) hover:underline"
                   >
                     View specification <ArrowRight size={15} aria-hidden="true" />
                   </Link>
@@ -192,15 +192,15 @@ export default async function SavedDesignsPage({
           })}
         </div>
       ) : (
-        <div className="techpack-surface rounded-[4px] border border-dashed p-10 text-center">
-          <Palette size={30} className="mx-auto text-[var(--color-accent)]" aria-hidden="true" />
+        <div className="techpack-surface rounded-sm border border-dashed p-10 text-center">
+          <Palette size={30} className="mx-auto text-(--color-accent)" aria-hidden="true" />
           <h2 className="mt-4 text-xl font-semibold">No saved designs yet</h2>
           <p className="mx-auto mt-2 max-w-md text-sm text-black/50">
             Save a design from the configurator to continue it later.
           </p>
           <Link
             href="/configurator"
-            className="mt-5 inline-flex rounded-[4px] bg-[var(--color-accent)] px-4 py-2.5 text-sm font-semibold text-white"
+            className="mt-5 inline-flex rounded-sm bg-(--color-accent) px-4 py-2.5 text-sm font-semibold text-white"
           >
             Start designing
           </Link>

@@ -19,8 +19,8 @@ export default function ProductCollection({
   return (
     <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
       <div className="max-w-3xl">
-        <p className="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-[var(--text-primary)]/45">Products</p>
-        <h2 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl">{heading}</h2>
+        <p className="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-(--text-primary)/45">Products</p>
+        <h2 className="text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">{heading}</h2>
         {introduction && <p className="mt-4 max-w-2xl text-sm leading-7 text-[#3f3f3f] sm:text-base">{introduction}</p>}
       </div>
 
@@ -32,9 +32,9 @@ export default function ProductCollection({
             page={pagePath}
             event="seo_landing_product_click"
             label={product.slug}
-            className="techpack-panel group flex min-w-0 flex-col overflow-hidden rounded-[4px] border transition-transform hover:-translate-y-0.5 hover:!border-[var(--color-accent)]/45"
+            className="techpack-panel group flex min-w-0 flex-col overflow-hidden rounded-sm border transition-transform hover:-translate-y-0.5 hover:!border-(--color-accent)/45"
           >
-            <div className="relative aspect-[4/3] overflow-hidden bg-[var(--color-cream-soft)]">
+            <div className="relative aspect-[4/3] overflow-hidden bg-(--color-cream-soft)">
               {product.image ? (
                 <Image
                   src={product.image}
@@ -44,20 +44,20 @@ export default function ProductCollection({
                   className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                 />
               ) : (
-                <span className="flex h-full items-center justify-center text-xs uppercase tracking-widest text-[var(--text-primary)]/25">
+                <span className="flex h-full items-center justify-center text-xs uppercase tracking-widest text-(--text-primary)/25">
                   Product specification
                 </span>
               )}
             </div>
             <div className="flex flex-1 flex-col p-5">
-              <h3 className="text-base font-semibold leading-snug text-[var(--text-primary)] group-hover:underline">
+              <h3 className="text-base font-semibold leading-snug text-(--text-primary) group-hover:underline">
                 {product.name}
               </h3>
-              <p className="mt-1 text-xs text-[var(--text-primary)]/50">
+              <p className="mt-1 text-xs text-(--text-primary)/50">
                 {product.gsm} GSM{product.fits?.[0] ? ` · ${product.fits[0]} fit` : ''}
               </p>
               <p className="mt-3 text-sm leading-6 text-[#3f3f3f]">{product.description}</p>
-              <p className="mt-5 border-t border-white/70 pt-4 text-sm font-semibold text-[var(--text-primary)]">
+              <p className="mt-5 border-t border-white/70 pt-4 text-sm font-semibold text-(--text-primary)">
                 Sample: ₹{product.price.toLocaleString('en-IN')}
               </p>
             </div>

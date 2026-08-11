@@ -41,7 +41,7 @@ const mobileGroups = [
   },
 ]
 
-const desktopUtilityItemClass = 'inline-flex min-h-11 items-center gap-1.5 font-mono text-[13px] leading-none uppercase tracking-[0.04em] text-[#444444] transition-colors hover:text-[var(--color-accent)]'
+const desktopUtilityItemClass = 'inline-flex min-h-11 items-center gap-1.5 font-mono text-[13px] leading-none uppercase tracking-[0.04em] text-[#444444] transition-colors hover:text-(--color-accent)'
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -107,8 +107,8 @@ export default function Navbar() {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full border-b bg-[var(--color-cream)] transition-colors duration-200 ${
-        scrolled ? 'border-[rgba(22,33,43,0.36)]' : 'border-[var(--color-rule)]'
+      className={`sticky top-0 z-50 w-full border-b bg-(--color-cream) transition-colors duration-200 ${
+        scrolled ? 'border-[rgba(22,33,43,0.36)]' : 'border-(--color-rule)'
       }`}
     >
       <div className="relative z-50 mx-auto w-full">
@@ -130,8 +130,8 @@ export default function Navbar() {
                   aria-current={isActive ? 'page' : undefined}
                   className={`inline-flex min-h-10 items-center border-b-2 font-mono text-xs uppercase tracking-[0.06em] transition-colors ${
                     isActive
-                      ? 'border-[var(--color-accent)] text-[var(--color-navy)]'
-                      : 'border-transparent text-[#444444] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]'
+                      ? 'border-(--color-accent) text-(--color-navy)'
+                      : 'border-transparent text-[#444444] hover:border-(--color-accent) hover:text-(--color-accent)'
                   }`}
                 >
                   {link.label}
@@ -154,21 +154,21 @@ export default function Navbar() {
             </div>
             <Link
               href="/configurator"
-              className="ml-2 inline-flex min-h-11 items-center justify-center rounded-[4px] bg-[var(--color-accent)] px-5 py-2.5 font-mono text-sm uppercase tracking-[0.06em] text-[var(--color-cream)] transition-colors hover:bg-[var(--color-accent-dark)]"
+              className="ml-2 inline-flex min-h-11 items-center justify-center rounded-sm bg-(--color-accent) px-5 py-2.5 font-mono text-sm uppercase tracking-[0.06em] text-(--color-cream) transition-colors hover:bg-(--color-accent-dark)"
             >
               START DESIGNING
             </Link>
           </div>
 
           <div className="flex shrink-0 items-center gap-2.5 min-[360px]:gap-4 xl:hidden">
-            <Link href="/cart" className="flex min-h-11 items-center gap-1.5 font-mono text-xs uppercase tracking-[0.06em] text-[var(--text-primary)]/60">
+            <Link href="/cart" className="flex min-h-11 items-center gap-1.5 font-mono text-xs uppercase tracking-[0.06em] text-(--text-primary)/60">
               <ShoppingCart size={15} aria-hidden="true" />
               CART{itemCount > 0 ? ` · ${itemCount > 99 ? '99+' : itemCount}` : ''}
             </Link>
             <button
               ref={menuButtonRef}
               type="button"
-              className="relative flex h-11 w-11 items-center justify-center rounded-[4px] border border-transparent text-[var(--text-primary)] transition-colors hover:border-[var(--color-rule)] hover:bg-[var(--color-cream-soft)]"
+              className="relative flex h-11 w-11 items-center justify-center rounded-sm border border-transparent text-(--text-primary) transition-colors hover:border-(--color-rule) hover:bg-(--color-cream-soft)"
               onClick={() => setOpenPathname(open ? null : pathname)}
               aria-label={open ? 'Close menu' : 'Open menu'}
               aria-expanded={open}
@@ -205,7 +205,7 @@ export default function Navbar() {
           aria-label="Close menu"
           tabIndex={-1}
           onClick={closeMenu}
-          className={`absolute inset-0 bg-[var(--color-navy)]/20 transition-opacity duration-200 ${
+          className={`absolute inset-0 bg-(--color-navy)/20 transition-opacity duration-200 ${
             open ? 'opacity-100' : 'opacity-0'
           }`}
         />
@@ -214,7 +214,7 @@ export default function Navbar() {
           ref={mobileNavRef}
           id="mobile-navigation"
           aria-label="Mobile navigation"
-          className={`absolute inset-x-0 top-14 max-h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom))] overflow-y-auto border-b border-[var(--color-rule)] bg-[var(--color-cream)] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 transition-all duration-200 sm:px-5 sm:pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pt-4 ${
+          className={`absolute inset-x-0 top-14 max-h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom))] overflow-y-auto border-b border-(--color-rule) bg-(--color-cream) px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 transition-all duration-200 sm:px-5 sm:pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pt-4 ${
             open ? 'translate-y-0 opacity-100' : '-translate-y-3 opacity-0'
           }`}
         >
@@ -230,7 +230,7 @@ export default function Navbar() {
                   aria-current={isActive ? 'page' : undefined}
                   onClick={closeMenu}
                   className={`border-b-2 px-1 py-3.5 font-mono text-xs uppercase tracking-[0.06em] leading-relaxed transition-colors sm:py-4 sm:text-sm ${
-                    isActive ? 'border-[var(--color-accent)] text-[var(--color-navy)]' : 'border-transparent text-[var(--text-primary)]/65'
+                    isActive ? 'border-(--color-accent) text-(--color-navy)' : 'border-transparent text-(--text-primary)/65'
                   }`}
                 >
                   {link.label}
@@ -239,10 +239,10 @@ export default function Navbar() {
             })}
           </div>
 
-          <div className="mt-5 grid gap-5 border-t border-[var(--color-rule)] pt-5 sm:grid-cols-2">
+          <div className="mt-5 grid gap-5 border-t border-(--color-rule) pt-5 sm:grid-cols-2">
             {mobileGroups.map(group => (
               <div key={group.label}>
-                <p className="px-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-primary)]/40">
+                <p className="px-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-(--text-primary)/40">
                   {group.label}
                 </p>
                 <div className="mt-2 flex flex-col">
@@ -252,7 +252,7 @@ export default function Navbar() {
                       href={link.href}
                       tabIndex={open ? 0 : -1}
                       onClick={closeMenu}
-                      className="px-1 py-2.5 text-sm text-[var(--text-primary)]/65 transition-colors hover:text-[var(--color-accent)]"
+                      className="px-1 py-2.5 text-sm text-(--text-primary)/65 transition-colors hover:text-(--color-accent)"
                     >
                       {link.label}
                     </Link>
@@ -266,7 +266,7 @@ export default function Navbar() {
             href="/configurator"
             tabIndex={open ? 0 : -1}
             onClick={closeMenu}
-            className="mt-5 block rounded-[4px] bg-[var(--color-accent)] px-5 py-3.5 text-center font-mono text-sm uppercase tracking-[0.06em] text-[var(--color-cream)] transition-colors hover:bg-[var(--color-accent-dark)]"
+            className="mt-5 block rounded-sm bg-(--color-accent) px-5 py-3.5 text-center font-mono text-sm uppercase tracking-[0.06em] text-(--color-cream) transition-colors hover:bg-(--color-accent-dark)"
           >
             START DESIGNING
           </Link>
@@ -287,7 +287,7 @@ export default function Navbar() {
               window.dispatchEvent(new CustomEvent('garmops:analytics', { detail: payload }))
               closeMenu()
             }}
-            className="mt-2 block rounded-[4px] border border-[var(--color-accent)] px-5 py-3 text-center font-mono text-sm uppercase tracking-[0.06em] text-[var(--color-accent-dark)]"
+            className="mt-2 block rounded-sm border border-(--color-accent) px-5 py-3 text-center font-mono text-sm uppercase tracking-[0.06em] text-(--color-accent-dark)"
           >
             Chat on WhatsApp
           </a>

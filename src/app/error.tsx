@@ -16,7 +16,7 @@ export default function ErrorPage({
 
   return (
     <div className="techpack-canvas flex min-h-[70vh] items-center justify-center px-4 py-12 sm:px-6">
-      <section className="techpack-surface w-full max-w-md rounded-[4px] border p-6 text-center sm:p-9">
+      <section className="techpack-surface w-full max-w-md rounded-sm border p-6 text-center sm:p-9">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-red-700">
           Unexpected error
         </p>
@@ -31,13 +31,13 @@ export default function ErrorPage({
           <button
             type="button"
             onClick={() => unstable_retry()}
-            className="rounded-[4px] bg-[var(--color-accent)] px-6 py-3 text-sm font-semibold text-white hover:bg-[var(--color-accent-dark)]"
+            className="rounded-sm bg-(--color-accent) px-6 py-3 text-sm font-semibold text-white hover:bg-(--color-accent-dark)"
           >
             Try again
           </button>
           <Link
             href="/"
-            className="rounded-[4px] border border-[var(--color-rule)] px-6 py-3 text-sm font-semibold text-black/65"
+            className="rounded-sm border border-(--color-rule) px-6 py-3 text-sm font-semibold text-black/65"
           >
             Back to home
           </Link>

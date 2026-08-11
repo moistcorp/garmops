@@ -13,9 +13,9 @@ import { useCartStore } from "@/lib/store";
 import { calculateTaxPaise, formatGstRate } from "@/lib/tax";
 
 const inputClass =
-  "techpack-control w-full rounded-[4px] border px-4 py-3 text-sm transition-colors focus:!border-[var(--color-accent)] focus:outline-none";
+  "techpack-control w-full rounded-sm border px-4 py-3 text-sm transition-colors focus:!border-(--color-accent) focus:outline-none";
 const labelClass =
-  "mb-1.5 block text-xs font-medium uppercase tracking-wide text-[var(--text-primary)]/50";
+  "mb-1.5 block text-xs font-medium uppercase tracking-wide text-(--text-primary)/50";
 const SAMPLE_CHECKOUT_IDEMPOTENCY_KEY =
   "garmops-durable-sample-checkout-idempotency";
 
@@ -241,10 +241,10 @@ export default function DurableSampleCheckout({
     return (
       <div className="techpack-canvas min-h-[70vh] animate-pulse px-4 py-10 sm:px-6 sm:py-16">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-12 h-9 w-64 rounded-[4px] bg-[#ECE7DF]" />
+          <div className="mb-12 h-9 w-64 rounded-sm bg-[#ECE7DF]" />
           <div className="grid gap-8 lg:grid-cols-3 lg:gap-12">
-            <div className="techpack-panel h-64 rounded-[4px] border lg:col-span-2" />
-            <div className="techpack-panel h-56 rounded-[4px] border" />
+            <div className="techpack-panel h-64 rounded-sm border lg:col-span-2" />
+            <div className="techpack-panel h-56 rounded-sm border" />
           </div>
         </div>
       </div>
@@ -254,14 +254,14 @@ export default function DurableSampleCheckout({
   if (!items.length && !savedOrder) {
     return (
       <div className="techpack-canvas flex min-h-[70vh] items-center justify-center px-4 py-16 text-center sm:px-6 sm:py-24">
-        <div className="techpack-surface w-full max-w-lg rounded-[4px] border p-8">
+        <div className="techpack-surface w-full max-w-lg rounded-sm border p-8">
           <h1 className="text-3xl font-bold tracking-tight">Nothing to checkout</h1>
           <p className="mt-3 text-sm leading-relaxed text-black/50">
             Add catalogue samples first. Your checkout will be prepared securely before PayU opens, and the order will be created only after verified payment.
           </p>
           <Link
             href="/products"
-            className="mt-7 inline-block rounded-[4px] bg-[var(--color-accent)] px-6 py-3 text-sm font-medium text-white"
+            className="mt-7 inline-block rounded-sm bg-(--color-accent) px-6 py-3 text-sm font-medium text-white"
           >
             Browse samples
           </Link>
@@ -274,7 +274,7 @@ export default function DurableSampleCheckout({
     <div className="techpack-canvas min-h-[70vh] px-4 py-10 sm:px-6 sm:py-16">
       <div className="mx-auto max-w-7xl">
         <div className="mb-8 sm:mb-12">
-          <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-accent)]">
+          <p className="text-xs uppercase tracking-[0.18em] text-(--color-accent)">
             Durable sample checkout
           </p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
@@ -294,8 +294,8 @@ export default function DurableSampleCheckout({
               void submitOrder();
             }}
           >
-            <section className="techpack-panel rounded-[4px] border p-5 sm:p-7">
-              <p className="mb-5 text-xs font-medium uppercase tracking-widest text-[var(--text-primary)]/40">
+            <section className="techpack-panel rounded-sm border p-5 sm:p-7">
+              <p className="mb-5 text-xs font-medium uppercase tracking-widest text-(--text-primary)/40">
                 Account and contact
               </p>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -371,7 +371,7 @@ export default function DurableSampleCheckout({
                           phone: event.target.value,
                         }))
                       }
-                      className="techpack-control min-w-0 flex-1 rounded-l-[4px] border px-4 py-3 text-sm focus:!border-[var(--color-accent)] focus:outline-none"
+                      className="techpack-control min-w-0 flex-1 rounded-l-[4px] border px-4 py-3 text-sm focus:!border-(--color-accent) focus:outline-none"
                       autoComplete="tel-national"
                       required
                     />
@@ -380,12 +380,12 @@ export default function DurableSampleCheckout({
               </div>
             </section>
 
-            <section className="techpack-panel rounded-[4px] border p-5 sm:p-7">
+            <section className="techpack-panel rounded-sm border p-5 sm:p-7">
               <div className="mb-5">
-                <p className="text-xs font-medium uppercase tracking-widest text-[var(--text-primary)]/40">
+                <p className="text-xs font-medium uppercase tracking-widest text-(--text-primary)/40">
                   Delivery address
                 </p>
-                <p className="mt-1 text-xs text-[var(--text-primary)]/50">
+                <p className="mt-1 text-xs text-(--text-primary)/50">
                   This address becomes the immutable delivery and billing snapshot for this sample purchase. Shipping is free.
                 </p>
               </div>
@@ -397,7 +397,7 @@ export default function DurableSampleCheckout({
               />
             </section>
 
-            <section className="techpack-panel rounded-[4px] border p-5 sm:p-7">
+            <section className="techpack-panel rounded-sm border p-5 sm:p-7">
               <label htmlFor="sample-notes" className={labelClass}>
                 Order notes
               </label>
@@ -433,7 +433,7 @@ export default function DurableSampleCheckout({
             {error ? (
               <div
                 role="alert"
-                className="rounded-[4px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                className="rounded-sm border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
               >
                 {error}
                 {savedOrder ? (
@@ -451,7 +451,7 @@ export default function DurableSampleCheckout({
           </form>
 
           <aside className="flex flex-col gap-4">
-            <div className="techpack-surface flex flex-col gap-4 rounded-[4px] border p-6 lg:sticky lg:top-28">
+            <div className="techpack-surface flex flex-col gap-4 rounded-sm border p-6 lg:sticky lg:top-28">
               <p className="text-sm font-semibold">Order summary</p>
               <div className="flex flex-col gap-3 border-t border-[#ECE7DF] pt-4">
                 {items.map((item) => (
@@ -459,7 +459,7 @@ export default function DurableSampleCheckout({
                     key={`${item.id}-${item.size}`}
                     className="flex justify-between gap-4 text-xs"
                   >
-                    <span className="leading-snug text-[var(--text-primary)]/60">
+                    <span className="leading-snug text-(--text-primary)/60">
                       {item.name} ({item.size}) ×{item.quantity}
                     </span>
                     <span className="shrink-0 font-medium">
@@ -470,15 +470,15 @@ export default function DurableSampleCheckout({
               </div>
               <div className="flex flex-col gap-2 border-t border-[#ECE7DF] pt-4 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-[var(--text-primary)]/50">Subtotal</span>
+                  <span className="text-(--text-primary)/50">Subtotal</span>
                   <span>{rupees(cartTotalRupees * 100)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[var(--text-primary)]/50">GST ({formatGstRate()})</span>
+                  <span className="text-(--text-primary)/50">GST ({formatGstRate()})</span>
                   <span>{rupees(taxPaise)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[var(--text-primary)]/50">Shipping</span>
+                  <span className="text-(--text-primary)/50">Shipping</span>
                   <span>Free</span>
                 </div>
               </div>
@@ -493,7 +493,7 @@ export default function DurableSampleCheckout({
                 type="submit"
                 form="sample-checkout-details"
                 disabled={loading || Boolean(savedOrder)}
-                className="w-full rounded-[4px] bg-[var(--color-accent)] py-3.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent-dark)] disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-sm bg-(--color-accent) py-3.5 text-sm font-medium text-white transition-colors hover:bg-(--color-accent-dark) disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loading
                   ? savedOrder
@@ -501,14 +501,14 @@ export default function DurableSampleCheckout({
                     : "Preparing payment…"
                   : `Pay ${rupees(displayedTotalPaise)}`}
               </button>
-              <p className="text-center text-xs text-[var(--text-primary)]/40">
+              <p className="text-center text-xs text-(--text-primary)/40">
                 Full payment through PayU. Card details are never stored by
                 Garmops.
               </p>
             </div>
             <Link
               href="/cart"
-              className="text-center text-xs text-[var(--text-primary)]/40 hover:text-[var(--text-primary)]"
+              className="text-center text-xs text-(--text-primary)/40 hover:text-(--text-primary)"
             >
               Back to cart
             </Link>

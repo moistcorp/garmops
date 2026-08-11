@@ -27,10 +27,10 @@ export type CompanyAddress = Readonly<{
 }>;
 
 const inputClass =
-  "techpack-control mt-1.5 w-full rounded-[4px] border px-3 py-2.5 text-sm outline-none transition focus:!border-[var(--color-accent)] disabled:cursor-not-allowed disabled:bg-black/[0.03] disabled:text-black/45";
+  "techpack-control mt-1.5 w-full rounded-sm border px-3 py-2.5 text-sm outline-none transition focus:!border-(--color-accent) disabled:cursor-not-allowed disabled:bg-black/[0.03] disabled:text-black/45";
 const labelClass = "block text-xs font-medium text-black/55";
 const buttonClass =
-  "inline-flex min-h-11 items-center justify-center rounded-[4px] bg-[var(--color-accent)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--color-accent-dark)] disabled:cursor-wait disabled:opacity-50";
+  "inline-flex min-h-11 items-center justify-center rounded-sm bg-(--color-accent) px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-(--color-accent-dark) disabled:cursor-wait disabled:opacity-50";
 
 function Message({
   state,
@@ -333,7 +333,7 @@ export default function CompanyDetailsForms({
 }) {
   return (
     <div className="space-y-5">
-      <section className="techpack-surface rounded-[4px] border p-6">
+      <section className="techpack-surface rounded-sm border p-6">
         <TechpackSectionHeading
           index="01"
           title="Company identity"
@@ -344,7 +344,7 @@ export default function CompanyDetailsForms({
         </div>
       </section>
 
-      <section className="techpack-surface rounded-[4px] border p-6">
+      <section className="techpack-surface rounded-sm border p-6">
         <TechpackSectionHeading
           index="02"
           title="Billing address"
@@ -364,7 +364,7 @@ export default function CompanyDetailsForms({
         {shippingAddresses.map((address) => (
           <details
             key={address.id}
-            className="techpack-surface rounded-[4px] border p-5"
+            className="techpack-surface rounded-sm border p-5"
           >
             <summary className="cursor-pointer list-none font-semibold">
               <span>{address.label ?? "Shipping address"}</span>
@@ -383,8 +383,8 @@ export default function CompanyDetailsForms({
           </details>
         ))}
         {canEditAddresses ? (
-          <details className="techpack-panel rounded-[4px] border border-dashed p-5">
-            <summary className="cursor-pointer list-none font-semibold text-[var(--color-accent)]">
+          <details className="techpack-panel rounded-sm border border-dashed p-5">
+            <summary className="cursor-pointer list-none font-semibold text-(--color-accent)">
               Add another shipping address
             </summary>
             <div className="mt-5 border-t border-black/8 pt-5">

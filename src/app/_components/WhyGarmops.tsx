@@ -43,7 +43,7 @@ export default function WhyGarmops() {
         <div className="grid items-start gap-10 md:grid-cols-2 md:gap-16">
           <div>
             <p className="mb-4 text-xs font-medium uppercase tracking-widest text-[#595959]">Why Garmops</p>
-            <h2 className="mb-6 text-3xl font-bold leading-tight tracking-tight text-[var(--text-primary)] sm:mb-10 sm:text-4xl">
+            <h2 className="mb-6 text-3xl font-bold leading-tight tracking-tight text-(--text-primary) sm:mb-10 sm:text-4xl">
               A clearer way to order custom apparel.
             </h2>
 
@@ -51,7 +51,7 @@ export default function WhyGarmops() {
               {accordionItems.map((item, i) => (
                 <div
                   key={item.title}
-                  className={openIndex === i ? 'techpack-panel my-2 rounded-[4px] border px-3 sm:px-4' : 'px-3 sm:px-4'}
+                  className={openIndex === i ? 'techpack-panel my-2 rounded-sm border px-3 sm:px-4' : 'px-3 sm:px-4'}
                 >
                   <button
                     type="button"
@@ -61,10 +61,10 @@ export default function WhyGarmops() {
                     aria-controls={`why-garmops-panel-${i}`}
                     className="flex w-full items-center justify-between gap-4 py-5 text-left"
                   >
-                    <span className={`text-base font-semibold leading-snug transition-colors ${openIndex === i ? 'text-[var(--color-accent)]' : 'text-[var(--text-primary)]/65'}`}>
+                    <span className={`text-base font-semibold leading-snug transition-colors ${openIndex === i ? 'text-(--color-accent)' : 'text-(--text-primary)/65'}`}>
                       {item.title}
                     </span>
-                    <span className={`flex h-5 w-5 shrink-0 items-center justify-center transition-colors ${openIndex === i ? 'text-[var(--color-accent)]' : 'text-[#666666]'}`}>
+                    <span className={`flex h-5 w-5 shrink-0 items-center justify-center transition-colors ${openIndex === i ? 'text-(--color-accent)' : 'text-[#666666]'}`}>
                       <svg
                         aria-hidden="true"
                         className={`h-4 w-4 transition-transform duration-200 ${openIndex === i ? 'rotate-180' : ''}`}
@@ -93,7 +93,7 @@ export default function WhyGarmops() {
             </div>
           </div>
 
-          <div className="relative aspect-square w-full overflow-hidden rounded-[4px] border border-[#ECE7DF] bg-[var(--color-cream-soft)]">
+          <div className="relative aspect-square w-full overflow-hidden rounded-sm border border-[#ECE7DF] bg-(--color-cream-soft)">
             {accordionItems.map((item, i) => (
               <Image
                 key={item.image}

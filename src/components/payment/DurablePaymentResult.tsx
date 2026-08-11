@@ -63,7 +63,7 @@ const PRESENTATION = {
     title: "Payment refunded",
     copy: "This payment has been refunded. Open your order for the latest details.",
     Icon: ShieldAlert,
-    iconClass: "text-[var(--color-accent)]",
+    iconClass: "text-(--color-accent)",
   },
 } as const;
 
@@ -91,12 +91,12 @@ export default function DurablePaymentResult({ result }: { result: Result }) {
       )}
 
       <section
-        className="techpack-surface w-full max-w-xl rounded-[4px] border p-6 sm:p-9"
+        className="techpack-surface w-full max-w-xl rounded-sm border p-6 sm:p-9"
         aria-live="polite"
       >
         <div className="text-center">
           <Icon size={48} className={`mx-auto ${presentation.iconClass}`} aria-hidden="true" />
-          <p className="mt-5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-accent)]">
+          <p className="mt-5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-(--color-accent)">
             {presentation.eyebrow}
           </p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
@@ -107,7 +107,7 @@ export default function DurablePaymentResult({ result }: { result: Result }) {
           </p>
         </div>
 
-        <dl className="mt-7 grid gap-4 rounded-[4px] border border-black/8 bg-white p-5 sm:grid-cols-2">
+        <dl className="mt-7 grid gap-4 rounded-sm border border-black/8 bg-white p-5 sm:grid-cols-2">
           <div>
             <dt className="text-xs uppercase tracking-wider text-black/40">Order</dt>
             <dd className="mt-1 break-all font-semibold">{formatOrderCode(result.orderNumber)}</dd>
@@ -145,7 +145,7 @@ export default function DurablePaymentResult({ result }: { result: Result }) {
         ) : null}
 
         <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
-          <Link href={orderHref} className="rounded-[4px] bg-[var(--color-accent)] px-5 py-3 text-center text-sm font-semibold text-white">
+          <Link href={orderHref} className="rounded-sm bg-(--color-accent) px-5 py-3 text-center text-sm font-semibold text-white">
             {state === "success" || state === "needs_review" || state === "refunded"
               ? "View your order →"
               : state === "pending"
@@ -156,9 +156,9 @@ export default function DurablePaymentResult({ result }: { result: Result }) {
             <InvoiceDownloadButton fileId={result.invoicePdfFileId} />
           ) : null}
           {state === "needs_review" ? (
-            <Link href="/contact" className="rounded-[4px] border border-black/10 px-5 py-3 text-center text-sm font-semibold">Contact support</Link>
+            <Link href="/contact" className="rounded-sm border border-black/10 px-5 py-3 text-center text-sm font-semibold">Contact support</Link>
           ) : (
-            <Link href="/account/orders" className="rounded-[4px] border border-black/10 px-5 py-3 text-center text-sm font-semibold">View all orders</Link>
+            <Link href="/account/orders" className="rounded-sm border border-black/10 px-5 py-3 text-center text-sm font-semibold">View all orders</Link>
           )}
         </div>
       </section>

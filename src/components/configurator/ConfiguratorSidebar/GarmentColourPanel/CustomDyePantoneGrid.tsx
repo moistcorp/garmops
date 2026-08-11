@@ -37,7 +37,7 @@ export default function CustomDyePantoneGrid({
       <div className="relative">
         <label
           htmlFor="custom-colour-search"
-          className="mb-1.5 block text-xs font-semibold text-[var(--text-primary)]"
+          className="mb-1.5 block text-xs font-semibold text-(--text-primary)"
         >
           Search your colour
         </label>
@@ -51,16 +51,16 @@ export default function CustomDyePantoneGrid({
             if (event.target.value.trim()) setBrowseAll(false);
           }}
           placeholder="Colour reference or name (e.g. navy, maroon)"
-          className="techpack-control w-full rounded-[4px] border px-3 py-2 text-sm placeholder:text-[var(--text-primary)]/40 focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
+          className="techpack-control w-full rounded-sm border px-3 py-2 text-sm placeholder:text-(--text-primary)/40 focus:outline-none focus:ring-1 focus:ring-(--color-accent)"
         />
-        <p className="mt-1.5 text-xs leading-relaxed text-[var(--text-primary)]/45">
+        <p className="mt-1.5 text-xs leading-relaxed text-(--text-primary)/45">
           {hasSearch || browseAll
             ? `${filtered.length.toLocaleString("en-IN")} matching colour${filtered.length === 1 ? "" : "s"}`
             : "Search by code or name, or browse the full reference list."}
         </p>
       </div>
 
-      <h3 className="font-mono text-[10px] font-semibold uppercase tracking-[0.06em] text-[var(--text-primary)]/55">
+      <h3 className="font-mono text-[10px] font-semibold uppercase tracking-[0.06em] text-(--text-primary)/55">
         Matching colours
       </h3>
 
@@ -75,32 +75,32 @@ export default function CustomDyePantoneGrid({
                 onClick={() => onSelect(colour)}
                 aria-pressed={isActive}
                 aria-label={`Select colour reference ${colour.code}`}
-                className={`group relative flex min-h-20 items-center gap-2 rounded-[4px] border p-2 text-left text-sm transition-colors ${
+                className={`group relative flex min-h-20 items-center gap-2 rounded-sm border p-2 text-left text-sm transition-colors ${
                   isActive
-                    ? "border-[var(--color-accent)] bg-[var(--color-accent)]/6 ring-2 ring-[var(--color-accent)]/25"
-                    : "techpack-control border hover:!border-[var(--color-accent)]/35 hover:!bg-white/55"
+                    ? "border-(--color-accent) bg-(--color-accent)/6 ring-2 ring-(--color-accent)/25"
+                    : "techpack-control border hover:!border-(--color-accent)/35 hover:!bg-white/55"
                 }`}
               >
                 <span
-                  className="h-11 w-11 shrink-0 rounded-[4px] border border-[var(--color-rule)]"
+                  className="h-11 w-11 shrink-0 rounded-sm border border-(--color-rule)"
                   style={{ backgroundColor: colour.hex }}
                   aria-hidden="true"
                 />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-mono text-[10px] font-semibold uppercase tracking-[0.04em]">{colour.code}</span>
-                  <span className="mt-0.5 block truncate text-xs text-[var(--text-primary)]/50">{colour.aliases[0] ?? "Colour reference"}</span>
-                  {isActive ? <span className="mt-1 block text-xs font-semibold text-[var(--color-accent)]">Selected</span> : null}
+                  <span className="mt-0.5 block truncate text-xs text-(--text-primary)/50">{colour.aliases[0] ?? "Colour reference"}</span>
+                  {isActive ? <span className="mt-1 block text-xs font-semibold text-(--color-accent)">Selected</span> : null}
                 </span>
               </button>
             );
           })}
         </div>
       ) : hasSearch ? (
-        <p className="py-3 text-center text-sm text-[var(--text-primary)]/55" role="status">
+        <p className="py-3 text-center text-sm text-(--text-primary)/55" role="status">
           No matching colours found. Try another code or colour name.
         </p>
       ) : (
-        <p className="rounded-[4px] border border-dashed border-[var(--color-rule)] px-3 py-3 text-center text-xs text-[var(--text-primary)]/55">
+        <p className="rounded-sm border border-dashed border-(--color-rule) px-3 py-3 text-center text-xs text-(--text-primary)/55">
           Enter a search above to see matching references.
         </p>
       )}
@@ -112,7 +112,7 @@ export default function CustomDyePantoneGrid({
             setBrowseAll(true);
             setVisibleCount(PAGE_SIZE);
           }}
-          className="techpack-control self-start rounded-[4px] border px-3 py-2 text-xs font-semibold text-[var(--color-accent)] hover:!border-[var(--color-accent)]/45 hover:!bg-white/60"
+          className="techpack-control self-start rounded-sm border px-3 py-2 text-xs font-semibold text-(--color-accent) hover:!border-(--color-accent)/45 hover:!bg-white/60"
         >
           Browse all colours →
         </button>
@@ -122,7 +122,7 @@ export default function CustomDyePantoneGrid({
         <button
           type="button"
           onClick={() => setVisibleCount((current) => current + PAGE_SIZE)}
-          className="techpack-control self-center rounded-[4px] border px-4 py-2 text-xs font-semibold text-[var(--text-primary)]/65 hover:!border-[var(--color-accent)]/45 hover:!bg-white/60 hover:text-[var(--text-primary)]"
+          className="techpack-control self-center rounded-sm border px-4 py-2 text-xs font-semibold text-(--text-primary)/65 hover:!border-(--color-accent)/45 hover:!bg-white/60 hover:text-(--text-primary)"
         >
           Show more colours
         </button>

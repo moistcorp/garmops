@@ -285,32 +285,32 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
           onDragOver={(event) => { event.preventDefault(); setDragging(true); }}
           onDragLeave={() => setDragging(false)}
           onDrop={(event) => { event.preventDefault(); setDragging(false); handleFiles(event.dataTransfer.files); }}
-          className="techpack-dropzone relative flex flex-col items-center overflow-hidden rounded-[4px] px-4 py-5 text-center"
+          className="techpack-dropzone relative flex flex-col items-center overflow-hidden rounded-sm px-4 py-5 text-center"
         >
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            className="group relative z-10 flex min-h-24 w-full flex-col items-center justify-center gap-1.5 rounded-[4px] px-3 transition-colors hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)]"
+            className="group relative z-10 flex min-h-24 w-full flex-col items-center justify-center gap-1.5 rounded-sm px-3 transition-colors hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-accent)"
           >
-            <span className="techpack-control mb-1 flex h-10 w-10 items-center justify-center rounded-[4px] border text-[var(--color-accent-dark)] transition-transform group-hover:-translate-y-0.5">
+            <span className="techpack-control mb-1 flex h-10 w-10 items-center justify-center rounded-sm border text-(--color-accent-dark) transition-transform group-hover:-translate-y-0.5">
               {isPending ? <RefreshCw size={17} className="animate-spin" aria-hidden="true" /> : <Upload size={17} strokeWidth={2.2} aria-hidden="true" />}
             </span>
-            <span className="text-sm font-medium text-[var(--text-primary)]">Drag artwork here or browse</span>
-            <span className="text-xs text-[var(--text-primary)]/50">PNG · JPG / JPEG · PDF · SVG · AI · up to 20 MB</span>
+            <span className="text-sm font-medium text-(--text-primary)">Drag artwork here or browse</span>
+            <span className="text-xs text-(--text-primary)/50">PNG · JPG / JPEG · PDF · SVG · AI · up to 20 MB</span>
           </button>
           <div className="relative z-10 mt-3 flex flex-wrap items-center justify-center gap-2">
-            <a href={PRINT_TEMPLATES_HREF} download className="techpack-control inline-flex min-h-9 items-center gap-1.5 rounded-[4px] border px-3 text-xs font-medium text-[var(--text-primary)]/80 transition-colors hover:!border-[var(--color-accent)]/45 hover:text-[var(--color-accent-dark)]">
+            <a href={PRINT_TEMPLATES_HREF} download className="techpack-control inline-flex min-h-9 items-center gap-1.5 rounded-sm border px-3 text-xs font-medium text-(--text-primary)/80 transition-colors hover:!border-(--color-accent)/45 hover:text-(--color-accent-dark)">
               Download artwork template <Download size={13} strokeWidth={2.2} />
             </a>
-            <button type="button" onClick={handleTrySample} className="techpack-control min-h-9 rounded-[4px] border !border-[var(--color-accent)]/30 px-3 text-xs font-semibold text-[var(--color-accent-dark)] transition-colors hover:!border-[var(--color-accent)]/55 hover:!bg-white/55">
+            <button type="button" onClick={handleTrySample} className="techpack-control min-h-9 rounded-sm border !border-(--color-accent)/30 px-3 text-xs font-semibold text-(--color-accent-dark) transition-colors hover:!border-(--color-accent)/55 hover:!bg-white/55">
               Try sample artwork
             </button>
           </div>
         </div>
       ) : (
-        <div className="techpack-subtle rounded-[4px] px-2.5 py-2">
+        <div className="techpack-subtle rounded-sm px-2.5 py-2">
           <div className="flex flex-wrap items-center gap-2.5">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-[var(--color-rule)] bg-white text-center text-[10px] font-semibold uppercase tracking-wide text-[var(--text-primary)]/55">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-(--color-rule) bg-white text-center text-[10px] font-semibold uppercase tracking-wide text-(--text-primary)/55">
               {value.fileUrl && (value.fileType === "jpg" || value.fileType === "png" || value.fileType === "svg") ? (
                 <img src={value.fileUrl} alt="" className="h-full w-full object-contain p-1" />
               ) : (
@@ -321,17 +321,17 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
               )}
             </div>
             <div className="min-w-[9rem] flex-1">
-              <p className="flex items-center gap-1.5 truncate text-[13px] font-medium text-[var(--text-primary)]">
+              <p className="flex items-center gap-1.5 truncate text-[13px] font-medium text-(--text-primary)">
                 <span className="truncate">{filename || "Artwork"}</span>
                 {uploadState === "uploaded" && <span className="shrink-0 text-sm font-semibold text-[#1B7F36]" aria-label="Artwork uploaded">✓</span>}
               </p>
-              <p className="mt-0.5 text-xs text-[var(--text-primary)]/50">{value.fileType.toUpperCase()} · {uploadState === "uploaded" ? "Uploaded" : "Added"}</p>
+              <p className="mt-0.5 text-xs text-(--text-primary)/50">{value.fileType.toUpperCase()} · {uploadState === "uploaded" ? "Uploaded" : "Added"}</p>
             </div>
             <div className="ml-auto flex shrink-0 gap-1.5">
-            <button type="button" onClick={() => inputRef.current?.click()} className="techpack-control inline-flex min-h-8 items-center gap-1 rounded-[4px] border px-2.5 text-xs font-semibold text-[var(--text-primary)]/75 hover:!border-[var(--color-accent)]/45 hover:text-[var(--color-accent-dark)]">
+            <button type="button" onClick={() => inputRef.current?.click()} className="techpack-control inline-flex min-h-8 items-center gap-1 rounded-sm border px-2.5 text-xs font-semibold text-(--text-primary)/75 hover:!border-(--color-accent)/45 hover:text-(--color-accent-dark)">
               <RefreshCw size={13} aria-hidden="true" /> Replace
             </button>
-            <button type="button" onClick={handleRemove} className="techpack-control inline-flex min-h-8 items-center gap-1 rounded-[4px] border px-2.5 text-xs font-semibold text-[#B53434] hover:!border-[#B53434]/40">
+            <button type="button" onClick={handleRemove} className="techpack-control inline-flex min-h-8 items-center gap-1 rounded-sm border px-2.5 text-xs font-semibold text-[#B53434] hover:!border-[#B53434]/40">
               <Trash2 size={13} aria-hidden="true" /> Remove
             </button>
             </div>
@@ -339,10 +339,10 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
         </div>
       )}
 
-      {isPending && <p className="text-xs text-[var(--text-primary)]/55" role="status" aria-live="polite">Preparing artwork…</p>}
+      {isPending && <p className="text-xs text-(--text-primary)/55" role="status" aria-live="polite">Preparing artwork…</p>}
       {error && <p className="text-xs text-red-600" role="alert">{error}</p>}
-      {persistenceWarning && <p className="rounded-[4px] border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">{persistenceWarning}</p>}
-      {reviewNeeded && <p className="rounded-[4px] border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">This artwork may need production preparation. You can continue; our team will review it before production.</p>}
+      {persistenceWarning && <p className="rounded-sm border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">{persistenceWarning}</p>}
+      {reviewNeeded && <p className="rounded-sm border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">This artwork may need production preparation. You can continue; our team will review it before production.</p>}
     </div>
   );
 }

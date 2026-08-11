@@ -63,21 +63,21 @@ export default function TermsPage() {
   return (
     <div className="techpack-canvas">
       <section className="mx-auto max-w-3xl px-4 pb-10 pt-10 sm:px-6 sm:pb-16 sm:pt-20">
-        <p className="mb-4 text-xs font-medium uppercase tracking-widest text-[var(--text-primary)]/40">Legal</p>
-        <h1 className="text-4xl font-bold leading-tight tracking-tight text-[var(--text-primary)] sm:text-5xl">Terms of Service</h1>
-        <p className="mt-4 text-sm text-[var(--text-primary)]/50">Effective 29 July 2026</p>
-        <div className="mt-10 space-y-8 text-sm leading-7 text-[var(--text-primary)]/65 sm:mt-14">
+        <p className="mb-4 text-xs font-medium uppercase tracking-widest text-(--text-primary)/40">Legal</p>
+        <h1 className="text-4xl font-bold leading-tight tracking-tight text-(--text-primary) sm:text-5xl">Terms of Service</h1>
+        <p className="mt-4 text-sm text-(--text-primary)/50">Effective 29 July 2026</p>
+        <div className="mt-10 space-y-8 text-sm leading-7 text-(--text-primary)/65 sm:mt-14">
           {sections.map(section => (
             <section key={section.title}>
-              <h2 className="text-xl font-bold tracking-tight text-[var(--text-primary)]">{section.title}</h2>
+              <h2 className="text-xl font-bold tracking-tight text-(--text-primary)">{section.title}</h2>
               <div className="mt-3 space-y-3">
                 {section.paragraphs.map(paragraph => <p key={paragraph}>{paragraph}</p>)}
               </div>
             </section>
           ))}
         </div>
-        <p className="mt-10 border-t border-[var(--color-rule)] pt-6 text-sm leading-7 text-[var(--text-primary)]/65">
-          Questions about these terms? Contact <a href="mailto:hello@garmops.com" className="text-[var(--color-accent)] hover:underline">hello@garmops.com</a>.
+        <p className="mt-10 border-t border-(--color-rule) pt-6 text-sm leading-7 text-(--text-primary)/65">
+          Questions about these terms? Contact <a href="mailto:hello@garmops.com" className="text-(--color-accent) hover:underline">hello@garmops.com</a>.
         </p>
       </section>
     </div>

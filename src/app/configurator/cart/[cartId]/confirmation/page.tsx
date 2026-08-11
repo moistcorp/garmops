@@ -31,14 +31,14 @@ export default async function ConfirmationPage({ params, searchParams }: Confirm
     return (
       <main className="techpack-cart-page techpack-studio-bg min-h-screen px-4 py-10">
         <div className="mx-auto flex min-h-[70vh] max-w-xl items-center">
-          <section className="techpack-surface w-full rounded-[4px] border p-7 text-center sm:p-10">
+          <section className="techpack-surface w-full rounded-sm border p-7 text-center sm:p-10">
             <CreditCard size={42} className="mx-auto text-amber-600" aria-hidden="true" />
-            <p className="mt-6 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">Checkout notice</p>
+            <p className="mt-6 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-(--color-accent)">Checkout notice</p>
             <h1 className="mt-2 text-2xl font-semibold">Online checkout is unavailable</h1>
             <p className="mt-3 text-sm leading-relaxed text-black/55">Your configuration remains saved in this browser. Online order creation is temporarily disabled, so no payment has been started.</p>
             <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
-              <Link href={`/configurator/cart/${encodeURIComponent(cartId)}/shipping`} className="rounded-[4px] bg-[var(--color-accent)] px-5 py-3 text-sm font-semibold text-white">Return to order details</Link>
-              <Link href="/account/orders" className="rounded-[4px] border border-black/10 px-5 py-3 text-sm font-semibold">View my orders</Link>
+              <Link href={`/configurator/cart/${encodeURIComponent(cartId)}/shipping`} className="rounded-sm bg-(--color-accent) px-5 py-3 text-sm font-semibold text-white">Return to order details</Link>
+              <Link href="/account/orders" className="rounded-sm border border-black/10 px-5 py-3 text-sm font-semibold">View my orders</Link>
             </div>
           </section>
         </div>

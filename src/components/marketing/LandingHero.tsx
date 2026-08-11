@@ -8,10 +8,10 @@ export default function LandingHero({ content }: { content: SeoLandingPageConten
   return (
     <header className="mx-auto grid max-w-7xl items-center gap-8 px-4 pb-12 pt-8 sm:px-6 sm:pb-16 sm:pt-14 lg:grid-cols-[1.08fr_0.92fr] lg:gap-14 lg:pb-20">
       <div className="max-w-3xl">
-        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-[var(--text-primary)]/45">
+        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-(--text-primary)/45">
           {content.eyebrow}
         </p>
-        <h1 className="text-balance text-4xl font-bold leading-[1.06] tracking-tight text-[var(--text-primary)] sm:text-5xl lg:text-6xl">
+        <h1 className="text-balance text-4xl font-bold leading-[1.06] tracking-tight text-(--text-primary) sm:text-5xl lg:text-6xl">
           {content.title}
         </h1>
         <p className="mt-6 max-w-2xl text-base leading-7 text-[#3f3f3f] sm:text-lg sm:leading-8">
@@ -23,7 +23,7 @@ export default function LandingHero({ content }: { content: SeoLandingPageConten
             page={path}
             event="seo_landing_cta_click"
             label="primary"
-            className="rounded-[4px] bg-[var(--color-accent)] px-6 py-3.5 text-center text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent-dark)]"
+            className="rounded-sm bg-(--color-accent) px-6 py-3.5 text-center text-sm font-medium text-white transition-colors hover:bg-(--color-accent-dark)"
           >
             {content.cta.primary.label}
           </LandingTrackedLink>
@@ -33,7 +33,7 @@ export default function LandingHero({ content }: { content: SeoLandingPageConten
               page={path}
               event="seo_landing_cta_click"
               label="secondary"
-              className="techpack-control rounded-[4px] border px-6 py-3.5 text-center text-sm font-medium text-[var(--text-primary)] transition-colors hover:!border-[var(--color-accent)] hover:text-[var(--color-accent-dark)]"
+              className="techpack-control rounded-sm border px-6 py-3.5 text-center text-sm font-medium text-(--text-primary) transition-colors hover:!border-(--color-accent) hover:text-(--color-accent-dark)"
             >
               {content.cta.secondary.label}
             </LandingTrackedLink>
@@ -42,7 +42,7 @@ export default function LandingHero({ content }: { content: SeoLandingPageConten
       </div>
 
       {content.heroImage && (
-        <div className="techpack-surface relative aspect-[4/3] overflow-hidden rounded-[4px] border sm:rounded-[4px] lg:aspect-[5/6]">
+        <div className="techpack-surface relative aspect-[4/3] overflow-hidden rounded-sm border sm:rounded-sm lg:aspect-[5/6]">
           <Image
             src={content.heroImage}
             alt={content.heroImageAlt ?? content.title}

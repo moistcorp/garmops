@@ -13,7 +13,7 @@ const STITCH_OPTIONS: Array<{ value: NeckLabelStitch; label: string; detail: str
 ];
 
 function StitchDiagram({ value, selected }: { value: NeckLabelStitch; selected: boolean }) {
-  const line = selected ? 'border-white/85' : 'border-[var(--color-accent)]/65';
+  const line = selected ? 'border-white/85' : 'border-(--color-accent)/65';
   const horizontal = value !== '2_side';
   return (
     <span className="relative block h-12 w-16 border border-current/20 bg-white/20" aria-hidden="true">
@@ -45,7 +45,7 @@ export default function StitchSelect({ value, onChange }: StitchSelectProps): JS
             type="button"
             onClick={() => onChange(option.value)}
             aria-pressed={selected}
-            className={`flex min-h-[112px] flex-col items-center rounded-[4px] border px-2 py-3 text-center transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)] ${selected ? 'techpack-selected' : 'techpack-control border text-[var(--text-primary)]/75 hover:!bg-white/60'}`}
+            className={`flex min-h-[112px] flex-col items-center rounded-sm border px-2 py-3 text-center transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-accent) ${selected ? 'techpack-selected' : 'techpack-control border text-(--text-primary)/75 hover:!bg-white/60'}`}
           >
             <StitchDiagram value={option.value} selected={selected} />
             <span className="mt-2 block text-xs font-semibold leading-tight">{option.label}</span>

@@ -24,7 +24,7 @@ import {
 type Step = "email" | "otp";
 
 const inputClass =
-  "techpack-control w-full rounded-[4px] border px-4 py-3 text-sm outline-none transition-colors focus:!border-[var(--color-accent)]";
+  "techpack-control w-full rounded-sm border px-4 py-3 text-sm outline-none transition-colors focus:!border-(--color-accent)";
 
 function Message({ state }: { state: AuthActionState }) {
   if (!state.message) return null;
@@ -41,19 +41,19 @@ function AuthProgress({ step }: { step: Step }) {
   const labels = ["Email", "Verify"];
   return (
     <ol
-      className="mb-6 grid grid-cols-2 border border-[var(--color-rule)]"
+      className="mb-6 grid grid-cols-2 border border-(--color-rule)"
       aria-label="Account access progress"
     >
       {labels.map((label, index) => (
         <li
           key={label}
           aria-current={index === activeIndex ? "step" : undefined}
-          className={`border-r border-[var(--color-rule)] px-2 py-2 text-center font-mono text-xs font-semibold uppercase tracking-[0.08em] last:border-r-0 ${
+          className={`border-r border-(--color-rule) px-2 py-2 text-center font-mono text-xs font-semibold uppercase tracking-[0.08em] last:border-r-0 ${
             index === activeIndex
-              ? "bg-[var(--color-accent)] text-white"
+              ? "bg-(--color-accent) text-white"
               : index < activeIndex
-                ? "bg-[var(--color-cream-soft)] text-[var(--color-navy)]"
-                : "text-[var(--text-primary)]/35"
+                ? "bg-(--color-cream-soft) text-(--color-navy)"
+                : "text-(--text-primary)/35"
           }`}
         >
           {String(index + 1).padStart(2, "0")} {label}
@@ -195,7 +195,7 @@ export default function CustomerAuthFlow({
         >
           <input type="hidden" name="email" value={email} />
           <input type="hidden" name="next" value={next} />
-          <p className="rounded-[4px] border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/5 p-4 text-sm text-black/65">
+          <p className="rounded-sm border border-(--color-accent)/20 bg-(--color-accent)/5 p-4 text-sm text-black/65">
             We sent a six-digit code to <strong>{email}</strong>.
           </p>
           <label className="flex flex-col gap-1.5 text-xs font-medium uppercase tracking-wide text-black/55">
@@ -215,7 +215,7 @@ export default function CustomerAuthFlow({
           <button
             type="submit"
             disabled={verifying}
-            className="min-h-11 rounded-[4px] bg-[var(--color-accent)] px-6 py-3 text-sm font-medium text-white disabled:opacity-60"
+            className="min-h-11 rounded-sm bg-(--color-accent) px-6 py-3 text-sm font-medium text-white disabled:opacity-60"
           >
             {verifying ? "Verifying…" : "Verify"}
           </button>
@@ -230,7 +230,7 @@ export default function CustomerAuthFlow({
           <button
             type="submit"
             disabled={requesting || cooldown > 0}
-            className="min-h-11 text-left text-sm text-[var(--color-accent)] hover:underline disabled:text-black/40"
+            className="min-h-11 text-left text-sm text-(--color-accent) hover:underline disabled:text-black/40"
           >
             {cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend code"}
           </button>
@@ -239,7 +239,7 @@ export default function CustomerAuthFlow({
           <button
             type="button"
             onClick={() => setStep("email")}
-            className="min-h-11 text-sm text-[var(--color-accent)] hover:underline"
+            className="min-h-11 text-sm text-(--color-accent) hover:underline"
           >
             {allowGoogle ? "Change email or use Google" : "Change email"}
           </button>
@@ -280,7 +280,7 @@ export default function CustomerAuthFlow({
         <button
           type="submit"
           disabled={requesting || googlePending}
-          className="min-h-11 rounded-[4px] bg-[var(--color-accent)] px-6 py-3 text-sm font-medium text-white disabled:opacity-60"
+          className="min-h-11 rounded-sm bg-(--color-accent) px-6 py-3 text-sm font-medium text-white disabled:opacity-60"
         >
           {requesting ? "Sending code…" : "Continue with email"}
         </button>
@@ -289,17 +289,17 @@ export default function CustomerAuthFlow({
       {allowGoogle ? (
         <>
           <div className="my-5 flex items-center gap-3" aria-hidden="true">
-            <span className="h-px flex-1 bg-[var(--color-rule)]" />
+            <span className="h-px flex-1 bg-(--color-rule)" />
             <span className="font-mono text-xs uppercase tracking-[0.1em] text-black/35">
               or
             </span>
-            <span className="h-px flex-1 bg-[var(--color-rule)]" />
+            <span className="h-px flex-1 bg-(--color-rule)" />
           </div>
           <button
             type="button"
             onClick={signInWithGoogle}
             disabled={googlePending || requesting}
-            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-[4px] border border-[var(--color-rule)] bg-white px-6 py-3 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--color-accent)] disabled:opacity-60"
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-sm border border-(--color-rule) bg-white px-6 py-3 text-sm font-medium text-(--text-primary) transition-colors hover:border-(--color-accent) disabled:opacity-60"
           >
             <GoogleMark />
             {googlePending ? "Opening Google…" : "Continue with Google"}
@@ -311,14 +311,14 @@ export default function CustomerAuthFlow({
         By continuing, you agree to the{" "}
         <Link
           href="/terms"
-          className="text-[var(--color-accent)] hover:underline"
+          className="text-(--color-accent) hover:underline"
         >
           Terms of Service
         </Link>{" "}
         and acknowledge the{" "}
         <Link
           href="/privacy"
-          className="text-[var(--color-accent)] hover:underline"
+          className="text-(--color-accent) hover:underline"
         >
           Privacy Policy
         </Link>

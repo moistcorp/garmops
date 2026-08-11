@@ -28,7 +28,7 @@ const actions: Record<
 };
 
 const inputClass =
-  "techpack-control w-full rounded-[4px] border px-4 py-3 text-sm outline-none transition-colors focus:!border-[var(--color-accent)]";
+  "techpack-control w-full rounded-sm border px-4 py-3 text-sm outline-none transition-colors focus:!border-(--color-accent)";
 
 function Field({
   label,
@@ -118,7 +118,7 @@ export default function AuthActionForm({
           <div className="text-right">
             <Link
               href="/forgot-password"
-              className="text-xs text-[var(--color-accent)] hover:underline"
+              className="text-xs text-(--color-accent) hover:underline"
             >
               Forgot password?
             </Link>
@@ -178,7 +178,7 @@ export default function AuthActionForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-[4px] bg-[var(--color-accent)] px-6 py-3.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent-dark)] disabled:cursor-not-allowed disabled:opacity-60"
+        className="rounded-sm bg-(--color-accent) px-6 py-3.5 text-sm font-medium text-white transition-colors hover:bg-(--color-accent-dark) disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? "Working…" : buttonText[variant]}
       </button>

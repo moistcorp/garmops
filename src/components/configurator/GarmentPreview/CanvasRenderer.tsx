@@ -146,8 +146,8 @@ function ArtworkPreview({ side }: { side: ArtworkSide }) {
   }
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-white/60 px-2 text-center text-xs font-semibold uppercase tracking-wide text-[var(--text-primary)]/38">
-      <span className="rounded-[4px] border border-[var(--color-rule)]/70 px-2 py-1">{side.fileType.toUpperCase()}</span>
+    <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-white/60 px-2 text-center text-xs font-semibold uppercase tracking-wide text-(--text-primary)/38">
+      <span className="rounded-sm border border-(--color-rule)/70 px-2 py-1">{side.fileType.toUpperCase()}</span>
       <span className="text-xs normal-case tracking-normal">Document preview</span>
     </div>
   );
@@ -312,7 +312,7 @@ export default function CanvasRenderer({
   neckLabel,
   neckLabelPreviewUrl,
   interactive = true,
-  className = "aspect-square h-[min(78dvh,820px)] max-h-[820px] max-w-full rounded-[4px] bg-[#F5F5F5]",
+  className = "aspect-square h-[min(78dvh,820px)] max-h-[820px] max-w-full rounded-sm bg-[#F5F5F5]",
   style,
   showProductionGuides = true,
   exclusiveLayerCache = false,
@@ -613,7 +613,7 @@ export default function CanvasRenderer({
             <div
               role="presentation"
               onPointerDown={(e) => handleDragStart(e, "resize")}
-              className="absolute -bottom-5 left-1/2 z-20 h-3 w-3 -translate-x-1/2 cursor-ns-resize rounded-[4px] bg-[#B534CC] ring-1 ring-white/90"
+              className="absolute -bottom-5 left-1/2 z-20 h-3 w-3 -translate-x-1/2 cursor-ns-resize rounded-sm bg-[#B534CC] ring-1 ring-white/90"
             />
           )}
           {dragMode && (
@@ -621,7 +621,7 @@ export default function CanvasRenderer({
             <div
               role="status"
               aria-live="polite"
-              className="pointer-events-none absolute left-1/2 top-[calc(100%+30px)] z-30 min-w-max -translate-x-1/2 rounded-[4px] border border-white/65 bg-[#111111]/78 px-3 py-2 font-sans text-xs font-semibold leading-4 text-white  "
+              className="pointer-events-none absolute left-1/2 top-[calc(100%+30px)] z-30 min-w-max -translate-x-1/2 rounded-sm border border-white/65 bg-[#111111]/78 px-3 py-2 font-sans text-xs font-semibold leading-4 text-white  "
             >
               {dragMode === "move" ? (
                 <>

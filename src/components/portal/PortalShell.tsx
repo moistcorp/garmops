@@ -20,7 +20,7 @@ export default function PortalShell({
 }) {
   return (
     <main className="techpack-canvas techpack-paper-grid min-h-screen p-3 sm:p-5">
-      <div className="mx-auto grid min-h-[calc(100vh-2.5rem)] max-w-[1500px] overflow-hidden rounded-[4px] border border-[var(--color-rule)] bg-white lg:grid-cols-[260px_1fr]">
+      <div className="mx-auto grid min-h-[calc(100vh-2.5rem)] max-w-[1500px] overflow-hidden rounded-sm border border-(--color-rule) bg-white lg:grid-cols-[260px_1fr]">
         <aside className="techpack-dark flex flex-col p-5 text-white sm:p-7">
           <Link href="/" aria-label="Garmops home" className="inline-flex">
             <GarmopsLogo inverted className="h-4 w-auto" />
@@ -37,9 +37,9 @@ export default function PortalShell({
           </div>
         </aside>
         <section className="min-w-0 p-5 sm:p-8 lg:p-10">
-          <header className="mb-8 border-b border-[var(--color-rule)] pb-7">
+          <header className="mb-8 border-b border-(--color-rule) pb-7">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-accent)]">{kind} / secure workspace</p>
+              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-(--color-accent)">{kind} / secure workspace</p>
               <span className="techpack-stamp" data-tone="success">Authenticated</span>
             </div>
             <h1 className="mt-2 text-3xl font-bold tracking-tight">{title}</h1>

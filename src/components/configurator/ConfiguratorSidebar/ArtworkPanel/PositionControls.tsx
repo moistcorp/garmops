@@ -40,7 +40,7 @@ function Stepper({ label, value, onChange, min, max = MAX_DIM, tooltip, disabled
         )}
       </div>
       <div
-        className={`techpack-control flex items-center rounded-[4px] border ${
+        className={`techpack-control flex items-center rounded-sm border ${
           disabled ? "opacity-50" : ""
         }`}
       >

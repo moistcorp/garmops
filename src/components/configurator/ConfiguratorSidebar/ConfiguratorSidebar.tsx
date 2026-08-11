@@ -12,8 +12,8 @@ import type { GarmentView } from "@/lib/configurator/types/garment";
 function PanelLoading() {
   return (
     <div className="space-y-3" role="status" aria-live="polite">
-      <div className="h-16 animate-pulse rounded-[4px] bg-black/5" />
-      <div className="h-24 animate-pulse rounded-[4px] bg-black/5" />
+      <div className="h-16 animate-pulse rounded-sm bg-black/5" />
+      <div className="h-24 animate-pulse rounded-sm bg-black/5" />
       <span className="sr-only">Loading configurator panel</span>
     </div>
   );
@@ -152,20 +152,20 @@ export function ConfiguratorSidebar({
       : activeStep.title.replace("Garment ", "");
   return (
     <section className="flex h-full min-h-0 flex-col overflow-hidden bg-transparent">
-      <div className="shrink-0 border-b border-[var(--color-control-border)] bg-white px-4 py-3">
+      <div className="shrink-0 border-b border-(--color-control-border) bg-white px-4 py-3">
         <div className="min-w-0">
-          <h2 className="text-sm font-semibold text-[var(--text-primary)]">{activeStepTitle}</h2>
+          <h2 className="text-sm font-semibold text-(--text-primary)">{activeStepTitle}</h2>
         </div>
       </div>
 
       {draftRestored && (
-        <div className="techpack-subtle flex shrink-0 items-center justify-between gap-2 border-x-0 border-t-0 px-4 py-2 text-xs text-[var(--color-accent)]">
+        <div className="techpack-subtle flex shrink-0 items-center justify-between gap-2 border-x-0 border-t-0 px-4 py-2 text-xs text-(--color-accent)">
           <span>Restored your saved progress.</span>
           <button
             type="button"
             onClick={onDismissDraftRestored}
             aria-label="Dismiss restored progress message"
-            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[4px] border border-[var(--color-rule)] hover:bg-white"
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm border border-(--color-rule) hover:bg-white"
           >
             <X size={13} aria-hidden="true" />
           </button>

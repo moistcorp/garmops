@@ -21,7 +21,7 @@ interface GarmentPreviewProps {
 }
 
 export const NECK_PREVIEW_CANVAS_CLASS =
-  "aspect-[7817/5542] w-[104%] max-w-none shrink-0 translate-y-[2%] rounded-[4px] sm:w-[108%] lg:w-[112%]";
+  "aspect-[7817/5542] w-[104%] max-w-none shrink-0 translate-y-[2%] rounded-sm sm:w-[108%] lg:w-[112%]";
 
 export default function GarmentPreview({
   activeView,
@@ -40,7 +40,7 @@ export default function GarmentPreview({
 
   return (
     <div className="relative h-full w-full min-h-0">
-      <div className="absolute inset-3 bg-[var(--color-studio-bg)] sm:inset-4">
+      <div className="absolute inset-3 bg-(--color-studio-bg) sm:inset-4">
         <div className="flex h-full w-full items-center justify-center">
           <CanvasRenderer
             view={activeView}
@@ -54,14 +54,14 @@ export default function GarmentPreview({
             className={
               activeView === "neck"
                 ? NECK_PREVIEW_CANVAS_CLASS
-                : "aspect-square h-[min(68dvh,760px)] max-h-full max-w-full scale-110 rounded-[4px]"
+                : "aspect-square h-[min(68dvh,760px)] max-h-full max-w-full scale-110 rounded-sm"
             }
           />
         </div>
       </div>
 
       <div className="pointer-events-none absolute inset-x-4 bottom-2 z-20 flex flex-col items-start gap-2">
-        {quality?.effectivePpi && <p className="text-xs leading-relaxed text-[var(--text-primary)]/50">Artwork quality is assessed at its current physical size.</p>}
+        {quality?.effectivePpi && <p className="text-xs leading-relaxed text-(--text-primary)/50">Artwork quality is assessed at its current physical size.</p>}
         <div className="pointer-events-auto">
           <ViewTabs
             activeView={activeView}

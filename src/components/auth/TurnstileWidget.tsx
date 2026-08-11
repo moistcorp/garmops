@@ -129,7 +129,7 @@ export default function TurnstileWidget({
       />
       <div
         ref={containerRef}
-        className="techpack-control cf-turnstile flex min-h-[65px] items-center overflow-hidden rounded-[4px] px-4 py-3"
+        className="techpack-control cf-turnstile flex min-h-[65px] items-center overflow-hidden rounded-sm px-4 py-3"
         data-action="turnstile-spin-v2"
       />
       <input type="hidden" name="cf-turnstile-response" value={token} />

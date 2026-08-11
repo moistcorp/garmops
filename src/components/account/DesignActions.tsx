@@ -26,7 +26,7 @@ export default function DesignActions({
   const [nextTitle, setNextTitle] = useState(title);
   const [message, setMessage] = useState<string | null>(null);
   const editable = status === "draft";
-  const button = "inline-flex min-h-10 items-center justify-center gap-2 rounded-[4px] border border-black/10 px-3.5 py-2 text-sm font-semibold text-black/70 transition hover:border-[var(--color-accent)]/35 hover:text-[var(--color-accent)] disabled:cursor-not-allowed disabled:opacity-50";
+  const button = "inline-flex min-h-10 items-center justify-center gap-2 rounded-sm border border-black/10 px-3.5 py-2 text-sm font-semibold text-black/70 transition hover:border-(--color-accent)/35 hover:text-(--color-accent) disabled:cursor-not-allowed disabled:opacity-50";
 
   async function rename() {
     if (!nextTitle.trim() || nextTitle.trim() === title) { setRenaming(false); return; }
@@ -69,19 +69,19 @@ export default function DesignActions({
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-2">
-        <button type="button" onClick={() => router.push(`/configurator/build/${encodeURIComponent(snapshot.configId)}?designId=${encodeURIComponent(designId)}`)} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-[4px] bg-[var(--color-accent)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--color-accent-dark)]"><ExternalLink size={16} /> Continue editing</button>
+        <button type="button" onClick={() => router.push(`/configurator/build/${encodeURIComponent(snapshot.configId)}?designId=${encodeURIComponent(designId)}`)} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-sm bg-(--color-accent) px-4 py-2 text-sm font-semibold text-white hover:bg-(--color-accent-dark)"><ExternalLink size={16} /> Continue editing</button>
         <button type="button" onClick={() => setRenaming(true)} disabled={pending !== null} className={button}><Pencil size={16} /> Rename</button>
         <button type="button" onClick={() => void duplicate()} disabled={pending !== null} className={button}>{pending === "duplicate" ? <LoaderCircle size={16} className="animate-spin" /> : <Copy size={16} />} Duplicate</button>
         {editable ? <button type="button" onClick={() => void archive()} disabled={pending !== null} className={button}>{pending === "archive" ? <LoaderCircle size={16} className="animate-spin" /> : <Archive size={16} />} Archive</button> : null}
       </div>
       {message ? <p role="alert" className="text-sm text-red-700">{message}</p> : null}
       {renaming ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--color-navy)]/35 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setRenaming(false); }}>
-          <div className="w-full max-w-md rounded-[4px] border border-black/10 bg-white p-6" role="dialog" aria-modal="true" aria-labelledby="rename-design-title">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-(--color-navy)/35 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setRenaming(false); }}>
+          <div className="w-full max-w-md rounded-sm border border-black/10 bg-white p-6" role="dialog" aria-modal="true" aria-labelledby="rename-design-title">
             <div className="flex items-start justify-between gap-4"><h2 id="rename-design-title" className="text-xl font-semibold">Rename saved design</h2><button type="button" aria-label="Close" onClick={() => setRenaming(false)}><X size={18} /></button></div>
             <label className="mt-5 block text-sm font-medium" htmlFor="saved-design-title">Design name</label>
-            <input id="saved-design-title" autoFocus value={nextTitle} onChange={(event) => setNextTitle(event.target.value)} maxLength={160} className="mt-2 w-full rounded border border-black/15 px-3 py-2.5 outline-none focus:border-[var(--color-accent)]" />
-            <div className="mt-5 flex justify-end gap-2"><button type="button" onClick={() => setRenaming(false)} className="rounded border border-black/10 px-4 py-2 text-sm">Cancel</button><button type="button" onClick={() => void rename()} disabled={pending !== null} className="rounded bg-[var(--color-accent)] px-4 py-2 text-sm font-semibold text-white">Save name</button></div>
+            <input id="saved-design-title" autoFocus value={nextTitle} onChange={(event) => setNextTitle(event.target.value)} maxLength={160} className="mt-2 w-full rounded border border-black/15 px-3 py-2.5 outline-none focus:border-(--color-accent)" />
+            <div className="mt-5 flex justify-end gap-2"><button type="button" onClick={() => setRenaming(false)} className="rounded border border-black/10 px-4 py-2 text-sm">Cancel</button><button type="button" onClick={() => void rename()} disabled={pending !== null} className="rounded bg-(--color-accent) px-4 py-2 text-sm font-semibold text-white">Save name</button></div>
           </div>
         </div>
       ) : null}

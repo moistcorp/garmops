@@ -24,8 +24,8 @@ function ProjectImage({
 }) {
   if (!src) {
     return (
-      <div className="flex h-full min-h-64 items-center justify-center bg-[var(--color-cream-soft)]">
-        <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--text-primary)]/35">Image unavailable</span>
+      <div className="flex h-full min-h-64 items-center justify-center bg-(--color-cream-soft)">
+        <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-(--text-primary)/35">Image unavailable</span>
       </div>
     )
   }
@@ -37,8 +37,8 @@ export default function Work() {
   return (
     <main className="techpack-canvas">
       <section className="mx-auto max-w-7xl px-4 pb-12 pt-12 sm:px-6 sm:pb-16 sm:pt-20 lg:pb-20">
-        <p className="mb-4 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--text-primary)]/45">Case Studies</p>
-        <h1 className="max-w-3xl text-4xl font-bold leading-[1.06] tracking-tight text-[var(--text-primary)] sm:text-6xl">
+        <p className="mb-4 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-primary)/45">Case Studies</p>
+        <h1 className="max-w-3xl text-4xl font-bold leading-[1.06] tracking-tight text-(--text-primary) sm:text-6xl">
           Made with Garmops.
         </h1>
         <p className="mt-6 max-w-2xl text-base leading-7 text-[#3f3f3f] sm:text-lg sm:leading-8">
@@ -55,9 +55,9 @@ export default function Work() {
               <Link
                 key={study.slug}
                 href={`/work/${study.slug}`}
-                className="techpack-panel group flex flex-col overflow-hidden rounded-[4px] border transition-colors hover:!border-[var(--color-accent)]/55"
+                className="techpack-panel group flex flex-col overflow-hidden rounded-sm border transition-colors hover:!border-(--color-accent)/55"
               >
-                <div className="relative aspect-[4/3] overflow-hidden bg-[var(--color-cream-soft)]">
+                <div className="relative aspect-[4/3] overflow-hidden bg-(--color-cream-soft)">
                   <ProjectImage
                     src={study.coverImage}
                     alt={study.gallery?.[0]?.alt ?? `${study.client} project image`}
@@ -68,21 +68,21 @@ export default function Work() {
 
                 <div className="flex flex-1 flex-col p-5 sm:p-7">
                   {industry?.href ? (
-                    <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--color-accent-dark)]">{industry.name}</span>
+                    <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-(--color-accent-dark)">{industry.name}</span>
                   ) : (
-                    <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-primary)]/45">{industry?.name ?? study.industryId}</span>
+                    <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-(--text-primary)/45">{industry?.name ?? study.industryId}</span>
                   )}
-                  <h2 className="mt-3 text-2xl font-semibold leading-tight tracking-tight text-[var(--text-primary)] group-hover:underline sm:text-3xl">
+                  <h2 className="mt-3 text-2xl font-semibold leading-tight tracking-tight text-(--text-primary) group-hover:underline sm:text-3xl">
                     {study.client}
                   </h2>
-                  <p className="mt-2 text-sm font-medium text-[var(--text-primary)]/75">{formatCaseStudyProducts(study)}</p>
+                  <p className="mt-2 text-sm font-medium text-(--text-primary)/75">{formatCaseStudyProducts(study)}</p>
                   <p className="mt-3 text-sm leading-6 text-[#3f3f3f]">{study.summary}</p>
 
-                  <div className="mt-6 flex flex-wrap gap-x-4 gap-y-2 border-t border-[var(--color-rule)] pt-4 font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--text-primary)]/50">
+                  <div className="mt-6 flex flex-wrap gap-x-4 gap-y-2 border-t border-(--color-rule) pt-4 font-mono text-[10px] uppercase tracking-[0.08em] text-(--text-primary)/50">
                     <span>{study.printTechniques.join(' · ')}</span>
                     {study.totalQuantity ? <span>{study.totalQuantity} pieces</span> : null}
                   </div>
-                  <span className="mt-6 text-sm font-medium text-[var(--color-accent-dark)] underline decoration-[var(--color-accent)]/35 underline-offset-4">
+                  <span className="mt-6 text-sm font-medium text-(--color-accent-dark) underline decoration-(--color-accent)/35 underline-offset-4">
                     View project →
                   </span>
                 </div>
@@ -94,7 +94,7 @@ export default function Work() {
 
       <section className="techpack-section py-12 sm:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="techpack-dark flex flex-col gap-6 rounded-[4px] border p-6 text-white sm:p-10 md:flex-row md:items-center md:justify-between">
+          <div className="techpack-dark flex flex-col gap-6 rounded-sm border p-6 text-white sm:p-10 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-3xl font-bold tracking-tight">Building something similar?</h2>
               <p className="mt-3 max-w-xl text-sm leading-6 text-white/70">
@@ -104,13 +104,13 @@ export default function Work() {
             <div className="flex shrink-0 flex-col gap-3 min-[360px]:flex-row">
               <Link
                 href="/configurator/build/boxy-fit-tee-260gsm"
-                className="rounded-[4px] bg-white px-5 py-3.5 text-center text-sm font-medium text-[var(--color-navy)] transition hover:bg-white/90"
+                className="rounded-sm bg-white px-5 py-3.5 text-center text-sm font-medium text-(--color-navy) transition hover:bg-white/90"
               >
                 Customise this T-Shirt →
               </Link>
               <Link
                 href="/industries/events"
-                className="rounded-[4px] border border-white/25 px-5 py-3.5 text-center text-sm font-medium text-white transition hover:bg-white/10"
+                className="rounded-sm border border-white/25 px-5 py-3.5 text-center text-sm font-medium text-white transition hover:bg-white/10"
               >
                 Explore Events &amp; Entertainment →
               </Link>

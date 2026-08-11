@@ -37,8 +37,8 @@ export function TechniqueSelect({ value, fileType, side = "front", onChange }: T
   }
 
   return (
-    <fieldset className="flex flex-col gap-2.5 border-t border-[var(--color-rule)] pt-4" aria-label={`${sideLabel} print method`}>
-      <legend className="text-xs font-semibold text-[var(--text-primary)]/70">
+    <fieldset className="flex flex-col gap-2.5 border-t border-(--color-rule) pt-4" aria-label={`${sideLabel} print method`}>
+      <legend className="text-xs font-semibold text-(--text-primary)/70">
         <span className="whitespace-nowrap">2 -</span> Print method<span aria-hidden="true">*</span>
       </legend>
       <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Print method">
@@ -51,22 +51,22 @@ export function TechniqueSelect({ value, fileType, side = "front", onChange }: T
               role="radio"
               aria-checked={selected}
               onClick={() => chooseTechnique(technique)}
-              className={`flex min-h-11 items-center rounded-[4px] border px-2.5 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/45 ${
+              className={`flex min-h-11 items-center rounded-sm border px-2.5 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)/45 ${
                 selected
-                  ? "border-[var(--color-accent)] bg-[var(--color-accent)]/8"
-                  : "techpack-control hover:!border-[var(--color-accent)]/45"
+                  ? "border-(--color-accent) bg-(--color-accent)/8"
+                  : "techpack-control hover:!border-(--color-accent)/45"
               }`}
             >
               <span className="flex w-full items-center justify-between gap-2">
-                <span className="min-w-0 text-[13px] font-semibold leading-tight text-[var(--text-primary)]/85">
+                <span className="min-w-0 text-[13px] font-semibold leading-tight text-(--text-primary)/85">
                   {TECHNIQUE_LABELS[technique]}
                 </span>
                 <span
                   aria-hidden="true"
                   className={`mt-0.5 h-3.5 w-3.5 shrink-0 rounded-full border ${
                     selected
-                      ? "border-[var(--color-accent)] bg-[var(--color-accent)] ring-2 ring-[var(--color-accent)]/20"
-                      : "border-[var(--text-primary)]/25"
+                      ? "border-(--color-accent) bg-(--color-accent) ring-2 ring-(--color-accent)/20"
+                      : "border-(--text-primary)/25"
                   }`}
                 />
               </span>
@@ -75,13 +75,13 @@ export function TechniqueSelect({ value, fileType, side = "front", onChange }: T
         })}
       </div>
       {!value && (
-        <p className="text-xs leading-relaxed text-[var(--text-primary)]/50">
+        <p className="text-xs leading-relaxed text-(--text-primary)/50">
           Choose a print method to continue.
         </p>
       )}
       {value && (
-        <p className="text-xs leading-relaxed text-[var(--text-primary)]/58">
-          <span className="font-semibold text-[var(--text-primary)]/75">{TECHNIQUE_LABELS[value]}</span>
+        <p className="text-xs leading-relaxed text-(--text-primary)/58">
+          <span className="font-semibold text-(--text-primary)/75">{TECHNIQUE_LABELS[value]}</span>
           <span aria-hidden="true"> · </span>
           {TECHNIQUE_DESCRIPTIONS[value]}
         </p>

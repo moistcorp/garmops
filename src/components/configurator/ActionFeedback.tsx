@@ -27,7 +27,7 @@ export function ActionFeedback({
       ? "text-[#A62D2D]"
       : tone === "success"
         ? "text-[#276E48]"
-        : "text-[var(--color-accent)]";
+        : "text-(--color-accent)";
 
   return (
     <div role={tone === "error" ? "alert" : "status"} aria-live="polite" data-tone={tone} className="techpack-notice flex items-start gap-3 p-3 text-xs">
@@ -39,13 +39,13 @@ export function ActionFeedback({
         <p className="font-semibold">{title}</p>
         {detail && <p className="mt-1 leading-relaxed opacity-80">{detail}</p>}
         {actionLabel && onAction && (
-          <button type="button" onClick={onAction} className="mt-2 rounded-[4px] border border-current px-3 py-1 font-semibold">
+          <button type="button" onClick={onAction} className="mt-2 rounded-sm border border-current px-3 py-1 font-semibold">
             {actionLabel}
           </button>
         )}
       </div>
       {onDismiss && (
-        <button type="button" onClick={onDismiss} aria-label="Dismiss message" className="rounded-[4px] p-1 hover:bg-black/5">
+        <button type="button" onClick={onDismiss} aria-label="Dismiss message" className="rounded-sm p-1 hover:bg-black/5">
           <X size={14} />
         </button>
       )}
