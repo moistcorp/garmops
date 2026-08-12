@@ -7,6 +7,14 @@ export interface PrintAreaDimensions {
   height: number; // cm
 }
 
+export interface ArtworkPlacementArea extends PrintAreaDimensions {
+  /** Origin of the calibrated area in the artwork placement coordinate system. */
+  origin: {
+    topOffsetCm: number;
+    centerOffsetCm: number;
+  };
+}
+
 // Production print areas begin three inches below the neck seam.
 export const PRINT_AREA_TOP_OFFSET_CM = 3 * 2.54;
 export const DEFAULT_ARTWORK_PRINT_AREA: PrintAreaSize = 'L';

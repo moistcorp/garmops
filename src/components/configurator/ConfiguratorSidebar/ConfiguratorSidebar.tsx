@@ -8,6 +8,7 @@ import type { GarmentColour, Artwork, NeckLabel } from "@/lib/configurator/types
 import { SIGNATURE_COLOURS } from "@/lib/configurator/colourRules";
 import { revokeArtworkObjectUrls, revokeNeckLabelObjectUrl } from "@/lib/configurator/objectUrls";
 import type { GarmentView } from "@/lib/configurator/types/garment";
+import type { ProductId } from "@/lib/configurator/pricing";
 
 function PanelLoading() {
   return (
@@ -39,6 +40,7 @@ export interface AccordionStepState {
 }
 
 export interface ConfiguratorSidebarProps {
+  productId?: ProductId;
   expandedStepId?: AccordionStepId | null;
   selectedColour?: GarmentColour;
   onColourChange?: (colour: GarmentColour) => void;
@@ -80,6 +82,7 @@ export const DEFAULT_COLOUR: GarmentColour = {
 };
 
 export function ConfiguratorSidebar({
+  productId,
   expandedStepId: controlledExpandedStepId,
   selectedColour,
   onColourChange,
@@ -188,6 +191,7 @@ export function ConfiguratorSidebar({
           />
         ) : activeStep.id === "artwork" ? (
           <ArtworkPanel
+            productId={productId}
             value={artwork}
             onChange={(next) => {
               if (controlledArtwork === undefined) setInternalArtwork(next);

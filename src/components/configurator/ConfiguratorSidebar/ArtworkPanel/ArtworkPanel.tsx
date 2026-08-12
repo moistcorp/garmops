@@ -21,6 +21,8 @@ import {
   placementLabel,
 } from "@/lib/configurator/artworkPlacement";
 import { getArtworkQuality } from "@/lib/configurator/artworkQuality";
+import { getGarmentInsetPercent, getGarmentPrintArea } from "@/lib/configurator/garmentGeometry";
+import type { ProductId } from "@/lib/configurator/pricing";
 import type {
   Artwork,
   ArtworkSide,
@@ -31,6 +33,7 @@ import { isCustomerArtworkTechnique } from "@/lib/configurator/types/configurato
 import type { GarmentView } from "@/lib/configurator/types/garment";
 
 export interface ArtworkPanelProps {
+  productId?: ProductId;
   value?: Artwork;
   onChange?: (artwork: Artwork) => void;
   activeView?: GarmentView;
@@ -58,7 +61,7 @@ function artworkFilename(side?: ArtworkSide): string {
   return side?.fileName ?? side?.fileUrl?.split("/").pop() ?? "Artwork";
 }
 
-export function ArtworkPanel({ value, onChange, activeView, onViewChange }: ArtworkPanelProps = {}) {
+export function ArtworkPanel({ productId, value, onChange, activeView, onViewChange }: ArtworkPanelProps = {}) {
   const [internalArtwork, setInternalArtwork] = useState<Artwork>(value ?? {});
   const artwork = value !== undefined ? value : internalArtwork;
   const [activeSide, setActiveSide] = useState<Side>(activeView === "back" ? "back" : "front");
@@ -156,12 +159,18 @@ export function ArtworkPanel({ value, onChange, activeView, onViewChange }: Artw
     onViewChange?.(side);
   }
 
+  function getPlacementArea(side: Side) {
+    return productId
+      ? getGarmentPrintArea(productId, side, getGarmentInsetPercent(productId, side)) ?? PRINT_AREA_SIZE_CHART[DEFAULT_ARTWORK_PRINT_AREA]
+      : PRINT_AREA_SIZE_CHART[DEFAULT_ARTWORK_PRINT_AREA];
+  }
+
   function handleTechniqueChange(side: Side, technique: CustomerArtworkTechnique) {
     const current = artwork[side];
     if (!current) return;
     const constrained = constrainArtworkToPrintArea(
       { ...positions[side], ...positionFromArtwork(current) },
-      PRINT_AREA_SIZE_CHART[DEFAULT_ARTWORK_PRINT_AREA],
+      getPlacementArea(side),
     );
     updatePosition(side, constrained);
     commit({
@@ -186,7 +195,7 @@ export function ArtworkPanel({ value, onChange, activeView, onViewChange }: Artw
     const nextPosition = applyArtworkPlacementPreset(
       positionFromArtwork(current),
       preset,
-      PRINT_AREA_SIZE_CHART[DEFAULT_ARTWORK_PRINT_AREA],
+      getPlacementArea(side),
       current,
     );
     updatePosition(side, nextPosition);
@@ -208,6 +217,7 @@ export function ArtworkPanel({ value, onChange, activeView, onViewChange }: Artw
 
   const panelSide: Side = activeView === "back" ? "back" : activeView === "front" ? "front" : activeSide;
   const current = artwork[panelSide];
+  const placementArea = getPlacementArea(panelSide);
   const selectedTechnique = isCustomerArtworkTechnique(current?.technique) ? current.technique : undefined;
   const placementPresets = panelSide === "front" ? FRONT_PLACEMENT_PRESETS : BACK_PLACEMENT_PRESETS;
   const selectedPlacement = current?.placementPreset ?? "custom";
@@ -274,7 +284,7 @@ export function ArtworkPanel({ value, onChange, activeView, onViewChange }: Artw
                 </div>
 
                 <div onFocusCapture={() => onViewChange?.(panelSide)} onPointerDownCapture={() => onViewChange?.(panelSide)}>
-                    <PositionControls printAreaDimensions={PRINT_AREA_SIZE_CHART[DEFAULT_ARTWORK_PRINT_AREA]} view={panelSide} />
+                    <PositionControls printAreaDimensions={placementArea} view={panelSide} />
                 </div>
 
                 {quality && (

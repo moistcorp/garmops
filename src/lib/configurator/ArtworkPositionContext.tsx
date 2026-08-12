@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import type { GarmentView } from "@/lib/configurator/types/garment";
 import {
   PRINT_AREA_TOP_OFFSET_CM,
+  type ArtworkPlacementArea,
   type PrintAreaDimensions,
 } from "@/lib/configurator/sizecharts";
 
@@ -56,27 +57,37 @@ export interface ArtworkPlacementBounds {
   maxFromNeckCm: number;
 }
 
+function getPlacementOrigin(area: PrintAreaDimensions | ArtworkPlacementArea): {
+  topOffsetCm: number;
+  centerOffsetCm: number;
+} {
+  return "origin" in area
+    ? area.origin
+    : { topOffsetCm: PRINT_AREA_TOP_OFFSET_CM, centerOffsetCm: 0 };
+}
+
 export function getArtworkPlacementBounds(
   state: Pick<PositionControlsState, "widthCm" | "heightCm">,
-  printArea: PrintAreaDimensions
+  printArea: PrintAreaDimensions | ArtworkPlacementArea
 ): ArtworkPlacementBounds {
+  const origin = getPlacementOrigin(printArea);
   const horizontalTravel = Math.max(0, (printArea.width - state.widthCm) / 2);
   const maxFromNeckCm = Math.max(
-    PRINT_AREA_TOP_OFFSET_CM,
-    PRINT_AREA_TOP_OFFSET_CM + printArea.height - state.heightCm
+    origin.topOffsetCm,
+    origin.topOffsetCm + printArea.height - state.heightCm
   );
 
   return {
-    minFromCenterCm: -horizontalTravel,
-    maxFromCenterCm: horizontalTravel,
-    minFromNeckCm: PRINT_AREA_TOP_OFFSET_CM,
+    minFromCenterCm: origin.centerOffsetCm - horizontalTravel,
+    maxFromCenterCm: origin.centerOffsetCm + horizontalTravel,
+    minFromNeckCm: origin.topOffsetCm,
     maxFromNeckCm,
   };
 }
 
 export function constrainArtworkToPrintArea(
   state: PositionControlsState,
-  printArea: PrintAreaDimensions
+  printArea: PrintAreaDimensions | ArtworkPlacementArea
 ): PositionControlsState {
   const rawWidth = Math.max(MIN_DIM, state.widthCm);
   const rawHeight = Math.max(MIN_DIM, state.heightCm);

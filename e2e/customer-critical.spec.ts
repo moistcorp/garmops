@@ -13,7 +13,7 @@ async function configureWithoutArtwork(page: Page, productId: string, draftId: s
 
 async function clearLineAllocation(page: Page, lineNumber: number) {
   const line = page.locator("section.techpack-panel").filter({
-    hasText: new RegExp(`\\bLine ${lineNumber}\\b`, "i"),
+    has: page.getByText(`Line ${lineNumber}`, { exact: true }),
   });
   await expect(line).toHaveCount(1);
 

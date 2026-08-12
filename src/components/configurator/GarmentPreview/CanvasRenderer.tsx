@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
 import type { ProductId } from "@/lib/configurator/pricing";
 import type {
@@ -19,12 +19,11 @@ import {
   PX_PER_CM_X,
   PX_PER_CM_Y,
   PRINT_ORIGIN_PX,
-  PRINT_AREA_TOP_OFFSET_CM,
   DRAGGABLE_VIEWS,
   constrainArtworkToPrintArea,
   resizeWithAspect,
 } from "@/lib/configurator/ArtworkPositionContext";
-import { DEFAULT_ARTWORK_PRINT_AREA, PRINT_AREA_SIZE_CHART } from "@/lib/configurator/sizecharts";
+import { getGarmentInsetPercent, getGarmentPrintArea } from "@/lib/configurator/garmentGeometry";
 import {
   LEFT_CHEST_DIMENSIONS,
   LEFT_CHEST_PLACEMENT,
@@ -42,20 +41,6 @@ import { useGarmentAssetPrefetch } from "./useGarmentAssetPrefetch";
 const NECK_LABEL_VIEWS = ["neck"] as const;
 const SAMPLE_NECK_LABEL_HREF = "/garments/neck-label-sample.svg";
 type NeckLabelView = (typeof NECK_LABEL_VIEWS)[number];
-
-const BASE_GARMENT_INSET_PERCENT = 2;
-const ENLARGED_GARMENT_INSET_PERCENT = -8.3;
-
-/**
- * The high-definition Regular Fit Tee front/back assets are tightly framed:
- * garment pixels reach the source canvas edges. The older preview assets had
- * much more empty padding and therefore needed the negative inset above.
- *
- * Keep a small positive inset for these HD photographic assets so the
- * shoulder/collar silhouette is fully visible even though GarmentPreview
- * applies its existing 1.10 presentation scale.
- */
-const REGULAR_FIT_TEE_HD_INSET_PERCENT = 1;
 
 const NECK_LABEL_PX_PER_MM: Record<NeckLabelView, number> = {
   neck: 2.4,
@@ -324,25 +309,23 @@ export default function CanvasRenderer({
   const garmentFolder = getGarmentFolder(productId);
   useGarmentAssetPrefetch(productId, view);
 
-  const garmentInsetPercent =
-    garmentFolder === "regular-fit-tee" && (view === "front" || view === "back")
-      ? REGULAR_FIT_TEE_HD_INSET_PERCENT
-      : view === "front" || view === "back"
-        ? ENLARGED_GARMENT_INSET_PERCENT
-        : BASE_GARMENT_INSET_PERCENT;
+  const garmentInsetPercent = getGarmentInsetPercent(productId, view);
 
   const showBox = DRAGGABLE_VIEWS.includes(view);
   const activeArtwork = view === "front" ? artwork.front : view === "back" ? artwork.back : undefined;
-  const boxState =
-    !interactive && activeArtwork
-      ? {
-          ...positions[view],
-          widthCm: activeArtwork.width,
-          heightCm: activeArtwork.height,
-          fromNeckCm: activeArtwork.fromNeck,
-          fromCenterCm: activeArtwork.fromCenter,
-        }
-      : positions[view];
+  const boxState = useMemo(
+    () =>
+      !interactive && activeArtwork
+        ? {
+            ...positions[view],
+            widthCm: activeArtwork.width,
+            heightCm: activeArtwork.height,
+            fromNeckCm: activeArtwork.fromNeck,
+            fromCenterCm: activeArtwork.fromCenter,
+          }
+        : positions[view],
+    [activeArtwork, interactive, positions, view],
+  );
   const isNeckLabelView = (v: GarmentView): v is NeckLabelView =>
     (NECK_LABEL_VIEWS as readonly GarmentView[]).includes(v);
   const showNeckLabel =
@@ -371,17 +354,31 @@ export default function CanvasRenderer({
     };
   }
 
-  const boxWidthPx = boxState.widthCm * PX_PER_CM_X;
-  const boxHeightPx = boxState.heightCm * PX_PER_CM_Y;
-  const boxLeftPx = PRINT_ORIGIN_PX.x + boxState.fromCenterCm * PX_PER_CM_X - boxWidthPx / 2;
-  const boxTopPx = PRINT_ORIGIN_PX.y + boxState.fromNeckCm * PX_PER_CM_Y;
-
-  // Print guideline overlays (maximum printable area / left-chest reference),
-  // anchored to the garment's fixed boundaries rather than the user's
-  // adjustable artwork box.
+  // Print guideline overlays and artwork constraints use the same calibrated
+  // garment-relative area. The dedicated neck view intentionally has none.
   const printAreaDims = activeArtwork
-    ? PRINT_AREA_SIZE_CHART[DEFAULT_ARTWORK_PRINT_AREA]
+    ? getGarmentPrintArea(productId, view, garmentInsetPercent)
     : undefined;
+  const renderBoxState = printAreaDims
+    ? constrainArtworkToPrintArea(boxState, printAreaDims)
+    : boxState;
+  const boxWidthPx = renderBoxState.widthCm * PX_PER_CM_X;
+  const boxHeightPx = renderBoxState.heightCm * PX_PER_CM_Y;
+  const boxLeftPx = PRINT_ORIGIN_PX.x + renderBoxState.fromCenterCm * PX_PER_CM_X - boxWidthPx / 2;
+  const boxTopPx = PRINT_ORIGIN_PX.y + renderBoxState.fromNeckCm * PX_PER_CM_Y;
+
+  useEffect(() => {
+    if (!interactive || !activeArtwork || !printAreaDims) return;
+    if (
+      renderBoxState.widthCm !== boxState.widthCm ||
+      renderBoxState.heightCm !== boxState.heightCm ||
+      renderBoxState.fromNeckCm !== boxState.fromNeckCm ||
+      renderBoxState.fromCenterCm !== boxState.fromCenterCm
+    ) {
+      updatePosition(view, renderBoxState);
+    }
+  }, [activeArtwork, boxState, interactive, printAreaDims, renderBoxState, updatePosition, view]);
+
   const canEditArtwork = Boolean(
     interactive &&
       showProductionGuides &&
@@ -392,10 +389,10 @@ export default function CanvasRenderer({
   const showMaxArea = showProductionGuides && interactive && showBox && !!activeArtwork && !!printAreaDims;
   const showLeftChest = showProductionGuides && interactive && showBox && !!activeArtwork?.guidelines.leftChest;
 
-  const maxAreaWidthPx = printAreaDims ? printAreaDims.width * PX_PER_CM_X : 0;
-  const maxAreaHeightPx = printAreaDims ? printAreaDims.height * PX_PER_CM_Y : 0;
-  const maxAreaLeftPx = PRINT_ORIGIN_PX.x - maxAreaWidthPx / 2;
-  const maxAreaTopPx = PRINT_ORIGIN_PX.y + PRINT_AREA_TOP_OFFSET_CM * PX_PER_CM_Y;
+  const maxAreaWidthPx = printAreaDims ? printAreaDims.rightPx - printAreaDims.leftPx : 0;
+  const maxAreaHeightPx = printAreaDims ? printAreaDims.bottomPx - printAreaDims.topPx : 0;
+  const maxAreaLeftPx = printAreaDims?.leftPx ?? 0;
+  const maxAreaTopPx = printAreaDims?.topPx ?? 0;
 
   const chestWidthPx = LEFT_CHEST_DIMENSIONS.width * PX_PER_CM_X;
   const chestHeightPx = LEFT_CHEST_DIMENSIONS.height * PX_PER_CM_Y;
@@ -419,7 +416,7 @@ export default function CanvasRenderer({
     const dCanvasPxX = (e.clientX - origin.pointerX) * (CANVAS_SIZE.width / rect.width);
     const dCanvasPxY = (e.clientY - origin.pointerY) * (CANVAS_SIZE.height / rect.height);
     const originState = {
-      ...boxState,
+      ...renderBoxState,
       widthCm: origin.startWidthCm,
       heightCm: origin.startHeightCm,
       fromNeckCm: origin.startFromNeckCm,
@@ -470,11 +467,11 @@ export default function CanvasRenderer({
           view,
           constrainArtworkToPrintArea(
             {
-              ...boxState,
+              ...renderBoxState,
               ...resizeWithAspect(
-                boxState,
+                renderBoxState,
                 "width",
-                boxState.widthCm + delta
+                renderBoxState.widthCm + delta
               ),
               alignH: null,
               alignV: null,
@@ -488,21 +485,21 @@ export default function CanvasRenderer({
         view,
         constrainArtworkToPrintArea(
           {
-            ...boxState,
+            ...renderBoxState,
             alignH: null,
             alignV: null,
             fromCenterCm:
               event.key === "ArrowLeft"
-                ? boxState.fromCenterCm - step
+                ? renderBoxState.fromCenterCm - step
                 : event.key === "ArrowRight"
-                  ? boxState.fromCenterCm + step
-                  : boxState.fromCenterCm,
+                  ? renderBoxState.fromCenterCm + step
+                  : renderBoxState.fromCenterCm,
             fromNeckCm:
               event.key === "ArrowUp"
-                ? boxState.fromNeckCm - step
+                ? renderBoxState.fromNeckCm - step
                 : event.key === "ArrowDown"
-                  ? boxState.fromNeckCm + step
-                  : boxState.fromNeckCm,
+                  ? renderBoxState.fromNeckCm + step
+                  : renderBoxState.fromNeckCm,
           },
           printAreaDims
         )
@@ -526,10 +523,10 @@ export default function CanvasRenderer({
       mode,
       pointerX: e.clientX,
       pointerY: e.clientY,
-      startWidthCm: boxState.widthCm,
-      startHeightCm: boxState.heightCm,
-      startFromNeckCm: boxState.fromNeckCm,
-      startFromCenterCm: boxState.fromCenterCm,
+      startWidthCm: renderBoxState.widthCm,
+      startHeightCm: renderBoxState.heightCm,
+      startFromNeckCm: renderBoxState.fromNeckCm,
+      startFromCenterCm: renderBoxState.fromCenterCm,
     };
     window.addEventListener("pointermove", handlePointerMove);
     window.addEventListener("pointerup", handlePointerUp);

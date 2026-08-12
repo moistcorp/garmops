@@ -1359,6 +1359,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
               >
                 <div className="min-h-0 flex-1">
                   <ConfiguratorSidebar
+                    productId={productId}
                     expandedStepId={expandedStepId}
                     selectedColour={colour}
                     onColourChange={(next) => {
