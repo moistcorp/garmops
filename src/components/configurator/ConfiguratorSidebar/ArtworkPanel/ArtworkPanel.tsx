@@ -248,7 +248,7 @@ export function ArtworkPanel({ value, onChange, activeView, onViewChange }: Artw
             <TechniqueSelect value={selectedTechnique} fileType={current.fileType} side={panelSide} onChange={(technique) => handleTechniqueChange(panelSide, technique)} />
 
             {selectedTechnique && (
-              <section className="flex flex-col gap-3 border-t border-(--color-rule) pt-4" aria-labelledby="position-size-title">
+              <section className="flex flex-col gap-3 pt-4" aria-labelledby="position-size-title">
                 <div>
                   <h3 id="position-size-title" className="text-xs font-semibold text-(--text-primary)/70">
                     <span className="whitespace-nowrap">3 - </span> Position &amp; size

@@ -64,22 +64,15 @@ export default function ProductCard({
   return (
     <article
       ref={cardRef}
-      className="techpack-panel group flex h-full flex-col overflow-hidden rounded-sm border transition-colors hover:!border-(--color-accent)/50"
+      className="techpack-panel flex h-full flex-col overflow-hidden rounded-sm border !bg-white transition-colors hover:!border-(--color-accent)/50"
     >
-      <div className="relative aspect-[5/4] w-full overflow-hidden bg-[#EFEFEF] p-3 sm:p-4">
+      <div className="relative aspect-[5/4] w-full overflow-hidden bg-white p-3 sm:p-4">
         <Image
           src={product.defaultImage}
           alt={product.name}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
-          className="object-contain transition-opacity duration-200 ease-out group-hover:opacity-0"
-        />
-        <Image
-          src={product.hoverImage}
-          alt=""
-          fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
-          className="object-contain opacity-0 transition-opacity duration-200 ease-out group-hover:opacity-100"
+          className="scale-[1.2] object-contain"
         />
       </div>
 

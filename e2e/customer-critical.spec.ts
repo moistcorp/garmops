@@ -11,6 +11,20 @@ async function configureWithoutArtwork(page: Page, productId: string, draftId: s
   await expect(page.getByText("Allocate by size").first()).toBeVisible();
 }
 
+async function clearLineAllocation(page: Page, lineNumber: number) {
+  const line = page.locator("section.techpack-panel").filter({
+    hasText: new RegExp(`\\bLine ${lineNumber}\\b`, "i"),
+  });
+  await expect(line).toHaveCount(1);
+
+  const sizeInputs = line.locator('input[inputmode="numeric"]');
+  const sizeCount = await sizeInputs.count();
+  expect(sizeCount).toBeGreaterThan(0);
+  for (let index = 0; index < sizeCount; index += 1) {
+    await sizeInputs.nth(index).fill("0");
+  }
+}
+
 test("custom configuration reaches Delivery with canonical free shipping", async ({ page }) => {
   const cartId = "61111111-1111-4111-8111-111111111111";
   await configureWithoutArtwork(page, "regular-fit-tee-200gsm", cartId);
@@ -31,7 +45,7 @@ test("multi-product cart keeps independent MOQ allocations", async ({ page }) =>
   await expect(page.getByText("LINE 2")).toBeVisible();
   const mediumInputs = page.locator("input[id$=-m]");
   await expect(mediumInputs).toHaveCount(2);
-  await mediumInputs.nth(0).fill("50");
+  await clearLineAllocation(page, 2);
   await expect(page.getByText(/Enter a quantity for Classic Hoodie/i)).toBeVisible();
   await expect(page.getByRole("button", { name: /Continue to delivery/ })).toHaveAttribute("aria-disabled", "true");
   await mediumInputs.nth(1).fill("50");
@@ -41,9 +55,9 @@ test("multi-product cart keeps independent MOQ allocations", async ({ page }) =>
 test("same product can be configured twice and each line enforces MOQ", async ({ page }) => {
   const cartId = "64444444-4444-4444-8444-444444444444";
   await configureWithoutArtwork(page, "regular-fit-tee-200gsm", cartId);
-  await page.locator("input[id$=-m]").fill("50");
   await configureWithoutArtwork(page, "regular-fit-tee-200gsm", "65555555-5555-4555-8555-555555555555", cartId);
   await expect(page.getByText("Classic T-Shirt", { exact: true })).toHaveCount(2);
+  await clearLineAllocation(page, 2);
   await expect(page.getByText(/Enter a quantity for Classic T-Shirt/i)).toBeVisible();
   await expect(page.getByRole("button", { name: /Continue to delivery/ })).toHaveAttribute("aria-disabled", "true");
 });
