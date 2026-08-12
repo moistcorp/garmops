@@ -54,4 +54,10 @@ describe("production staff operations rules", () => {
       allowedNextStatusesForRole("ready_to_dispatch", "operations"),
     ).toEqual(["dispatched", "packing", "on_hold"]);
   });
+
+  it("only exposes a saved hold resume and hides it while cancellation is pending", () => {
+    expect(ORDER_TRANSITIONS.on_hold).toEqual([]);
+    expect(allowedNextStatusesForRole("on_hold", "operations", { holdFromStatus: "printing" })).toEqual(["printing"]);
+    expect(allowedNextStatusesForRole("on_hold", "founder", { holdFromStatus: "printing", cancellationPending: true })).toEqual([]);
+  });
 });

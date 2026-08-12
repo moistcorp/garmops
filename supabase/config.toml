@@ -260,10 +260,6 @@ content_path = "./supabase/templates/magic-link.html"
 subject = "Reset your Garmops password"
 content_path = "./supabase/templates/recovery.html"
 
-[auth.email.template.invite]
-subject = "Your Garmops staff invitation"
-content_path = "./supabase/templates/invite.html"
-
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]
 # enabled = true

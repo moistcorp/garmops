@@ -165,6 +165,19 @@ function retryableFrom(error: unknown): boolean {
   return true;
 }
 
+async function persistMalwareScanStatus(
+  admin: ReturnType<typeof createAdminClient>,
+  fileId: string,
+  status: "clean" | "infected" | "scan_failed" | "scanner_unavailable",
+): Promise<void> {
+  const { data, error } = await admin.from("order_files")
+    .update({ scan_status: status })
+    .eq("id", fileId)
+    .select("id")
+    .maybeSingle();
+  if (error || !data) throw new Error(error?.message ?? "Malware scan status could not be persisted");
+}
+
 async function handleJob(job: IntegrationJob): Promise<void> {
   const payload = record(job.payload);
   if (job.job_type === "malware_scan_private_file") {
@@ -174,16 +187,17 @@ async function handleJob(job: IntegrationJob): Promise<void> {
     const { data: file, error } = await admin.from("order_files").select("id,object_key,safe_filename,content_type,sha256,scan_status").eq("id", fileId).maybeSingle();
     if (error || !file) throw Object.assign(new Error("Malware scan file not found"), { retryable: false });
     if (isMalwareScanTerminal(file.scan_status)) return;
+    let result: Awaited<ReturnType<typeof scanPrivateFile>>;
     try {
       const download = await createPresignedDownload({ objectKey: file.object_key, filename: file.safe_filename, contentType: file.content_type });
-      const result = await scanPrivateFile({ downloadUrl: download.url, sha256: file.sha256 });
-      await admin.from("order_files").update({ scan_status: result.status }).eq("id", file.id);
-      return;
+      result = await scanPrivateFile({ downloadUrl: download.url, sha256: file.sha256 });
     } catch (scanError) {
       const unavailable = Boolean(scanError && typeof scanError === "object" && "scannerUnavailable" in scanError);
-      await admin.from("order_files").update({ scan_status: unavailable ? "scanner_unavailable" : "scan_failed" }).eq("id", file.id);
+      await persistMalwareScanStatus(admin, file.id, unavailable ? "scanner_unavailable" : "scan_failed");
       throw scanError;
     }
+    await persistMalwareScanStatus(admin, file.id, result.status);
+    return;
   }
   if (job.job_type === "send_saved_design_recovery") {
     const environment = getServerEnvironment();

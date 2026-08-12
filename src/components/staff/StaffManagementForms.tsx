@@ -1,10 +1,8 @@
 "use client";
 import { useActionState } from "react";
-import { inviteStaffAction, setStaffActiveAction } from "@/app/staff/actions";
+import { setStaffActiveAction } from "@/app/staff/actions";
 import { INITIAL_STAFF_ACTION_STATE } from "@/lib/staff/actionState";
-export default function StaffManagementForms(props: { mode: "invite" } | { mode: "toggle"; userId: string; active: boolean }) {
-  const actionFn = props.mode === "invite" ? inviteStaffAction : setStaffActiveAction;
-  const [state, action, pending] = useActionState(actionFn, INITIAL_STAFF_ACTION_STATE);
-  if (props.mode === "toggle") return <form action={action}><input type="hidden" name="userId" value={props.userId} /><input type="hidden" name="active" value={props.active ? "false" : "true"} /><button disabled={pending} className="rounded border border-black/10 px-3 py-2 text-xs font-semibold" type="submit">{pending ? "Saving…" : props.active ? "Disable" : "Restore"}</button>{state.status === "error" ? <p className="mt-1 text-xs text-red-700">{state.message}</p> : null}</form>;
-  return <form action={action} className="space-y-3"><label className="block text-xs font-semibold">Email<input name="email" type="email" required className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" /></label><div className="grid grid-cols-2 gap-3"><label className="block text-xs font-semibold">First name<input name="firstName" required className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" /></label><label className="block text-xs font-semibold">Last name<input name="lastName" required className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" /></label></div><label className="block text-xs font-semibold">Role<select name="role" className="mt-1 w-full rounded border border-black/10 bg-white px-3 py-2 text-sm"><option value="operations">Operations</option><option value="founder">Founder</option></select></label><button disabled={pending} className="techpack-button w-full" type="submit">{pending ? "Sending…" : "Send invitation"}</button>{state.status !== "idle" ? <p className={`text-xs ${state.status === "error" ? "text-red-700" : "text-emerald-700"}`}>{state.message}</p> : null}</form>;
+export default function StaffManagementForms({ userId, active }: { userId: string; active: boolean }) {
+  const [state, action, pending] = useActionState(setStaffActiveAction, INITIAL_STAFF_ACTION_STATE);
+  return <form action={action}><input type="hidden" name="userId" value={userId} /><input type="hidden" name="active" value={active ? "false" : "true"} /><button disabled={pending} className="rounded border border-black/10 px-3 py-2 text-xs font-semibold" type="submit">{pending ? "Saving…" : active ? "Disable" : "Restore"}</button>{state.status === "error" ? <p className="mt-1 text-xs text-red-700">{state.message}</p> : null}</form>;
 }

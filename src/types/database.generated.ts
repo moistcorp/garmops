@@ -193,6 +193,9 @@ export type Database = {
           order_id: string
           reason: string
           requested_by: string
+          requested_from_status:
+            | Database["public"]["Enums"]["order_status"]
+            | null
           status: string
         }
         Insert: {
@@ -203,6 +206,9 @@ export type Database = {
           order_id: string
           reason: string
           requested_by: string
+          requested_from_status?:
+            | Database["public"]["Enums"]["order_status"]
+            | null
           status?: string
         }
         Update: {
@@ -213,6 +219,9 @@ export type Database = {
           order_id?: string
           reason?: string
           requested_by?: string
+          requested_from_status?:
+            | Database["public"]["Enums"]["order_status"]
+            | null
           status?: string
         }
         Relationships: [
@@ -1448,6 +1457,7 @@ export type Database = {
           discount_paise: number
           dispatched_at: string | null
           estimated_dispatch_at: string | null
+          hold_from_status: Database["public"]["Enums"]["order_status"] | null
           id: string
           internal_priority: string
           order_number: string
@@ -1502,6 +1512,7 @@ export type Database = {
           discount_paise?: number
           dispatched_at?: string | null
           estimated_dispatch_at?: string | null
+          hold_from_status?: Database["public"]["Enums"]["order_status"] | null
           id?: string
           internal_priority?: string
           order_number: string
@@ -1556,6 +1567,7 @@ export type Database = {
           discount_paise?: number
           dispatched_at?: string | null
           estimated_dispatch_at?: string | null
+          hold_from_status?: Database["public"]["Enums"]["order_status"] | null
           id?: string
           internal_priority?: string
           order_number?: string
@@ -1862,50 +1874,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
-      }
-      staff_invitations: {
-        Row: {
-          accepted_at: string | null
-          auth_user_id: string | null
-          created_at: string
-          email: string
-          expires_at: string
-          id: string
-          invited_by: string
-          role: Database["public"]["Enums"]["staff_role"]
-          status: string
-        }
-        Insert: {
-          accepted_at?: string | null
-          auth_user_id?: string | null
-          created_at?: string
-          email: string
-          expires_at: string
-          id?: string
-          invited_by: string
-          role: Database["public"]["Enums"]["staff_role"]
-          status?: string
-        }
-        Update: {
-          accepted_at?: string | null
-          auth_user_id?: string | null
-          created_at?: string
-          email?: string
-          expires_at?: string
-          id?: string
-          invited_by?: string
-          role?: Database["public"]["Enums"]["staff_role"]
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "staff_invitations_invited_by_fkey"
-            columns: ["invited_by"]
-            isOneToOne: false
-            referencedRelation: "staff_members"
-            referencedColumns: ["user_id"]
-          },
-        ]
       }
       staff_members: {
         Row: {
@@ -2366,10 +2334,6 @@ export type Database = {
       }
       record_staff_login: { Args: never; Returns: undefined }
       record_staff_mfa_enrollment: { Args: never; Returns: undefined }
-      reopen_order_configuration: {
-        Args: { p_order_id: string; p_reason: string }
-        Returns: boolean
-      }
       replace_configuration_artwork_file: {
         Args: {
           p_file_id: string
@@ -2508,14 +2472,6 @@ export type Database = {
           p_timezone?: string
         }
         Returns: boolean
-      }
-      update_order_configuration: {
-        Args: { p_next_snapshot: Json; p_order_id: string; p_reason: string }
-        Returns: number
-      }
-      update_order_configuration_validated: {
-        Args: { p_next_snapshot: Json; p_order_id: string; p_reason: string }
-        Returns: number
       }
       validate_discount_code: {
         Args: {

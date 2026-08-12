@@ -40,6 +40,10 @@ export function hashOrderRequest(value: unknown): string {
   return createHash("sha256").update(stableJson(value)).digest("hex");
 }
 
+export function isUniqueViolation(error: { code?: string } | null | undefined): boolean {
+  return error?.code === "23505";
+}
+
 function normalizeEmail(value: string): string {
   return value.trim().toLowerCase();
 }
@@ -367,7 +371,11 @@ async function createCheckoutAttempt(input: {
     customer_name: input.prepared.customerName,
     customer_phone: input.prepared.customerPhone,
   }).select("id, status").single();
-  if (error || !data) throw new Error(error?.message ?? "Payment attempt could not be prepared");
+  if (error) {
+    if (isUniqueViolation(error)) throw new Error("CHECKOUT_ATTEMPT_RACE");
+    throw new Error(error.message);
+  }
+  if (!data) throw new Error("Payment attempt could not be prepared");
   return data;
 }
 
@@ -388,9 +396,7 @@ export async function prepareConfiguratorCheckout(input: {
   if (sessionResult.error) throw new Error(sessionResult.error.message);
   let session = sessionResult.data;
 
-  if (session && session.request_hash !== prepared.requestHash) {
-    throw new Error("Checkout details changed. Return to delivery details and start payment again");
-  }
+  if (session && session.request_hash !== prepared.requestHash) throw new Error("IDEMPOTENCY_CONFLICT");
   if (session?.status === "finalized") {
     return {
       checkoutSessionId: session.id,
@@ -420,8 +426,21 @@ export async function prepareConfiguratorCheckout(input: {
       return_path: input.returnPath,
       expires_at: prepared.expiresAt,
     }).select("id, request_hash, status, final_order_id, final_order_number, final_payment_attempt_id, expires_at").single();
-    if (insertError || !inserted) throw new Error(insertError?.message ?? "Checkout could not be prepared");
-    session = inserted;
+    if (insertError) {
+      if (!isUniqueViolation(insertError)) throw new Error(insertError.message);
+      const winner = await admin.from("checkout_sessions")
+        .select("id, request_hash, status, final_order_id, final_order_number, final_payment_attempt_id, expires_at")
+        .eq("customer_user_id", input.user.id)
+        .eq("idempotency_key", input.request.idempotencyKey)
+        .maybeSingle();
+      if (winner.error || !winner.data) throw new Error(winner.error?.message ?? "Checkout session race could not be reconciled");
+      if (winner.data.request_hash !== prepared.requestHash) throw new Error("IDEMPOTENCY_CONFLICT");
+      session = winner.data;
+    } else if (!inserted) {
+      throw new Error("Checkout could not be prepared");
+    } else {
+      session = inserted;
+    }
   } else if (["prepared", "failed", "expired"].includes(session.status)) {
     const { error: refreshError } = await admin.from("checkout_sessions").update({
       status: "prepared",
@@ -438,6 +457,16 @@ export async function prepareConfiguratorCheckout(input: {
   }
 
   if (!session) throw new Error("Checkout session could not be prepared");
+  if (session.status === "finalized") {
+    return {
+      checkoutSessionId: session.id,
+      checkoutPaymentAttemptId: null,
+      alreadyFinalized: true,
+      orderNumber: session.final_order_number,
+      orderId: session.final_order_id,
+      paymentAttemptId: session.final_payment_attempt_id,
+    };
+  }
 
   const { data: attempts, error: attemptsError } = await admin.from("checkout_payment_attempts")
     .select("id, attempt_number, status")
@@ -445,16 +474,35 @@ export async function prepareConfiguratorCheckout(input: {
     .order("attempt_number", { ascending: false })
     .limit(1);
   if (attemptsError) throw new Error(attemptsError.message);
-  const latest = attempts?.[0];
+  let latest = attempts?.[0];
   if (latest && ["created", "initiated", "pending"].includes(latest.status)) {
     return { checkoutSessionId: session.id, checkoutPaymentAttemptId: latest.id, alreadyFinalized: false };
   }
-  const nextAttempt = await createCheckoutAttempt({
-    sessionId: session.id,
-    attemptNumber: (latest?.attempt_number ?? 0) + 1,
-    prepared,
-  });
-  return { checkoutSessionId: session.id, checkoutPaymentAttemptId: nextAttempt.id, alreadyFinalized: false };
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const nextAttempt = await createCheckoutAttempt({
+        sessionId: session.id,
+        attemptNumber: (latest?.attempt_number ?? 0) + 1,
+        prepared,
+      });
+      return { checkoutSessionId: session.id, checkoutPaymentAttemptId: nextAttempt.id, alreadyFinalized: false };
+    } catch (error) {
+      if (!(error instanceof Error) || error.message !== "CHECKOUT_ATTEMPT_RACE") throw error;
+      const retryAttempts = await admin.from("checkout_payment_attempts")
+        .select("id, attempt_number, status")
+        .eq("checkout_session_id", session.id)
+        .order("attempt_number", { ascending: false })
+        .limit(1);
+      if (retryAttempts.error) throw new Error(retryAttempts.error.message);
+      const winner = retryAttempts.data?.[0];
+      if (winner && ["created", "initiated", "pending"].includes(winner.status)) {
+        return { checkoutSessionId: session.id, checkoutPaymentAttemptId: winner.id, alreadyFinalized: false };
+      }
+      if (attempt === 2) throw new Error("Payment attempt could not be prepared safely");
+      latest = winner;
+    }
+  }
+  throw new Error("Payment attempt could not be prepared safely");
 }
 
 export async function finalizeCheckoutPayment(input: {

@@ -111,7 +111,7 @@ export default function DurableSampleCheckout({
 }: {
   defaults: SampleCheckoutDefaults;
 }) {
-  const { items, total, hasHydrated, clearCart } = useCartStore();
+  const { items, total, hasHydrated } = useCartStore();
   const cartTotalRupees = total();
   const taxPaise = calculateTaxPaise(Math.round(cartTotalRupees * 100));
   const displayedTotalPaise = cartTotalRupees * 100 + taxPaise;
@@ -224,7 +224,6 @@ export default function DurableSampleCheckout({
       } catch {
         // The prepared database checkout is authoritative even if cleanup is blocked.
       }
-      clearCart();
       await submitPayuCheckout(payment.fields, payment.checkoutUrl);
     } catch (submissionError) {
       setSavedOrder(null);

@@ -8,7 +8,7 @@ import { configuredGstRateBasisPoints } from "@/lib/tax.server";
 import type { createClient } from "@/lib/supabase/server";
 import type { Json } from "@/types/database.generated";
 
-import { hashOrderRequest } from "./service";
+import { hashOrderRequest, isUniqueViolation } from "./service";
 import {
   SAMPLE_ORDER_PRICING_VERSION,
   SAMPLE_ORDER_SCHEMA_VERSION,
@@ -183,21 +183,51 @@ export async function submitSampleOrder(input: {
       return_path: "/account/orders",
       expires_at: expiresAt,
     }).select("id, request_hash, status, final_order_id, final_order_number, final_payment_attempt_id").single();
-    if (inserted.error || !inserted.data) throw new Error(inserted.error?.message ?? "Checkout could not be prepared");
-    session = inserted.data;
+    if (inserted.error) {
+      if (!isUniqueViolation(inserted.error)) throw new Error(inserted.error.message);
+      const winner = await admin.from("checkout_sessions")
+        .select("id, request_hash, status, final_order_id, final_order_number, final_payment_attempt_id")
+        .eq("customer_user_id", user.id)
+        .eq("idempotency_key", request.idempotencyKey)
+        .maybeSingle();
+      if (winner.error || !winner.data) throw new Error(winner.error?.message ?? "Checkout session race could not be reconciled");
+      if (winner.data.request_hash !== requestHash) throw new Error("IDEMPOTENCY_CONFLICT");
+      session = winner.data;
+    } else if (!inserted.data) {
+      throw new Error("Checkout could not be prepared");
+    } else {
+      session = inserted.data;
+    }
   }
 
   if (!session) throw new Error("Checkout session could not be prepared");
+  if (session.status === "finalized") {
+    return {
+      checkoutSessionId: session.id,
+      checkoutPaymentAttemptId: null,
+      alreadyFinalized: true,
+      orderId: session.final_order_id,
+      orderNumber: session.final_order_number,
+      paymentAttemptId: session.final_payment_attempt_id,
+      subtotalPaise: priced.subtotalPaise,
+      taxPaise: priced.taxEstimatePaise,
+      totalPaise: priced.estimatedTotalPaise,
+    };
+  }
 
-  const attempts = await admin.from("checkout_payment_attempts")
-    .select("id, attempt_number, status")
-    .eq("checkout_session_id", session.id)
-    .order("attempt_number", { ascending: false })
-    .limit(1);
-  if (attempts.error) throw new Error(attempts.error.message);
-  const latest = attempts.data?.[0];
-  let checkoutPaymentAttemptId = latest?.id as string | undefined;
-  if (!latest || !["created", "initiated", "pending"].includes(latest.status)) {
+  let checkoutPaymentAttemptId: string | undefined;
+  for (let retry = 0; retry < 3; retry += 1) {
+    const attempts = await admin.from("checkout_payment_attempts")
+      .select("id, attempt_number, status")
+      .eq("checkout_session_id", session.id)
+      .order("attempt_number", { ascending: false })
+      .limit(1);
+    if (attempts.error) throw new Error(attempts.error.message);
+    const latest = attempts.data?.[0];
+    if (latest && ["created", "initiated", "pending"].includes(latest.status)) {
+      checkoutPaymentAttemptId = latest.id;
+      break;
+    }
     const id = randomUUID();
     const attempt = await admin.from("checkout_payment_attempts").insert({
       id,
@@ -212,9 +242,13 @@ export async function submitSampleOrder(input: {
       customer_name: customerName,
       customer_phone: phoneE164(request.contact.phone),
     }).select("id").single();
-    if (attempt.error || !attempt.data) throw new Error(attempt.error?.message ?? "Payment attempt could not be prepared");
-    checkoutPaymentAttemptId = attempt.data.id;
+    if (!attempt.error && attempt.data) {
+      checkoutPaymentAttemptId = attempt.data.id;
+      break;
+    }
+    if (!isUniqueViolation(attempt.error)) throw new Error(attempt.error?.message ?? "Payment attempt could not be prepared");
   }
+  if (!checkoutPaymentAttemptId) throw new Error("Payment attempt could not be prepared safely");
 
   return {
     checkoutSessionId: session.id,

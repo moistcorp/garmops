@@ -89,25 +89,22 @@ export const ORDER_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
   ready_to_dispatch: ["dispatched", "packing", "on_hold", "cancelled"],
   dispatched: ["delivered", "on_hold"],
   delivered: [],
-  on_hold: [
-    "order_review",
-    "artwork_pending",
-    "artwork_approved",
-    "production_approved",
-    "material_preparation",
-    "printing",
-    "stitching",
-    "quality_check",
-    "packing",
-    "ready_to_dispatch",
-    "cancelled",
-  ],
+  on_hold: [],
   cancelled: ["refund_pending"],
   refund_pending: ["refunded"],
   refunded: [],
 };
 
-export function allowedNextStatusesForRole(status: OrderStatus, role: StaffRole) {
+export function allowedNextStatusesForRole(
+  status: OrderStatus,
+  role: StaffRole,
+  options?: { holdFromStatus?: OrderStatus | null; cancellationPending?: boolean },
+) {
+  if (status === "on_hold") {
+    const holdFromStatus = options?.holdFromStatus;
+    if (options?.cancellationPending || !holdFromStatus) return [];
+    return [holdFromStatus] as const;
+  }
   const transitions = ORDER_TRANSITIONS[status] ?? [];
   if (role !== "founder" && role !== "operations") return [];
   return transitions.filter(

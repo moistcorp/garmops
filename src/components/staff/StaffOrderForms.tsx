@@ -5,10 +5,7 @@ import {
   decideOrderCancellationAction,
   requestOrderCancellationAction,
   recordOrderRefundAction,
-  reopenOrderConfigurationAction,
   transitionOrderAction,
-  updateOrderNotesAction,
-  updateOrderConfigurationAction,
 } from "@/app/staff/actions";
 import { INITIAL_STAFF_ACTION_STATE } from "@/lib/staff/actionState";
 import { ORDER_STATUS_LABELS, type OrderStatus } from "@/lib/staff/statuses";
@@ -24,16 +21,6 @@ export function StatusTransitionForm({ orderId, orderNumber, nextStatuses }: { o
   return <form action={action} className="space-y-3"><input type="hidden" name="orderId" value={orderId} /><input type="hidden" name="orderNumber" value={orderNumber} /><label className="block text-xs font-semibold">Next stage<select name="toStatus" required className="mt-1 w-full rounded border border-black/10 bg-white px-3 py-2 text-sm">{nextStatuses.map((status) => <option key={status} value={status}>{ORDER_STATUS_LABELS[status]}</option>)}</select></label><label className="block text-xs font-semibold">Customer update<textarea name="customerMessage" rows={2} className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" placeholder="Optional customer-visible update" /></label><label className="block text-xs font-semibold">Internal note<textarea name="internalNote" rows={2} className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" /></label><label className="block text-xs font-semibold">Reason<textarea name="reason" rows={2} className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" placeholder="Required for holds, cancellations, and overrides" /></label><button disabled={pending} className="techpack-button w-full" type="submit">{pending ? "Updating…" : "Advance order"}</button><Result state={state} /></form>;
 }
 
-export function ConfigurationRevisionForm({ orderId, orderNumber, configuration, currentStatus }: { orderId: string; orderNumber: string; configuration: unknown; currentStatus: OrderStatus }) {
-  const [state, action, pending] = useActionState(updateOrderConfigurationAction, INITIAL_STAFF_ACTION_STATE);
-  return <form action={action} className="space-y-3"><input type="hidden" name="orderId" value={orderId} /><input type="hidden" name="orderNumber" value={orderNumber} />{currentStatus === "production_approved" ? <p className="rounded border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">Changing manufacturing details will invalidate production approval, reset active artwork approvals, and return this order to Artwork Review.</p> : null}<label className="block text-xs font-semibold">Configuration JSON<textarea name="configuration" defaultValue={JSON.stringify(configuration, null, 2)} rows={14} spellCheck={false} className="mt-1 w-full rounded border border-black/10 bg-[#fbfaf8] px-3 py-2 font-mono text-xs" /></label><label className="block text-xs font-semibold">Reason for change<textarea name="reason" required minLength={3} rows={2} className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" /></label><p className="text-xs leading-relaxed text-black/45">Garment type, quantity, printing technique, and artwork file identity are controlled separately and cannot be rewritten here.</p><button disabled={pending} className="techpack-button w-full" type="submit">{pending ? "Saving…" : "Save revision"}</button><Result state={state} /></form>;
-}
-
-export function AdministrativeOrderNotesForm({ orderId, orderNumber, orderNotes }: { orderId: string; orderNumber: string; orderNotes: string }) {
-  const [state, action, pending] = useActionState(updateOrderNotesAction, INITIAL_STAFF_ACTION_STATE);
-  return <form action={action} className="space-y-3"><input type="hidden" name="orderId" value={orderId} /><input type="hidden" name="orderNumber" value={orderNumber} /><label className="block text-xs font-semibold">Administrative order note<textarea name="orderNotes" defaultValue={orderNotes} maxLength={2000} rows={3} className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" /></label><label className="block text-xs font-semibold">Reason<textarea name="reason" required minLength={3} rows={2} className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" /></label><p className="text-xs leading-relaxed text-black/45">This note does not change garment, artwork, quantities, or production status.</p><button disabled={pending} className="w-full rounded border border-black/10 px-3 py-2 text-sm font-semibold" type="submit">{pending ? "Saving…" : "Save administrative note"}</button><Result state={state} /></form>;
-}
-
 export function CancellationRequestForm({ orderId, orderNumber }: { orderId: string; orderNumber: string }) {
   const [state, action, pending] = useActionState(requestOrderCancellationAction, INITIAL_STAFF_ACTION_STATE);
   return <form action={action} className="space-y-3"><input type="hidden" name="orderId" value={orderId} /><input type="hidden" name="orderNumber" value={orderNumber} /><label className="block text-xs font-semibold">Cancellation reason<textarea name="reason" required minLength={3} rows={3} className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" placeholder="Explain why the paid order must be cancelled and replaced." /></label><button disabled={pending} className="w-full rounded border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-800" type="submit">{pending ? "Submitting…" : "Request cancellation"}</button><Result state={state} /></form>;
@@ -42,12 +29,6 @@ export function CancellationRequestForm({ orderId, orderNumber }: { orderId: str
 export function CancellationDecisionForm({ requestId, orderNumber }: { requestId: string; orderNumber: string }) {
   const [state, action, pending] = useActionState(decideOrderCancellationAction, INITIAL_STAFF_ACTION_STATE);
   return <form action={action} className="space-y-3"><input type="hidden" name="requestId" value={requestId} /><input type="hidden" name="orderNumber" value={orderNumber} /><label className="block text-xs font-semibold">Founder decision<select name="decision" className="mt-1 w-full rounded border border-black/10 bg-white px-3 py-2 text-sm"><option value="approve">Approve cancellation</option><option value="reject">Reject request</option></select></label><label className="block text-xs font-semibold">Decision note<textarea name="note" rows={2} className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" /></label><button disabled={pending} className="techpack-button w-full" type="submit">{pending ? "Saving…" : "Save Founder decision"}</button><Result state={state} /></form>;
-}
-
-
-export function ReopenConfigurationForm({ orderId, orderNumber }: { orderId: string; orderNumber: string }) {
-  const [state, action, pending] = useActionState(reopenOrderConfigurationAction, INITIAL_STAFF_ACTION_STATE);
-  return <form action={action} className="space-y-3"><input type="hidden" name="orderId" value={orderId} /><input type="hidden" name="orderNumber" value={orderNumber} /><p className="rounded border border-red-200 bg-red-50 p-3 text-xs text-red-900">This order is already in physical production. Opening a revision pauses production and returns it to Artwork Review. The previous status and configuration are preserved in the audit trail.</p><label className="block text-xs font-semibold">Founder revision reason<textarea name="reason" required minLength={3} rows={2} className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" /></label><button disabled={pending} className="w-full rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900" type="submit">{pending ? "Opening…" : "Open controlled production revision"}</button><Result state={state} /></form>;
 }
 
 export function RefundForm({ orderId, orderNumber, status }: { orderId: string; orderNumber: string; status: "cancelled" | "refund_pending" }) {

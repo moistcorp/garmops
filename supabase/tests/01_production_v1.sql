@@ -1,7 +1,7 @@
 create extension if not exists pgtap with schema extensions;
 begin;
 set local search_path = public, extensions;
-select plan(44);
+select plan(46);
 select has_table('public','account_principals','account type registry exists');
 select has_table('public','staff_members','staff registry exists');
 select ok(to_regclass('public.organizations') is null,'organizations removed');
@@ -20,7 +20,9 @@ select has_function('public','customer_payment_summaries',array['uuid'],'custome
 select has_function('public','staff_payment_summaries',array['uuid'],'staff-safe payment summary exists');
 select has_function('public','decide_order_cancellation',array['uuid','boolean','text'],'Founder cancellation decision exists');
 select has_function('public','record_order_refund',array['uuid','boolean','text','text'],'Founder refund evidence RPC exists');
-select has_function('public','reopen_order_configuration',array['uuid','text'],'Founder controlled reopen exists');
+select ok(to_regprocedure('public.reopen_order_configuration(uuid,text)') is null,'Founder configuration reopen RPC removed');
+select ok(to_regprocedure('public.update_order_configuration(uuid,jsonb,text)') is null,'paid-order configuration RPC removed');
+select ok(to_regprocedure('public.update_order_configuration_validated(uuid,jsonb,text)') is null,'validated configuration RPC removed');
 select ok(to_regprocedure('public.finalize_staff_quote_offline_payment(uuid,text,uuid,jsonb)') is null,'offline payment finalizer removed');
 select is((select array_agg(e.enumlabel order by e.enumsortorder)::text from pg_enum e join pg_type t on t.oid=e.enumtypid where t.typname='staff_role'),'{'||'founder,operations'||'}','only Founder and Operations roles exist');
 select ok((select relrowsecurity from pg_class where oid='public.orders'::regclass),'orders RLS enabled');

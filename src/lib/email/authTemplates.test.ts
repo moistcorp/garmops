@@ -15,7 +15,6 @@ describe("Supabase authentication email templates", () => {
     "confirmation.html",
     "magic-link.html",
     "recovery.html",
-    "invite.html",
   ])("uses the current Garmops identity in %s", (templateName) => {
     const template = readTemplate(templateName);
 
@@ -36,8 +35,7 @@ describe("Supabase authentication email templates", () => {
     },
   );
 
-  it("keeps recovery and invitation actions link-based", () => {
+  it("keeps recovery actions link-based", () => {
     expect(readTemplate("recovery.html")).toContain("type=recovery");
-    expect(readTemplate("invite.html")).toContain("type=invite");
   });
 });

@@ -35,7 +35,7 @@ function safeSubmissionError(error: unknown): {
       code: "SAMPLE_CART_CHANGED",
     };
   }
-  if (/idempotency key request hash mismatch/i.test(internal)) {
+  if (/idempotency key request hash mismatch|IDEMPOTENCY_CONFLICT/i.test(internal)) {
     return {
       message: "Checkout details changed. Refresh and submit again.",
       status: 409,

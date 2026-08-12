@@ -20,6 +20,23 @@ import { captureServerAnalytics, customerAllowsAnalytics } from "@/lib/analytics
 type IncomingSource = "callback" | "webhook";
 type PaymentOutcome = "success" | "failure" | "pending";
 
+type PayuCredentials = {
+  PAYU_MERCHANT_KEY?: string;
+  PAYU_SALT?: string;
+};
+
+export function isPayuResponseCryptographicallyAuthentic(
+  fields: PayuIncomingFields,
+  credentials: PayuCredentials,
+): boolean {
+  return Boolean(
+    credentials.PAYU_MERCHANT_KEY &&
+      credentials.PAYU_SALT &&
+      fields.key === credentials.PAYU_MERCHANT_KEY &&
+      verifyPaymentResponseHash(fields, credentials.PAYU_SALT),
+  );
+}
+
 function toJson(value: unknown): Json {
   return JSON.parse(JSON.stringify(value)) as Json;
 }
@@ -383,6 +400,9 @@ async function processCheckoutPayuEvent(
 
   const admin = checkoutAdmin();
   const environment = getServerEnvironment();
+  if (!isPayuResponseCryptographicallyAuthentic(fields, environment)) {
+    throw new Error("Invalid PayU response hash");
+  }
   const fingerprint = paymentEventFingerprint(source, fingerprintPayload(fields));
   const { data: inserted, error: insertError } = await admin
     .from("checkout_payment_events")
@@ -393,7 +413,7 @@ async function processCheckoutPayuEvent(
       provider_event_id: fields.mihpayid || null,
       event_fingerprint: fingerprint,
       event_type: fields.status || "unknown",
-      authentic: false,
+      authentic: true,
       processed: false,
       payload: storedPayload(fields),
     })
@@ -437,17 +457,8 @@ async function processCheckoutPayuEvent(
     throw new Error("Checkout payment event could not be persisted");
   }
 
-  let responseAuthentic = false;
+  const responseAuthentic = true;
   try {
-    if (
-      !environment.PAYU_MERCHANT_KEY ||
-      !environment.PAYU_SALT ||
-      fields.key !== environment.PAYU_MERCHANT_KEY ||
-      !verifyPaymentResponseHash(fields, environment.PAYU_SALT)
-    ) {
-      throw new Error("Invalid PayU response hash");
-    }
-
     const expectedAmount = parseRupeesToPaise(fields.amount);
     const expectedFirstName =
       attempt.customer_name.trim().split(/\s+/)[0]?.slice(0, 60) || "Customer";
@@ -465,7 +476,6 @@ async function processCheckoutPayuEvent(
       throw new Error("PayU response does not match the checkout payment");
     }
 
-    responseAuthentic = true;
     const { error: authenticError } = await admin
       .from("checkout_payment_events")
       .update({ authentic: true })
@@ -550,6 +560,9 @@ export async function processPayuEvent(
   const order = Array.isArray(attempt.orders) ? attempt.orders[0] : attempt.orders;
   if (!order?.order_number) throw new Error("Payment order is unavailable");
   const orderNumber = order.order_number;
+  if (!isPayuResponseCryptographicallyAuthentic(fields, environment)) {
+    throw new Error("Invalid PayU response hash");
+  }
   const fingerprint = paymentEventFingerprint(source, fingerprintPayload(fields));
   const { data: inserted, error: insertError } = await admin
     .from("payment_events")
@@ -560,7 +573,7 @@ export async function processPayuEvent(
       provider_event_id: fields.mihpayid || null,
       event_fingerprint: fingerprint,
       event_type: fields.status || "unknown",
-      authentic: false,
+      authentic: true,
       processed: false,
       payload: storedPayload(fields) as Json,
     })
@@ -584,17 +597,8 @@ export async function processPayuEvent(
     throw new Error("Payment event could not be persisted");
   }
 
-  let responseAuthentic = false;
+  const responseAuthentic = true;
   try {
-    if (
-      !environment.PAYU_MERCHANT_KEY ||
-      !environment.PAYU_SALT ||
-      fields.key !== environment.PAYU_MERCHANT_KEY ||
-      !verifyPaymentResponseHash(fields, environment.PAYU_SALT)
-    ) {
-      throw new Error("Invalid PayU response hash");
-    }
-
     const expectedAmount = parseRupeesToPaise(fields.amount);
     const expectedFirstName =
       attempt.customer_name.trim().split(/\s+/)[0]?.slice(0, 60) || "Customer";
@@ -612,7 +616,6 @@ export async function processPayuEvent(
       throw new Error("PayU response does not match the payment attempt");
     }
 
-    responseAuthentic = true;
     const { error: authenticError } = await admin
       .from("payment_events")
       .update({ authentic: true })

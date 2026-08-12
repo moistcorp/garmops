@@ -1,7 +1,7 @@
 create extension if not exists pgtap with schema extensions;
 begin;
 set local search_path = public, extensions;
-select plan(50);
+select plan(73);
 
 insert into public.orders(
   id,order_number,order_type,order_source,customer_user_id,status,public_status,
@@ -157,54 +157,17 @@ select throws_ok(
   'P0001','ARTWORK_UPLOAD_LOCKED','customer upload is blocked after production approval'
 );
 
-select set_config('request.jwt.claims','{"sub":"55555555-5555-4555-8555-555555555555","role":"authenticated","aal":"aal2"}',true);
-select lives_ok(
-  $$select public.update_order_configuration(
-    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-    jsonb_set((select configuration_snapshot from public.orders where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),'{design,configuration,colour,name}','"Navy"'),
-    'Customer approved colour correction')$$,
-  'production-approved manufacturing edit creates an audited revision'
-);
-select is((select status::text from public.orders where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),'artwork_pending','production-approved edit returns order to artwork review');
-select is((select review_status::text from public.order_files where id=(select file_id from public.order_artwork_requirements where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and is_active)),'pending_review','configuration revision invalidates active artwork approval');
+select ok(to_regprocedure('public.update_order_configuration(uuid,jsonb,text)') is null,'paid-order configuration mutation RPC is unavailable');
+select ok(to_regprocedure('public.reopen_order_configuration(uuid,text)') is null,'Founder configuration reopen RPC is unavailable');
 
 reset role;
-update public.orders set status='printing',public_status='in_production'
+update public.orders set status='artwork_pending',public_status='artwork_under_review'
 where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+update public.order_files set review_status='pending_review'
+where id=(select file_id from public.order_artwork_requirements where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and is_active);
 set local role authenticated;
 select set_config('request.jwt.claims','{"sub":"55555555-5555-4555-8555-555555555555","role":"authenticated","aal":"aal2"}',true);
-select throws_ok(
-  $$select public.update_order_configuration(
-    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-    jsonb_set((select configuration_snapshot from public.orders where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),'{design,configuration,colour,name}','"Green"'),
-    'Unsafe live production change')$$,
-  'P0001','ORDER_PRODUCTION_LOCKED','normal manufacturing edit is rejected during printing'
-);
-select lives_ok(
-  $$select public.update_order_configuration(
-    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-    jsonb_set((select configuration_snapshot from public.orders where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),'{orderNotes}','"Call before dispatch"'),
-    'Administrative delivery note')$$,
-  'administrative note remains editable during printing'
-);
-select is((select status::text from public.orders where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),'printing','administrative edit does not rewind production');
-
-select set_config('request.jwt.claims','{"sub":"44444444-4444-4444-8444-444444444444","role":"authenticated","aal":"aal2"}',true);
-select lives_ok(
-  $$select public.reopen_order_configuration('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','Customer authorised a controlled colour revision')$$,
-  'Founder can explicitly pause physical production for revision'
-);
-select is((select status::text from public.orders where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),'artwork_pending','controlled production revision pauses at artwork review');
-
-select set_config('request.jwt.claims','{"sub":"55555555-5555-4555-8555-555555555555","role":"authenticated","aal":"aal2"}',true);
-select lives_ok(
-  $$select public.update_order_configuration(
-    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-    jsonb_set((select configuration_snapshot from public.orders where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),'{design,configuration,colour,name}','"Green"'),
-    'Apply Founder-authorised revision')$$,
-  'manufacturing edit succeeds only after controlled production revision'
-);
-select is((select previous_order_status::text from public.order_configuration_revisions where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' order by revision_number desc limit 1),'printing','revision audit preserves previous physical production status');
+select ok((select status::text from public.orders where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa') = 'artwork_pending','configuration removal leaves operational status unchanged');
 
 select lives_ok(
   $$select public.review_artwork_file(
@@ -260,11 +223,12 @@ set upload_status='finalized', finalized_at=now(), deleted_at=null,
 where id=(select file_id from public.order_artwork_requirements where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and is_active);
 set local role authenticated;
 select set_config('request.jwt.claims','{"sub":"55555555-5555-4555-8555-555555555555","role":"authenticated","aal":"aal2"}',true);
-select lives_ok(
+select throws_ok(
   $$select public.review_artwork_file((select file_id from public.order_artwork_requirements where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and is_active),'approved',null)$$,
-  'staff approval can review a file still awaiting malware scan'
+  'P0001','ARTWORK_SCAN_REQUIRED','staff approval cannot bypass a pending malware scan'
 );
-select is((select scan_status::text from public.order_files where id=(select file_id from public.order_artwork_requirements where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and is_active)),'pending_scan','pending malware state is not promoted by human approval');
+select is((select review_status::text from public.order_files where id=(select file_id from public.order_artwork_requirements where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and is_active)),'pending_review','pending malware approval leaves human review pending');
+select is((select scan_status::text from public.order_files where id=(select file_id from public.order_artwork_requirements where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and is_active)),'pending_scan','pending malware state remains independent');
 
 reset role;
 set local role service_role;
@@ -273,12 +237,48 @@ set upload_status='finalized', finalized_at=now(), deleted_at=null,
     review_status='pending_review', scan_status='infected'
 where id=(select file_id from public.order_artwork_requirements where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and is_active);
 set local role authenticated;
-select lives_ok(
+select throws_ok(
   $$select public.review_artwork_file((select file_id from public.order_artwork_requirements where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and is_active),'approved',null)$$,
-  'staff approval can never overwrite an infected scanner result'
+  'P0001','ARTWORK_SCAN_REQUIRED','staff approval cannot bypass an infected malware scan'
 );
+select is((select review_status::text from public.order_files where id=(select file_id from public.order_artwork_requirements where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and is_active)),'pending_review','infected malware approval leaves human review pending');
 select is((select scan_status::text from public.order_files where id=(select file_id from public.order_artwork_requirements where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and is_active)),'infected','infected malware state remains terminal');
 
+reset role;
+set local role service_role;
+update public.orders set status='artwork_pending', public_status='artwork_under_review'
+where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+update public.order_files
+set upload_status='finalized', finalized_at=now(), deleted_at=null,
+    review_status='pending_review', scan_status='not_required'
+where id=(select file_id from public.order_artwork_requirements where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and is_active);
+set local role authenticated;
+select lives_ok(
+  $$select public.review_artwork_file((select file_id from public.order_artwork_requirements where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and is_active),'approved',null)$$,
+  'not-required artwork can be approved for human review'
+);
+select lives_ok(
+  $$select public.staff_transition_order('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','artwork_approved',null,null,null)$$,
+  'not-required artwork can pass artwork approval'
+);
+select lives_ok(
+  $$select public.staff_transition_order('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','production_approved',null,null,null)$$,
+  'not-required artwork can pass production approval'
+);
+
+reset role;
+update public.orders set status='artwork_pending', public_status='artwork_under_review'
+where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+set local role service_role;
+update public.order_files
+set upload_status='finalized', finalized_at=now(), deleted_at=null,
+    review_status='pending_review', scan_status='infected'
+where id=(select file_id from public.order_artwork_requirements where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and is_active);
+set local role authenticated;
+select throws_ok(
+  $$select public.staff_transition_order('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','artwork_approved',null,null,null)$$,
+  'P0001','ARTWORK_APPROVAL_REQUIRED','unsafe artwork cannot pass artwork approval'
+);
 reset role;
 update public.orders set status='artwork_approved', public_status='approved_for_production'
 where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
@@ -304,6 +304,83 @@ select lives_ok(
   'clean and approved artwork can pass production approval'
 );
 select is((select status::text from public.orders where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),'production_approved','production approval succeeds only after clean scan');
+reset role;
+select is(public.is_order_transition_allowed('on_hold','quality_check'),false,'database transition graph exposes no generic on-hold resume');
+select is(public.is_order_transition_allowed('on_hold','printing'),false,'database transition graph requires the persisted hold origin');
+set local role authenticated;
+
+select set_config('request.jwt.claims','{"sub":"55555555-5555-4555-8555-555555555555","role":"authenticated","aal":"aal2"}',true);
+select lives_ok(
+  $$select public.staff_transition_order('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','on_hold',null,null,'Pause for operational review')$$,
+  'normal hold transition records a resumable pause'
+);
+select is((select hold_from_status::text from public.orders where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),'production_approved','normal hold records the prior stage');
+select throws_ok(
+  $$select public.staff_transition_order('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','quality_check',null,null,null)$$,
+  'P0001','INVALID_HOLD_RESUME','on-hold orders cannot skip their saved prior stage'
+);
+select lives_ok(
+  $$select public.staff_transition_order('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','production_approved',null,null,null)$$,
+  'normal hold resumes only to its saved prior stage'
+);
+select lives_ok(
+  $$select public.request_order_cancellation('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','Customer cancellation review')$$,
+  'cancellation request immediately places the order on hold'
+);
+select is((select status::text from public.orders where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),'on_hold','cancellation request changes operational status to on hold');
+select is((select hold_from_status::text from public.orders where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),'production_approved','hold stores the exact prior operational status');
+select is((select requested_from_status::text from public.cancellation_requests where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and status='pending'),'production_approved','cancellation stores the exact requested-from status');
+select throws_ok(
+  $$select public.request_order_cancellation('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','Duplicate cancellation request')$$,
+  'P0001','CANCELLATION_ALREADY_PENDING','only one cancellation request can be pending'
+);
+select throws_ok(
+  $$select public.staff_transition_order('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','production_approved',null,null,null)$$,
+  'P0001','CANCELLATION_PENDING','pending cancellation blocks manual resume'
+);
+
+select set_config('request.jwt.claims','{"sub":"44444444-4444-4444-8444-444444444444","role":"authenticated","aal":"aal2"}',true);
+select lives_ok(
+  $$select public.decide_order_cancellation((select id from public.cancellation_requests where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and status='pending'),false,'Keep order in production')$$,
+  'Founder rejection resumes the exact prior status'
+);
+select is((select status::text from public.orders where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),'production_approved','rejected cancellation restores the saved status');
+select is((select hold_from_status from public.orders where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa') is null,true,'rejected cancellation clears the hold origin');
+select is((select status from public.cancellation_requests where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' order by created_at desc limit 1),'rejected','cancellation decision is durably recorded');
+
+select set_config('request.jwt.claims','{"sub":"55555555-5555-4555-8555-555555555555","role":"authenticated","aal":"aal2"}',true);
+select lives_ok(
+  $$select public.request_order_cancellation('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','Final cancellation review')$$,
+  'a new cancellation can be requested after rejection'
+);
+select set_config('request.jwt.claims','{"sub":"44444444-4444-4444-8444-444444444444","role":"authenticated","aal":"aal2"}',true);
+select lives_ok(
+  $$select public.decide_order_cancellation((select id from public.cancellation_requests where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and status='pending'),true,'Cancel and refund')$$,
+  'Founder approval cancels the held order'
+);
+select is((select status::text from public.orders where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),'cancelled','approved cancellation reaches cancelled');
+select is((select status from public.cancellation_requests where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and status='approved' order by created_at desc limit 1),'approved','approved cancellation is durably recorded');
+
+reset role;
+update public.orders set status='production_approved', public_status='approved_for_production', hold_from_status=null
+where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+set local role authenticated;
+select set_config('request.jwt.claims','{"sub":"55555555-5555-4555-8555-555555555555","role":"authenticated","aal":"aal2"}',true);
+select lives_ok(
+  $$select public.request_order_cancellation('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','Stale request test')$$,
+  'test cancellation request can be created before a stale transition'
+);
+reset role;
+update public.orders set status='printing', public_status='in_production', hold_from_status=null
+where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+set local role authenticated;
+select set_config('request.jwt.claims','{"sub":"44444444-4444-4444-8444-444444444444","role":"authenticated","aal":"aal2"}',true);
+select throws_ok(
+  $$select public.decide_order_cancellation((select id from public.cancellation_requests where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and status='pending'),true,'Stale approval')$$,
+  'P0001','STALE_CANCELLATION_REQUEST','stale cancellation decisions fail closed'
+);
+select is((select status::text from public.orders where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),'printing','stale cancellation does not overwrite current order status');
+select is((select status from public.cancellation_requests where order_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and status='pending' order by created_at desc limit 1),'pending','stale cancellation remains pending for explicit reconciliation');
 
 select ok(has_table_privilege('authenticated','public.customer_privacy_preferences','SELECT'),'authenticated customers can read their privacy preference through RLS');
 select ok(has_table_privilege('authenticated','public.privacy_requests','INSERT'),'authenticated customers can submit privacy requests through RLS');

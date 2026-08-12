@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     const message = error instanceof Error ? error.message : "Checkout could not be prepared";
     const status = /access|required|belong/i.test(message)
       ? 403
-      : /unavailable|expired|match|changed|linked|discount/i.test(message)
+      : /unavailable|expired|match|changed|idempotency|linked|discount/i.test(message)
         ? 409
         : 422;
     return orderJsonError(message, status);
