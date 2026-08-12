@@ -70,9 +70,8 @@ function makeDefaultSide(
     fromCenter: 0,
     printArea: DEFAULT_ARTWORK_PRINT_AREA,
     guidelines: {
-      ...previous?.guidelines,
       maximumArea: true,
-      leftChest: previous?.guidelines?.leftChest ?? false,
+      leftChest: false,
     },
     confirmed: false,
     ...diagnostics,

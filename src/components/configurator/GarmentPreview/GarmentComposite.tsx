@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
+import type { GarmentRenderProfile } from "./garmentAssets";
 
 const MAX_STANDARD_RENDER_DIMENSION = 1400;
 const MAX_PHOTOGRAPHIC_RENDER_DIMENSION = 3000;
@@ -14,6 +15,7 @@ interface GarmentCompositeProps {
   shadowSrc: string;
   highlightSrc: string;
   colourHex: string;
+  renderProfile: GarmentRenderProfile;
   cacheScope: string;
   exclusiveCacheScope?: boolean;
   className?: string;
@@ -209,7 +211,7 @@ function trimLayerCache(): void {
 
 function getRenderDimension(
   canvas: HTMLCanvasElement,
-  renderProfile: "standard" | "photographic"
+  renderProfile: GarmentRenderProfile
 ): number {
   const cssDimension = Math.max(canvas.clientWidth, canvas.clientHeight);
   const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
@@ -496,7 +498,7 @@ function renderComposite(
   context: CanvasRenderingContext2D,
   layers: LayerPixels,
   colourHex: string,
-  renderProfile: "standard" | "photographic"
+  renderProfile: GarmentRenderProfile
 ): void {
   if (renderProfile === "photographic") {
     renderPhotographicComposite(context, layers, colourHex);
@@ -512,20 +514,12 @@ export default function GarmentComposite({
   shadowSrc,
   highlightSrc,
   colourHex,
+  renderProfile,
   cacheScope,
   exclusiveCacheScope = false,
   className = "absolute inset-0 h-full w-full object-contain",
 }: GarmentCompositeProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  // The Regular Fit Tee front, back and neck now use photographed detail plates.
-  // Keep this derived from highlightSrc rather than adding another hook dependency:
-  // highlightSrc is already in the effect dependency list, so view changes still
-  // invalidate correctly without changing the hook dependency-array shape during
-  // Next.js Fast Refresh.
-  const renderProfile: "standard" | "photographic" =
-    /\/garments\/regular-fit-tee\/(?:front|back|neck)\/highlight\./.test(highlightSrc)
-      ? "photographic"
-      : "standard";
   const assetKey = useMemo(
     () => [maskSrc, textureSrc, shadowSrc, highlightSrc].join("|"),
     [maskSrc, textureSrc, shadowSrc, highlightSrc]

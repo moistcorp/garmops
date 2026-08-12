@@ -2,7 +2,10 @@ import type { ProductId } from "@/lib/configurator/pricing";
 import type { GarmentView } from "@/lib/configurator/types/garment";
 import type { ArtworkPlacementArea } from "@/lib/configurator/sizecharts";
 import { getSizeChart } from "@/lib/sizecharts";
-import { getGarmentFolder } from "@/components/configurator/GarmentPreview/garmentAssets";
+import {
+  getGarmentFolder,
+  getGarmentRenderConfig,
+} from "@/components/configurator/GarmentPreview/garmentAssets";
 import {
   CANVAS_PX,
   PRINT_ORIGIN_PX,
@@ -118,10 +121,7 @@ function getBodyLengthInches(productId: ProductId, calibration: GarmentCalibrati
 }
 
 export function getGarmentInsetPercent(productId: ProductId, view: GarmentView): number {
-  const folder = getGarmentFolder(productId);
-  if (folder === "regular-fit-tee" && (view === "front" || view === "back")) return 1;
-  if (view === "front" || view === "back") return -8.3;
-  return 2;
+  return getGarmentRenderConfig(productId, view).insetPercent;
 }
 
 export function getGarmentPrintArea(
@@ -141,7 +141,12 @@ export function getGarmentPrintArea(
   const imageWidth = innerSize;
   const imageHeight = imageWidth / calibration.assetAspectRatio;
   const imageLeft = inset;
-  const imageTop = (CANVAS_PX.height - imageHeight) / 2 + inset;
+  // object-fit: contain vertically centres the bitmap inside the inset frame.
+  // Preserve the benchmark tee's established geometry, while matching the
+  // actual CSS frame for every newly calibrated asset set.
+  const imageTop =
+    (CANVAS_PX.height - imageHeight) / 2 +
+    (folder === "regular-fit-tee" ? inset : 0);
   const xFromAsset = (normalized: number) => imageLeft + normalized * imageWidth;
   const yFromAsset = (normalized: number) => imageTop + normalized * imageHeight;
 

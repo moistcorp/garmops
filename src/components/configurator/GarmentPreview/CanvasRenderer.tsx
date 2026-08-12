@@ -29,7 +29,11 @@ import {
   LEFT_CHEST_PLACEMENT,
 } from "@/components/configurator/ConfiguratorSidebar/ArtworkPanel/GuidelinesToggles";
 import GarmentComposite, { getDisplayPreviewHex } from "./GarmentComposite";
-import { garmentAssetPath, getGarmentFolder } from "./garmentAssets";
+import {
+  garmentAssetPath,
+  getGarmentFolder,
+  getGarmentRenderConfig,
+} from "./garmentAssets";
 import { useGarmentAssetPrefetch } from "./useGarmentAssetPrefetch";
 
 // Matches the small top margin PositionControls/the box default use as the
@@ -307,6 +311,7 @@ export default function CanvasRenderer({
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const [dragMode, setDragMode] = useState<DragMode | null>(null);
   const garmentFolder = getGarmentFolder(productId);
+  const garmentRenderConfig = getGarmentRenderConfig(productId, view);
   useGarmentAssetPrefetch(productId, view);
 
   const garmentInsetPercent = getGarmentInsetPercent(productId, view);
@@ -386,8 +391,19 @@ export default function CanvasRenderer({
       activeArtwork?.technique &&
       printAreaDims
   );
-  const showMaxArea = showProductionGuides && interactive && showBox && !!activeArtwork && !!printAreaDims;
-  const showLeftChest = showProductionGuides && interactive && showBox && !!activeArtwork?.guidelines.leftChest;
+  const showMaxArea =
+    showProductionGuides &&
+    interactive &&
+    showBox &&
+    !!activeArtwork?.guidelines.maximumArea &&
+    !!printAreaDims;
+  const showLeftChest =
+    showProductionGuides &&
+    interactive &&
+    view === "front" &&
+    !productId.includes("tote") &&
+    showBox &&
+    !!activeArtwork?.guidelines.leftChest;
 
   const maxAreaWidthPx = printAreaDims ? printAreaDims.rightPx - printAreaDims.leftPx : 0;
   const maxAreaHeightPx = printAreaDims ? printAreaDims.bottomPx - printAreaDims.topPx : 0;
@@ -581,6 +597,7 @@ export default function CanvasRenderer({
           shadowSrc={garmentAssetPath(productId, view, "shadow")}
           highlightSrc={garmentAssetPath(productId, view, "highlight")}
           colourHex={colourHex}
+          renderProfile={garmentRenderConfig.profile}
           cacheScope={garmentFolder ?? productId}
           exclusiveCacheScope={exclusiveLayerCache}
         />
@@ -657,7 +674,7 @@ export default function CanvasRenderer({
         <div
           role="presentation"
           aria-label="Maximum print area guideline"
-          className="pointer-events-none absolute z-[15] border-[0.5px] border-dashed border-[#B534CC]/32"
+          className="pointer-events-none absolute z-[15] border border-dashed border-[#B534CC]/70"
           style={{
             left: `${(maxAreaLeftPx / CANVAS_SIZE.width) * 100}%`,
             top: `${(maxAreaTopPx / CANVAS_SIZE.height) * 100}%`,
@@ -682,7 +699,7 @@ export default function CanvasRenderer({
         <div
           role="presentation"
           aria-label="Left chest print guideline"
-          className="pointer-events-none absolute z-[15] border-[0.5px] border-dashed border-[#B534CC]/32"
+          className="pointer-events-none absolute z-[15] border border-dashed border-[#B534CC]/70"
           style={{
             left: `${(chestLeftPx / CANVAS_SIZE.width) * 100}%`,
             top: `${(chestTopPx / CANVAS_SIZE.height) * 100}%`,

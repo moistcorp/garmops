@@ -8,6 +8,7 @@ import {
 } from "./ArtworkUploadSide";
 import { TechniqueSelect, TECHNIQUE_LABELS } from "./TechniqueSelect";
 import { PositionControls } from "./PositionControls";
+import { GuidelinesToggles } from "./GuidelinesToggles";
 import {
   constrainArtworkToPrintArea,
   useArtworkPosition,
@@ -20,7 +21,6 @@ import {
   BACK_PLACEMENT_PRESETS,
   placementLabel,
 } from "@/lib/configurator/artworkPlacement";
-import { getArtworkQuality } from "@/lib/configurator/artworkQuality";
 import { getGarmentInsetPercent, getGarmentPrintArea } from "@/lib/configurator/garmentGeometry";
 import type { ProductId } from "@/lib/configurator/pricing";
 import type {
@@ -215,13 +215,25 @@ export function ArtworkPanel({ productId, value, onChange, activeView, onViewCha
     onViewChange?.(side);
   }
 
+  function updateGuidelines(side: Side, guidelines: ArtworkSide["guidelines"]) {
+    const currentSide = artwork[side];
+    if (!currentSide) return;
+    commit({
+      ...artwork,
+      [side]: {
+        ...currentSide,
+        guidelines,
+      },
+    });
+    onViewChange?.(side);
+  }
+
   const panelSide: Side = activeView === "back" ? "back" : activeView === "front" ? "front" : activeSide;
   const current = artwork[panelSide];
   const placementArea = getPlacementArea(panelSide);
   const selectedTechnique = isCustomerArtworkTechnique(current?.technique) ? current.technique : undefined;
   const placementPresets = panelSide === "front" ? FRONT_PLACEMENT_PRESETS : BACK_PLACEMENT_PRESETS;
   const selectedPlacement = current?.placementPreset ?? "custom";
-  const quality = getArtworkQuality(current);
 
   return (
     <div className="flex flex-col gap-3.5 text-sm text-(--text-primary)">
@@ -284,16 +296,14 @@ export function ArtworkPanel({ productId, value, onChange, activeView, onViewCha
                 </div>
 
                 <div onFocusCapture={() => onViewChange?.(panelSide)} onPointerDownCapture={() => onViewChange?.(panelSide)}>
-                    <PositionControls printAreaDimensions={placementArea} view={panelSide} />
+                  <PositionControls printAreaDimensions={placementArea} view={panelSide} />
                 </div>
 
-                {quality && (
-                  <div role="status">
-                    <p className="text-xs font-semibold">Artwork quality</p>
-                    <p className={`mt-0.5 text-sm font-medium ${quality.label.includes("soft") ? "text-[#8A6212]" : "text-(--color-accent-dark)"}`}>{quality.label}</p>
-                    {quality.detail && <p className="mt-1 text-xs leading-relaxed text-(--text-primary)/55">{quality.detail}</p>}
-                  </div>
-                )}
+                <GuidelinesToggles
+                  value={current.guidelines}
+                  onChange={(guidelines) => updateGuidelines(panelSide, guidelines)}
+                  showLeftChest={panelSide === "front" && !productId?.includes("tote")}
+                />
 
               </section>
             )}
