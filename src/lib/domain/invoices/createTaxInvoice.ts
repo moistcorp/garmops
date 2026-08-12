@@ -29,7 +29,7 @@ export async function createTaxInvoiceForOrder(orderId: string) {
       .eq("kind", "tax_invoice")
       .single(),
     admin.from("orders")
-      .select("id, order_number, customer_user_id, amount_paid_paise, billing_snapshot, shipping_snapshot")
+      .select("id, order_number, created_at, customer_user_id, amount_paid_paise, billing_snapshot, shipping_snapshot")
       .eq("id", orderId)
       .single(),
   ]);
@@ -76,11 +76,20 @@ export async function createTaxInvoiceForOrder(orderId: string) {
   const generated = buildInvoicePdf({
     number: invoiceNumber,
     issuedAt,
+    orderNumber: order.order_number,
+    orderDate: order.created_at,
+    placeOfSupply: typeof invoice.place_of_supply === "string" ? invoice.place_of_supply : null,
     seller: {
       legalName: env.INVOICE_SELLER_LEGAL_NAME,
       address: env.INVOICE_SELLER_ADDRESS,
       gstin: env.INVOICE_SELLER_GSTIN,
       state: env.INVOICE_SELLER_STATE,
+      bank: {
+        name: env.INVOICE_SELLER_BANK_NAME,
+        accountNumber: env.INVOICE_SELLER_BANK_ACCOUNT_NUMBER,
+        ifsc: env.INVOICE_SELLER_BANK_IFSC,
+      },
+      msme: env.INVOICE_SELLER_MSME,
     },
     buyer: {
       name: String(buyerSnapshot.entity ?? buyerSnapshot.name ?? "Customer"),

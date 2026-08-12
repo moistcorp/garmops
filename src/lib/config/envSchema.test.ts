@@ -10,6 +10,10 @@ describe("server environment validation", () => {
     expect(environment.APP_TIMEZONE).toBe("Asia/Kolkata");
     expect(environment.NEXT_PUBLIC_ACCOUNTS_ENABLED).toBe(false);
     expect(environment.JOB_PROCESSING_BACKEND).toBe("postgres");
+    expect(environment.INVOICE_SELLER_BANK_NAME).toBe("HDFC Bank");
+    expect(environment.INVOICE_SELLER_BANK_ACCOUNT_NUMBER).toBe("50200110390895");
+    expect(environment.INVOICE_SELLER_BANK_IFSC).toBe("HDFC0005731");
+    expect(environment.INVOICE_SELLER_MSME).toBe("UDYAM-UP-28-0157794");
   });
 
   it("requires Supabase configuration when accounts are enabled", () => {

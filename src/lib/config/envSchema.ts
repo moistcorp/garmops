@@ -73,6 +73,10 @@ const serverEnvironmentSchema = z
     INVOICE_SELLER_ADDRESS: z.string().trim().min(1).max(500).default("2nd Floor, Q-5 Site-5, Road Number 4, Prime Infra Engineers, UPSIDC Site 5, Greater Noida, Gautambuddha Nagar, Uttar Pradesh 201312"),
     INVOICE_SELLER_GSTIN: z.string().trim().min(1).max(40).default("09HPFPS8162L1ZY"),
     INVOICE_SELLER_STATE: z.string().trim().min(1).max(80).default("Uttar Pradesh"),
+    INVOICE_SELLER_BANK_NAME: z.string().trim().min(1).max(120).default("HDFC Bank"),
+    INVOICE_SELLER_BANK_ACCOUNT_NUMBER: z.string().trim().min(1).max(80).default("50200110390895"),
+    INVOICE_SELLER_BANK_IFSC: z.string().trim().min(1).max(40).default("HDFC0005731"),
+    INVOICE_SELLER_MSME: z.string().trim().min(1).max(80).default("UDYAM-UP-28-0157794"),
     INVOICE_DEFAULT_HSN_CODE: z.string().trim().min(1).max(40).default("CONFIGURE_HSN_CODE"),
     INVOICE_GST_RATE_BASIS_POINTS: positiveInteger(GST_RATE_BASIS_POINTS, 10_000),
 
