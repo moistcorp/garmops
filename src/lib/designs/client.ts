@@ -125,14 +125,22 @@ function cloudArtworkSide(
 ): CloudDesignSnapshot["configuration"]["artwork"]["front"] {
   const fileId =
     side.fileId ?? (side.fileKey ? uploadFileIds[side.fileKey] : undefined);
+  const previewFileId =
+    side.previewFileId ?? (side.previewFileKey ? uploadFileIds[side.previewFileKey] : undefined);
   const fileUrl = safeCloudAssetUrl(side.fileUrl);
+  const previewUrl = safeCloudAssetUrl(side.previewUrl);
   return {
     ...(fileUrl ? { fileUrl } : {}),
     ...(fileId ? { fileId } : {}),
+    ...(previewUrl ? { previewUrl } : {}),
+    ...(previewFileId ? { previewFileId } : {}),
     ...(!fileUrl && !fileId ? { pendingUpload: true as const } : {}),
     ...(side.fileName ? { fileName: side.fileName } : {}),
     fileType: side.fileType,
     vectorized: side.vectorized,
+    ...(side.previewKind ? { previewKind: side.previewKind } : {}),
+    ...(side.processingStatus ? { processingStatus: side.processingStatus } : {}),
+    ...(side.sourceIsVector !== undefined ? { sourceIsVector: side.sourceIsVector } : {}),
     ...(side.technique ? { technique: side.technique } : {}),
     ...(side.reflectiveColour ? { reflectiveColour: side.reflectiveColour } : {}),
     ...(side.placementPreset ? { placementPreset: side.placementPreset } : {}),
@@ -151,6 +159,12 @@ function cloudArtworkSide(
     ...(side.averageLuminance !== undefined
       ? { averageLuminance: side.averageLuminance }
       : {}),
+    ...(side.detectedColorCount !== undefined ? { detectedColorCount: side.detectedColorCount } : {}),
+    ...(side.isContinuousTone !== undefined ? { isContinuousTone: side.isContinuousTone } : {}),
+    ...(side.backgroundRemoved !== undefined ? { backgroundRemoved: side.backgroundRemoved } : {}),
+    ...(side.backgroundRemovalConfidence !== undefined ? { backgroundRemovalConfidence: side.backgroundRemovalConfidence } : {}),
+    ...(side.processingWarnings ? { processingWarnings: side.processingWarnings } : {}),
+    ...(side.processingErrorCode ? { processingErrorCode: side.processingErrorCode } : {}),
   };
 }
 
@@ -222,21 +236,29 @@ function contentTypeFor(filename: string, fallback?: string): string {
 
 function uploadReferences(draft: BuildDraft): UploadReference[] {
   const references: UploadReference[] = [];
-  const add = (
-    value: Pick<ArtworkSide, "fileKey" | "fileName" | "fileType"> | NeckLabel,
-    fallbackName: string,
-  ) => {
-    if (!value.fileKey) return;
-    const filename = value.fileName || `${fallbackName}.${value.fileType || "svg"}`;
+  const add = (fileKey: string | undefined, filename: string, contentType?: string) => {
+    if (!fileKey) return;
     references.push({
-      fileKey: value.fileKey,
+      fileKey,
       filename,
-      contentType: contentTypeFor(filename),
+      contentType: contentTypeFor(filename, contentType),
     });
   };
-  if (draft.artwork.front) add(draft.artwork.front, "front-artwork");
-  if (draft.artwork.back) add(draft.artwork.back, "back-artwork");
-  if (draft.neckLabel?.fileUrl) add(draft.neckLabel, "neck-label");
+  const addArtwork = (value: ArtworkSide | undefined, fallbackName: string) => {
+    if (!value) return;
+    const originalName = value.fileName || `${fallbackName}.${value.fileType}`;
+    add(value.fileKey, originalName);
+    if (value.previewFileKey) {
+      const extension = value.previewKind === "vector" ? "svg" : "png";
+      const stem = originalName.replace(/\.[^.]+$/u, "");
+      add(value.previewFileKey, `${stem}.preview.${extension}`, value.previewKind === "vector" ? "image/svg+xml" : "image/png");
+    }
+  };
+  addArtwork(draft.artwork.front, "front-artwork");
+  addArtwork(draft.artwork.back, "back-artwork");
+  if (draft.neckLabel?.fileUrl) {
+    add(draft.neckLabel.fileKey, draft.neckLabel.fileName || `neck-label.${draft.neckLabel.fileType || "svg"}`);
+  }
   return references;
 }
 
@@ -348,6 +370,9 @@ function draftWithFileIds(
           fileId:
             side.fileId ??
             (side.fileKey ? uploadFileIds[side.fileKey] : undefined),
+          previewFileId:
+            side.previewFileId ??
+            (side.previewFileKey ? uploadFileIds[side.previewFileKey] : undefined),
         }
       : undefined;
   return {
@@ -563,13 +588,19 @@ export async function cloudSnapshotToBuildDraft(
   snapshot: CloudDesignSnapshot,
 ): Promise<BuildDraft> {
   const configuration = snapshot.configuration;
-  const [frontUrl, backUrl, neckUrl] = await Promise.all([
+  const [frontUrl, backUrl, frontPreviewUrl, backPreviewUrl, neckUrl] = await Promise.all([
     configuration.artwork.front?.fileUrl
       ? Promise.resolve(configuration.artwork.front.fileUrl)
       : resolvedCloudFileUrl(configuration.artwork.front?.fileId),
     configuration.artwork.back?.fileUrl
       ? Promise.resolve(configuration.artwork.back.fileUrl)
       : resolvedCloudFileUrl(configuration.artwork.back?.fileId),
+    configuration.artwork.front?.previewUrl
+      ? Promise.resolve(configuration.artwork.front.previewUrl)
+      : resolvedCloudFileUrl(configuration.artwork.front?.previewFileId),
+    configuration.artwork.back?.previewUrl
+      ? Promise.resolve(configuration.artwork.back.previewUrl)
+      : resolvedCloudFileUrl(configuration.artwork.back?.previewFileId),
     configuration.neckLabel?.fileUrl
       ? Promise.resolve(configuration.neckLabel.fileUrl)
       : resolvedCloudFileUrl(configuration.neckLabel?.fileId),
@@ -577,19 +608,21 @@ export async function cloudSnapshotToBuildDraft(
   const artworkSide = (
     side:
       | CloudDesignSnapshot["configuration"]["artwork"]["front"]
-      | undefined,
+    | undefined,
     fileUrl: string,
+    previewUrl: string,
   ): ArtworkSide | undefined =>
     side
       ? ({
           ...side,
           fileUrl,
+          previewUrl: previewUrl || undefined,
           pendingUpload: undefined,
         } as ArtworkSide)
       : undefined;
   const artwork: Artwork = {
-    front: artworkSide(configuration.artwork.front, frontUrl),
-    back: artworkSide(configuration.artwork.back, backUrl),
+    front: artworkSide(configuration.artwork.front, frontUrl, frontPreviewUrl),
+    back: artworkSide(configuration.artwork.back, backUrl, backPreviewUrl),
     smallestSize: configuration.artwork.smallestSize,
   };
   const neckLabel = configuration.neckLabel

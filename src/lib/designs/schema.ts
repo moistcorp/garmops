@@ -28,6 +28,8 @@ const artworkSideSchema = z
   .object({
     fileUrl: safeAssetUrl.optional(),
     fileId: z.uuid().optional(),
+    previewUrl: safeAssetUrl.optional(),
+    previewFileId: z.uuid().optional(),
     pendingUpload: z.literal(true).optional(),
     fileName: z.string().trim().min(1).max(255).optional(),
     fileType: z.enum(["jpg", "png", "pdf", "svg", "ai"]),
@@ -43,6 +45,9 @@ const artworkSideSchema = z
       ])
       .optional(),
     vectorized: z.boolean(),
+    previewKind: z.enum(["vector", "raster"]).optional(),
+    processingStatus: z.enum(["idle", "analysing", "processing", "ready", "needs_review", "failed"]).optional(),
+    sourceIsVector: z.boolean().optional(),
     technique: z
       .enum([
         "screen_print",
@@ -72,6 +77,12 @@ const artworkSideSchema = z
     pixelHeight: z.number().finite().positive().max(100_000).optional(),
     hasTransparency: z.boolean().optional(),
     averageLuminance: z.number().finite().min(0).max(1).optional(),
+    detectedColorCount: z.number().int().nonnegative().max(100_000).optional(),
+    isContinuousTone: z.boolean().optional(),
+    backgroundRemoved: z.boolean().optional(),
+    backgroundRemovalConfidence: z.number().finite().min(0).max(1).optional(),
+    processingWarnings: z.array(z.string().max(500)).max(10).optional(),
+    processingErrorCode: z.string().max(80).optional(),
   })
   .strict()
   .refine(

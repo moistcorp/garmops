@@ -5,13 +5,16 @@ import { useEffect, useRef, useState } from "react";
 import { Download, FileText, RefreshCw, Trash2, Upload } from "lucide-react";
 import { clampDim, useArtworkPosition } from "@/lib/configurator/ArtworkPositionContext";
 import { DEFAULT_ARTWORK_PRINT_AREA, PRINT_AREA_TOP_OFFSET_CM } from "@/lib/configurator/sizecharts";
-import { persistUploadedFile, revokeObjectUrl } from "@/lib/configurator/objectUrls";
+import { persistUploadedBlob, persistUploadedFile, revokeObjectUrl } from "@/lib/configurator/objectUrls";
 import type {
   ArtworkFileType,
   ArtworkSide,
 } from "@/lib/configurator/types/configurator";
 import { isCustomerArtworkTechnique } from "@/lib/configurator/types/configurator";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
+import { normalizeArtwork } from "@/lib/configurator/artworkProcessing/normalize";
+import { artworkProcessingMessage } from "@/lib/configurator/artworkProcessing/errors";
+import { ArtworkProcessingError, type ArtworkProcessingResult } from "@/lib/configurator/artworkProcessing/types";
 
 export const ACCEPTED_ARTWORK_EXTENSIONS = [".png", ".jpg", ".jpeg", ".pdf", ".svg", ".ai"] as const;
 export const MAX_ARTWORK_FILE_BYTES = 20 * 1024 * 1024;
@@ -54,14 +57,23 @@ function makeDefaultSide(
   previous?: ArtworkSide,
   fileKey?: string,
   fileName?: string,
-  diagnostics?: Pick<ArtworkSide, "pixelWidth" | "pixelHeight" | "hasTransparency" | "averageLuminance">,
+  processing?: ArtworkProcessingResult,
 ): ArtworkSide {
   return {
     fileUrl,
     fileKey,
     fileName,
     fileType,
-    vectorized: fileType === "svg" || fileType === "ai",
+    vectorized: processing?.vectorized ?? fileType === "svg",
+    previewKind: processing?.previewKind,
+    processingStatus: processing?.status ?? "ready",
+    sourceIsVector: processing?.sourceIsVector ?? (fileType === "svg" ? true : undefined),
+    backgroundRemoved: processing?.backgroundRemoved,
+    backgroundRemovalConfidence: processing?.backgroundRemovalConfidence,
+    detectedColorCount: processing?.detectedColorCount,
+    isContinuousTone: processing?.isContinuousTone,
+    processingWarnings: processing?.warnings,
+    processingErrorCode: processing?.errorCode,
     technique: isCustomerArtworkTechnique(previous?.technique) ? previous.technique : undefined,
     reflectiveColour: previous?.reflectiveColour,
     placementPreset: "custom",
@@ -75,7 +87,10 @@ function makeDefaultSide(
       leftChest: false,
     },
     confirmed: false,
-    ...diagnostics,
+    pixelWidth: processing?.pixelWidth,
+    pixelHeight: processing?.pixelHeight,
+    averageLuminance: processing?.averageLuminance,
+    hasTransparency: processing?.hasTransparency,
   };
 }
 
@@ -108,42 +123,6 @@ async function getDefaultArtworkDimensions(fileUrl: string, fileType: ArtworkFil
   return { width: DEFAULT_ARTWORK_WIDTH_CM, height: FALLBACK_ARTWORK_HEIGHT_CM };
 }
 
-async function analyseRasterArtwork(
-  fileUrl: string,
-): Promise<Pick<ArtworkSide, "pixelWidth" | "pixelHeight" | "hasTransparency" | "averageLuminance">> {
-  const image = new Image();
-  await new Promise<void>((resolve, reject) => {
-    image.onload = () => resolve();
-    image.onerror = reject;
-    image.src = fileUrl;
-  });
-  const canvas = document.createElement("canvas");
-  const scale = Math.min(1, 160 / Math.max(image.naturalWidth, image.naturalHeight));
-  canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
-  canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
-  const context = canvas.getContext("2d", { willReadFrequently: true });
-  if (!context) return { pixelWidth: image.naturalWidth, pixelHeight: image.naturalHeight };
-  context.drawImage(image, 0, 0, canvas.width, canvas.height);
-  const data = context.getImageData(0, 0, canvas.width, canvas.height).data;
-  let transparent = false;
-  let luminanceTotal = 0;
-  let samples = 0;
-  for (let index = 0; index < data.length; index += 16) {
-    const alpha = data[index + 3] / 255;
-    if (alpha < 0.98) transparent = true;
-    if (alpha > 0.1) {
-      luminanceTotal += (0.2126 * data[index] + 0.7152 * data[index + 1] + 0.0722 * data[index + 2]) / 255;
-      samples += 1;
-    }
-  }
-  return {
-    pixelWidth: image.naturalWidth,
-    pixelHeight: image.naturalHeight,
-    hasTransparency: transparent,
-    averageLuminance: samples ? luminanceTotal / samples : undefined,
-  };
-}
-
 export interface ArtworkUploadSideProps {
   side: "front" | "back";
   value?: ArtworkSide;
@@ -155,6 +134,7 @@ type UploadState = "preparing" | "uploaded" | null;
 export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSideProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const pendingObjectUrlRef = useRef<string | null>(null);
+  const pendingPreviewUrlRef = useRef<string | null>(null);
   const importTokenRef = useRef(0);
   const { updatePosition } = useArtworkPosition();
   const [dragging, setDragging] = useState(false);
@@ -164,27 +144,74 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
 
   useEffect(() => () => {
     revokeObjectUrl(pendingObjectUrlRef.current ?? undefined);
+    revokeObjectUrl(pendingPreviewUrlRef.current ?? undefined);
     pendingObjectUrlRef.current = null;
+    pendingPreviewUrlRef.current = null;
   }, []);
 
   async function importArtwork(
     fileUrl: string,
     fileType: ArtworkFileType,
     token: number,
+    sourceFile?: Blob,
     fileKey?: string,
     fileName?: string,
   ) {
     const dimensions = await getDefaultArtworkDimensions(fileUrl, fileType);
-    const diagnostics = fileType === "jpg" || fileType === "png"
-      ? await analyseRasterArtwork(fileUrl).catch(() => ({}))
-      : {};
+    const processing = sourceFile
+      ? await normalizeArtwork(sourceFile, fileType)
+      : {
+          status: "ready" as const,
+          originalFileType: fileType,
+          previewKind: "vector" as const,
+          vectorized: true,
+          sourceIsVector: true,
+        };
+    if (processing.status === "needs_review") {
+      trackConfiguratorEvent("artwork_processing_needs_review", { side, file_type: fileType });
+    } else {
+      trackConfiguratorEvent("artwork_processing_ready", {
+        side,
+        file_type: fileType,
+        preview_kind: processing.previewKind,
+        vectorized: Boolean(processing.vectorized),
+        background_removed: Boolean(processing.backgroundRemoved),
+      });
+      if (processing.previewKind === "raster" && (fileType === "jpg" || fileType === "png")) {
+        trackConfiguratorEvent("artwork_processing_fallback_raster", { side, file_type: fileType, preview_kind: "raster" });
+      }
+      if (processing.backgroundRemoved) {
+        trackConfiguratorEvent("artwork_background_removed", { side, file_type: fileType, background_removed: true });
+      }
+    }
     if (token !== importTokenRef.current) {
       if (fileUrl !== SAMPLE_ARTWORK_HREF) revokeObjectUrl(fileUrl);
       return;
     }
+    let previewUrl: string | undefined;
+    let previewFileKey: string | undefined;
+    if (processing.previewBlob) {
+      previewUrl = URL.createObjectURL(processing.previewBlob);
+      pendingPreviewUrlRef.current = previewUrl;
+      previewFileKey = await persistUploadedBlob(
+        processing.previewBlob,
+        `${fileName?.replace(/\.[^.]+$/u, "") || "artwork"}.preview.${processing.previewKind === "vector" ? "svg" : "png"}`,
+        processing.previewMimeType,
+      );
+    }
+    if (token !== importTokenRef.current) {
+      revokeObjectUrl(fileUrl);
+      revokeObjectUrl(previewUrl);
+      return;
+    }
     if (pendingObjectUrlRef.current === fileUrl) pendingObjectUrlRef.current = null;
+    if (pendingPreviewUrlRef.current === previewUrl) pendingPreviewUrlRef.current = null;
     updatePosition(side, { widthCm: dimensions.width, heightCm: dimensions.height, fromNeckCm: PRINT_AREA_TOP_OFFSET_CM, fromCenterCm: 0 });
-    onChange(makeDefaultSide(fileUrl, fileType, dimensions, value, fileKey, fileName, diagnostics));
+    onChange({
+      ...makeDefaultSide(fileUrl, fileType, dimensions, value, fileKey, fileName, processing),
+      previewUrl,
+      previewFileKey,
+    });
     setUploadState("uploaded");
   }
 
@@ -209,9 +236,12 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
     setPersistenceWarning(null);
     setUploadState("preparing");
     trackConfiguratorEvent("artwork_upload_started", { side, file_type: fileType, file_size: file.size });
+    trackConfiguratorEvent("artwork_processing_started", { side, file_type: fileType });
     const fileUrl = URL.createObjectURL(file);
     revokeObjectUrl(pendingObjectUrlRef.current ?? undefined);
     if (value?.fileUrl !== fileUrl) revokeObjectUrl(value?.fileUrl);
+    revokeObjectUrl(value?.previewUrl);
+    revokeObjectUrl(pendingPreviewUrlRef.current ?? undefined);
     pendingObjectUrlRef.current = fileUrl;
     const token = importTokenRef.current + 1;
     importTokenRef.current = token;
@@ -223,15 +253,21 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
         if (!fileKey) {
           setPersistenceWarning("This browser could not save the upload for reload recovery. Keep this tab open or try a different browser.");
         }
-        await importArtwork(fileUrl, fileType, token, fileKey, file.name);
+        await importArtwork(fileUrl, fileType, token, file, fileKey, file.name);
         if (token === importTokenRef.current) trackConfiguratorEvent("artwork_upload_succeeded", { side, file_type: fileType });
       })
-      .catch(() => {
+      .catch((error: unknown) => {
         if (token !== importTokenRef.current) return;
         revokeObjectUrl(fileUrl);
+        revokeObjectUrl(pendingPreviewUrlRef.current ?? undefined);
         if (pendingObjectUrlRef.current === fileUrl) pendingObjectUrlRef.current = null;
+        pendingPreviewUrlRef.current = null;
         setUploadState(null);
-        setError("This artwork could not be read. Export it again or upload another file.");
+        setError(
+          error instanceof ArtworkProcessingError
+            ? artworkProcessingMessage(error.code)
+            : "This artwork could not be read. Export it again or upload another file.",
+        );
         trackConfiguratorEvent("artwork_upload_failed", { side, reason: "import_failed" });
       });
   }
@@ -239,8 +275,11 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
   function handleRemove() {
     importTokenRef.current += 1;
     revokeObjectUrl(pendingObjectUrlRef.current ?? undefined);
+    revokeObjectUrl(pendingPreviewUrlRef.current ?? undefined);
     revokeObjectUrl(value?.fileUrl);
+    revokeObjectUrl(value?.previewUrl);
     pendingObjectUrlRef.current = null;
+    pendingPreviewUrlRef.current = null;
     onChange(undefined);
     setError(null);
     setPersistenceWarning(null);
@@ -250,6 +289,7 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
   function handleTrySample() {
     importTokenRef.current += 1;
     revokeObjectUrl(pendingObjectUrlRef.current ?? undefined);
+    revokeObjectUrl(pendingPreviewUrlRef.current ?? undefined);
     pendingObjectUrlRef.current = null;
     const token = importTokenRef.current;
     setError(null);
@@ -264,7 +304,7 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
 
   const isPending = uploadState === "preparing";
   const filename = value?.fileName ?? value?.fileUrl?.split("/").pop() ?? "";
-  const reviewNeeded = value && !value.vectorized;
+  const reviewNeeded = value?.processingStatus === "needs_review" || value?.processingStatus === "failed";
 
   return (
     <div className="flex flex-col gap-3">
@@ -311,8 +351,8 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
         <div className="techpack-subtle rounded-sm px-2.5 py-2">
           <div className="flex flex-wrap items-center gap-2.5">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-(--color-rule) bg-white text-center text-[10px] font-semibold uppercase tracking-wide text-(--text-primary)/55">
-              {value.fileUrl && (value.fileType === "jpg" || value.fileType === "png" || value.fileType === "svg") ? (
-                <img src={value.fileUrl} alt="" className="h-full w-full object-contain p-1" />
+              {(value.previewUrl || (value.fileType === "jpg" || value.fileType === "png" || value.fileType === "svg" ? value.fileUrl : undefined)) ? (
+                <img src={value.previewUrl || value.fileUrl} alt="" className="h-full w-full object-contain p-1" />
               ) : (
                 <span className="flex flex-col items-center gap-1">
                   <FileText size={17} strokeWidth={1.7} aria-hidden="true" />
@@ -325,7 +365,7 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
                 <span className="truncate">{filename || "Artwork"}</span>
                 {uploadState === "uploaded" && <span className="shrink-0 text-sm font-semibold text-[#1B7F36]" aria-label="Artwork uploaded">✓</span>}
               </p>
-              <p className="mt-0.5 text-xs text-(--text-primary)/50">{value.fileType.toUpperCase()} · {uploadState === "uploaded" ? "Uploaded" : "Added"}</p>
+              <p className="mt-0.5 text-xs text-(--text-primary)/50">{value.fileType.toUpperCase()} · {value.processingStatus === "needs_review" ? "Preview needs review" : uploadState === "uploaded" ? "Artwork ready" : "Added"}</p>
             </div>
             <div className="ml-auto flex shrink-0 gap-1.5">
             <button type="button" onClick={() => inputRef.current?.click()} className="techpack-control inline-flex min-h-8 items-center gap-1 rounded-sm border px-2.5 text-xs font-semibold text-(--text-primary)/75 hover:!border-(--color-accent)/45 hover:text-(--color-accent-dark)">
@@ -342,7 +382,8 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
       {isPending && <p className="text-xs text-(--text-primary)/55" role="status" aria-live="polite">Preparing artwork…</p>}
       {error && <p className="text-xs text-red-600" role="alert">{error}</p>}
       {persistenceWarning && <p className="rounded-sm border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">{persistenceWarning}</p>}
-      {reviewNeeded && <p className="rounded-sm border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">This artwork may need production preparation. You can continue; our team will review it before production.</p>}
+      {reviewNeeded && <p className="rounded-sm border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">Preview prepared. Our team will review this file before production.</p>}
+      {value?.processingWarnings?.map((warning) => <p key={warning} className="text-xs leading-relaxed text-(--text-primary)/55">{warning}</p>)}
     </div>
   );
 }

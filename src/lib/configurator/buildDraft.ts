@@ -54,6 +54,18 @@ function isArtworkSide(value: unknown): boolean {
     typeof value.guidelines.maximumArea === "boolean" &&
     typeof value.guidelines.leftChest === "boolean" &&
     typeof value.confirmed === "boolean"
+    && (value.previewUrl === undefined || typeof value.previewUrl === "string")
+    && (value.previewFileId === undefined || typeof value.previewFileId === "string")
+    && (value.previewFileKey === undefined || typeof value.previewFileKey === "string")
+    && (value.previewKind === undefined || value.previewKind === "vector" || value.previewKind === "raster")
+    && (value.processingStatus === undefined || ["idle", "analysing", "processing", "ready", "needs_review", "failed"].includes(String(value.processingStatus)))
+    && (value.sourceIsVector === undefined || typeof value.sourceIsVector === "boolean")
+    && (value.detectedColorCount === undefined || finiteNumber(value.detectedColorCount))
+    && (value.isContinuousTone === undefined || typeof value.isContinuousTone === "boolean")
+    && (value.backgroundRemoved === undefined || typeof value.backgroundRemoved === "boolean")
+    && (value.backgroundRemovalConfidence === undefined || finiteNumber(value.backgroundRemovalConfidence))
+    && (value.processingWarnings === undefined || (Array.isArray(value.processingWarnings) && value.processingWarnings.every((warning) => typeof warning === "string")))
+    && (value.processingErrorCode === undefined || typeof value.processingErrorCode === "string")
   );
 }
 

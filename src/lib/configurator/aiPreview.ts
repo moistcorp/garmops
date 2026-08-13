@@ -28,7 +28,7 @@ function pdfCompatiblePayload(bytes: Uint8Array): Uint8Array | null {
   return bytes.slice(start, end + eof.length);
 }
 
-function renderPdfPage(pdfBytes: Uint8Array): Promise<string> {
+function renderPdfPage(pdfBytes: Uint8Array): Promise<Blob> {
   return import('pdfjs-dist/legacy/build/pdf.mjs').then(async (pdfjs) => {
     const documentOptions = {
       data: pdfBytes,
@@ -56,7 +56,7 @@ function renderPdfPage(pdfBytes: Uint8Array): Promise<string> {
       await page.render({ canvas, canvasContext: context, viewport }).promise;
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
       if (!blob) throw new AiPreviewError('corrupt');
-      return URL.createObjectURL(blob);
+      return blob;
     } finally {
       await loadingTask.destroy();
     }
@@ -72,6 +72,10 @@ function renderPdfPage(pdfBytes: Uint8Array): Promise<string> {
  * or placed in the DOM. The returned PNG is a UI-only derivative.
  */
 export async function renderAiPreview(file: Blob): Promise<string> {
+  return URL.createObjectURL(await renderAiPreviewBlob(file));
+}
+
+export async function renderAiPreviewBlob(file: Blob): Promise<Blob> {
   let bytes: Uint8Array;
   try {
     bytes = new Uint8Array(await file.arrayBuffer());
@@ -91,4 +95,23 @@ export async function renderAiPreview(file: Blob): Promise<string> {
   }
   if (lastError instanceof AiPreviewError) throw lastError;
   throw new AiPreviewError('corrupt');
+}
+
+/** Renders page 1 of a customer PDF without executing PDF scripting. */
+export async function renderPdfPreview(file: Blob): Promise<Blob> {
+  let bytes: Uint8Array;
+  try {
+    bytes = new Uint8Array(await file.arrayBuffer());
+  } catch {
+    throw new AiPreviewError('corrupt');
+  }
+  if (bytes.length < 5 || new TextDecoder().decode(bytes.slice(0, 5)) !== '%PDF-') {
+    throw new AiPreviewError('corrupt');
+  }
+  try {
+    return await renderPdfPage(bytes);
+  } catch (error) {
+    if (error instanceof AiPreviewError) throw error;
+    throw new AiPreviewError('corrupt');
+  }
 }

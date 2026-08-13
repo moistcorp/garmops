@@ -27,6 +27,14 @@ export function isCustomerArtworkTechnique(
 }
 
 export type ArtworkFileType = 'jpg' | 'png' | 'pdf' | 'svg' | 'ai';
+export type ArtworkPreviewKind = 'vector' | 'raster';
+export type ArtworkProcessingStatus =
+  | 'idle'
+  | 'analysing'
+  | 'processing'
+  | 'ready'
+  | 'needs_review'
+  | 'failed';
 
 export type ArtworkPlacementPreset =
   | 'left-chest'
@@ -45,6 +53,7 @@ export interface ArtworkGuidelines {
 }
 
 export interface ArtworkSide {
+  /** Untouched customer source. Production review must use this file. */
   fileUrl: string;
   /** Private R2 metadata ID used by cloud designs. */
   fileId?: string;
@@ -53,6 +62,13 @@ export interface ArtworkSide {
   fileKey?: string;
   fileName?: string;
   fileType: ArtworkFileType;
+  /** Simulator-only derivative. Falls back to fileUrl for legacy drafts. */
+  previewUrl?: string;
+  previewFileId?: string;
+  previewFileKey?: string;
+  previewKind?: ArtworkPreviewKind;
+  processingStatus?: ArtworkProcessingStatus;
+  sourceIsVector?: boolean;
   vectorized: boolean;
   technique?: ArtworkTechnique;
   /** Preview approximation for single-colour reflective film. */
@@ -70,6 +86,12 @@ export interface ArtworkSide {
   pixelHeight?: number;
   hasTransparency?: boolean;
   averageLuminance?: number;
+  detectedColorCount?: number;
+  isContinuousTone?: boolean;
+  backgroundRemoved?: boolean;
+  backgroundRemovalConfidence?: number;
+  processingWarnings?: string[];
+  processingErrorCode?: string;
 }
 
 export interface Artwork {

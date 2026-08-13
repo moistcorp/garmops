@@ -107,9 +107,19 @@ interface DragOrigin {
   startFromCenterCm: number;
 }
 
-function isRenderableImage(fileUrl?: string, fileType?: ArtworkSide["fileType"]): boolean {
-  if (!fileUrl || fileType === "ai" || fileType === "pdf") return false;
+function isRenderableImage(fileUrl?: string, fileType?: ArtworkSide["fileType"], previewKind?: ArtworkSide["previewKind"]): boolean {
+  if (!fileUrl) return false;
+  if (previewKind === "raster" || previewKind === "vector") return true;
+  if (fileType === "ai" || fileType === "pdf") return false;
   return /\.(png|jpe?g|svg|webp)$/i.test(fileUrl) || fileUrl.startsWith("blob:");
+}
+
+function ArtworkTechniquePrompt() {
+  return (
+    <div className="flex h-full w-full items-center justify-center px-2 text-center text-xs text-(--text-primary)/38">
+      <span>Choose a print method to preview your artwork</span>
+    </div>
+  );
 }
 
 // Neck labels are restricted to .svg/.ai uploads (see NeckLabel type). SVG
@@ -121,15 +131,6 @@ function isRenderableNeckLabel(neckLabel: NeckLabel, previewUrl?: string): boole
     Boolean(previewUrl || neckLabel.fileUrl) &&
     (Boolean(previewUrl) || neckLabel.fileType === "svg") &&
     (neckLabel.fileUrl !== SAMPLE_NECK_LABEL_HREF || neckLabel.source === "sample")
-  );
-}
-
-function DocumentArtworkPreview({ side }: { side: ArtworkSide }) {
-  return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-white/60 px-2 text-center text-xs font-semibold uppercase tracking-wide text-(--text-primary)/38">
-      <span className="rounded-sm border border-(--color-rule)/70 px-2 py-1">{side.fileType.toUpperCase()}</span>
-      <span className="text-xs normal-case tracking-normal">Document preview</span>
-    </div>
   );
 }
 
@@ -366,9 +367,10 @@ export default function CanvasRenderer({
     isCustomerArtworkTechnique(activeArtwork?.technique)
       ? activeArtwork.technique
       : undefined;
+  const simulatorArtworkUrl = activeArtwork?.previewUrl ?? activeArtwork?.fileUrl;
   const canRenderPrintMaterial = Boolean(
-    activeArtwork?.fileUrl &&
-      isRenderableImage(activeArtwork.fileUrl, activeArtwork.fileType) &&
+    simulatorArtworkUrl &&
+      isRenderableImage(simulatorArtworkUrl, activeArtwork?.fileType, activeArtwork?.previewKind) &&
       printTechnique &&
       garmentFolder,
   );
@@ -626,9 +628,9 @@ export default function CanvasRenderer({
             height: `${(boxHeightPx / CANVAS_SIZE.height) * 100}%`,
           }}
         >
-          {canRenderPrintMaterial && printTechnique && garmentFolder && activeArtwork.fileUrl ? (
+          {canRenderPrintMaterial && printTechnique && garmentFolder && simulatorArtworkUrl ? (
             <ArtworkMaterialCanvas
-              artworkSrc={activeArtwork.fileUrl}
+              artworkSrc={simulatorArtworkUrl}
               technique={printTechnique}
               garmentFolder={garmentFolder}
               artworkWidthCm={renderBoxState.widthCm}
@@ -640,7 +642,7 @@ export default function CanvasRenderer({
               reflectiveColour={activeArtwork.reflectiveColour}
             />
           ) : (
-            <DocumentArtworkPreview side={activeArtwork} />
+            <ArtworkTechniquePrompt />
           )}
           {showBox && canEditArtwork && (
             <div

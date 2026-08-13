@@ -27,7 +27,10 @@ export function effectiveArtworkPpi(side: Pick<ArtworkSide, 'fileType' | 'pixelW
 export function getArtworkQuality(side?: ArtworkSide): ArtworkQuality | undefined {
   if (!side) return undefined;
 
-  if (side.vectorized || side.fileType === 'svg' || side.fileType === 'ai') {
+  // Quality describes the untouched production source, not the format of the
+  // simulator derivative. A low-resolution PNG remains a low-resolution source
+  // even when its preview is normalized or vector-shaped.
+  if (side.sourceIsVector === true || side.fileType === 'svg' || (side.fileType === 'ai' && side.sourceIsVector !== false && side.vectorized && !side.previewKind)) {
     return { label: 'Vector artwork', detail: 'Our team will review the file for production.', isVector: true };
   }
 

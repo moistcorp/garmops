@@ -49,6 +49,15 @@ export async function persistUploadedFile(file: File): Promise<string | undefine
   }
 }
 
+export async function persistUploadedBlob(
+  blob: Blob,
+  filename: string,
+  contentType = blob.type,
+): Promise<string | undefined> {
+  const file = new File([blob], filename, { type: contentType || "application/octet-stream" });
+  return persistUploadedFile(file);
+}
+
 export async function readUploadedFile(key: string): Promise<Blob | undefined> {
   try {
     const db = await openUploadDatabase();
@@ -181,14 +190,15 @@ async function blobUrlStillWorks(url: string): Promise<boolean> {
 }
 
 async function restoreUploadUrl(
-  fileUrl: string,
+  fileUrl: string | undefined,
   fileKey?: string
 ): Promise<string | undefined> {
-  if (!isObjectUrl(fileUrl)) return fileUrl;
   if (fileKey) {
     const stored = await readUploadedFile(fileKey);
     if (stored) return URL.createObjectURL(stored);
   }
+  if (!fileUrl) return undefined;
+  if (!isObjectUrl(fileUrl)) return fileUrl;
   return (await blobUrlStillWorks(fileUrl)) ? fileUrl : undefined;
 }
 
@@ -201,27 +211,34 @@ export async function restoreConfigurationUploads(
   artwork: Artwork,
   neckLabel?: Partial<NeckLabel>
 ): Promise<{ artwork: Artwork; neckLabel?: NeckLabel }> {
-  const [frontUrl, backUrl, neckLabelUrl] = await Promise.all([
+  const restored = await Promise.all([
     artwork.front
       ? restoreUploadUrl(artwork.front.fileUrl, artwork.front.fileKey)
       : undefined,
     artwork.back
       ? restoreUploadUrl(artwork.back.fileUrl, artwork.back.fileKey)
       : undefined,
+    artwork.front
+      ? restoreUploadUrl(artwork.front.previewUrl, artwork.front.previewFileKey)
+      : undefined,
+    artwork.back
+      ? restoreUploadUrl(artwork.back.previewUrl, artwork.back.previewFileKey)
+      : undefined,
     neckLabel?.fileUrl
       ? restoreUploadUrl(neckLabel.fileUrl, neckLabel.fileKey)
       : undefined,
   ]);
+  const [frontUrl, backUrl, frontPreviewUrl, backPreviewUrl, neckLabelUrl] = restored;
 
   return {
     artwork: {
       front:
         artwork.front && (frontUrl || artwork.front.fileId)
-          ? { ...artwork.front, fileUrl: frontUrl ?? "" }
+          ? { ...artwork.front, fileUrl: frontUrl ?? "", previewUrl: frontPreviewUrl }
           : undefined,
       back:
         artwork.back && (backUrl || artwork.back.fileId)
-          ? { ...artwork.back, fileUrl: backUrl ?? "" }
+          ? { ...artwork.back, fileUrl: backUrl ?? "", previewUrl: backPreviewUrl }
           : undefined,
     },
     neckLabel:
@@ -245,6 +262,8 @@ export function revokeObjectUrl(url?: string): void {
 export function revokeArtworkObjectUrls(artwork?: Artwork): void {
   revokeObjectUrl(artwork?.front?.fileUrl);
   revokeObjectUrl(artwork?.back?.fileUrl);
+  revokeObjectUrl(artwork?.front?.previewUrl);
+  revokeObjectUrl(artwork?.back?.previewUrl);
 }
 
 export function revokeNeckLabelObjectUrl(neckLabel?: Partial<NeckLabel>): void {

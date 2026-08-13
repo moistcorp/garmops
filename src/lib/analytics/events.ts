@@ -6,6 +6,9 @@ export const ANALYTICS_EVENTS = [
   "order_confirmed", "saved_design_created", "stage_viewed", "stage_completed",
   "product_compared", "target_date_selected", "artwork_upload_started",
   "artwork_upload_failed", "technique_recommended", "artwork_skipped",
+  "artwork_processing_started", "artwork_processing_ready", "artwork_processing_fallback_raster",
+  "artwork_vectorization_succeeded", "artwork_vectorization_failed", "artwork_background_detected",
+  "artwork_background_removed", "artwork_processing_needs_review",
   "artwork_placement_reset", "artwork_left_chest_applied",
   "artwork_copied_to_front", "neck_label_skipped", "configuration_undo",
   "configuration_redo", "configuration_reset", "added_to_cart", "cart_item_duplicated",
@@ -22,7 +25,8 @@ const ALLOWED_PROPERTIES = new Set([
   "product_id", "product_category", "quantity_band", "colour_type",
   "front_artwork", "back_artwork", "front_technique", "back_technique",
   "custom_neck_label", "delivery_type", "new_vs_returning", "cart_line_count",
-  "stage", "side", "file_type", "technique", "reason", "source",
+  "stage", "side", "file_type", "technique", "reason", "source", "preview_kind",
+  "vectorized", "background_removed", "processing_ms",
 ]);
 
 export function sanitizeAnalyticsProperties(properties: AnalyticsProperties = {}) {
