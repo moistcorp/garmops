@@ -74,6 +74,30 @@ describe("cloud design schema", () => {
     expect(cloudDesignSnapshotSchema.safeParse(pending).success).toBe(true);
   });
 
+  it("accepts only controlled reflective preview colours", () => {
+    const reflective = structuredClone(validSnapshot) as Record<string, unknown>;
+    const configuration = reflective.configuration as Record<string, unknown>;
+    const side = {
+      fileUrl: "/garments/artwork-sample.svg",
+      fileType: "svg",
+      vectorized: true,
+      technique: "reflective_print",
+      reflectiveColour: "neon_pink",
+      width: 20,
+      height: 5,
+      fromNeck: 5,
+      fromCenter: 0,
+      printArea: "XS",
+      guidelines: { maximumArea: true, leftChest: false },
+      confirmed: true,
+    };
+    configuration.artwork = { front: side };
+    expect(cloudDesignSnapshotSchema.safeParse(reflective).success).toBe(true);
+
+    side.reflectiveColour = "purple";
+    expect(cloudDesignSnapshotSchema.safeParse(reflective).success).toBe(false);
+  });
+
   it("rejects browser-local object URLs and IndexedDB keys", () => {
     const unsafe = structuredClone(validSnapshot) as Record<string, unknown>;
     const configuration = unsafe.configuration as Record<string, unknown>;

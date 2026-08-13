@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -7,10 +6,12 @@ import type { ProductId } from "@/lib/configurator/pricing";
 import type {
   Artwork,
   ArtworkSide,
+  CustomerArtworkTechnique,
   NeckLabel,
   NeckLabelDimensions,
   NeckLabelPosition,
 } from "@/lib/configurator/types/configurator";
+import { isCustomerArtworkTechnique } from "@/lib/configurator/types/configurator";
 import { isCustomNeckLabel } from "@/lib/configurator/neckLabel";
 import type { GarmentView } from "@/lib/configurator/types/garment";
 import {
@@ -35,6 +36,7 @@ import {
   getGarmentRenderConfig,
 } from "./garmentAssets";
 import { useGarmentAssetPrefetch } from "./useGarmentAssetPrefetch";
+import ArtworkMaterialCanvas from "./ArtworkMaterialCanvas";
 
 // Matches the small top margin PositionControls/the box default use as the
 // garment's overall printable boundary — the guideline overlays anchor here
@@ -122,18 +124,7 @@ function isRenderableNeckLabel(neckLabel: NeckLabel, previewUrl?: string): boole
   );
 }
 
-function ArtworkPreview({ side }: { side: ArtworkSide }) {
-  if (isRenderableImage(side.fileUrl, side.fileType)) {
-    return (
-      <img
-        src={side.fileUrl}
-        alt=""
-        draggable={false}
-        className="h-full w-full object-contain"
-      />
-    );
-  }
-
+function DocumentArtworkPreview({ side }: { side: ArtworkSide }) {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-white/60 px-2 text-center text-xs font-semibold uppercase tracking-wide text-(--text-primary)/38">
       <span className="rounded-sm border border-(--color-rule)/70 px-2 py-1">{side.fileType.toUpperCase()}</span>
@@ -371,6 +362,25 @@ export default function CanvasRenderer({
   const boxHeightPx = renderBoxState.heightCm * PX_PER_CM_Y;
   const boxLeftPx = PRINT_ORIGIN_PX.x + renderBoxState.fromCenterCm * PX_PER_CM_X - boxWidthPx / 2;
   const boxTopPx = PRINT_ORIGIN_PX.y + renderBoxState.fromNeckCm * PX_PER_CM_Y;
+  const printTechnique: CustomerArtworkTechnique | undefined =
+    isCustomerArtworkTechnique(activeArtwork?.technique)
+      ? activeArtwork.technique
+      : undefined;
+  const canRenderPrintMaterial = Boolean(
+    activeArtwork?.fileUrl &&
+      isRenderableImage(activeArtwork.fileUrl, activeArtwork.fileType) &&
+      printTechnique &&
+      garmentFolder,
+  );
+  const materialBox = useMemo(
+    () => ({
+      left: Math.max(0, Math.round(boxLeftPx)),
+      top: Math.max(0, Math.round(boxTopPx)),
+      width: Math.max(1, Math.round(boxWidthPx)),
+      height: Math.max(1, Math.round(boxHeightPx)),
+    }),
+    [boxHeightPx, boxLeftPx, boxTopPx, boxWidthPx],
+  );
 
   useEffect(() => {
     if (!interactive || !activeArtwork || !printAreaDims) return;
@@ -616,7 +626,22 @@ export default function CanvasRenderer({
             height: `${(boxHeightPx / CANVAS_SIZE.height) * 100}%`,
           }}
         >
-          <ArtworkPreview side={activeArtwork} />
+          {canRenderPrintMaterial && printTechnique && garmentFolder && activeArtwork.fileUrl ? (
+            <ArtworkMaterialCanvas
+              artworkSrc={activeArtwork.fileUrl}
+              technique={printTechnique}
+              garmentFolder={garmentFolder}
+              artworkWidthCm={renderBoxState.widthCm}
+              box={materialBox}
+              garmentInsetPercent={garmentInsetPercent}
+              textureSrc={garmentAssetPath(productId, view, "texture")}
+              shadowSrc={garmentAssetPath(productId, view, "shadow")}
+              highlightSrc={garmentAssetPath(productId, view, "highlight")}
+              reflectiveColour={activeArtwork.reflectiveColour}
+            />
+          ) : (
+            <DocumentArtworkPreview side={activeArtwork} />
+          )}
           {showBox && canEditArtwork && (
             <div
               aria-hidden="true"

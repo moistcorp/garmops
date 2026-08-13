@@ -134,6 +134,7 @@ function cloudArtworkSide(
     fileType: side.fileType,
     vectorized: side.vectorized,
     ...(side.technique ? { technique: side.technique } : {}),
+    ...(side.reflectiveColour ? { reflectiveColour: side.reflectiveColour } : {}),
     ...(side.placementPreset ? { placementPreset: side.placementPreset } : {}),
     width: side.width,
     height: side.height,

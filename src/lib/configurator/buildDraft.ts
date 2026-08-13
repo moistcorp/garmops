@@ -11,6 +11,7 @@
 import type { GarmentColour, Artwork, NeckLabel } from "./types/configurator";
 import type { AccordionStepState } from "@/components/configurator/ConfiguratorSidebar/ConfiguratorSidebar";
 import { scheduleUploadCleanup } from "./objectUrls";
+import { isReflectiveColourKey } from "./reflectiveColours";
 
 const STORAGE_PREFIX = "mf_configurator_build:";
 const DRAFT_VERSION = 1;
@@ -42,6 +43,8 @@ function isArtworkSide(value: unknown): boolean {
     ARTWORK_FILE_TYPES.has(String(value.fileType)) &&
     (value.technique === undefined ||
       ARTWORK_TECHNIQUES.has(String(value.technique))) &&
+    (value.reflectiveColour === undefined ||
+      isReflectiveColourKey(value.reflectiveColour)) &&
     finiteNumber(value.width) &&
     finiteNumber(value.height) &&
     finiteNumber(value.fromNeck) &&

@@ -1,5 +1,7 @@
 // src/lib/configurator/types/configurator.ts
 
+import type { ReflectiveColourKey } from "../reflectiveColours";
+
 export type GarmentColourType = 'signature' | 'custom_dye';
 
 export interface GarmentColour {
@@ -53,6 +55,8 @@ export interface ArtworkSide {
   fileType: ArtworkFileType;
   vectorized: boolean;
   technique?: ArtworkTechnique;
+  /** Preview approximation for single-colour reflective film. */
+  reflectiveColour?: ReflectiveColourKey;
   placementPreset?: ArtworkPlacementPreset;
   width: number; // cm
   height: number; // cm

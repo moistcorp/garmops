@@ -22,7 +22,7 @@ const TECHNIQUE_ORDER: CustomerArtworkTechnique[] = [
 const TECHNIQUE_DESCRIPTIONS: Record<CustomerArtworkTechnique, string> = {
   screen_print: "Premium, smooth finish with a soft and durable hand feel.",
   dtf: "Crisp, smooth finish with a flexible, slightly raised feel.",
-  reflective_print: "Clean, slightly raised finish that becomes reflective under direct light.",
+  reflective_print: "Clean, smooth reflective film finish in a selected colour.",
 };
 
 export function TechniqueSelect({ value, fileType, side = "front", onChange }: TechniqueSelectProps) {

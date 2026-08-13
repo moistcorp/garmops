@@ -7,6 +7,7 @@ import {
   SAMPLE_ARTWORK_HREF,
 } from "./ArtworkUploadSide";
 import { TechniqueSelect, TECHNIQUE_LABELS } from "./TechniqueSelect";
+import ReflectiveColourSelect from "./ReflectiveColourSelect";
 import { PositionControls } from "./PositionControls";
 import { GuidelinesToggles } from "./GuidelinesToggles";
 import {
@@ -30,6 +31,8 @@ import type {
   CustomerArtworkTechnique,
 } from "@/lib/configurator/types/configurator";
 import { isCustomerArtworkTechnique } from "@/lib/configurator/types/configurator";
+import type { ReflectiveColourKey } from "@/lib/configurator/reflectiveColours";
+import { DEFAULT_REFLECTIVE_COLOUR } from "@/lib/configurator/reflectiveColours";
 import type { GarmentView } from "@/lib/configurator/types/garment";
 
 export interface ArtworkPanelProps {
@@ -179,12 +182,25 @@ export function ArtworkPanel({ productId, value, onChange, activeView, onViewCha
         ...current,
         printArea: DEFAULT_ARTWORK_PRINT_AREA,
         technique,
+        ...(technique === "reflective_print" && !current.reflectiveColour
+          ? { reflectiveColour: DEFAULT_REFLECTIVE_COLOUR }
+          : {}),
         confirmed: true,
         width: constrained.widthCm,
         height: constrained.heightCm,
         fromNeck: constrained.fromNeckCm,
         fromCenter: constrained.fromCenterCm,
       },
+    });
+    onViewChange?.(side);
+  }
+
+  function handleReflectiveColourChange(side: Side, reflectiveColour: ReflectiveColourKey) {
+    const current = artwork[side];
+    if (!current || current.technique !== "reflective_print") return;
+    commit({
+      ...artwork,
+      [side]: { ...current, reflectiveColour },
     });
     onViewChange?.(side);
   }
@@ -268,6 +284,16 @@ export function ArtworkPanel({ productId, value, onChange, activeView, onViewCha
         {current && (
           <>
             <TechniqueSelect value={selectedTechnique} fileType={current.fileType} side={panelSide} onChange={(technique) => handleTechniqueChange(panelSide, technique)} />
+
+            {selectedTechnique === "reflective_print" && (
+              <ReflectiveColourSelect
+                value={current.reflectiveColour}
+                side={panelSide}
+                onChange={(reflectiveColour) =>
+                  handleReflectiveColourChange(panelSide, reflectiveColour)
+                }
+              />
+            )}
 
             {selectedTechnique && (
               <section className="flex flex-col gap-3 pt-4" aria-labelledby="position-size-title">

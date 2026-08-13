@@ -63,6 +63,7 @@ function makeDefaultSide(
     fileType,
     vectorized: fileType === "svg" || fileType === "ai",
     technique: isCustomerArtworkTechnique(previous?.technique) ? previous.technique : undefined,
+    reflectiveColour: previous?.reflectiveColour,
     placementPreset: "custom",
     width: dimensions.width,
     height: dimensions.height,

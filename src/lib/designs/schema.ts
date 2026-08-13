@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { REFLECTIVE_COLOUR_OPTIONS } from "@/lib/configurator/reflectiveColours";
 
 export const CLOUD_DESIGN_SCHEMA_VERSION = 1 as const;
 
@@ -49,6 +50,12 @@ const artworkSideSchema = z
         "reflective_print",
       ])
       .optional(),
+    reflectiveColour: z.enum(
+      REFLECTIVE_COLOUR_OPTIONS.map((option) => option.key) as [
+        (typeof REFLECTIVE_COLOUR_OPTIONS)[number]["key"],
+        ...(typeof REFLECTIVE_COLOUR_OPTIONS)[number]["key"][],
+      ],
+    ).optional(),
     width: z.number().finite().min(0).max(200),
     height: z.number().finite().min(0).max(200),
     fromNeck: z.number().finite().min(-200).max(200),
