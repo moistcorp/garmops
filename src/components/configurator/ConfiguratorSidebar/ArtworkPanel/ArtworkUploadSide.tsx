@@ -40,7 +40,7 @@ function expectedContentTypes(fileType: ArtworkFileType): string[] {
     case "png": return ["image/png"];
     case "pdf": return ["application/pdf"];
     case "svg": return ["image/svg+xml"];
-    case "ai": return ["application/postscript", "application/illustrator", "application/vnd.adobe.illustrator", "application/octet-stream"];
+    case "ai": return ["application/postscript", "application/illustrator", "application/vnd.adobe.illustrator", "application/pdf", "application/octet-stream"];
   }
 }
 

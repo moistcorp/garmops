@@ -20,7 +20,16 @@ export async function normalizeArtwork(file: Blob, fileType: ArtworkFileType): P
       };
     }
     if (fileType === "ai") {
-      const previewBlob = await renderAiPreviewBlob(file);
+      const renderedPreview = await renderAiPreviewBlob(file);
+      let previewBlob = renderedPreview;
+      try {
+        // AI previews may include a white page/background. Reuse the same
+        // bounded raster cleanup as customer PNG/JPG uploads so the simulator
+        // receives the artwork shape rather than a page rectangle.
+        previewBlob = (await normalizeRaster(renderedPreview)).blob;
+      } catch {
+        // A valid embedded preview is still useful if cleanup is unavailable.
+      }
       return {
         status: "ready",
         originalFileType: fileType,
@@ -29,7 +38,7 @@ export async function normalizeArtwork(file: Blob, fileType: ArtworkFileType): P
         previewBlob,
         vectorized: false,
         sourceIsVector: undefined,
-        warnings: ["Preview prepared from the PDF-compatible Illustrator payload. The original AI file remains the production source."],
+        warnings: ["A safe simulator preview was prepared from the Illustrator file. The original AI file remains the production source."],
       };
     }
     if (fileType === "pdf") {

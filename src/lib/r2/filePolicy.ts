@@ -23,7 +23,7 @@ export const uploadPolicies: Readonly<Record<BrowserUploadKind, UploadPolicy>> =
     // practical for production review.
     maximumBytes: 20 * mebibyte,
     formats: [
-      format(["ai"], ["application/postscript", "application/illustrator", "application/vnd.adobe.illustrator", "application/octet-stream"]),
+      format(["ai"], ["application/postscript", "application/illustrator", "application/vnd.adobe.illustrator", "application/pdf", "application/octet-stream"]),
       format(["pdf"], ["application/pdf"]),
       format(["svg"], ["image/svg+xml"]),
       format(["png"], ["image/png"]),
