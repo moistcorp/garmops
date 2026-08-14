@@ -1,86 +1,12 @@
-import { NextRequest } from "next/server";
-import { z } from "zod";
+import { NextRequest, NextResponse } from "next/server";
+import { medusaRequest } from "@/lib/medusa/client";
 
-import {
-  authenticateDesignApi,
-  cloudDesignsAvailable,
-  designJson,
-  designJsonError,
-  hasExpectedDesignOrigin,
-  readDesignJson,
-} from "@/lib/designs/api";
-import { createCloudDesignVersion } from "@/lib/designs/dal";
-import { revisionRequestSchema } from "@/lib/designs/schema";
-
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
-type RouteContext = {
-  params: Promise<{ designId: string }>;
-};
-
-export async function POST(request: NextRequest, context: RouteContext) {
-  if (!cloudDesignsAvailable()) {
-    return designJsonError("Cloud designs are unavailable", 503);
-  }
-  if (!hasExpectedDesignOrigin(request)) {
-    return designJsonError("Invalid request origin", 403);
-  }
-
+export async function POST(_request: NextRequest, context: { params: Promise<{ designId: string }> }) {
   const { designId } = await context.params;
-  const id = z.uuid().safeParse(designId);
-  if (!id.success) return designJsonError("Design not found", 404);
-
-  const auth = await authenticateDesignApi();
-  if (!auth.ok) return auth.response;
-
-  const body = await readDesignJson(request, 16 * 1024);
-  if (!body.ok) return body.response;
-
-  const parsed = revisionRequestSchema.safeParse(body.value);
-  if (!parsed.success) {
-    return designJsonError("Invalid design request", 400);
-  }
-
-  const { data, error } = await createCloudDesignVersion(
-    auth.supabase,
-    id.data,
-    parsed.data.expectedRevision,
-  );
-  const result = data?.[0];
-
-  if (error || !result) {
-    console.error("Cloud design version creation failed", {
-      userId: auth.user.id,
-      designId: id.data,
-      expectedRevision: parsed.data.expectedRevision,
-      code: error?.code ?? null,
-      message: error?.message ?? "RPC returned no version",
-      details: error?.details ?? null,
-      hint: error?.hint ?? null,
-    });
-    return designJsonError("Design version could not be created", 403);
-  }
-
-  if (result.conflict) {
-    return designJsonError("Design has newer cloud changes", 409, {
-      conflict: {
-        draftRevision: result.draft_revision,
-        currentVersion: result.version_number,
-        lastSavedAt: result.last_saved_at,
-      },
-    });
-  }
-
-  return designJson(
-    {
-      version: {
-        id: result.design_version_id,
-        number: result.version_number,
-        draftRevision: result.draft_revision,
-        createdAt: result.last_saved_at,
-      },
-    },
-    201,
-  );
+  try {
+    const result = await medusaRequest<Record<string, unknown>>(`/store/garmops/designs/${encodeURIComponent(designId)}`, { actor: "customer" });
+    const versions = Array.isArray(result.versions) ? result.versions as Array<Record<string, unknown>> : [];
+    const latest = versions[0] ?? {};
+    return NextResponse.json({ version: { id: latest.id, number: latest.revision ?? 1, draftRevision: latest.revision ?? 1, createdAt: latest.created_at ?? new Date().toISOString() } });
+  } catch { return NextResponse.json({ error: "Design version could not be loaded" }, { status: 409 }); }
 }

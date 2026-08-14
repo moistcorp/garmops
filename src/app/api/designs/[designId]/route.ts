@@ -1,225 +1,35 @@
-import { NextRequest } from "next/server";
-import { z } from "zod";
+import { NextRequest, NextResponse } from "next/server";
+import { medusaRequest } from "@/lib/medusa/client";
+import { cloudDesignSnapshotSchema } from "@/lib/designs/schema";
 
-import {
-  authenticateDesignApi,
-  cloudDesignsAvailable,
-  designJson,
-  designJsonError,
-  hasExpectedDesignOrigin,
-  readDesignJson,
-} from "@/lib/designs/api";
-import {
-  archiveCloudDesign,
-  getCloudDesign,
-  saveCloudDesignDraft,
-} from "@/lib/designs/dal";
-import {
-  cloudDesignSnapshotSchema,
-  revisionRequestSchema,
-  saveDesignRequestSchema,
-} from "@/lib/designs/schema";
-import type { Json } from "@/types/database.generated";
+type Context = { params: Promise<{ designId: string }> };
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
-type DesignRouteContext = {
-  params: Promise<{ designId: string }>;
-};
-
-async function validatedDesignId(context: DesignRouteContext) {
+export async function GET(_request: NextRequest, context: Context) {
   const { designId } = await context.params;
-  return z.uuid().safeParse(designId);
+  try {
+    const result = await medusaRequest<Record<string, unknown>>(`/store/garmops/designs/${encodeURIComponent(designId)}`, { actor: "customer" });
+    const project = result.project as Record<string, unknown>;
+    const versions = Array.isArray(result.versions) ? result.versions as Array<Record<string, unknown>> : [];
+    const latest = versions[0];
+    return NextResponse.json({ design: { ...project, draft_revision: latest?.revision ?? 1, current_version: latest?.revision ?? 1, current_version_id: latest?.id, last_saved_at: latest?.created_at ?? project.updated_at ?? new Date().toISOString(), draft_snapshot: latest?.configuration ?? {} } });
+  } catch { return NextResponse.json({ error: "Design not found" }, { status: 404 }); }
 }
 
-export async function GET(
-  _request: NextRequest,
-  context: DesignRouteContext,
-) {
-  if (!cloudDesignsAvailable()) {
-    return designJsonError("Cloud designs are unavailable", 503);
+export async function PATCH(request: NextRequest, context: Context) {
+  const { designId } = await context.params;
+  const body = await request.json().catch(() => null) as { expectedRevision?: number; snapshot?: unknown } | null;
+  const snapshot = cloudDesignSnapshotSchema.safeParse(body?.snapshot);
+  if (!snapshot.success || !Number.isInteger(body?.expectedRevision)) return NextResponse.json({ error: "Invalid design request" }, { status: 400 });
+  try {
+    const result = await medusaRequest<Record<string, unknown>>(`/store/garmops/designs/${encodeURIComponent(designId)}`, { method: "PATCH", actor: "customer", body: { revision: body!.expectedRevision, productSlug: snapshot.data.configId, configuration: snapshot.data.configuration, quantity: snapshot.data.configuration.quantity } });
+    const version = result.version as Record<string, unknown>;
+    return NextResponse.json({ design: { id: designId, draftRevision: version.revision, currentVersion: version.revision, currentVersionId: version.id, lastSavedAt: version.created_at } });
+  } catch (error) {
+    const status = error instanceof Error && error.message.includes("changed") ? 409 : 400;
+    return NextResponse.json({ error: status === 409 ? "Design has newer cloud changes" : "Design could not be saved" }, { status });
   }
-
-  const id = await validatedDesignId(context);
-  if (!id.success) return designJsonError("Design not found", 404);
-
-  const auth = await authenticateDesignApi();
-  if (!auth.ok) return auth.response;
-
-  const [projectResult, versionsResult, ordersResult] = await getCloudDesign(
-    auth.supabase,
-    id.data,
-    auth.user.id,
-  );
-  if (projectResult.error || !projectResult.data) {
-    return designJsonError("Design not found", 404);
-  }
-  if (versionsResult.error || ordersResult.error) {
-    console.error("Cloud design could not be loaded", {
-      userId: auth.user.id,
-      designId: id.data,
-      versionsError: versionsResult.error?.message ?? null,
-      ordersError: ordersResult.error?.message ?? null,
-    });
-    return designJsonError("Design could not be loaded", 500);
-  }
-
-  const parsedSnapshot = cloudDesignSnapshotSchema.safeParse(
-    projectResult.data.draft_snapshot,
-  );
-  if (!parsedSnapshot.success) {
-    return designJsonError("Design uses an unsupported schema", 409);
-  }
-
-  return designJson({
-    design: {
-      ...projectResult.data,
-      draft_snapshot: parsedSnapshot.data,
-      versions: versionsResult.data ?? [],
-      orders: ordersResult.data ?? [],
-    },
-  });
 }
 
-export async function PATCH(
-  request: NextRequest,
-  context: DesignRouteContext,
-) {
-  if (!cloudDesignsAvailable()) {
-    return designJsonError("Cloud designs are unavailable", 503);
-  }
-  if (!hasExpectedDesignOrigin(request)) {
-    return designJsonError("Invalid request origin", 403);
-  }
-
-  const id = await validatedDesignId(context);
-  if (!id.success) return designJsonError("Design not found", 404);
-
-  const auth = await authenticateDesignApi();
-  if (!auth.ok) return auth.response;
-
-  const body = await readDesignJson(request);
-  if (!body.ok) return body.response;
-
-  const parsed = saveDesignRequestSchema.safeParse(body.value);
-  if (!parsed.success) {
-    console.error("Cloud design save request validation failed", {
-      userId: auth.user.id,
-      designId: id.data,
-      issues: parsed.error.issues.map((issue) => ({
-        path: issue.path.join("."),
-        message: issue.message,
-      })),
-    });
-    return designJsonError("Invalid design request", 400);
-  }
-
-  const { data, error } = await saveCloudDesignDraft(
-    auth.supabase,
-    id.data,
-    {
-      expectedRevision: parsed.data.expectedRevision,
-      schemaVersion: parsed.data.schemaVersion,
-      snapshot: parsed.data.snapshot as Json,
-      pricingSnapshot: parsed.data.pricingSnapshot as Json | undefined,
-      title: parsed.data.title,
-    },
-  );
-  const result = data?.[0];
-
-  if (error || !result) {
-    console.error("Cloud design draft save failed", {
-      userId: auth.user.id,
-      designId: id.data,
-      expectedRevision: parsed.data.expectedRevision,
-      code: error?.code ?? null,
-      message: error?.message ?? "RPC returned no design",
-      details: error?.details ?? null,
-      hint: error?.hint ?? null,
-    });
-    return designJsonError("Design could not be saved", 403);
-  }
-
-  if (result.conflict) {
-    return designJsonError("Design has newer cloud changes", 409, {
-      conflict: {
-        draftRevision: result.draft_revision,
-        lastSavedAt: result.last_saved_at,
-        snapshot: result.configuration_snapshot,
-        pricingSnapshot: result.pricing_input_snapshot,
-        title: result.title,
-        status: result.status,
-        currentVersion: result.current_version,
-      },
-    });
-  }
-
-  return designJson({
-    design: {
-      id: id.data,
-      draftRevision: result.draft_revision,
-      lastSavedAt: result.last_saved_at,
-      title: result.title,
-      status: result.status,
-      currentVersion: result.current_version,
-    },
-  });
-}
-
-export async function DELETE(
-  request: NextRequest,
-  context: DesignRouteContext,
-) {
-  if (!cloudDesignsAvailable()) {
-    return designJsonError("Cloud designs are unavailable", 503);
-  }
-  if (!hasExpectedDesignOrigin(request)) {
-    return designJsonError("Invalid request origin", 403);
-  }
-
-  const id = await validatedDesignId(context);
-  if (!id.success) return designJsonError("Design not found", 404);
-
-  const auth = await authenticateDesignApi();
-  if (!auth.ok) return auth.response;
-
-  const body = await readDesignJson(request, 16 * 1024);
-  if (!body.ok) return body.response;
-
-  const parsed = revisionRequestSchema.safeParse(body.value);
-  if (!parsed.success) {
-    return designJsonError("Invalid design request", 400);
-  }
-
-  const { data: archived, error } = await archiveCloudDesign(
-    auth.supabase,
-    id.data,
-    parsed.data.expectedRevision,
-  );
-  if (error) {
-    console.error("Cloud design archive failed", {
-      userId: auth.user.id,
-      designId: id.data,
-      code: error.code,
-      message: error.message,
-      details: error.details,
-      hint: error.hint,
-    });
-    return designJsonError("Design could not be archived", 403);
-  }
-  if (!archived) {
-    return designJsonError("Design has newer cloud changes", 409, {
-      conflict: { draftRevision: parsed.data.expectedRevision },
-    });
-  }
-
-  return designJson({
-    design: {
-      id: id.data,
-      status: "archived",
-      draftRevision: parsed.data.expectedRevision + 1,
-      archivedAt: new Date().toISOString(),
-    },
-  });
+export async function DELETE() {
+  return NextResponse.json({ error: "Design archiving is not present in the current Medusa contract." }, { status: 405 });
 }

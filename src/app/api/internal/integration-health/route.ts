@@ -1,132 +1,20 @@
-import { timingSafeEqual } from "node:crypto";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-import { getServerEnvironment } from "@/lib/config/env";
-import { isFeatureEnabled } from "@/lib/config/featureFlags";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { requestIdFrom, withRequestId } from "@/lib/http/requestId";
+import { medusaRequest } from "@/lib/medusa/client";
 
-export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function authorised(request: NextRequest): boolean {
-  const configured = getServerEnvironment().CRON_SECRET;
-  const supplied = request.headers
-    .get("authorization")
-    ?.replace(/^Bearer\s+/i, "");
-  if (!configured || !supplied) return false;
-
-  const expected = Buffer.from(configured);
-  const actual = Buffer.from(supplied);
-  return expected.length === actual.length && timingSafeEqual(expected, actual);
-}
-
-function freshCompletedRun(
-  run: { status: string; started_at: string } | undefined,
-  maximumAgeMinutes: number,
-): boolean {
-  return Boolean(
-    run &&
-    run.status === "completed" &&
-    Date.now() - new Date(run.started_at).getTime() <= maximumAgeMinutes * 60_000,
-  );
-}
-
-/** Authenticated deployment, queue and recurring-job health for uptime checks. */
-export async function GET(request: NextRequest) {
-  const requestId = requestIdFrom(request);
-  if (!authorised(request)) {
-    return withRequestId(NextResponse.json({ error: "Unauthorized" }, { status: 401 }), requestId);
+export async function GET() {
+  try {
+    await medusaRequest("/store/garmops/catalog", { method: "GET" });
+    return NextResponse.json(
+      { status: "ok", backend: "medusa" },
+      { headers: { "Cache-Control": "no-store" } },
+    );
+  } catch (error) {
+    return NextResponse.json(
+      { status: "degraded", backend: "medusa", error: error instanceof Error ? error.message : "Backend unavailable" },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
+    );
   }
-
-  const environment = getServerEnvironment();
-  const admin = createAdminClient();
-  const [runsResult, queueResult, failedJobsResult, staleJobsResult, pendingPaymentsResult] = await Promise.all([
-    admin
-      .from("system_job_runs")
-      .select("job_name, status, trigger_source, started_at, completed_at, error_message")
-      .order("started_at", { ascending: false })
-      .limit(20),
-    admin
-      .from("integration_jobs")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "queued"),
-    admin
-      .from("integration_jobs")
-      .select("id", { count: "exact", head: true })
-      .in("status", ["retryable_failure", "permanent_failure"]),
-    admin
-      .from("integration_jobs")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "processing")
-      .lt("locked_at", new Date(Date.now() - 10 * 60_000).toISOString()),
-    admin
-      .from("checkout_payment_attempts")
-      .select("id", { count: "exact", head: true })
-      .in("status", ["initiated", "pending"]),
-  ]);
-
-  const databaseHealthy =
-    !runsResult.error &&
-    !queueResult.error &&
-    !failedJobsResult.error &&
-    !staleJobsResult.error &&
-    !pendingPaymentsResult.error;
-  const runs = runsResult.data ?? [];
-  const latestIntegration = runs.find(
-    (run) => run.job_name === "integration_jobs" && run.trigger_source === "cron",
-  );
-  const latestPayu = runs.find(
-    (run) => run.job_name === "payu_reconciliation" && run.trigger_source === "cron",
-  );
-  const integrationHealthy = freshCompletedRun(latestIntegration, 15);
-  const payuHealthy = freshCompletedRun(latestPayu, 30);
-  const staleProcessingCount = staleJobsResult.count ?? 0;
-  const healthy =
-    databaseHealthy &&
-    integrationHealthy &&
-    payuHealthy &&
-    (failedJobsResult.count ?? 0) === 0 &&
-    staleProcessingCount === 0;
-  const scannerHealth = environment.MALWARE_SCANNING_ENABLED && environment.MALWARE_SCANNER_URL
-    ? await fetch(new URL("/health", environment.MALWARE_SCANNER_URL), { cache: "no-store", signal: AbortSignal.timeout(3_000) }).then(response => response.ok).catch(() => false)
-    : null;
-  const overallHealthy = healthy && scannerHealth !== false;
-
-  return withRequestId(NextResponse.json(
-    {
-      status: overallHealthy ? "ok" : "degraded",
-      environment: environment.APP_ENV,
-      jobBackend: environment.JOB_PROCESSING_BACKEND,
-      jobs: {
-        integrationProcessor: latestIntegration ?? null,
-        payuReconciliation: latestPayu ?? null,
-        queuedCount: queueResult.count ?? null,
-        failedCount: failedJobsResult.count ?? null,
-        staleProcessingCount,
-        pendingPaymentCount: pendingPaymentsResult.count ?? null,
-        malwareScannerHealthy: scannerHealth,
-      },
-      features: {
-        accounts: isFeatureEnabled("NEXT_PUBLIC_ACCOUNTS_ENABLED"),
-        cloudDesignsUi: isFeatureEnabled("NEXT_PUBLIC_CLOUD_DESIGNS_ENABLED"),
-        cloudDesignsApi: isFeatureEnabled("CLOUD_DESIGNS_ENABLED"),
-        staff: isFeatureEnabled("STAFF_PORTAL_ENABLED"),
-        privateUploads: isFeatureEnabled("R2_PRIVATE_UPLOADS_ENABLED"),
-        configuratorCheckout: isFeatureEnabled("CONFIGURATOR_CHECKOUT_ENABLED"),
-        sampleCheckout: isFeatureEnabled("SAMPLE_CHECKOUT_ENABLED"),
-      },
-      errors: [
-        runsResult.error?.message,
-        queueResult.error?.message,
-        failedJobsResult.error?.message,
-        staleJobsResult.error?.message,
-        pendingPaymentsResult.error?.message,
-      ].filter(Boolean),
-    },
-    {
-      status: overallHealthy ? 200 : 503,
-      headers: { "Cache-Control": "no-store" },
-    },
-  ), requestId);
 }

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import StaffMfaSetup from "@/components/staff/StaffMfaSetup";
 import { requireStaffRecord } from "@/lib/auth/guards";
-import { safeInternalPath } from "@/lib/auth/redirects";
 
 export const metadata: Metadata = {
   title: "Foundry security",
@@ -15,10 +14,10 @@ export default async function StaffSecurityPage({
   searchParams: Promise<{ next?: string }>;
 }) {
   await requireStaffRecord({ allowMfaPending: true, next: "/settings/security" });
-  const { next } = await searchParams;
+  await searchParams;
   return (
     <main className="techpack-canvas techpack-paper-grid flex min-h-screen items-center px-4 py-10 sm:px-6">
-      <StaffMfaSetup next={safeInternalPath(next, "/orders")} />
+      <StaffMfaSetup />
     </main>
   );
 }

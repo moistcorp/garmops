@@ -7,7 +7,7 @@ import PortalPlaceholder from "@/components/portal/PortalPlaceholder";
 import TechpackPageHeader from "@/components/portal/TechpackPageHeader";
 import { getProduct } from "@/lib/configurator/products";
 import { isFeatureEnabled } from "@/lib/config/featureFlags";
-import { listCloudDesigns } from "@/lib/designs/dal";
+import { medusaRequest } from "@/lib/medusa/client";
 import {
   cloudDesignSnapshotSchema,
   type CloudDesignSnapshot,
@@ -18,7 +18,7 @@ import { formatOrderTimestamp } from "@/lib/orders/format";
 export const dynamic = "force-dynamic";
 
 type DesignEntry = {
-  design: NonNullable<Awaited<ReturnType<typeof listCloudDesigns>>["data"]>[number];
+  design: Record<string, unknown>;
   snapshot: CloudDesignSnapshot;
 };
 
@@ -28,7 +28,7 @@ export default async function SavedDesignsPage({
   searchParams: Promise<{ filter?: string; q?: string }>;
 }) {
   const { filter = "active", q = "" } = await searchParams;
-  const { supabase, user } = await requireCustomer("/account/designs");
+  await requireCustomer("/account/designs");
 
   if (!isFeatureEnabled("CLOUD_DESIGNS_ENABLED")) {
     return (
@@ -39,12 +39,15 @@ export default async function SavedDesignsPage({
     );
   }
 
-  const { data, error } = await listCloudDesigns(
-    supabase,
-    user.id,
-    filter === "archived",
-  );
-  if (error) {
+  let data: Array<Record<string, unknown>> = [];
+  try {
+    const listed = await medusaRequest<{ projects: Array<Record<string, unknown>> }>("/store/garmops/designs", { actor: "customer" });
+    data = await Promise.all((listed.projects ?? []).map(async (project) => {
+      const detail = await medusaRequest<{ project: Record<string, unknown>; versions: Array<Record<string, unknown>> }>(`/store/garmops/designs/${project.id}`, { actor: "customer" });
+      const version = detail.versions?.[0] ?? {};
+      return { ...project, status: project.archived ? "archived" : "draft", last_saved_at: version.created_at ?? project.updated_at, draft_snapshot: version.configuration ?? {}, draft_revision: version.revision ?? 1, current_version: version.revision ?? 1 };
+    }));
+  } catch {
     return (
       <PortalPlaceholder
         title="Saved designs unavailable"
@@ -143,13 +146,13 @@ export default async function SavedDesignsPage({
               .join(" + ");
             return (
               <article
-                key={design.id}
+                key={String(design.id)}
                 className="techpack-surface grid gap-4 rounded-sm border p-4 sm:grid-cols-[150px_minmax(0,1fr)] sm:p-5"
               >
                 <Link
-                  href={`/account/designs/${encodeURIComponent(design.id)}`}
+                  href={`/account/designs/${encodeURIComponent(String(design.id))}`}
                   className="group relative flex min-h-40 items-center justify-center overflow-hidden rounded-sm border border-(--color-rule) bg-(--color-cream-soft)"
-                  aria-label={`View ${design.title}`}
+                    aria-label={`View ${String(design.title)}`}
                 >
                   <Image
                     src={product?.defaultImage ?? "/flatlays/regulartee.png"}
@@ -161,8 +164,8 @@ export default async function SavedDesignsPage({
                 </Link>
                 <div className="flex min-w-0 flex-col">
                   <div className="flex items-start justify-between gap-2">
-                    <h2 className="truncate text-lg font-semibold">{design.title}</h2>
-                    <span className="techpack-stamp" data-tone="accent">{design.status}</span>
+                    <h2 className="truncate text-lg font-semibold">{String(design.title)}</h2>
+                    <span className="techpack-stamp" data-tone="accent">{String(design.status)}</span>
                   </div>
                   <p className="mt-1 truncate text-sm text-black/55">
                     {product?.name ?? snapshot.configId}
@@ -178,10 +181,10 @@ export default async function SavedDesignsPage({
                     </div>
                   </dl>
                   <p className="mt-3 text-xs text-black/45">
-                    Last saved {formatOrderTimestamp(design.last_saved_at)}
+                    Last saved {formatOrderTimestamp(String(design.last_saved_at))}
                   </p>
                   <Link
-                    href={`/account/designs/${encodeURIComponent(design.id)}`}
+                    href={`/account/designs/${encodeURIComponent(String(design.id))}`}
                     className="mt-3 inline-flex items-center gap-1 border-t border-(--color-rule) pt-3 text-sm font-semibold text-(--color-accent) hover:underline"
                   >
                     View specification <ArrowRight size={15} aria-hidden="true" />

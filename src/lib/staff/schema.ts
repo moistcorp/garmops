@@ -15,10 +15,10 @@ export const statusTransitionSchema = z.object({
 
 export const artworkReviewSchema = z.object({
   fileId: z.string().uuid(),
-  decision: z.enum(["approved", "changes_requested", "rejected"]),
+  decision: z.enum(["approve", "reject"]),
   reason: z.string().trim().max(1000).optional(),
 }).superRefine((value, context) => {
-  if (value.decision !== "approved" && !value.reason) {
+  if (value.decision !== "approve" && !value.reason) {
     context.addIssue({ code: "custom", path: ["reason"], message: "A reason is required" });
   }
 });

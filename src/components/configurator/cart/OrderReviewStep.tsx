@@ -44,9 +44,19 @@ import {
   MAX_CONFIGURATION_QUANTITY,
   normalizeSizeQuantity,
 } from '@/lib/configurator/sizeQuantity';
+import type { ConfiguredCartSummary, PricingSnapshot } from '@/lib/medusa/commerce';
+import {
+  getConfiguredCart,
+  removeConfiguredLine,
+  updateConfiguredLine,
+} from '@/lib/medusa/commerce';
 
 export interface CartItem {
   id: string;
+  /** Medusa line identity; `id` remains only the local draft identity. */
+  medusaLineId?: string;
+  designProjectId?: string;
+  designVersionId?: string;
   productId: ProductId;
   productName: string;
   previewImage: string;
@@ -59,6 +69,7 @@ export interface CartItem {
   rushDelivery?: boolean;
   /** Pending quantity from Studio, used only to initialize an unallocated line. */
   plannedQuantity?: number;
+  backendPricing?: PricingSnapshot;
 }
 
 export interface OrderReviewStepProps {
@@ -76,6 +87,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
   const items = draft.items;
   const [activeView, setActiveView] = useState<Record<string, GarmentView>>({});
   const [pendingDeleteItemId, setPendingDeleteItemId] = useState<string | null>(null);
+  const [pendingLineId, setPendingLineId] = useState<string | null>(null);
   const [draftLoaded, setDraftLoaded] = useState(false);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [feedback, setFeedback] = useState<{ tone: ActionFeedbackTone; title: string; detail?: string } | null>(null);
@@ -88,9 +100,33 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
       if (cancelled) return;
       try {
         const realDraft = readDraft(cartId);
+        const canonicalCart = await getConfiguredCart(cartId);
+        const localByLine = new Map(realDraft.items.filter((item) => item.medusaLineId).map((item) => [item.medusaLineId, item]));
+        const localByDesign = new Map(realDraft.items.filter((item) => item.designProjectId).map((item) => [`${item.designProjectId}:${item.designVersionId ?? ""}`, item]));
+        const canonicalItems = canonicalCart.lines.map((line) => {
+          const local = localByLine.get(line.id) ?? localByDesign.get(`${line.projectId}:${line.versionId}`);
+          if (!local) return null;
+          return {
+            ...local,
+            medusaLineId: line.id,
+            designProjectId: line.projectId,
+            designVersionId: line.versionId,
+            sizeQuantities: line.sizeBreakdown as Record<Size, number>,
+            unitPrice: line.pricing.unitPricePaise / 100,
+            backendPricing: line.pricing,
+            plannedQuantity: undefined,
+          };
+        }).filter((item): item is NonNullable<typeof item> => item !== null);
+        const serverDraft: CartDraft = {
+          ...realDraft,
+          items: canonicalItems,
+          serverCartId: canonicalCart.cartId,
+          backendCart: canonicalCart,
+        };
+        writeDraft(cartId, serverDraft);
         let initializedAllocation = false;
         const items = await Promise.all(
-          realDraft.items.map(async (item) => {
+          serverDraft.items.map(async (item) => {
             const uploads = await restoreConfigurationUploads(item.artwork, item.neckLabel);
             const hydratedItem = { ...item, artwork: uploads.artwork, neckLabel: uploads.neckLabel };
             const currentTotal = totalUnits(hydratedItem.sizeQuantities);
@@ -122,7 +158,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
           })
         );
         if (cancelled) return;
-        const restoredDraft = { ...realDraft, items };
+        const restoredDraft = { ...serverDraft, items };
         if (initializedAllocation) draftNeedsPersistenceRef.current = true;
         setDraft(restoredDraft);
         setActiveView(Object.fromEntries(items.map((item) => [item.id, 'front'])));
@@ -133,8 +169,8 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             setFeedback({ tone: 'success', title: updatedMessage });
           }
         }
-      } catch {
-        if (!cancelled) setFeedback({ tone: 'error', title: 'Could not restore the cart', detail: 'Your browser draft may be unavailable. Reload once or return to the configurator.' });
+      } catch (error) {
+        if (!cancelled) setFeedback({ tone: 'error', title: 'Could not restore the Medusa cart', detail: error instanceof Error ? error.message : 'The committed cart could not be loaded. Return to the configurator and try again.' });
       } finally {
         if (!cancelled) setDraftLoaded(true);
       }
@@ -160,64 +196,58 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
     }
   }, [cartId, draft, draftLoaded]);
 
-  function updateDraft(updater: (previous: CartDraft) => CartDraft) {
-    draftNeedsPersistenceRef.current = true;
-    setDraft(updater);
-  }
-
   function handleQtyChange(itemId: string, size: Size, qty: number) {
-    updateDraft((prev) => ({
-      ...prev,
-      items: prev.items.map((item) => {
-        if (item.id !== itemId) return item;
-
-        const currentTotal = totalUnits(item.sizeQuantities);
-        const currentSizeQty = item.sizeQuantities[size] ?? 0;
-        const otherSizesTotal = currentTotal - currentSizeQty;
-        const safeQty = normalizeSizeQuantity(
-          qty,
-          MAX_CONFIGURATION_QUANTITY - otherSizesTotal,
-        );
-
-        const sizeQuantities = { ...item.sizeQuantities, [size]: safeQty };
-        return {
-          ...item,
-          sizeQuantities,
-          unitPrice: getCartItemUnitPrice({ ...item, sizeQuantities }),
-          plannedQuantity: undefined,
-        };
-      }),
-    }));
+    const item = items.find((candidate) => candidate.id === itemId);
+    if (!item || !item.medusaLineId) {
+      setFeedback({ tone: 'error', title: 'This draft is not synchronized', detail: 'Add the configuration to the Medusa cart before changing its quantity.' });
+      return;
+    }
+    const currentTotal = totalUnits(item.sizeQuantities);
+    const currentSizeQty = item.sizeQuantities[size] ?? 0;
+    const otherSizesTotal = currentTotal - currentSizeQty;
+    const safeQty = normalizeSizeQuantity(qty, MAX_CONFIGURATION_QUANTITY - otherSizesTotal);
+    const sizeQuantities = { ...item.sizeQuantities, [size]: safeQty };
+    void commitLineUpdate(item, sizeQuantities);
     trackConfiguratorEvent("size_allocation_edited", { cart_id: cartId, item_id: itemId, size, quantity: qty });
   }
 
+  async function commitLineUpdate(item: CartItem, sizeQuantities: Record<Size, number>) {
+    if (!item.medusaLineId) return;
+    setPendingLineId(item.id);
+    try {
+      const result = await updateConfiguredLine({
+        lineId: item.medusaLineId,
+        quantity: totalUnits(sizeQuantities),
+        sizes: sizeQuantities,
+        deliveryType: item.rushDelivery ? "rush" : "standard",
+      });
+      replaceCanonicalCart(result.cart);
+    } catch (error) {
+      setFeedback({ tone: 'error', title: 'Quantity was not updated', detail: error instanceof Error ? error.message : 'Medusa rejected this cart-line update.' });
+    } finally {
+      setPendingLineId(null);
+    }
+  }
+
+  function replaceCanonicalCart(canonicalCart: ConfiguredCartSummary) {
+    setDraft((previous) => {
+      const items = previous.items.map((item) => {
+        const line = canonicalCart.lines.find((candidate) => candidate.id === item.medusaLineId);
+        if (!line) return item;
+        return { ...item, sizeQuantities: line.sizeBreakdown as Record<Size, number>, unitPrice: line.pricing.unitPricePaise / 100, backendPricing: line.pricing, plannedQuantity: undefined };
+      });
+      const next = { ...previous, items, serverCartId: canonicalCart.cartId, backendCart: canonicalCart };
+      writeDraft(canonicalCart.cartId, next);
+      return next;
+    });
+  }
+
   function handleResetRecommendedSplit(item: CartItem) {
-    updateDraft((prev) => ({
-      ...prev,
-      items: prev.items.map((current) => {
-        if (current.id !== item.id) return current;
-
-        const product = getProduct(current.productId);
-        const minimumUnits = getProductMinimumOrderQuantity(current.productId, {
-          colourType: current.colour.type,
-          customDyeMinimum: CUSTOM_DYE_MOQ_UNITS,
-        });
-        const sizes = product?.sizes ?? Object.keys(current.sizeQuantities);
-        const currentTotal = totalUnits(current.sizeQuantities);
-        const targetQuantity = Math.max(
-          minimumUnits,
-          currentTotal || current.plannedQuantity || 0,
-        );
-        const sizeQuantities = getRecommendedSizeAllocation(sizes, targetQuantity);
-
-        return {
-          ...current,
-          sizeQuantities,
-          unitPrice: getCartItemUnitPrice({ ...current, sizeQuantities }),
-          plannedQuantity: undefined,
-        };
-      }),
-    }));
+    const product = getProduct(item.productId);
+    const minimumUnits = getProductMinimumOrderQuantity(item.productId, { colourType: item.colour.type, customDyeMinimum: CUSTOM_DYE_MOQ_UNITS });
+    const sizes = product?.sizes ?? Object.keys(item.sizeQuantities);
+    const targetQuantity = Math.max(minimumUnits, totalUnits(item.sizeQuantities) || item.plannedQuantity || 0);
+    void commitLineUpdate(item, getRecommendedSizeAllocation(sizes, targetQuantity));
   }
 
   function handleEdit(item: CartItem) {
@@ -227,11 +257,24 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
     );
   }
 
-  function handleDelete(itemId: string) {
-    updateDraft((prev) => ({
-      ...prev,
-      items: prev.items.filter((item) => item.id !== itemId),
-    }));
+  async function handleDelete(itemId: string) {
+    const item = items.find((candidate) => candidate.id === itemId);
+    if (!item?.medusaLineId) return;
+    setPendingLineId(item.id);
+    try {
+      await removeConfiguredLine(item.medusaLineId);
+      const canonicalCart = await getConfiguredCart(cartId);
+      replaceCanonicalCart(canonicalCart);
+      setDraft((previous) => {
+        const next = { ...previous, items: previous.items.filter((candidate) => candidate.id !== itemId) };
+        writeDraft(cartId, next);
+        return next;
+      });
+    } catch (error) {
+      setFeedback({ tone: 'error', title: 'The cart line was not removed', detail: error instanceof Error ? error.message : 'Medusa rejected the removal.' });
+    } finally {
+      setPendingLineId(null);
+    }
     setActiveView((prev) => {
       const next = { ...prev };
       delete next[itemId];
@@ -306,8 +349,28 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
     }
   }
 
-  const totals = calculateTotals(items);
+  const totals = draft.backendCart
+    ? {
+        subtotal: draft.backendCart.subtotalPaise / 100,
+        subtotalPaise: draft.backendCart.subtotalPaise,
+        volumeDiscount: draft.backendCart.discountPaise / 100,
+        volumeDiscountPaise: draft.backendCart.discountPaise,
+        rushFee: draft.backendCart.rushFeePaise / 100,
+        rushFeePaise: draft.backendCart.rushFeePaise,
+        shippingFee: draft.backendCart.shippingPaise / 100,
+        hasRushDelivery: draft.backendCart.rushFeePaise > 0,
+        gst: draft.backendCart.gstPaise / 100,
+        gstPaise: draft.backendCart.gstPaise,
+        taxableSubtotal: (draft.backendCart.grandTotalPaise - draft.backendCart.gstPaise - draft.backendCart.shippingPaise) / 100,
+        taxableSubtotalPaise: draft.backendCart.grandTotalPaise - draft.backendCart.gstPaise - draft.backendCart.shippingPaise,
+        total: draft.backendCart.grandTotalPaise / 100,
+        totalPaise: draft.backendCart.grandTotalPaise,
+      }
+    : calculateTotals(items);
   const cartIsValid =
+    draft.serverCartId === cartId &&
+    Boolean(draft.backendCart) &&
+    (draft.backendCart?.validationProblems.length ?? 0) === 0 &&
     items.length > 0 &&
     items.every((item) => {
       const minimumUnits = getProductMinimumOrderQuantity(item.productId, { colourType: item.colour.type, customDyeMinimum: CUSTOM_DYE_MOQ_UNITS });
@@ -319,6 +382,8 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
 
   const cartValidationMessage = (() => {
     if (!items.length) return "Add a product before continuing.";
+    if (draft.serverCartId !== cartId || !draft.backendCart) return "Synchronize this configuration with the Medusa cart before continuing.";
+    if (draft.backendCart.validationProblems[0]) return draft.backendCart.validationProblems[0];
     for (const item of items) {
       const quantity = totalUnits(item.sizeQuantities);
       const minimum = getProductMinimumOrderQuantity(item.productId, {
@@ -409,7 +474,9 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             neckLabel: item.neckLabel,
             quantity: itemUnits,
           });
-          const itemUnitPrice = linePricing.discountedUnitPaise / 100;
+          const itemUnitPrice = item.backendPricing?.unitPricePaise !== undefined
+            ? item.backendPricing.unitPricePaise / 100
+            : linePricing.discountedUnitPaise / 100;
           const nextTier = VOLUME_DISCOUNT_TIERS.find((tier) => tier.minQty > itemUnits);
           const nextTierPricing = nextTier
             ? getConfiguredLinePricingPaise({
@@ -582,6 +649,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                     sizes={itemSizes}
                     idPrefix={item.id}
                   />
+                  {pendingLineId === item.id ? <p className="mt-2 text-xs text-(--color-accent)" role="status">Updating the Medusa cart…</p> : null}
 
                   {artworkSizeConflict && (
                     <div className="flex flex-col gap-3 rounded-sm border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="alert">

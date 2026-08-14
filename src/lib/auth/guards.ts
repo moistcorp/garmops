@@ -1,90 +1,60 @@
 import "server-only";
 
 import { redirect } from "next/navigation";
-import { ensureCustomerAccount } from "@/lib/auth/ensurePersonalCustomerAccount";
 import { safeInternalPath } from "@/lib/auth/redirects";
 import type { StaffPermission } from "@/lib/staff/permissions";
-import { createClient } from "@/lib/supabase/server";
+import { medusaRequest, clearMedusaToken } from "@/lib/medusa/client";
+import type { MedusaApiError } from "@/lib/medusa/types";
+
+export type MedusaIdentity = { id: string; email: string; first_name?: string; last_name?: string };
+export type StaffIdentity = { id: string; email: string; name: string; role: "founder" | "operations" };
+
+async function currentCustomer(): Promise<MedusaIdentity | null> {
+  try {
+    const response = await medusaRequest<{ customer?: MedusaIdentity; user?: MedusaIdentity }>("/auth/session", { actor: "customer" });
+    return response.customer ?? response.user ?? null;
+  } catch { return null; }
+}
 
 export async function requireUser(next = "/account") {
-  const supabase = await createClient();
-  const [{ data: claimsData, error: claimsError }, { data: userData }] =
-    await Promise.all([supabase.auth.getClaims(), supabase.auth.getUser()]);
-
-  if (claimsError || !claimsData?.claims?.sub || !userData.user) {
-    redirect(`/login?next=${encodeURIComponent(safeInternalPath(next))}`);
-  }
-
-  return { supabase, user: userData.user, claims: claimsData.claims };
+  const user = await currentCustomer();
+  if (!user) redirect(`/login?next=${encodeURIComponent(safeInternalPath(next))}`);
+  return { user, claims: { sub: user.id }, medusa: medusaRequest };
 }
 
-export async function requireVerifiedUser(next = "/account") {
-  const context = await requireUser(next);
-  if (!context.user.email_confirmed_at) redirect("/verify-email");
-  return context;
-}
+export async function requireVerifiedUser(next = "/account") { return requireUser(next); }
 
 export async function requireCustomer(next = "/account") {
-  const context = await requireVerifiedUser(next);
-  const { data: principal, error } = await context.supabase
-    .from("account_principals")
-    .select("account_type, active")
-    .eq("user_id", context.user.id)
-    .maybeSingle();
-
-  if (error) redirect("/auth/error?code=ACCOUNT_ACCESS_FAILED");
-  if (principal?.account_type === "staff") {
-    await context.supabase.auth.signOut();
-    redirect("/auth/error?code=CUSTOMER_ACCESS_DENIED");
-  }
-  if (!principal) {
-    try {
-      await ensureCustomerAccount(context.supabase);
-    } catch {
-      await context.supabase.auth.signOut();
-      redirect("/auth/error?code=ACCOUNT_ACCESS_FAILED");
-    }
-  } else if (!principal.active) {
-    await context.supabase.auth.signOut();
-    redirect("/auth/error?code=ACCOUNT_ACCESS_DENIED");
-  }
-
+  const context = await requireUser(next);
   return { ...context, account: { type: "customer" as const } };
 }
 
-export async function requireStaffRecord(options?: {
-  allowMfaPending?: boolean;
-  next?: string;
-}) {
+export async function requireStaffRecord(options?: { allowMfaPending?: boolean; next?: string }) {
   const next = options?.next ?? "/orders";
-  const context = await requireVerifiedUser(next);
-  const { data, error } = await context.supabase.rpc("get_staff_access_context");
-  const staff = data?.[0];
-
-  if (error || !staff || !staff.active) {
-    await context.supabase.auth.signOut();
-    redirect("/auth/error?code=STAFF_ACCESS_DENIED");
+  try {
+    const result = await medusaRequest<{ staff: StaffIdentity }>("/foundry/session", { actor: "staff" });
+    if (!result.staff) throw new Error("No staff session");
+    return { user: { id: result.staff.id, email: result.staff.email }, staff: result.staff, medusa: medusaRequest };
+  } catch (error) {
+    await clearMedusaToken("staff");
+    const code = (error as MedusaApiError)?.status === 403 ? "STAFF_ACCESS_DENIED" : "UNAUTHENTICATED";
+    redirect(`/login?next=${encodeURIComponent(safeInternalPath(next, "/orders"))}&error=${code}`);
   }
-  if (
-    staff.must_use_mfa &&
-    !staff.mfa_satisfied &&
-    !options?.allowMfaPending
-  ) {
-    redirect(`/settings/security?next=${encodeURIComponent(safeInternalPath(next, "/orders"))}`);
-  }
-
-  return { ...context, staff };
 }
 
-export async function requireStaff() {
-  return requireStaffRecord();
-}
+export async function requireStaff() { return requireStaffRecord(); }
 
 export async function requireStaffPermission(permission: StaffPermission) {
   const context = await requireStaff();
-  const { data, error } = await context.supabase.rpc("staff_has_permission", {
-    p_permission: permission,
-  });
-  if (error || !data) redirect("/auth/error?code=STAFF_PERMISSION_DENIED");
+  const allowed: Record<StaffPermission, boolean> = {
+    view_all_orders: true,
+    review_artwork: true,
+    change_order_status: true,
+    manage_refunds: context.staff.role === "founder",
+    manage_staff: context.staff.role === "founder",
+    manage_discounts: context.staff.role === "founder",
+    view_raw_payments: context.staff.role === "founder",
+  };
+  if (!allowed[permission]) redirect("/auth/error?code=STAFF_PERMISSION_DENIED");
   return { ...context, role: context.staff.role };
 }

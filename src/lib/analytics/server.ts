@@ -5,23 +5,11 @@ import { sanitizeAnalyticsProperties, type AnalyticsEvent, type AnalyticsPropert
 
 let client: PostHog | undefined;
 
-export async function customerAllowsAnalytics(supabaseUserId: string): Promise<boolean> {
-  try {
-    const { createAdminClient } = await import("@/lib/supabase/admin");
-    const { data } = await createAdminClient()
-      .from("customer_privacy_preferences")
-      .select("analytics_enabled")
-      .eq("customer_user_id", supabaseUserId)
-      .maybeSingle();
-    return data?.analytics_enabled === true;
-  } catch {
-    return false;
-  }
-}
+export async function customerAllowsAnalytics(identityId: string): Promise<boolean> { void identityId; return false; }
 
 export function captureServerAnalytics(input: {
   event: AnalyticsEvent;
-  supabaseUserId: string;
+  identityId: string;
   consent: boolean;
   properties?: AnalyticsProperties;
 }) {
@@ -34,7 +22,7 @@ export function captureServerAnalytics(input: {
       flushInterval: 0,
     });
     client.capture({
-      distinctId: input.supabaseUserId,
+      distinctId: input.identityId,
       event: input.event,
       properties: sanitizeAnalyticsProperties(input.properties),
     });

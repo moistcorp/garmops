@@ -13,11 +13,9 @@ import {
   INITIAL_AUTH_ACTION_STATE,
   type AuthActionState,
 } from "@/lib/auth/constants";
-import { createClient } from "@/lib/supabase/client";
 import {
   AUTH_NEXT_COOKIE,
   AUTH_NEXT_COOKIE_MAX_AGE_SECONDS,
-  authCallbackUrl,
   safeInternalPath,
 } from "@/lib/auth/redirects";
 
@@ -106,6 +104,7 @@ export default function CustomerAuthFlow({
   const [now, setNow] = useState(0);
   const [googlePending, setGooglePending] = useState(false);
   const [googleError, setGoogleError] = useState("");
+  const [challengeId, setChallengeId] = useState("");
 
   const finish = (destination: string) => {
     if (onAuthenticated) onAuthenticated(destination);
@@ -120,6 +119,7 @@ export default function CustomerAuthFlow({
       const result = await requestCustomerOtpAction(state, formData);
       if (result.status === "success" && result.verificationEmail) {
         setEmail(result.verificationEmail);
+        setChallengeId(result.challengeId ?? "");
         setStep("otp");
         setResendAvailableAt(Date.now() + 30_000);
       }
@@ -162,17 +162,7 @@ export default function CustomerAuthFlow({
         "SameSite=Lax",
         window.location.protocol === "https:" ? "Secure" : "",
       ].filter(Boolean).join("; ");
-      const { error } = await createClient().auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          // Use the configured canonical callback rather than the browser's
-          // current hostname. Supabase falls back to its Site URL when an
-          // unlisted www/apex variant is supplied. Keep `next` in the URL as
-          // well as the cookie so the checkout survives hostname changes.
-          redirectTo: authCallbackUrl(destination),
-        },
-      });
-      if (error) throw error;
+      window.location.assign(`/api/auth/customer/google?next=${encodeURIComponent(destination)}`);
     } catch (error) {
       document.cookie = `${AUTH_NEXT_COOKIE}=; Max-Age=0; Path=/; SameSite=Lax`;
       setGooglePending(false);
@@ -194,6 +184,7 @@ export default function CustomerAuthFlow({
           aria-busy={verifying}
         >
           <input type="hidden" name="email" value={email} />
+          <input type="hidden" name="challengeId" value={challengeId} />
           <input type="hidden" name="next" value={next} />
           <p className="rounded-sm border border-(--color-accent)/20 bg-(--color-accent)/5 p-4 text-sm text-black/65">
             We sent a six-digit code to <strong>{email}</strong>.

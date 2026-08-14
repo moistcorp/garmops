@@ -3,8 +3,8 @@
 import { useActionState } from "react";
 import {
   decideOrderCancellationAction,
+  requestRefundAction,
   requestOrderCancellationAction,
-  recordOrderRefundAction,
   transitionOrderAction,
 } from "@/app/staff/actions";
 import { INITIAL_STAFF_ACTION_STATE } from "@/lib/staff/actionState";
@@ -31,8 +31,7 @@ export function CancellationDecisionForm({ requestId, orderNumber }: { requestId
   return <form action={action} className="space-y-3"><input type="hidden" name="requestId" value={requestId} /><input type="hidden" name="orderNumber" value={orderNumber} /><label className="block text-xs font-semibold">Founder decision<select name="decision" className="mt-1 w-full rounded border border-black/10 bg-white px-3 py-2 text-sm"><option value="approve">Approve cancellation</option><option value="reject">Reject request</option></select></label><label className="block text-xs font-semibold">Decision note<textarea name="note" rows={2} className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" /></label><button disabled={pending} className="techpack-button w-full" type="submit">{pending ? "Saving…" : "Save Founder decision"}</button><Result state={state} /></form>;
 }
 
-export function RefundForm({ orderId, orderNumber, status }: { orderId: string; orderNumber: string; status: "cancelled" | "refund_pending" }) {
-  const [state, action, pending] = useActionState(recordOrderRefundAction, INITIAL_STAFF_ACTION_STATE);
-  const completing = status === "refund_pending";
-  return <form action={action} className="space-y-3"><input type="hidden" name="orderId" value={orderId} /><input type="hidden" name="orderNumber" value={orderNumber} /><input type="hidden" name="action" value={completing ? "complete" : "initiate"} /><label className="block text-xs font-semibold">PayU / bank refund reference<input name="reference" required minLength={3} className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" /></label><label className="block text-xs font-semibold">Reason / reconciliation note<textarea name="reason" required minLength={3} rows={2} className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" /></label><button disabled={pending} className="techpack-button w-full" type="submit">{pending ? "Saving…" : completing ? "Mark refund completed" : "Initiate refund"}</button><Result state={state} /></form>;
+export function RefundForm({ paymentId, orderNumber }: { paymentId: string; orderNumber: string }) {
+  const [state, action, pending] = useActionState(requestRefundAction, INITIAL_STAFF_ACTION_STATE);
+  return <form action={action} className="space-y-3"><input type="hidden" name="paymentId" value={paymentId} /><input type="hidden" name="orderNumber" value={orderNumber} /><p className="text-sm text-black/55">Request a full refund through the protected PayU boundary.</p><button disabled={pending} className="w-full rounded border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-800" type="submit">{pending ? "Requesting…" : "Request full refund"}</button><Result state={state} /></form>;
 }

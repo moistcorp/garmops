@@ -12,10 +12,7 @@ export type PayuCheckoutFields = Record<string, string>;
 
 function getPayuCheckoutUrl(): string {
   return (
-    process.env.NEXT_PUBLIC_PAYU_BASE_URL ??
-    (process.env.NODE_ENV === "production"
-      ? PAYU_PRODUCTION_URL
-      : PAYU_TEST_URL)
+    process.env.NODE_ENV === "production" ? PAYU_PRODUCTION_URL : PAYU_TEST_URL
   );
 }
 

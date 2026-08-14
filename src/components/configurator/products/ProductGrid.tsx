@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { products } from "@/lib/configurator/products";
 import ProductCard from "./ProductCard";
+import { getCatalog } from "@/lib/medusa/commerce";
 
 const CATEGORY_OPTIONS = [
   "All",
@@ -19,6 +20,17 @@ type CategoryFilter = (typeof CATEGORY_OPTIONS)[number];
 
 export default function ProductGrid({ cartId }: { cartId?: string }) {
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>("All");
+  const [activeSlugs, setActiveSlugs] = useState<Set<string> | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void getCatalog().then((catalog) => {
+      if (!cancelled) setActiveSlugs(new Set(catalog.products.map((product) => product.slug)));
+    }).catch(() => {
+      if (!cancelled) setActiveSlugs(new Set());
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   const availableCategories = useMemo(
     () => CATEGORY_OPTIONS.filter(
@@ -28,10 +40,10 @@ export default function ProductGrid({ cartId }: { cartId?: string }) {
   );
 
   const filteredProducts = useMemo(
-    () => products.filter(
-      (product) => activeCategory === "All" || product.category === activeCategory,
+      () => products.filter(
+      (product) => (activeSlugs === null || activeSlugs.has(product.id)) && (activeCategory === "All" || product.category === activeCategory),
     ),
-    [activeCategory],
+    [activeCategory, activeSlugs],
   );
 
   const configuratorHref = useCallback((productId: string) => {
@@ -69,7 +81,9 @@ export default function ProductGrid({ cartId }: { cartId?: string }) {
         </div>
       </nav>
 
-      {filteredProducts.length > 0 ? (
+      {activeSlugs === null ? (
+        <p className="border border-dashed border-(--color-rule) px-4 py-8 text-center text-sm text-(--text-primary)/60" role="status">Loading the current catalogue…</p>
+      ) : filteredProducts.length > 0 ? (
         <div className="grid grid-cols-1 items-stretch gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {filteredProducts.map((product) => (
             <ProductCard

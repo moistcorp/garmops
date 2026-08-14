@@ -1,93 +1,13 @@
-import { after, NextRequest } from "next/server";
-import { z } from "zod";
-
-import {
-  authenticateOrderApi,
-  hasExpectedOrderOrigin,
-  orderJson,
-  orderJsonError,
-  readOrderJson,
-} from "@/lib/orders/api";
-import { isFeatureEnabled } from "@/lib/config/featureFlags";
-import { reconcileCheckoutPayuAttempt } from "@/lib/domain/payments/processPayuEvent";
-import { startSystemJobRun, finishSystemJobRun } from "@/lib/jobs/health";
-import { processIntegrationJobsWithHealth } from "@/lib/jobs/run";
-import { createAdminClient } from "@/lib/supabase/admin";
-
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
-const schema = z.object({ checkoutAttemptId: z.string().uuid() }).strict();
+import { NextRequest, NextResponse } from "next/server";
+import { medusaRequest } from "@/lib/medusa/client";
 
 export async function POST(request: NextRequest) {
-  if (!hasExpectedOrderOrigin(request)) return orderJsonError("Invalid request origin", 403);
-  const auth = await authenticateOrderApi();
-  if (!auth.ok) return auth.response;
-  const body = await readOrderJson(request, 8 * 1024);
-  if (!body.ok) return body.response;
-  const parsed = schema.safeParse(body.value);
-  if (!parsed.success) return orderJsonError("Invalid payment status request", 400);
-
-  const admin = createAdminClient();
-  const { data: attempt, error } = await admin
-    .from("checkout_payment_attempts")
-    .select("id, status, last_reconciled_at, checkout_sessions!inner(customer_user_id, final_order_number, flow)")
-    .eq("id", parsed.data.checkoutAttemptId)
-    .maybeSingle();
-  if (error || !attempt) return orderJsonError("Payment attempt not found", 404);
-  const session = attempt.checkout_sessions as unknown as {
-    customer_user_id: string;
-    final_order_number: string | null;
-    flow: "configurator" | "sample";
-  };
-  if (session.customer_user_id !== auth.user.id) return orderJsonError("Payment attempt not found", 404);
-  const flowEnabled = session.flow === "sample"
-    ? isFeatureEnabled("SAMPLE_CHECKOUT_ENABLED")
-    : session.flow === "configurator"
-      ? isFeatureEnabled("CONFIGURATOR_CHECKOUT_ENABLED")
-      : false;
-  if (!flowEnabled) return orderJsonError("This checkout is unavailable", 503);
-
-  if (
-    attempt.last_reconciled_at &&
-    Date.now() - new Date(attempt.last_reconciled_at).getTime() < 10_000
-  ) {
-    return orderJsonError("Payment status was checked recently. Try again in a few seconds", 429);
-  }
-
-  if (session.final_order_number) {
-    return orderJson({
-      outcome: "success",
-      orderNumber: session.final_order_number,
-      confirmationUrl: `/account/orders/${encodeURIComponent(session.final_order_number)}/confirmation`,
-    });
-  }
-
-  const runId = await startSystemJobRun({
-    jobName: "payu_reconciliation",
-    triggerSource: "customer",
-    triggerUserId: auth.user.id,
-  });
+  const body = await request.json().catch(() => ({})) as { checkoutAttemptId?: string; cartId?: string; txnid?: string };
+  const cartId = body.cartId ?? body.checkoutAttemptId;
+  if (!cartId) return NextResponse.json({ error: "Cart is required" }, { status: 400 });
   try {
-    const result = await reconcileCheckoutPayuAttempt(attempt.id);
-    await finishSystemJobRun({ runId, status: "completed", summary: { checked: 1, outcome: result.outcome } });
-    if (result.outcome === "success") {
-      after(async () => {
-        await processIntegrationJobsWithHealth({ triggerSource: "customer", triggerUserId: auth.user.id, batchSize: 10 }).catch((error) => {
-          console.error("Customer-triggered integration processing failed", { error: error instanceof Error ? error.message : "unknown" });
-        });
-      });
-    }
-    return orderJson({
-      outcome: result.needsReview ? "needs_review" : result.outcome,
-      orderNumber: result.orderNumber ?? null,
-      confirmationUrl: result.orderNumber
-        ? `/account/orders/${encodeURIComponent(result.orderNumber)}/confirmation`
-        : null,
-    });
-  } catch (reconcileError) {
-    const message = reconcileError instanceof Error ? reconcileError.message : "Payment verification failed";
-    await finishSystemJobRun({ runId, status: "failed", error: message, summary: { checked: 1, errors: 1 } });
-    return orderJsonError("Payment status could not be checked", 503);
-  }
+    const result = await medusaRequest<{ status: string; orderId?: string; orderNumber?: string }>("/store/garmops/payments/payu/recheck", { method: "POST", actor: "customer", body: { cartId, txnid: body.txnid } });
+    const outcome = result.status === "order_complete" ? "success" : result.status === "payment_failed" ? "failure" : result.status === "artifact_pending" ? "needs_review" : "pending";
+    return NextResponse.json({ outcome, orderNumber: result.orderNumber ?? null, confirmationUrl: result.orderNumber ? `/account/orders/${encodeURIComponent(result.orderNumber)}/confirmation` : null });
+  } catch { return NextResponse.json({ outcome: "pending", error: "Payment status could not be checked" }, { status: 202 }); }
 }

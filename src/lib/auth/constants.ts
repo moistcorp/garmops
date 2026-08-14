@@ -10,6 +10,7 @@ export type AuthActionState = {
   message: string;
   fieldErrors?: Record<string, string[]>;
   verificationEmail?: string;
+  challengeId?: string;
   destination?: string;
   requiresOnboarding?: boolean;
   resetToken: number;
@@ -37,6 +38,7 @@ export function actionSuccess(
   message: string,
   options?: {
     verificationEmail?: string;
+    challengeId?: string;
     destination?: string;
     requiresOnboarding?: boolean;
   },
@@ -45,6 +47,7 @@ export function actionSuccess(
     status: "success",
     message,
     verificationEmail: options?.verificationEmail,
+    challengeId: options?.challengeId,
     destination: options?.destination,
     requiresOnboarding: options?.requiresOnboarding,
     resetToken: Date.now(),

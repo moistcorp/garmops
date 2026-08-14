@@ -2,7 +2,7 @@ import {
   BillingShippingStep,
   type CheckoutAccountContext,
 } from "@/components/configurator/cart/BillingShippingStep";
-import { createClient } from "@/lib/supabase/server";
+import { medusaRequest } from "@/lib/medusa/client";
 
 interface ShippingPageProps {
   params: Promise<{ cartId: string }>;
@@ -47,50 +47,24 @@ function addressDefaults(
 
 async function loadCheckoutAccountContext(): Promise<CheckoutAccountContext | null> {
   try {
-    const supabase = await createClient();
-    const { data: userData } = await supabase.auth.getUser();
-    const user = userData.user;
-    if (!user?.email || !user.email_confirmed_at) return null;
-
-    const { data: principal } = await supabase
-      .from("account_principals")
-      .select("account_type, active")
-      .eq("user_id", user.id)
-      .maybeSingle();
-    if (principal?.account_type !== "customer" || !principal.active) return null;
-
-    const [profileResult, addressesResult, billingResult] = await Promise.all([
-      supabase.from("profiles").select("first_name, last_name, phone").eq("id", user.id).maybeSingle(),
-      supabase.from("addresses").select("line1, line2, city, state, postal_code, is_default_shipping, is_default_billing").eq("user_id", user.id),
-      supabase.from("customer_billing_profiles").select("legal_business_name, gstin, billing_email, billing_address").eq("user_id", user.id).maybeSingle(),
-    ]);
-
-    const addresses = (addressesResult.data ?? []) as Array<StoredAddress & { is_default_shipping?: boolean; is_default_billing?: boolean }>;
-    const shipping = addresses.find((address) => address.is_default_shipping);
-    const billing = addresses.find((address) => address.is_default_billing);
-    const billingJson = billingResult.data?.billing_address && typeof billingResult.data.billing_address === "object" && !Array.isArray(billingResult.data.billing_address)
-      ? (billingResult.data.billing_address as BillingAddressJson)
-      : null;
-
-    const profile = profileResult.data;
-    const billingProfile = billingResult.data;
-    const hasSavedDetails = Boolean(profile?.phone || shipping || billing || billingProfile?.gstin || billingProfile?.legal_business_name);
-    const placeholderProfile = profile?.first_name === "Customer" && profile?.last_name === "Account";
+    const response = await medusaRequest<{ customer?: { email?: string; first_name?: string; last_name?: string } }>("/auth/session", { actor: "customer" });
+    const user = response.customer;
+    if (!user?.email) return null;
 
     return {
       authenticatedEmail: user.email.trim().toLowerCase(),
-      hasSavedDetails,
+      hasSavedDetails: false,
       defaults: {
-        firstName: placeholderProfile ? "" : (profile?.first_name ?? ""),
-        lastName: placeholderProfile ? "" : (profile?.last_name ?? ""),
+        firstName: user.first_name ?? "",
+        lastName: user.last_name ?? "",
         email: user.email.trim().toLowerCase(),
-        phone: profile?.phone ?? "",
-        billingEmail: billingProfile?.billing_email ?? user.email.trim().toLowerCase(),
-        billingEntity: billingProfile?.legal_business_name ?? "",
-        billingSameAsShipping: !billing || billing === shipping,
-        gstin: billingProfile?.gstin ?? "",
-        shippingAddress: addressDefaults(shipping),
-        billingAddress: addressDefaults(billing, billingJson),
+        phone: "",
+        billingEmail: user.email.trim().toLowerCase(),
+        billingEntity: "",
+        billingSameAsShipping: true,
+        gstin: "",
+        shippingAddress: addressDefaults(),
+        billingAddress: addressDefaults(),
       },
     };
   } catch (error) {

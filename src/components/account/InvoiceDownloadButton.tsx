@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Download } from "lucide-react";
 
-export default function InvoiceDownloadButton({ fileId }: { fileId: string }) {
+export default function InvoiceDownloadButton({ fileId, invoiceId }: { fileId?: string; invoiceId?: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -12,18 +12,23 @@ export default function InvoiceDownloadButton({ fileId }: { fileId: string }) {
     setBusy(true);
     setError("");
     try {
-      const response = await fetch(`/api/files/${encodeURIComponent(fileId)}/download-url`, {
+      const path = invoiceId
+        ? `/api/medusa/store/garmops/invoices/${encodeURIComponent(invoiceId)}`
+        : `/api/files/${encodeURIComponent(fileId ?? "")}/download-url`;
+      const response = await fetch(path, {
         method: "POST",
         headers: { "content-type": "application/json" },
       });
       const body = (await response.json()) as {
         download?: { url?: string };
+        url?: string;
         error?: string;
       };
-      if (!response.ok || !body.download?.url) {
+      const url = body.download?.url ?? body.url;
+      if (!response.ok || !url) {
         throw new Error(body.error ?? "Invoice download is unavailable");
       }
-      window.location.assign(body.download.url);
+      window.location.assign(url);
     } catch (downloadError) {
       setError(downloadError instanceof Error ? downloadError.message : "Invoice download is unavailable");
       setBusy(false);

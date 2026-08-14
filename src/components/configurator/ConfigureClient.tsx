@@ -49,10 +49,19 @@ import {
   readDraft,
   MAX_CONFIGURED_CART_ITEMS,
   totalUnits,
-  upsertConfiguredCartItem,
+  writeDraft,
   splitQuantityAcrossSizes,
   type ConfiguredCartItemInput,
 } from "./cart/cartDraft";
+import { SIZES } from "./cart/SizeQuantityGrid";
+import {
+  addConfiguredLine,
+  getCatalog,
+  getServerPricing,
+  resolveConfiguredCart,
+  updateConfiguredLine,
+  type PricingSnapshot,
+} from "@/lib/medusa/commerce";
 import {
   readBuildDraft,
   writeBuildDraft,
@@ -290,8 +299,12 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
     };
   } | null>(null);
   const cloudSaveIntentHandled = useRef(false);
+  const pendingCartCommitRef = useRef<(() => Promise<void>) | null>(null);
 
   const pricingBreakdown = buildPricingBreakdown(productId, colour, artwork, neckLabel, quantity);
+  const [serverPricing, setServerPricing] = useState<PricingSnapshot | null>(null);
+  const [serverPricingLoading, setServerPricingLoading] = useState(false);
+  const [catalogProductActive, setCatalogProductActive] = useState<boolean | null>(null);
   const minimumQuantity = getProductMinimumOrderQuantity(productId, {
     colourType: colour.type,
     customDyeMinimum: CUSTOM_DYE_MOQ_UNITS,
@@ -302,6 +315,60 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   });
   const customDyeQuantityShortfall =
     colour.type === "custom_dye" && quantity < minimumQuantity;
+
+  useEffect(() => {
+    let cancelled = false;
+    void getCatalog().then((catalog) => {
+      if (!cancelled) setCatalogProductActive(catalog.products.some((candidate) => candidate.slug === productId));
+    }).catch(() => {
+      if (!cancelled) setCatalogProductActive(null);
+    });
+    return () => { cancelled = true; };
+  }, [productId]);
+  const orderBarPricing = serverPricing
+    ? {
+        rows: serverPricing.adjustments.map((adjustment) => ({
+          label: adjustment.label,
+          amount: (adjustment.amountPaise ?? 0) / 100,
+          detail: adjustment.percent !== undefined ? `${adjustment.percent}%` : undefined,
+        })),
+        unitPrice: serverPricing.configuredUnitPaise / 100,
+        lineSubtotal: serverPricing.subtotalPaise / 100,
+        discountPercent: serverPricing.discountPercent,
+        discountAmount: serverPricing.volumeDiscountPaise / 100,
+        taxable: (serverPricing.subtotalPaise + serverPricing.shippingPaise) / 100,
+        gst: serverPricing.taxPaise / 100,
+        total: serverPricing.totalPaise / 100,
+      }
+    : pricingBreakdown;
+
+  useEffect(() => {
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      setServerPricingLoading(true);
+      void getServerPricing({
+        productSlug: productId,
+        quantity,
+        colourType: colour.type,
+        artwork: {
+          front: artwork.front ? { fileId: artwork.front.fileId, fileUrl: artwork.front.fileUrl, technique: artwork.front.technique } : undefined,
+          back: artwork.back ? { fileId: artwork.back.fileId, fileUrl: artwork.back.fileUrl, technique: artwork.back.technique } : undefined,
+        },
+        neckLabel: neckLabel ? { labelType: neckLabel.labelType, fileId: neckLabel.fileId, fileUrl: neckLabel.fileUrl } : undefined,
+        deliveryType: "standard",
+      }).then((pricing) => {
+        if (!cancelled) setServerPricing(pricing);
+      }).catch(() => {
+        if (!cancelled) setServerPricing(null);
+      }).finally(() => {
+        if (!cancelled) setServerPricingLoading(false);
+      });
+    }, 250);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [artwork.back, artwork.front, colour.type, neckLabel, productId, quantity]);
   const activeCustomisationStepId = expandedStepId ?? "garment-colour";
   const previewNeckLabel: NeckLabel =
     activeCustomisationStepId === "neck-label" && !neckLabel.dimensions
@@ -957,11 +1024,26 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
     }
   }
 
-  function addConfigurationToCart(overrides?: {
+  async function commitConfigurationToCart(overrides?: {
     artwork?: Artwork;
     neckLabel?: NeckLabel;
-  }) {
-    if (editCartId && !editItemId && readDraft(editCartId).items.length >= MAX_CONFIGURED_CART_ITEMS) {
+  }, authenticatedJustNow = false) {
+    if (catalogProductActive === false) {
+      setFeedback({ tone: "error", title: "This product is no longer available", detail: "Choose an active product from the current catalogue." });
+      return;
+    }
+    if (!customerSession.email && !authenticatedJustNow) {
+      pendingCartCommitRef.current = () => commitConfigurationToCart(overrides, true);
+      if (!accountsEnabled) {
+        setFeedback({ tone: "error", title: "Sign in is required before adding to cart", detail: "Configured carts are securely owned by your customer account." });
+      } else {
+        setAuthDialogOpen(true);
+      }
+      return;
+    }
+
+    const existingDraft = editCartId ? readDraft(editCartId) : null;
+    if (editCartId && !editItemId && existingDraft && existingDraft.items.length >= MAX_CONFIGURED_CART_ITEMS) {
       setFeedback({
         tone: "error",
         title: "This cart already has 20 configured products",
@@ -989,25 +1071,100 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
           : undefined,
       rushDelivery: false,
     };
-    const targetCartId = upsertConfiguredCartItem(requestedDraftId ?? configId, cartInput, {
-      cartId: editCartId ?? undefined,
-      itemId: editItemId ?? undefined,
-    });
-    if (!targetCartId) {
+    setFeedback({ tone: "loading", title: editItemId ? "Updating your configuration…" : "Adding configuration to cart…", detail: "Medusa is validating the design, quantity and price." });
+
+    try {
+      const storageKey = editItemId ? `cart-item:${editItemId}` : designStorageKey;
+      const cloudResult = await saveBuildDraftToCloud({
+        configId,
+        storageKey,
+        productName,
+        draft: {
+          version: 1,
+          savedAt: new Date().toISOString(),
+          colour: cartInput.colour,
+          artwork: cartInput.artwork,
+          neckLabel: cartInput.neckLabel ?? createStandardNeckLabel(),
+          steps,
+          quantity,
+        },
+        existingLink: cloudLinkRef.current ?? readCloudDesignLink(storageKey),
+      });
+      if (!cloudResult.ok) {
+        if (cloudResult.kind === "unauthorized") {
+          pendingCartCommitRef.current = () => commitConfigurationToCart(overrides, true);
+          setAuthDialogOpen(true);
+          setFeedback(null);
+          return;
+        }
+        throw new Error(cloudResult.kind === "conflict" ? "This design changed in another session. Resolve the saved design before adding it." : cloudResult.message);
+      }
+
+      const serverCart = await resolveConfiguredCart({
+        cartId: editCartId && existingDraft?.serverCartId === editCartId ? editCartId : undefined,
+        email: customerSession.email ?? undefined,
+      });
+      const sizeQuantities = cartInput.sizeQuantities ?? splitQuantityAcrossSizes(quantity, product?.sizes ?? SIZES);
+      const existingItem = editItemId ? existingDraft?.items.find((item) => item.id === editItemId) : undefined;
+      const canonical = editItemId && existingItem?.medusaLineId
+        ? await updateConfiguredLine({
+            lineId: existingItem.medusaLineId,
+            quantity,
+            sizes: sizeQuantities,
+            deliveryType: "standard",
+          })
+        : await addConfiguredLine({
+            cartId: serverCart.cartId,
+            projectId: cloudResult.link.designId,
+            versionId: cloudResult.link.currentVersionId,
+            quantity,
+            sizes: sizeQuantities,
+            deliveryType: "standard",
+          });
+      const canonicalCart = canonical.cart;
+      const canonicalLine = canonicalCart.lines.find((line) =>
+        editItemId && existingItem?.medusaLineId
+          ? line.id === existingItem.medusaLineId
+          : line.projectId === cloudResult.link.designId,
+      );
+      const itemId = existingItem?.id ?? crypto.randomUUID();
+      const syncedItem = {
+        ...cartInput,
+        id: itemId,
+        medusaLineId: canonicalLine?.id ?? String((canonical.line as Record<string, unknown>).id ?? ""),
+        designProjectId: cloudResult.link.designId,
+        designVersionId: cloudResult.link.currentVersionId,
+        sizeQuantities: canonicalLine?.sizeBreakdown as typeof sizeQuantities ?? sizeQuantities,
+        unitPrice: (canonicalLine?.pricing ?? canonical.pricing).unitPricePaise / 100,
+        backendPricing: canonicalLine?.pricing ?? canonical.pricing,
+        plannedQuantity: undefined,
+      };
+      const previous = existingDraft ?? { ...readDraft(serverCart.cartId), items: [] };
+      const nextItems = editItemId
+        ? previous.items.map((item) => item.id === editItemId ? syncedItem : item)
+        : [...previous.items, syncedItem];
+      const nextDraft = {
+        ...previous,
+        items: nextItems,
+        serverCartId: canonicalCart.cartId,
+        backendCart: canonicalCart,
+      };
+      if (!writeDraft(canonicalCart.cartId, nextDraft)) throw new Error("Your browser could not save the synchronized cart.");
+      if (requestedEstimateId && cloudLinkRef.current) writeEstimateForDesign(cloudLinkRef.current.designId, requestedEstimateId);
+      trackConfiguratorEvent("added_to_cart", { product_id: productId, quantity, editing: Boolean(editItemId), existing_cart: Boolean(editCartId) });
+      clearBuildDraft(designStorageKey);
+      router.push(`/configurator/cart/${encodeURIComponent(canonicalCart.cartId)}/review`);
+    } catch (error) {
       setFeedback({
         tone: "error",
-        title: "Could not save this product to the cart",
-        detail: "Your configuration is still open. Free some browser storage or try another browser before continuing.",
+        title: "Could not synchronize this configuration",
+        detail: error instanceof Error ? error.message : "Medusa could not accept this configuration. Your local draft is still open.",
       });
-      return;
     }
-    if (requestedEstimateId && cloudLinkRef.current) {
-      writeEstimateForDesign(cloudLinkRef.current.designId, requestedEstimateId);
-    }
+  }
 
-    trackConfiguratorEvent("added_to_cart", { product_id: productId, quantity, editing: Boolean(editItemId), existing_cart: Boolean(editCartId) });
-    clearBuildDraft(designStorageKey);
-    router.push(`/configurator/cart/${encodeURIComponent(targetCartId)}/review`);
+  function addConfigurationToCart(overrides?: { artwork?: Artwork; neckLabel?: NeckLabel }) {
+    void commitConfigurationToCart(overrides);
   }
 
   function handleCtaClick() {
@@ -1258,8 +1415,14 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
             onAuthenticated={() => {
               setAuthDialogOpen(false);
               void customerSession.refresh();
-              setDesignTitle(`${productName} — ${colour.name} — ${quantity} pcs`);
-              setNameDialogOpen(true);
+              const pending = pendingCartCommitRef.current;
+              pendingCartCommitRef.current = null;
+              if (pending) {
+                void pending();
+              } else {
+                setDesignTitle(`${productName} — ${colour.name} — ${quantity} pcs`);
+                setNameDialogOpen(true);
+              }
             }}
           />
         ) : null}
@@ -1423,7 +1586,8 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
                       })
                 }
                 onCtaClick={handleCtaClick}
-                pricingBreakdown={pricingBreakdown}
+                pricingBreakdown={orderBarPricing}
+                pricingStatus={serverPricing && !serverPricingLoading ? "live" : "estimate"}
                 ctaErrorMessage={ctaErrorMessage}
                 ctaErrorNonce={ctaErrorNonce}
               />

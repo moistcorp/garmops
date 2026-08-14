@@ -19,30 +19,22 @@ export default async function CheckoutPage() {
     );
   }
 
-  const { user, supabase } = await requireCustomer("/checkout");
-  const [{ data: profile }, { data: defaultShipping }] = await Promise.all([
-    supabase.from("profiles").select("first_name, last_name, phone").eq("id", user.id).maybeSingle(),
-    supabase.from("addresses")
-      .select("line1, line2, city, state, postal_code, country_code")
-      .eq("user_id", user.id)
-      .eq("is_default_shipping", true)
-      .maybeSingle(),
-  ]);
+  const { user } = await requireCustomer("/checkout");
 
   return (
     <DurableSampleCheckout
       defaults={{
-        firstName: profile?.first_name ?? "",
-        lastName: profile?.last_name ?? "",
+        firstName: user.first_name ?? "",
+        lastName: user.last_name ?? "",
         email: user.email ?? "",
-        phone: profile?.phone ?? "",
+        phone: "",
         deliveryAddress: {
           country: "India",
-          addressLine1: defaultShipping?.line1 ?? "",
-          addressLine2: defaultShipping?.line2 ?? "",
-          zip: defaultShipping?.postal_code ?? "",
-          city: defaultShipping?.city ?? "",
-          state: defaultShipping?.state ?? "",
+          addressLine1: "",
+          addressLine2: "",
+          zip: "",
+          city: "",
+          state: "",
         },
       }}
     />

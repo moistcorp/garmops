@@ -24,6 +24,7 @@ import {
   getRecommendedSizeAllocation,
   MAX_CONFIGURATION_QUANTITY,
 } from "@/lib/configurator/sizeQuantity";
+import type { ConfiguredCartSummary } from "@/lib/medusa/commerce";
 
 const STORAGE_PREFIX = "mf_configurator_cart:";
 const ACTIVE_CART_KEY = `${STORAGE_PREFIX}active`;
@@ -83,6 +84,9 @@ function createEmptyPreferences(): ProjectPreferences {
 
 export interface CartDraft {
   items: CartItem[];
+  /** Set after Medusa accepts the first committed configured line. */
+  serverCartId?: string;
+  backendCart?: ConfiguredCartSummary;
   projectName: string;
   projectContact: ProjectContact;
   shippingInformation: ShippingInformation;
@@ -310,6 +314,9 @@ function normalizeCartItem(value: unknown): CartItem | null {
 
   return {
     id: asString(value.id, `${productId}-${Date.now().toString(36)}`),
+    medusaLineId: asOptionalString(value.medusaLineId),
+    designProjectId: asOptionalString(value.designProjectId),
+    designVersionId: asOptionalString(value.designVersionId),
     productId,
     productName: asString(value.productName, product.name),
     previewImage: asString(value.previewImage, product.defaultImage),
@@ -321,6 +328,9 @@ function normalizeCartItem(value: unknown): CartItem | null {
     unitPrice,
     rushDelivery,
     plannedQuantity,
+    backendPricing: isRecord(value.backendPricing)
+      ? value.backendPricing as CartItem["backendPricing"]
+      : undefined,
   };
 }
 
@@ -352,6 +362,10 @@ function normalizeDraft(value: unknown, cartId: string): CartDraft {
 
   return {
     items,
+    serverCartId: asOptionalString(value.serverCartId),
+    backendCart: isRecord(value.backendCart)
+      ? value.backendCart as CartDraft["backendCart"]
+      : undefined,
     projectName: asString(value.projectName),
     ...procurement,
     selectedDeliveryDateIso: asOptionalString(value.selectedDeliveryDateIso),
@@ -407,6 +421,9 @@ export function readActiveCartSummary(): { cartId: string; itemCount: number } |
       window.localStorage.getItem(ACTIVE_CART_KEY);
     if (!raw) return null;
     const parsed = normalizeDraft(JSON.parse(raw), cartId);
+    // Local Studio drafts are intentionally not cart authority. The badge only
+    // counts lines after the configured Medusa cart has accepted them.
+    if (parsed.serverCartId !== cartId || !parsed.backendCart) return null;
     return { cartId, itemCount: parsed.items.length };
   } catch {
     return null;

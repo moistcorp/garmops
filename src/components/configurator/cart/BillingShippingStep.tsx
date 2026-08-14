@@ -33,6 +33,7 @@ import {
   calculateTotals,
   createDraft,
   readDraft,
+  totalUnits,
   type CartDraft,
   writeDraft,
 } from "./cartDraft";
@@ -43,6 +44,7 @@ import {
 } from "@/lib/configurator/delivery";
 import { CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS } from "@/lib/configurator/colourRules";
 import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
+import { getConfiguredCart, updateConfiguredLine, type ConfiguredCartSummary } from "@/lib/medusa/commerce";
 import { ActionFeedback } from "@/components/configurator/ActionFeedback";
 import CustomerAuthFlow from "@/components/auth/CustomerAuthFlow";
 import { formatSpecCode } from "@/lib/orders/format";
@@ -365,7 +367,16 @@ export function BillingShippingStep({
     return () => window.clearTimeout(loadDraft);
   }, [accountContext, cartId, router]);
 
-  const totals = calculateTotals(draft.items, draft.deliveryType);
+  const totals = draft.backendCart
+    ? {
+        subtotal: draft.backendCart.subtotalPaise / 100,
+        volumeDiscount: draft.backendCart.discountPaise / 100,
+        rushFee: draft.backendCart.rushFeePaise / 100,
+        shippingFee: draft.backendCart.shippingPaise / 100,
+        gst: draft.backendCart.gstPaise / 100,
+        total: draft.backendCart.grandTotalPaise / 100,
+      }
+    : calculateTotals(draft.items, draft.deliveryType);
 
   const markFormStarted = useCallback(() => {
     if (formStartedRef.current) return;
@@ -516,6 +527,30 @@ export function BillingShippingStep({
         first_missing: missingLabels[0] ?? null,
       });
       focusFirstMissingField();
+      return;
+    }
+
+    try {
+      let canonicalCart: ConfiguredCartSummary = await getConfiguredCart(cartId);
+      for (const item of draft.items) {
+        if (!item.medusaLineId) throw new Error(`${item.productName} is not synchronized with the Medusa cart.`);
+        const line = canonicalCart.lines.find((candidate) => candidate.id === item.medusaLineId);
+        if (!line || line.deliveryType === draft.deliveryType) continue;
+        const result = await updateConfiguredLine({
+          lineId: item.medusaLineId,
+          quantity: totalUnits(item.sizeQuantities),
+          sizes: item.sizeQuantities,
+          deliveryType: draft.deliveryType,
+        });
+        canonicalCart = result.cart;
+      }
+      setDraft((previous) => {
+        const next = { ...previous, backendCart: canonicalCart, serverCartId: canonicalCart.cartId };
+        writeDraft(cartId, next);
+        return next;
+      });
+    } catch (error) {
+      setValidationFeedback(error instanceof Error ? error.message : "The Medusa cart could not be refreshed.");
       return;
     }
 

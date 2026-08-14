@@ -7,7 +7,6 @@ import {
   LoaderCircle,
   MapPin,
   ShieldCheck,
-  Tag,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -30,7 +29,6 @@ import {
   getCartItemUnitPrice,
   readDraft,
   totalUnits,
-  writeDraft,
 } from "./cartDraft";
 import {
   formatDeliveryLabel,
@@ -41,7 +39,6 @@ import { formatInr } from "@/lib/configurator/pricing";
 import { hasArtworkAsset } from "@/lib/configurator/pricing";
 import { placementLabel } from "@/lib/configurator/artworkPlacement";
 import { isCustomNeckLabel } from "@/lib/configurator/neckLabel";
-import { calculateTaxPaise } from "@/lib/tax";
 import { formatSpecCode } from "@/lib/orders/format";
 import { getPaymentJourneyStep } from "@/lib/configurator/journey";
 import {
@@ -89,12 +86,6 @@ export function ConfirmationStep({
     paymentOutcome === "pending" ? "pending" : "idle",
   );
   const automaticRecheckStarted = useRef(false);
-  const [promoState, setPromoState] = useState<
-    | { status: "idle" }
-    | { status: "checking" }
-    | { status: "applied"; code: string; discountPaise: number; subtotalPaise: number }
-    | { status: "error"; message: string }
-  >({ status: "idle" });
   const [paymentError, setPaymentError] = useState(() =>
     paymentOutcome === "failure"
       ? "The payment was not completed. No order was created. You can try again safely."
@@ -194,29 +185,24 @@ export function ConfirmationStep({
 
 
   const baseTotals = useMemo(
-    () => calculateTotals(draft.items, draft.deliveryType),
-    [draft.deliveryType, draft.items],
+    () => draft.backendCart
+      ? {
+          subtotal: draft.backendCart.subtotalPaise / 100,
+          volumeDiscount: draft.backendCart.discountPaise / 100,
+          rushFee: draft.backendCart.rushFeePaise / 100,
+          shippingFee: draft.backendCart.shippingPaise / 100,
+          gst: draft.backendCart.gstPaise / 100,
+          total: draft.backendCart.grandTotalPaise / 100,
+        }
+      : calculateTotals(draft.items, draft.deliveryType),
+    [draft.backendCart, draft.deliveryType, draft.items],
   );
-  const normalizedPromoCode = draft.promoCode.trim().toUpperCase();
-  const promoDiscountPaise =
-    promoState.status === "applied" &&
-    promoState.code === normalizedPromoCode &&
-    promoState.subtotalPaise === baseTotals.taxableSubtotalPaise
-      ? promoState.discountPaise
-      : 0;
-  const discountedTaxablePaise = Math.max(
-    0,
-    baseTotals.taxableSubtotalPaise - promoDiscountPaise,
-  );
-  const gstPaise = calculateTaxPaise(discountedTaxablePaise);
-  const orderTotalPaise = discountedTaxablePaise + gstPaise;
   const subtotal = baseTotals.subtotal;
   const volumeDiscount = baseTotals.volumeDiscount;
   const rushFee = baseTotals.rushFee;
   const shippingFee = baseTotals.shippingFee;
-  const promoDiscount = promoDiscountPaise / 100;
-  const gst = gstPaise / 100;
-  const orderTotal = orderTotalPaise / 100;
+  const gst = baseTotals.gst;
+  const orderTotal = baseTotals.total;
   const delivery = formatDeliveryLabel(
     draft.deliveryType,
     draft.selectedDeliveryDateIso
@@ -239,73 +225,6 @@ export function ConfirmationStep({
   const billingUsesDeliveryAddress =
     joinAddress(billingAddress) ===
     joinAddress(draft.shippingInformation.address);
-
-  const updatePromoCode = (value: string) => {
-    const promoCode = value.toUpperCase().replace(/[^A-Z0-9_-]/g, "").slice(0, 40);
-    setPromoState({ status: "idle" });
-    setDraft((current) => {
-      const next = { ...current, promoCode };
-      writeDraft(cartId, next);
-      return next;
-    });
-  };
-
-  const validatePromoCode = async (): Promise<boolean> => {
-    const code = draft.promoCode.trim().toUpperCase();
-    if (!code) {
-      setPromoState({ status: "idle" });
-      return true;
-    }
-
-    if (
-      promoState.status === "applied" &&
-      promoState.code === code &&
-      promoState.subtotalPaise === baseTotals.taxableSubtotalPaise
-    ) {
-      return true;
-    }
-
-    setPromoState({ status: "checking" });
-    try {
-      const response = await fetch("/api/orders/configurator/discount", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code,
-          subtotalPaise: baseTotals.taxableSubtotalPaise,
-        }),
-      });
-      const body = (await response.json().catch(() => ({}))) as {
-        error?: string;
-        code?: string;
-        discountPaise?: number;
-      };
-      if (
-        !response.ok ||
-        typeof body.code !== "string" ||
-        typeof body.discountPaise !== "number"
-      ) {
-        setPromoState({
-          status: "error",
-          message: body.error ?? "Discount code is invalid or unavailable",
-        });
-        return false;
-      }
-      setPromoState({
-        status: "applied",
-        code: body.code,
-        discountPaise: body.discountPaise,
-        subtotalPaise: baseTotals.taxableSubtotalPaise,
-      });
-      return true;
-    } catch {
-      setPromoState({
-        status: "error",
-        message: "Discount code could not be checked. Try again.",
-      });
-      return false;
-    }
-  };
 
   const handlePayment = async () => {
     setPaymentError("");
@@ -352,8 +271,8 @@ export function ConfirmationStep({
       return;
     }
 
-    if (!(await validatePromoCode())) {
-      setPaymentError("Review or remove the discount code before payment.");
+    if (draft.promoCode.trim()) {
+      setPaymentError("Promotional codes are not available for this checkout yet. Remove the code to continue.");
       return;
     }
 
@@ -602,50 +521,29 @@ export function ConfirmationStep({
         <div className="space-y-4 lg:sticky lg:top-36 lg:self-start">
           <details className="techpack-panel rounded-sm border p-4">
             <summary className="flex cursor-pointer list-none items-center gap-2">
-              <Tag size={16} className="text-(--color-accent)" />
-              <span className="text-sm font-semibold text-(--text-primary)">Have a discount code? +</span>
+            <span className="text-sm font-semibold text-(--text-primary)">Promotional codes</span>
             </summary>
             <div className="mt-3 flex gap-2">
               <input
-                value={draft.promoCode}
-                onChange={(event) => updatePromoCode(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                    void validatePromoCode();
-                  }
-                }}
-                placeholder="WELCOME10"
-                className="techpack-control min-w-0 flex-1 rounded-sm border px-3 py-2 text-sm font-mono uppercase outline-none focus:!border-(--color-accent)"
-                maxLength={40}
-                autoComplete="off"
+                readOnly
+                value=""
+                aria-label="Promotional codes are unavailable"
+                className="techpack-control min-w-0 flex-1 rounded-sm border px-3 py-2 text-sm text-(--text-primary)/45"
               />
               <button
                 type="button"
-                onClick={() => void validatePromoCode()}
-                disabled={!draft.promoCode.trim() || promoState.status === "checking"}
+                disabled
                 className="rounded-sm bg-black px-3 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {promoState.status === "checking" ? "Checking…" : "Apply"}
+                Apply
               </button>
             </div>
-            {promoState.status === "applied" ? (
-              <p className="mt-2 text-xs font-medium text-emerald-700">
-                {promoState.code} applied · save {formatInr(promoState.discountPaise / 100)}
-              </p>
-            ) : promoState.status === "error" ? (
-              <p className="mt-2 text-xs text-red-600">{promoState.message}</p>
-            ) : (
-              <p className="mt-2 text-xs text-(--text-primary)/45">
-                Codes are checked against your account and current order value.
-              </p>
-            )}
+            <p className="mt-2 text-xs text-(--text-primary)/45">Promotional codes are not part of the current Medusa checkout contract.</p>
           </details>
           <CartSummarySidebar
             subtotal={subtotal}
             volumeDiscount={volumeDiscount}
             rushFee={rushFee}
-            promoDiscount={promoDiscount}
             shippingFee={shippingFee}
             gst={gst}
             delivery={delivery}
@@ -654,10 +552,10 @@ export function ConfirmationStep({
           />
           <button
             type="button"
-            disabled={!termsAccepted || isProcessing || verificationState === "pending" || verificationState === "checking" || verificationState === "review" || promoState.status === "checking"}
+            disabled={!termsAccepted || isProcessing || verificationState === "pending" || verificationState === "checking" || verificationState === "review"}
             onClick={handlePayment}
             className={`flex w-full items-center justify-center gap-2 rounded-sm py-3 text-sm font-semibold transition-colors ${
-              termsAccepted && !isProcessing && verificationState !== "pending" && verificationState !== "checking" && verificationState !== "review" && promoState.status !== "checking"
+              termsAccepted && !isProcessing && verificationState !== "pending" && verificationState !== "checking" && verificationState !== "review"
                 ? "bg-(--color-accent) text-white hover:bg-(--color-accent-dark)"
                 : "cursor-not-allowed bg-[#E5E5E5] text-(--text-primary)/40"
             }`}
@@ -727,8 +625,13 @@ function AddressSummary({ address }: { address: Address }) {
 function ProductRecapCard({ item, lineNumber, cartId }: { item: CartItem; lineNumber: number; cartId: string }) {
   const [view, setView] = useState<"front" | "back" | "neck">("front");
   const units = totalUnits(item.sizeQuantities);
-  const unitPrice = getCartItemUnitPrice(item);
-  const discountPercent = getCartItemDiscountPercent(item);
+  const unitPrice = item.backendPricing?.unitPricePaise !== undefined
+    ? item.backendPricing.unitPricePaise / 100
+    : getCartItemUnitPrice(item);
+  const discountPercent = item.backendPricing?.discountPercent ?? getCartItemDiscountPercent(item);
+  const lineTotal = item.backendPricing?.totalPaise !== undefined
+    ? item.backendPricing.totalPaise / 100
+    : unitPrice * units;
   const productSizes = getProduct(item.productId)?.sizes ?? Object.keys(item.sizeQuantities);
 
   return (
@@ -761,7 +664,7 @@ function ProductRecapCard({ item, lineNumber, cartId }: { item: CartItem; lineNu
           <ArtworkSummary label="Front" side={item.artwork.front} />
           <ArtworkSummary label="Back" side={item.artwork.back} />
           <div><p className="font-semibold text-(--text-primary)">Neck label</p><p className="mt-1">{isCustomNeckLabel(item.neckLabel) ? `Custom · ${item.neckLabel?.dimensions.replace("x", " × ")} mm` : "Standard size label"}</p></div>
-          <div><p className="font-semibold text-(--text-primary)">Line total</p><p className="mt-1 font-mono">{formatInr(unitPrice * units)}</p></div>
+          <div><p className="font-semibold text-(--text-primary)">Line total</p><p className="mt-1 font-mono">{formatInr(lineTotal)}</p></div>
         </div>
         <div className="mt-4"><p className="text-xs font-semibold text-(--text-primary)">Sizes</p><div className="mt-2 flex flex-wrap gap-2">{productSizes.filter((size) => (item.sizeQuantities[size] ?? 0) > 0).map((size) => <span key={size} className="rounded-[3px] border border-black/8 px-2 py-1 text-xs">{size} {item.sizeQuantities[size]}</span>)}</div></div>
         <Link href={`/configurator/build/${encodeURIComponent(item.productId)}?cartId=${encodeURIComponent(cartId)}&itemId=${encodeURIComponent(item.id)}`} className="mt-4 inline-block text-xs font-semibold text-(--color-accent-dark) underline">Edit configuration →</Link>

@@ -18,6 +18,7 @@ export type CloudDesignLink = {
   designId: string;
   draftRevision: number;
   currentVersion: number;
+  currentVersionId?: string;
   lastSavedAt: string;
   uploadFileIds: Record<string, string>;
   needsImportVersion?: boolean;
@@ -434,6 +435,7 @@ export async function saveBuildDraftToCloud(input: {
         id: string;
         draftRevision: number;
         currentVersion: number;
+        currentVersionId?: string;
         lastSavedAt: string;
       };
     };
@@ -441,6 +443,7 @@ export async function saveBuildDraftToCloud(input: {
       designId: body.design.id,
       draftRevision: body.design.draftRevision,
       currentVersion: body.design.currentVersion,
+      currentVersionId: body.design.currentVersionId,
       lastSavedAt: body.design.lastSavedAt,
       uploadFileIds: {},
       needsImportVersion: uploadReferences(input.draft).length > 0,
@@ -490,6 +493,7 @@ export async function saveBuildDraftToCloud(input: {
     design: {
       draftRevision: number;
       currentVersion: number;
+      currentVersionId?: string;
       lastSavedAt: string;
     };
   };
@@ -497,6 +501,7 @@ export async function saveBuildDraftToCloud(input: {
     ...link,
     draftRevision: savedBody.design.draftRevision,
     currentVersion: savedBody.design.currentVersion,
+    currentVersionId: savedBody.design.currentVersionId,
     lastSavedAt: savedBody.design.lastSavedAt,
   };
 
@@ -514,6 +519,7 @@ export async function saveBuildDraftToCloud(input: {
         version: {
           draftRevision: number;
           number: number;
+          id?: string;
           createdAt: string;
         };
       };
@@ -521,6 +527,7 @@ export async function saveBuildDraftToCloud(input: {
         ...link,
         draftRevision: versionBody.version.draftRevision,
         currentVersion: versionBody.version.number,
+        currentVersionId: versionBody.version.id,
         lastSavedAt: versionBody.version.createdAt,
         needsImportVersion: false,
       };

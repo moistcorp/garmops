@@ -10,9 +10,7 @@ function configuredOrigin(value: string | undefined) {
   }
 }
 
-const supabaseOrigin = configuredOrigin(process.env.NEXT_PUBLIC_SUPABASE_URL)
-const r2Origin = configuredOrigin(process.env.R2_S3_ENDPOINT)
-const downloadsOrigin = configuredOrigin(process.env.NEXT_PUBLIC_DOWNLOADS_BASE_URL)
+const medusaOrigin = configuredOrigin(process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL)
 const posthogOrigin = configuredOrigin(process.env.NEXT_PUBLIC_POSTHOG_HOST)
 const sentryOrigin = configuredOrigin(process.env.NEXT_PUBLIC_SENTRY_DSN)
 const isDevelopment = process.env.NODE_ENV === 'development'
@@ -29,20 +27,6 @@ const nextConfig: NextConfig = {
         destination: 'https://www.garmops.com/:path*',
         permanent: true,
       },
-      ...(downloadsOrigin
-        ? [
-            {
-              source: '/downloads/Garmops-print_templates-1.0.zip',
-              destination: `${downloadsOrigin}/templates/print/Garmops-print_templates-1.0.zip`,
-              permanent: false,
-            },
-            {
-              source: '/downloads/neck-label-templates.zip',
-              destination: `${downloadsOrigin}/templates/neck-label/neck-label-templates-1.0.zip`,
-              permanent: false,
-            },
-          ]
-        : []),
     ]
   },
   async headers() {
@@ -88,7 +72,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://api.fontshare.com https://fonts.googleapis.com",
               "font-src 'self' https://cdn.fontshare.com https://fonts.gstatic.com",
               "img-src 'self' data: blob: https:",
-              `connect-src 'self' https://api.resend.com https://secure.payu.in https://test.payu.in https://challenges.cloudflare.com${supabaseOrigin ? ` ${supabaseOrigin}` : ''}${r2Origin ? ` ${r2Origin}` : ''}${posthogOrigin ? ` ${posthogOrigin}` : ''}${sentryOrigin ? ` ${sentryOrigin}` : ''}`,
+              `connect-src 'self' https://secure.payu.in https://test.payu.in https://challenges.cloudflare.com${medusaOrigin ? ` ${medusaOrigin}` : ''}${posthogOrigin ? ` ${posthogOrigin}` : ''}${sentryOrigin ? ` ${sentryOrigin}` : ''}`,
               "frame-src https://secure.payu.in https://test.payu.in https://challenges.cloudflare.com",
               "form-action 'self' https://secure.payu.in https://test.payu.in",
             ].join('; '),

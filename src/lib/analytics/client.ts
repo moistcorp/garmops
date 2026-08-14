@@ -1,7 +1,6 @@
 "use client";
 
 import posthog from "posthog-js";
-import { createClient } from "@/lib/supabase/client";
 import { sanitizeAnalyticsProperties, type AnalyticsEvent, type AnalyticsProperties } from "./events";
 
 export const ANALYTICS_CONSENT_KEY = "garmops_analytics_consent";
@@ -42,18 +41,7 @@ export function setAnalyticsConsent(accepted: boolean) {
 }
 
 export async function syncAnalyticsPreference(accepted: boolean) {
-  try {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    await supabase.from("customer_privacy_preferences").upsert({
-      customer_user_id: user.id,
-      analytics_enabled: accepted,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: "customer_user_id" });
-  } catch {
-    // Consent remains effective locally even if account preference sync is unavailable.
-  }
+  void accepted;
 }
 
 export function captureAnalytics(event: AnalyticsEvent, properties: AnalyticsProperties = {}) {
@@ -62,10 +50,10 @@ export function captureAnalytics(event: AnalyticsEvent, properties: AnalyticsPro
   if (posthog.__loaded) posthog.capture(event, sanitizeAnalyticsProperties(properties));
 }
 
-export function identifyAnalyticsUser(supabaseUserId: string) {
-  if (!analyticsConsent() || !/^[0-9a-f-]{36}$/i.test(supabaseUserId)) return;
+export function identifyAnalyticsUser(identityId: string) {
+  if (!analyticsConsent() || !identityId) return;
   initializeAnalytics();
-  if (posthog.__loaded) posthog.identify(supabaseUserId);
+  if (posthog.__loaded) posthog.identify(identityId);
 }
 
 export function resetAnalyticsUser() {

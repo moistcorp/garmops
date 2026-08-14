@@ -6,10 +6,6 @@ import {
   sourcePathFromMarkdownPath,
 } from '@/lib/agentRoutes'
 import {
-  copySessionHeaders,
-  refreshSupabaseSession,
-} from '@/lib/supabase/proxy'
-import {
   isStaffSurface,
   staffAppUrl,
 } from '@/lib/config/appSurface'
@@ -76,14 +72,8 @@ function isPublicAssetPath(pathname: string): boolean {
   return PUBLIC_ASSET_PATH.test(pathname)
 }
 
-function redirectWithSession(
-  sessionResponse: NextResponse,
-  destination: URL,
-) {
-  return copySessionHeaders(
-    sessionResponse,
-    NextResponse.redirect(destination),
-  )
+function redirectWithSession(_sessionResponse: NextResponse, destination: URL) {
+  return NextResponse.redirect(destination)
 }
 
 async function routeRequest(request: NextRequest) {
@@ -105,7 +95,13 @@ async function routeRequest(request: NextRequest) {
     }
   }
 
-  const session = await refreshSupabaseSession(request)
+  const session = {
+    response: NextResponse.next(),
+    authenticated: Boolean(
+      request.cookies.get('garmops_medusa_customer')?.value ||
+      request.cookies.get('garmops_medusa_staff')?.value,
+    ),
+  }
 
   if (staffSurface) {
     if (pathname.startsWith('/staff')) {

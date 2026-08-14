@@ -33,7 +33,7 @@ const sections = [
   {
     title: '4. Sharing and service providers',
     paragraphs: [
-      'We use service-provider categories including application hosting, Supabase database/authentication, private Cloudflare R2 file storage, PayU payments, Resend email, and—only after your choice—PostHog product analytics. Optional analytics does not include artwork filenames, contact details, addresses, GSTIN, or payment payloads, and session replay is disabled.',
+      'We use service-provider categories including application hosting, Medusa commerce and authentication, private file storage managed by the commerce backend, PayU payments, and—only after your choice—PostHog product analytics. Optional analytics does not include artwork filenames, contact details, addresses, GSTIN, or payment payloads, and session replay is disabled.',
       'We may also disclose information where necessary to comply with law, respond to lawful requests, protect our rights or safety, investigate abuse, or support a business transfer. We do not sell customer personal information.',
     ],
   },

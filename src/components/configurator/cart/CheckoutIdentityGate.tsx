@@ -10,7 +10,6 @@ import {
   getCartJourneyLinks,
   getCartProductLabel,
 } from "@/components/configurator/ConfiguratorTopBar";
-import { createClient } from "@/lib/supabase/client";
 
 import { ConfirmationStep } from "./ConfirmationStep";
 import { createDraft, readDraft, type CartDraft } from "./cartDraft";
@@ -85,7 +84,7 @@ export function CheckoutIdentityGate({
   const signOutAndContinue = async () => {
     setSigningOut(true);
     try {
-      await createClient().auth.signOut();
+      await fetch("/api/auth/logout");
     } finally {
       window.location.assign(destination);
     }
