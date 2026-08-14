@@ -214,7 +214,7 @@ export default function Navbar() {
           ref={mobileNavRef}
           id="mobile-navigation"
           aria-label="Mobile navigation"
-          className={`absolute inset-x-0 top-14 max-h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom))] overflow-y-auto border-b border-(--color-rule) bg-(--color-cream) px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 transition-all duration-200 sm:px-5 sm:pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pt-4 ${
+          className={`absolute inset-x-0 top-14 max-h-screen-safe overflow-y-auto border-b border-(--color-rule) bg-(--color-cream) px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 transition-all duration-200 sm:px-5 sm:pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pt-4 ${
             open ? 'translate-y-0 opacity-100' : '-translate-y-3 opacity-0'
           }`}
         >

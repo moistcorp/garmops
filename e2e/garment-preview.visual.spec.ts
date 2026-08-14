@@ -1,5 +1,11 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("garmops_analytics_consent", "rejected");
+  });
+});
+
 function renderedGarment(page: Page, view: "front" | "back" | "neck") {
   return page.getByRole("main").getByLabel(new RegExp(`${view} garment preview`, "i")).locator("canvas");
 }
@@ -10,11 +16,7 @@ async function waitForPhotographicGarment(
 ): Promise<Locator> {
   const preview = renderedGarment(page, view);
   await expect(preview).toBeVisible();
-  // Legacy assets are 1670px on their long edge. A width above the former
-  // 1400px cap proves that the native-resolution photographic render landed.
-  await expect
-    .poll(() => preview.evaluate((canvas) => (canvas as HTMLCanvasElement).width))
-    .toBeGreaterThan(1400);
+  await expect(preview).toHaveAttribute("data-render-state", "ready");
   return preview;
 }
 
@@ -22,19 +24,17 @@ for (const colour of ["Jet Black", "Classic White", "Navy Blue"]) {
   test(`regular tee renderer signals — ${colour}`, async ({ page }) => {
     await page.goto(`/configurator/build/regular-fit-tee-200gsm?draftId=e2e-visual-${colour.toLowerCase().replaceAll(" ", "-")}`, { waitUntil: "domcontentloaded" });
     await page.getByRole("button", { name: `Select ${colour}` }).click();
-    const preview = renderedGarment(page, "front");
-    await expect(preview).toBeVisible();
-    await page.waitForTimeout(500);
+    const preview = await waitForPhotographicGarment(page, "front");
     await expect(preview).toHaveScreenshot(`regular-tee-front-${colour.toLowerCase().replaceAll(" ", "-")}.png`, { maxDiffPixelRatio: 0.001 });
     await page.getByRole("tab", { name: "Back" }).click();
-    await expect(renderedGarment(page, "back")).toHaveScreenshot(`regular-tee-back-${colour.toLowerCase().replaceAll(" ", "-")}.png`, { maxDiffPixelRatio: 0.001 });
+    await expect(await waitForPhotographicGarment(page, "back")).toHaveScreenshot(`regular-tee-back-${colour.toLowerCase().replaceAll(" ", "-")}.png`, { maxDiffPixelRatio: 0.001 });
   });
 }
 
 test("regular tee neck framing", async ({ page }) => {
   await page.goto("/configurator/build/regular-fit-tee-200gsm?draftId=e2e-visual-neck", { waitUntil: "domcontentloaded" });
   await page.getByRole("tab", { name: "Neck" }).click();
-  await expect(renderedGarment(page, "neck")).toHaveScreenshot("regular-tee-neck.png", { maxDiffPixelRatio: 0.001 });
+  await expect(await waitForPhotographicGarment(page, "neck")).toHaveScreenshot("regular-tee-neck.png", { maxDiffPixelRatio: 0.001 });
 });
 
 test("regular hoodie front framing", async ({ page }) => {

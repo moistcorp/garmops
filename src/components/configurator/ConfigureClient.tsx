@@ -1032,7 +1032,11 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
       setFeedback({ tone: "error", title: "This product is no longer available", detail: "Choose an active product from the current catalogue." });
       return;
     }
-    if (!customerSession.email && !authenticatedJustNow) {
+    const authenticatedAfterRefresh =
+      !authenticatedJustNow && customerSession.loading
+        ? await customerSession.refresh()
+        : false;
+    if (!customerSession.email && !authenticatedAfterRefresh && !authenticatedJustNow) {
       pendingCartCommitRef.current = () => commitConfigurationToCart(overrides, true);
       if (!accountsEnabled) {
         setFeedback({ tone: "error", title: "Sign in is required before adding to cart", detail: "Configured carts are securely owned by your customer account." });

@@ -529,6 +529,7 @@ export default function GarmentComposite({
     let cancelled = false;
     const canvas = canvasRef.current;
     if (!canvas) return;
+    canvas.dataset.renderState = "loading";
 
     const context = canvas.getContext("2d");
     if (!context) return;
@@ -555,6 +556,7 @@ export default function GarmentComposite({
         const targetContext = target.getContext("2d");
         if (!targetContext) return;
         renderComposite(targetContext, layers, colourHex, renderProfile);
+        target.dataset.renderState = "ready";
       })
       .catch((error: unknown) => {
         if (process.env.NODE_ENV !== "production") console.error(error);
@@ -575,5 +577,5 @@ export default function GarmentComposite({
     highlightSrc,
   ]);
 
-  return <canvas ref={canvasRef} className={className} aria-hidden="true" />;
+  return <canvas ref={canvasRef} className={className} aria-hidden="true" data-render-state="loading" />;
 }

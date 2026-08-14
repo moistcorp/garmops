@@ -77,7 +77,13 @@ test("local draft survives a reload before authentication", async ({ page }) => 
   await expect(page.getByRole("button", { name: "Select Jet Black" })).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("button", { name: /Continue to artwork/ }).click();
   await expect(page.getByRole("button", { name: /Continue without artwork/ })).toBeVisible();
-  await page.waitForTimeout(1_000);
+  await expect
+    .poll(() => page.evaluate(() => {
+      const raw = window.localStorage.getItem("mf_configurator_build:draft:66666666-6666-4666-8666-666666666666");
+      if (!raw) return null;
+      try { return (JSON.parse(raw) as { colour?: { name?: string } }).colour?.name ?? null; } catch { return null; }
+    }))
+    .toBe("Jet Black");
   await page.reload({ waitUntil: "domcontentloaded" });
   await expect(page.getByRole("button", { name: "Select Jet Black" })).toHaveAttribute("aria-pressed", "true");
 });
