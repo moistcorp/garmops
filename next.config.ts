@@ -19,6 +19,7 @@ const productionHeaders = process.env.NODE_ENV === 'production'
   : []
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   async redirects() {
     return [
       {

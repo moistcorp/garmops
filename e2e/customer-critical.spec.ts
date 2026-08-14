@@ -1,6 +1,7 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "./fixtures/authenticated";
+import type { Page } from "@playwright/test";
 
-async function configureWithoutArtwork(page: Page, productId: string, draftId: string, cartId?: string) {
+async function configureWithoutArtwork(page: Page, productId: string, draftId: string, cartId?: string): Promise<string> {
   const query = new URLSearchParams({ draftId });
   if (cartId) query.set("cartId", cartId);
   await page.goto(`/configurator/build/${productId}?${query}`, { waitUntil: "domcontentloaded" });
@@ -9,6 +10,7 @@ async function configureWithoutArtwork(page: Page, productId: string, draftId: s
   await page.getByRole("button", { name: /Continue to sizes/ }).click();
   await page.waitForURL(/\/configurator\/cart\/[^/]+\/review/);
   await expect(page.getByText("Allocate by size").first()).toBeVisible();
+  return new URL(page.url()).pathname.split("/")[3];
 }
 
 async function clearLineAllocation(page: Page, lineNumber: number) {
@@ -25,7 +27,8 @@ async function clearLineAllocation(page: Page, lineNumber: number) {
   }
 }
 
-test("custom configuration reaches Delivery with canonical free shipping", async ({ page }) => {
+test("custom configuration reaches Delivery with canonical free shipping", async ({ page, loginCustomer }) => {
+  await loginCustomer(page);
   const cartId = "61111111-1111-4111-8111-111111111111";
   await configureWithoutArtwork(page, "regular-fit-tee-200gsm", cartId);
   await page.locator("input[id$=-m]").fill("50");
@@ -37,10 +40,11 @@ test("custom configuration reaches Delivery with canonical free shipping", async
   await expect(page.getByText(/Loading delivery details|Sign in to continue|Delivery details/i).first()).toBeVisible();
 });
 
-test("multi-product cart keeps independent MOQ allocations", async ({ page }) => {
+test("multi-product cart keeps independent MOQ allocations", async ({ page, loginCustomer }) => {
+  await loginCustomer(page);
   const cartId = "62222222-2222-4222-8222-222222222222";
-  await configureWithoutArtwork(page, "regular-fit-tee-200gsm", cartId);
-  await configureWithoutArtwork(page, "regular-fit-hoodie-320gsm", "63333333-3333-4333-8333-333333333333", cartId);
+  const actualCartId = await configureWithoutArtwork(page, "regular-fit-tee-200gsm", cartId);
+  await configureWithoutArtwork(page, "regular-fit-hoodie-320gsm", "63333333-3333-4333-8333-333333333333", actualCartId);
   await expect(page.getByText("LINE 1")).toBeVisible();
   await expect(page.getByText("LINE 2")).toBeVisible();
   const mediumInputs = page.locator("input[id$=-m]");
@@ -52,10 +56,11 @@ test("multi-product cart keeps independent MOQ allocations", async ({ page }) =>
   await expect(page.getByRole("button", { name: /Continue to delivery/ })).toHaveAttribute("aria-disabled", "false");
 });
 
-test("same product can be configured twice and each line enforces MOQ", async ({ page }) => {
+test("same product can be configured twice and each line enforces MOQ", async ({ page, loginCustomer }) => {
+  await loginCustomer(page);
   const cartId = "64444444-4444-4444-8444-444444444444";
-  await configureWithoutArtwork(page, "regular-fit-tee-200gsm", cartId);
-  await configureWithoutArtwork(page, "regular-fit-tee-200gsm", "65555555-5555-4555-8555-555555555555", cartId);
+  const actualCartId = await configureWithoutArtwork(page, "regular-fit-tee-200gsm", cartId);
+  await configureWithoutArtwork(page, "regular-fit-tee-200gsm", "65555555-5555-4555-8555-555555555555", actualCartId);
   await expect(page.getByText("Classic T-Shirt", { exact: true })).toHaveCount(2);
   await clearLineAllocation(page, 2);
   await expect(page.getByText(/Enter a quantity for Classic T-Shirt/i)).toBeVisible();

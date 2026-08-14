@@ -19,7 +19,7 @@ export function useCustomerSession(enabled: boolean): CustomerSession {
   const refresh = useCallback(async () => {
     if (!enabled) { setLoading(false); return; }
     try {
-      const response = await fetch("/api/medusa/auth/session", { cache: "no-store" });
+      const response = await fetch("/api/medusa/store/customers/me", { cache: "no-store" });
       if (!response.ok) { setEmail(null); setLabel(null); resetAnalyticsUser(); return; }
       const body = await response.json() as SessionBody;
       const identity = body.customer ?? body.user;

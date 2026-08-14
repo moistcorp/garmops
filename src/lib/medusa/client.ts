@@ -42,7 +42,7 @@ export async function clearMedusaToken(actor: "customer" | "staff"): Promise<voi
 
 function actorForPath(path: string): "customer" | "staff" | "public" {
   if (path.startsWith("/foundry/")) return "staff";
-  if (path === "/auth/session" || path.startsWith("/store/garmops/")) return "customer";
+  if (path === "/auth/session" || path.startsWith("/store/customers/") || path.startsWith("/store/garmops/")) return "customer";
   if (path === "/auth/user" || path.startsWith("/auth/user/")) return "staff";
   if (
     path.startsWith("/store/garmops/cart") ||

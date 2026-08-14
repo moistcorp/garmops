@@ -35,10 +35,10 @@ export async function loginAction(_state: AuthActionState, formData: FormData): 
     const result = await medusaRequest<{ token?: string }>("/auth/user/emailpass", { method: "POST", body: { email: parsed.data.email, password: parsed.data.password }, actor: "public" });
     if (!result.token) return actionError("Unable to sign in with those staff credentials.");
     await setMedusaToken("staff", result.token);
-    redirect(safeInternalPath(parsed.data.next, "/orders"));
   } catch (error) {
     return actionError(apiMessage(error, "Unable to sign in with those staff credentials."));
   }
+  redirect(safeInternalPath(parsed.data.next, "/orders"));
 }
 
 export async function requestCustomerOtpAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {
@@ -46,9 +46,9 @@ export async function requestCustomerOtpAction(_state: AuthActionState, formData
   const parsed = emailSchema.safeParse(fields(formData));
   if (!parsed.success) return validationError(parsed.error);
   try {
-    const result = await medusaRequest<{ challengeId?: string }>("/store/garmops/otp/request", { method: "POST", body: { email: parsed.data.email }, actor: "public" });
+    const result = await medusaRequest<{ challengeId?: string; testCode?: string }>("/store/garmops/otp/request", { method: "POST", body: { email: parsed.data.email }, actor: "public" });
     if (!result.challengeId) return actionError("We could not send a sign-in code. Please try again.");
-    return actionSuccess("If that email can receive customer sign-in codes, one is on its way.", { verificationEmail: parsed.data.email, challengeId: result.challengeId });
+    return actionSuccess("If that email can receive customer sign-in codes, one is on its way.", { verificationEmail: parsed.data.email, challengeId: result.challengeId, testCode: process.env.NODE_ENV !== "production" && process.env.GARMOPS_E2E === "true" ? result.testCode : undefined });
   } catch (error) {
     return actionError(apiMessage(error, "We could not send a sign-in code. Please try again."));
   }
@@ -62,10 +62,10 @@ export async function verifyCustomerOtpAction(_state: AuthActionState, formData:
     const result = await medusaRequest<{ token?: string }>("/auth/customer/emailotp", { method: "POST", body: { email: parsed.data.email, challengeId: parsed.data.challengeId, code: parsed.data.token }, actor: "public" });
     if (!result.token) return actionError("That code could not be verified. Try again.");
     await setMedusaToken("customer", result.token);
-    return actionSuccess("Signed in.", { destination: safeInternalPath(parsed.data.next, "/account/orders") });
   } catch (error) {
     return actionError(apiMessage(error, "That code could not be verified. Try again."));
   }
+  redirect(safeInternalPath(parsed.data.next, "/account/orders"));
 }
 
 export async function forgotPasswordAction(_state: AuthActionState, _formData: FormData): Promise<AuthActionState> {

@@ -47,7 +47,7 @@ function addressDefaults(
 
 async function loadCheckoutAccountContext(): Promise<CheckoutAccountContext | null> {
   try {
-    const response = await medusaRequest<{ customer?: { email?: string; first_name?: string; last_name?: string } }>("/auth/session", { actor: "customer" });
+    const response = await medusaRequest<{ customer?: { email?: string; first_name?: string; last_name?: string } }>("/store/customers/me", { actor: "customer" });
     const user = response.customer;
     if (!user?.email) return null;
 

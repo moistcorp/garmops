@@ -16,10 +16,16 @@ export default defineConfig({
     video: "off",
     navigationTimeout: 90_000,
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: process.env.PLAYWRIGHT_BROWSER_MATRIX === "true"
+    ? [
+        { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+        { name: "webkit", use: { ...devices["Desktop Safari"] } },
+        { name: "firefox", use: { ...devices["Desktop Firefox"] } },
+      ]
+    : [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
     command: "npm run dev -- --hostname 127.0.0.1",
-    url: "http://127.0.0.1:3000/api/health",
+    url: `${process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000"}/api/health`,
     reuseExistingServer: false,
     timeout: 120_000,
     env: {

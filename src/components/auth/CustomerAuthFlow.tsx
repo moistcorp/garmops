@@ -189,6 +189,7 @@ export default function CustomerAuthFlow({
           <p className="rounded-sm border border-(--color-accent)/20 bg-(--color-accent)/5 p-4 text-sm text-black/65">
             We sent a six-digit code to <strong>{email}</strong>.
           </p>
+          {requestState.testCode ? <span data-testid="e2e-test-otp" className="sr-only">{requestState.testCode}</span> : null}
           <label className="flex flex-col gap-1.5 text-xs font-medium uppercase tracking-wide text-black/55">
             One-time code
             <input

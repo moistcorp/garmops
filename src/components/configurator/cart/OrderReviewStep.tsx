@@ -207,6 +207,23 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
     const otherSizesTotal = currentTotal - currentSizeQty;
     const safeQty = normalizeSizeQuantity(qty, MAX_CONFIGURATION_QUANTITY - otherSizesTotal);
     const sizeQuantities = { ...item.sizeQuantities, [size]: safeQty };
+    const minimumUnits = getProductMinimumOrderQuantity(item.productId, {
+      colourType: item.colour.type,
+      customDyeMinimum: CUSTOM_DYE_MOQ_UNITS,
+    });
+    // Medusa deliberately rejects zero-quantity and below-MOQ lines. Keep an
+    // intermediate invalid allocation local so the validation message can
+    // guide the user while the next valid edit synchronizes the line again.
+    if (totalUnits(sizeQuantities) < minimumUnits) {
+      setDraft((previous) => ({
+        ...previous,
+        items: previous.items.map((candidate) =>
+          candidate.id === itemId ? { ...candidate, sizeQuantities } : candidate,
+        ),
+      }));
+      trackConfiguratorEvent("size_allocation_edited", { cart_id: cartId, item_id: itemId, size, quantity: qty });
+      return;
+    }
     void commitLineUpdate(item, sizeQuantities);
     trackConfiguratorEvent("size_allocation_edited", { cart_id: cartId, item_id: itemId, size, quantity: qty });
   }

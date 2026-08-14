@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { logoutAction } from "@/app/(auth)/actions";
+import { logoutAction, staffLogoutAction } from "@/app/(auth)/actions";
 import GarmopsLogo from "@/components/common/GarmopsLogo";
 import PortalNav, { type PortalNavItem } from "./PortalNav";
 
@@ -29,7 +29,7 @@ export default function PortalShell({
           <PortalNav items={nav} />
           <div className="mt-8 border-t border-white/10 pt-5">
             <p className="truncate text-xs text-white/45">{identity}</p>
-            <form action={logoutAction}>
+            <form action={kind === "Staff operations" ? staffLogoutAction : logoutAction}>
               <button className="mt-3 text-xs font-medium text-white/70 hover:text-white" type="submit">
                 Sign out
               </button>

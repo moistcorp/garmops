@@ -11,8 +11,8 @@ export type StaffIdentity = { id: string; email: string; name: string; role: "fo
 
 async function currentCustomer(): Promise<MedusaIdentity | null> {
   try {
-    const response = await medusaRequest<{ customer?: MedusaIdentity; user?: MedusaIdentity }>("/auth/session", { actor: "customer" });
-    return response.customer ?? response.user ?? null;
+    const response = await medusaRequest<{ customer?: MedusaIdentity }>("/store/customers/me", { actor: "customer" });
+    return response.customer ?? null;
   } catch { return null; }
 }
 
