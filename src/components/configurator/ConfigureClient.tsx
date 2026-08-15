@@ -1338,7 +1338,10 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
 
   return (
     <ArtworkPositionProvider activeView={activeView}>
-      <div className="techpack-studio-bg flex h-dvh min-h-0 flex-col overflow-hidden text-(--text-primary)">
+      <div
+        className="techpack-studio-bg flex h-dvh min-h-0 flex-col overflow-hidden text-(--text-primary)"
+        data-configurator-hydrated={hydrationComplete ? "true" : "false"}
+      >
         <ConfiguratorTopBar
           currentStep={JOURNEY_STEP_FOR_CUSTOMISATION[activeCustomisationStepId]}
           backHref={editCartId

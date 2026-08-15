@@ -21,6 +21,7 @@ const productionHeaders = process.env.NODE_ENV === 'production'
 const nextConfig: NextConfig = {
   output: 'standalone',
   poweredByHeader: false,
+  devIndicators: false,
   async redirects() {
     return [
       {

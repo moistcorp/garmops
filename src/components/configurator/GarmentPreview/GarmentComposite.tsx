@@ -530,6 +530,7 @@ export default function GarmentComposite({
     const canvas = canvasRef.current;
     if (!canvas) return;
     canvas.dataset.renderState = "loading";
+    delete canvas.dataset.renderColour;
 
     const context = canvas.getContext("2d");
     if (!context) return;
@@ -556,6 +557,7 @@ export default function GarmentComposite({
         const targetContext = target.getContext("2d");
         if (!targetContext) return;
         renderComposite(targetContext, layers, colourHex, renderProfile);
+        target.dataset.renderColour = colourHex;
         target.dataset.renderState = "ready";
       })
       .catch((error: unknown) => {

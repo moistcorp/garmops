@@ -26,7 +26,6 @@ export default function ProductGrid({ cartId }: { cartId?: string }) {
 
   useEffect(() => {
     let cancelled = false;
-    setCatalogError(false);
     void getCatalog().then((catalog) => {
       if (!cancelled) setActiveSlugs(new Set(catalog.products.map((product) => product.slug)));
     }).catch(() => {
@@ -97,6 +96,7 @@ export default function ProductGrid({ cartId }: { cartId?: string }) {
             type="button"
             onClick={() => {
               setActiveSlugs(null);
+              setCatalogError(false);
               setCatalogAttempt((attempt) => attempt + 1);
             }}
             className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-sm border border-(--color-accent) px-4 py-2 text-sm font-semibold text-(--color-accent-dark)"

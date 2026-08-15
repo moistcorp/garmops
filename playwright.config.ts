@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const defaultBaseURL = "http://127.0.0.1:3100";
+
 export default defineConfig({
   testDir: "./e2e",
   timeout: 120_000,
@@ -10,7 +12,7 @@ export default defineConfig({
   workers: 1,
   reporter: process.env.CI ? "github" : "list",
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000",
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? defaultBaseURL,
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
     video: "off",
@@ -24,8 +26,8 @@ export default defineConfig({
       ]
     : [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    command: "npm run dev -- --hostname 127.0.0.1",
-    url: `${process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000"}/api/health`,
+    command: "npm run dev -- --hostname 127.0.0.1 --port 3100",
+    url: `${process.env.PLAYWRIGHT_BASE_URL ?? defaultBaseURL}/api/health`,
     reuseExistingServer: false,
     timeout: 120_000,
     env: {

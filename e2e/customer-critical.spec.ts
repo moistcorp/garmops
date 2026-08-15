@@ -5,6 +5,7 @@ async function configureWithoutArtwork(page: Page, productId: string, draftId: s
   const query = new URLSearchParams({ draftId });
   if (cartId) query.set("cartId", cartId);
   await page.goto(`/configurator/build/${productId}?${query}`, { waitUntil: "domcontentloaded" });
+  await expect(page.locator('[data-configurator-hydrated="true"]')).toBeAttached();
   await page.getByRole("button", { name: /Continue to artwork/ }).click();
   await page.getByRole("button", { name: /Continue without artwork/ }).click();
   await page.getByRole("button", { name: /Continue to sizes/ }).click();
@@ -27,7 +28,7 @@ async function clearLineAllocation(page: Page, lineNumber: number) {
   }
 }
 
-test("custom configuration reaches Delivery with canonical free shipping", async ({ page, loginCustomer }) => {
+test("@backend custom configuration reaches Delivery with canonical free shipping", async ({ page, loginCustomer }) => {
   await loginCustomer(page);
   const cartId = "61111111-1111-4111-8111-111111111111";
   await configureWithoutArtwork(page, "regular-fit-tee-200gsm", cartId);
@@ -40,7 +41,7 @@ test("custom configuration reaches Delivery with canonical free shipping", async
   await expect(page.getByText(/Loading delivery details|Sign in to continue|Delivery details/i).first()).toBeVisible();
 });
 
-test("multi-product cart keeps independent MOQ allocations", async ({ page, loginCustomer }) => {
+test("@backend multi-product cart keeps independent MOQ allocations", async ({ page, loginCustomer }) => {
   await loginCustomer(page);
   const cartId = "62222222-2222-4222-8222-222222222222";
   const actualCartId = await configureWithoutArtwork(page, "regular-fit-tee-200gsm", cartId);
@@ -56,7 +57,7 @@ test("multi-product cart keeps independent MOQ allocations", async ({ page, logi
   await expect(page.getByRole("button", { name: /Continue to delivery/ })).toHaveAttribute("aria-disabled", "false");
 });
 
-test("same product can be configured twice and each line enforces MOQ", async ({ page, loginCustomer }) => {
+test("@backend same product can be configured twice and each line enforces MOQ", async ({ page, loginCustomer }) => {
   await loginCustomer(page);
   const cartId = "64444444-4444-4444-8444-444444444444";
   const actualCartId = await configureWithoutArtwork(page, "regular-fit-tee-200gsm", cartId);
@@ -69,6 +70,7 @@ test("same product can be configured twice and each line enforces MOQ", async ({
 
 test("local draft survives a reload before authentication", async ({ page }) => {
   await page.goto("/configurator/build/regular-fit-tee-200gsm?draftId=66666666-6666-4666-8666-666666666666", { waitUntil: "domcontentloaded" });
+  await expect(page.locator('[data-configurator-hydrated="true"]')).toBeAttached();
   await expect(page.getByRole("button", { name: /^Select / })).toHaveCount(8);
   for (const colour of ["Jet Black", "Classic White", "Navy Blue", "Charcoal Grey", "Heather Grey", "Bottle Green", "Burgundy", "Sand"]) {
     await expect(page.getByRole("button", { name: `Select ${colour}` })).toBeVisible();
@@ -85,11 +87,13 @@ test("local draft survives a reload before authentication", async ({ page }) => 
     }))
     .toBe("Jet Black");
   await page.reload({ waitUntil: "domcontentloaded" });
+  await expect(page.locator('[data-configurator-hydrated="true"]')).toBeAttached();
   await expect(page.getByRole("button", { name: "Select Jet Black" })).toHaveAttribute("aria-pressed", "true");
 });
 
 test("configurator exposes only supported techniques", async ({ page }) => {
   await page.goto("/configurator/build/regular-fit-tee-200gsm?draftId=e2e-supported-techniques", { waitUntil: "domcontentloaded" });
+  await expect(page.locator('[data-configurator-hydrated="true"]')).toBeAttached();
   await expect(page.getByRole("main").getByLabel(/front garment preview/i)).toBeVisible();
   await expect(page.getByText(/DTG|Embroidery|Puff Print|Sublimation/i)).toHaveCount(0);
 });

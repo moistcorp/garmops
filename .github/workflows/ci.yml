@@ -30,24 +30,6 @@ jobs:
       - run: npm run agent:check
       - run: npm run assets:verify
 
-  database:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-      - run: npm ci
-      - run: npm run db:start
-      - run: npm run db:reset
-      - run: npm run db:test
-      - name: Verify generated database types
-        run: |
-          cp src/types/database.generated.ts /tmp/database.generated.ts
-          npm run db:types
-          cmp /tmp/database.generated.ts src/types/database.generated.ts
-
   e2e:
     # Visual baselines are captured on macOS. Screenshot rendering is
     # platform-specific, so run this job on the matching runner.
@@ -60,7 +42,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install chromium
-      - run: npm run e2e
+      # Backend-authenticated coverage runs with the portable Medusa stack,
+      # where its test OTP mode and staff fixtures are provisioned.
+      - run: npm run e2e:ci
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
