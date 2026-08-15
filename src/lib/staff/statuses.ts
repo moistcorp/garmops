@@ -77,8 +77,8 @@ export const PUBLIC_STATUS_BY_INTERNAL: Record<OrderStatus, PublicOrderStatus> =
 
 export const ORDER_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
   payment_confirmed: ["order_review", "on_hold", "cancelled"],
-  order_review: ["artwork_pending", "artwork_approved", "on_hold", "cancelled"],
-  artwork_pending: ["artwork_approved", "on_hold", "cancelled"],
+  order_review: ["artwork_pending", "on_hold", "cancelled"],
+  artwork_pending: ["on_hold", "cancelled"],
   artwork_approved: ["production_approved", "on_hold", "cancelled"],
   production_approved: ["material_preparation", "on_hold", "cancelled"],
   material_preparation: ["printing", "on_hold", "cancelled"],
@@ -108,6 +108,6 @@ export function allowedNextStatusesForRole(
   const transitions = ORDER_TRANSITIONS[status] ?? [];
   if (role !== "founder" && role !== "operations") return [];
   return transitions.filter(
-    (target) => !["cancelled", "refund_pending", "refunded"].includes(target),
+    (target) => !["cancelled", "refund_pending", "refunded", "artwork_approved"].includes(target),
   );
 }

@@ -109,8 +109,7 @@ export default function CustomerAuthFlow({
   const finish = (destination: string) => {
     if (onAuthenticated) onAuthenticated(destination);
     else {
-      router.refresh();
-      router.push(destination);
+      router.replace(destination);
     }
   };
 

@@ -5,6 +5,7 @@ import {
   getServerPricing,
   prepareConfiguredCheckout,
   removeConfiguredLine,
+  saveCheckoutDetails,
   updateConfiguredLine,
 } from "./commerce";
 
@@ -89,6 +90,24 @@ describe("Medusa commerce boundary", () => {
       "/api/medusa/store/garmops/cart-lines/line_a",
       "/api/medusa/store/garmops/cart-lines/line_a",
     ]);
+    const updateBody = JSON.parse(String((vi.mocked(fetch).mock.calls[1]?.[1] as RequestInit).body));
+    expect(updateBody.versionId).toBeUndefined();
+  });
+
+  it("sends a newly saved design version when updating a configured line", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(json({ line: {}, pricing: {}, cart: {} }));
+    await updateConfiguredLine({ lineId: "line_a", versionId: "version_b", quantity: 50, sizes: { M: 50 } });
+    const body = JSON.parse(String((vi.mocked(fetch).mock.calls[0]?.[1] as RequestInit).body));
+    expect(body.versionId).toBe("version_b");
+  });
+
+  it("persists shipping details through the Medusa checkout boundary", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(json({ cart: { cartId: "cart_123" } }));
+    await saveCheckoutDetails({ cartId: "cart_123", email: "buyer@example.com", shippingAddress: { first_name: "Buyer" }, billingAddress: { first_name: "Buyer" }, requestedDeliveryDate: "2026-09-15", deliveryPreference: "standard" });
+    expect(vi.mocked(fetch).mock.calls[0]?.[0]).toBe("/api/medusa/store/garmops/checkout/details");
+    const body = JSON.parse(String((vi.mocked(fetch).mock.calls[0]?.[1] as RequestInit).body));
+    expect(body.cartId).toBe("cart_123");
+    expect(body.requestedDeliveryDate).toBe("2026-09-15");
   });
 
   it("preserves independent Medusa IDs when the same product is configured twice", async () => {

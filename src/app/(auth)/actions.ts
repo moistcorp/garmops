@@ -65,7 +65,9 @@ export async function verifyCustomerOtpAction(_state: AuthActionState, formData:
   } catch (error) {
     return actionError(apiMessage(error, "That code could not be verified. Try again."));
   }
-  redirect(safeInternalPath(parsed.data.next, "/account/orders"));
+  return actionSuccess("You’re signed in.", {
+    destination: safeInternalPath(parsed.data.next, "/account/orders"),
+  });
 }
 
 export async function forgotPasswordAction(_state: AuthActionState, _formData: FormData): Promise<AuthActionState> {

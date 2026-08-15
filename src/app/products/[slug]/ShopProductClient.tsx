@@ -219,6 +219,7 @@ export default function ShopProductClient({
     setError('')
     addItem({
       id: product.id,
+      productSlug: product.slug,
       name: product.name,
       price: product.price,
       size: selectedSize || product.sizes[0],
@@ -237,6 +238,7 @@ export default function ShopProductClient({
     setError('')
     addItem({
       id: product.id,
+      productSlug: product.slug,
       name: product.name,
       price: product.price,
       size: selectedSize || product.sizes[0],

@@ -6,6 +6,8 @@ export const MAX_SAMPLE_ITEM_QUANTITY = 100
 
 export type CartItem = {
   id: number
+  /** Canonical Medusa product identifier. `id` is display/catalogue compatibility only. */
+  productSlug: string
   name: string
   price: number
   size: string
@@ -30,11 +32,20 @@ function normalizeQuantity(quantity: unknown): number {
   return Math.min(MAX_SAMPLE_ITEM_QUANTITY, Math.max(0, Math.floor(parsed)))
 }
 
+export function resolveSampleProductSlug(value: { productSlug?: unknown; id?: unknown }): string | null {
+  if (typeof value.productSlug === 'string') {
+    return products.some((product) => product.slug === value.productSlug) ? value.productSlug : null
+  }
+  const legacyId = Number(value.id)
+  return products.find((product) => product.id === legacyId)?.slug ?? null
+}
+
 function normalizeItem(value: unknown): CartItem | null {
   if (typeof value !== 'object' || value === null) return null
 
   const candidate = value as Partial<CartItem>
-  const product = products.find(item => item.id === candidate.id)
+  const productSlug = resolveSampleProductSlug(candidate)
+  const product = productSlug ? products.find(item => item.slug === productSlug) : undefined
   const quantity = normalizeQuantity(candidate.quantity)
   if (!product || typeof candidate.size !== 'string' || !product.sizes.includes(candidate.size) || quantity === 0) {
     return null
@@ -42,6 +53,7 @@ function normalizeItem(value: unknown): CartItem | null {
 
   return {
     id: product.id,
+    productSlug: product.slug,
     name: product.name,
     price: product.price,
     size: candidate.size,

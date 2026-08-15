@@ -36,6 +36,17 @@ export async function requestRefundAction(_state: StaffActionState, formData: Fo
   } catch { return staffActionError("The refund could not be requested."); }
 }
 
+export async function setTrackingAction(_state: StaffActionState, formData: FormData): Promise<StaffActionState> {
+  await requireStaffPermission("change_order_status");
+  const orderId = String(formData.get("orderId") ?? "").trim();
+  const orderNumber = String(formData.get("orderNumber") ?? "").trim();
+  const trackingNumber = String(formData.get("trackingNumber") ?? "").trim();
+  const trackingUrl = String(formData.get("trackingUrl") ?? "").trim();
+  if (!orderId || !orderNumber || !trackingNumber) return staffActionError("A tracking number is required.");
+  try { await medusaRequest(`/foundry/orders/${encodeURIComponent(orderId)}/tracking`, { method: "PATCH", actor: "staff", body: { trackingNumber, trackingUrl: trackingUrl || undefined } }); revalidatePath(`/orders/${orderNumber}`); revalidatePath("/orders"); return staffActionSuccess("Tracking details saved."); }
+  catch { return staffActionError("Tracking details could not be saved."); }
+}
+
 export async function setStaffActiveAction(): Promise<StaffActionState> { return staffActionError("Staff accounts are provisioned from the Medusa backend CLI."); }
 export async function requestOrderCancellationAction(): Promise<StaffActionState> { return staffActionError("Cancellation is not present in the Stage 3 backend contract."); }
 export async function decideOrderCancellationAction(): Promise<StaffActionState> { return staffActionError("Cancellation is not present in the Stage 3 backend contract."); }

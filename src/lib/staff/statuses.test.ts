@@ -46,6 +46,11 @@ describe("production staff operations rules", () => {
     ).toEqual([]);
   });
 
+  it("keeps artwork approval in the dedicated review workflow", () => {
+    expect(allowedNextStatusesForRole("order_review", "operations")).not.toContain("artwork_approved");
+    expect(allowedNextStatusesForRole("artwork_pending", "founder")).not.toContain("artwork_approved");
+  });
+
   it("allows Operations to progress normal production stages", () => {
     expect(
       allowedNextStatusesForRole("printing", "operations"),

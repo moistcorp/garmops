@@ -3,10 +3,10 @@
 import {
   useCallback,
   useEffect,
+  useEffectEvent,
   useRef,
   useState,
 } from "react";
-import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronUp, Cloud, CloudAlert, LoaderCircle } from "lucide-react";
 import type { GarmentView } from "@/lib/configurator/types/garment";
@@ -75,6 +75,7 @@ import {
 } from "@/lib/configurator/objectUrls";
 import { ActionFeedback, type ActionFeedbackTone } from "./ActionFeedback";
 import { useCustomerSession } from "@/components/auth/useCustomerSession";
+import CustomerAuthDialog from "@/components/auth/CustomerAuthDialog";
 import { readPreferredQuantity } from "@/lib/configurator/clientPreferences";
 import { getConfiguratorCtaLabel } from "@/lib/configurator/journey";
 import { MAX_CONFIGURATION_QUANTITY } from "@/lib/configurator/sizeQuantity";
@@ -88,11 +89,13 @@ import {
   type CloudDesignLink,
   type CloudSaveConflict,
 } from "@/lib/designs/client";
-
-const CustomerAuthDialog = dynamic(
-  () => import("@/components/auth/CustomerAuthDialog"),
-  { loading: () => null },
-);
+import {
+  CONFIGURATOR_AUTH_RESUME_PARAM,
+  configuratorAuthReturnPath,
+  configuratorPathWithoutAuthResume,
+  parseConfiguratorAuthResume,
+  type ConfiguratorAuthResumeIntent,
+} from "@/lib/configurator/authResume";
 
 interface FeedbackState {
   tone: ActionFeedbackTone;
@@ -222,6 +225,9 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   const requestedCloudSave = searchParams.get("cloudSave") === "1";
   const requestedSaveTitle = searchParams.get("saveTitle") ?? "";
   const requestedEstimateId = searchParams.get("estimateId");
+  const requestedAuthResume = parseConfiguratorAuthResume(
+    searchParams.get(CONFIGURATOR_AUTH_RESUME_PARAM),
+  );
   const returnToSizeQuantity = searchParams.get("returnTo") === "size-quantity";
   const productCatalogHref = editCartId
     ? `/configurator?cartId=${encodeURIComponent(editCartId)}`
@@ -268,7 +274,15 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   const [draftRestored, setDraftRestored] = useState(false);
   const [hydrationComplete, setHydrationComplete] = useState(false);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
-  const [feedback, setFeedback] = useState<FeedbackState | null>(null);
+  const [feedback, setFeedback] = useState<FeedbackState | null>(() =>
+    requestedAuthResume === "add-to-cart"
+      ? {
+          tone: "loading",
+          title: "Restoring your cart action…",
+          detail: "Your configuration is safe while we confirm your account.",
+        }
+      : null,
+  );
   const [cloudLink, setCloudLink] = useState<CloudDesignLink | null>(null);
   const [cloudSaveStatus, setCloudSaveStatus] =
     useState<CloudSaveStatus>("local");
@@ -280,6 +294,8 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   const [nameDialogOpen, setNameDialogOpen] = useState(false);
   const [designTitle, setDesignTitle] = useState("");
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const [authIntent, setAuthIntent] =
+    useState<ConfiguratorAuthResumeIntent | null>(null);
   const hasHydrated = useRef(false);
   const saveTimer = useRef<number | null>(null);
   const autosaveErrorNotifiedRef = useRef(false);
@@ -299,6 +315,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   } | null>(null);
   const cloudSaveIntentHandled = useRef(false);
   const pendingCartCommitRef = useRef<(() => Promise<void>) | null>(null);
+  const authResumeHandledRef = useRef(false);
 
   const pricingBreakdown = buildPricingBreakdown(productId, colour, artwork, neckLabel, quantity);
   const [serverPricing, setServerPricing] = useState<PricingSnapshot | null>(null);
@@ -616,6 +633,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
           steps,
           quantity,
         });
+        setAuthIntent("save-design");
         setAuthDialogOpen(true);
         return;
       }
@@ -1031,15 +1049,38 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
       setFeedback({ tone: "error", title: "This product is no longer available", detail: "Choose an active product from the current catalogue." });
       return;
     }
+    const cartArtwork = overrides?.artwork ?? artwork;
+    const cartNeckLabel = overrides?.neckLabel ?? neckLabel;
+    if (!authenticatedJustNow && customerSession.loading) {
+      setFeedback({
+        tone: "loading",
+        title: "Preparing your cart…",
+        detail: "Your configuration is ready while we check your account.",
+      });
+    }
     const authenticatedAfterRefresh =
       !authenticatedJustNow && customerSession.loading
         ? await customerSession.refresh()
         : false;
     if (!customerSession.email && !authenticatedAfterRefresh && !authenticatedJustNow) {
+      writeBuildDraft(designStorageKey, {
+        colour: { ...colour, confirmed: true },
+        artwork: cartArtwork,
+        neckLabel: cartNeckLabel,
+        steps: stepsForConfiguration(
+          { ...colour, confirmed: true },
+          cartArtwork,
+          cartNeckLabel,
+          steps,
+        ),
+        quantity,
+      });
       pendingCartCommitRef.current = () => commitConfigurationToCart(overrides, true);
       if (!accountsEnabled) {
         setFeedback({ tone: "error", title: "Sign in is required before adding to cart", detail: "Configured carts are securely owned by your customer account." });
       } else {
+        setFeedback(null);
+        setAuthIntent("add-to-cart");
         setAuthDialogOpen(true);
       }
       return;
@@ -1054,8 +1095,6 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
       });
       return;
     }
-    const cartArtwork = overrides?.artwork ?? artwork;
-    const cartNeckLabel = overrides?.neckLabel ?? neckLabel;
     const cartInput: ConfiguredCartItemInput = {
       productId,
       productName,
@@ -1078,6 +1117,13 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
 
     try {
       const storageKey = editItemId ? `cart-item:${editItemId}` : designStorageKey;
+      const serverCartResult = resolveConfiguredCart({
+        cartId: editCartId && existingDraft?.serverCartId === editCartId ? editCartId : undefined,
+        email: customerSession.email ?? undefined,
+      }).then(
+        (cart) => ({ cart, error: null }),
+        (error: unknown) => ({ cart: null, error }),
+      );
       const cloudResult = await saveBuildDraftToCloud({
         configId,
         storageKey,
@@ -1095,7 +1141,15 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
       });
       if (!cloudResult.ok) {
         if (cloudResult.kind === "unauthorized") {
+          writeBuildDraft(designStorageKey, {
+            colour: cartInput.colour,
+            artwork: cartInput.artwork,
+            neckLabel: cartInput.neckLabel ?? createStandardNeckLabel(),
+            steps,
+            quantity,
+          });
           pendingCartCommitRef.current = () => commitConfigurationToCart(overrides, true);
+          setAuthIntent("add-to-cart");
           setAuthDialogOpen(true);
           setFeedback(null);
           return;
@@ -1103,15 +1157,16 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
         throw new Error(cloudResult.kind === "conflict" ? "This design changed in another session. Resolve the saved design before adding it." : cloudResult.message);
       }
 
-      const serverCart = await resolveConfiguredCart({
-        cartId: editCartId && existingDraft?.serverCartId === editCartId ? editCartId : undefined,
-        email: customerSession.email ?? undefined,
-      });
+      const resolvedServerCart = await serverCartResult;
+      if (resolvedServerCart.error) throw resolvedServerCart.error;
+      const serverCart = resolvedServerCart.cart;
+      if (!serverCart) throw new Error("The Medusa cart could not be resolved.");
       const sizeQuantities = cartInput.sizeQuantities ?? splitQuantityAcrossSizes(quantity, product?.sizes ?? SIZES);
       const existingItem = editItemId ? existingDraft?.items.find((item) => item.id === editItemId) : undefined;
       const canonical = editItemId && existingItem?.medusaLineId
         ? await updateConfiguredLine({
             lineId: existingItem.medusaLineId,
+            versionId: cloudResult.link.currentVersionId,
             quantity,
             sizes: sizeQuantities,
             deliveryType: "standard",
@@ -1168,6 +1223,61 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   function addConfigurationToCart(overrides?: { artwork?: Artwork; neckLabel?: NeckLabel }) {
     void commitConfigurationToCart(overrides);
   }
+
+  const resumeAfterAuthentication = useEffectEvent(
+    (intent: ConfiguratorAuthResumeIntent | null) => {
+      router.replace(
+        configuratorPathWithoutAuthResume(configId, searchParams.toString()),
+      );
+      if (!intent) {
+        setFeedback({
+          tone: "error",
+          title: "Sign in could not be confirmed",
+          detail: "Your configuration is still here. Sign in and try adding it again.",
+        });
+        return;
+      }
+      if (intent === "add-to-cart") {
+        setFeedback({
+          tone: "loading",
+          title: editItemId
+            ? "Updating your configuration…"
+            : "Adding configuration to cart…",
+          detail: "Your account is ready. Medusa is validating the design and price.",
+        });
+        void commitConfigurationToCart(undefined, true);
+        return;
+      }
+      setDesignTitle(`${productName} — ${colour.name} — ${quantity} pcs`);
+      setNameDialogOpen(true);
+    },
+  );
+
+  useEffect(() => {
+    if (
+      !requestedAuthResume ||
+      !hydrationComplete ||
+      customerSession.loading ||
+      authResumeHandledRef.current
+    ) {
+      return;
+    }
+    authResumeHandledRef.current = true;
+    const intent = customerSession.email ? requestedAuthResume : null;
+    const timer = window.setTimeout(
+      () => resumeAfterAuthentication(intent),
+      0,
+    );
+    return () => window.clearTimeout(timer);
+  }, [
+    configId,
+    customerSession.email,
+    customerSession.loading,
+    hydrationComplete,
+    requestedAuthResume,
+    router,
+    searchParams,
+  ]);
 
   function handleCtaClick() {
     setCtaErrorMessage(null);
@@ -1410,14 +1520,25 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
         {accountsEnabled && authDialogOpen ? (
           <CustomerAuthDialog
             open={authDialogOpen}
-            onClose={() => setAuthDialogOpen(false)}
-            next={`/configurator/build/${encodeURIComponent(configId)}`}
-            onAuthenticated={() => {
+            onClose={() => {
               setAuthDialogOpen(false);
+              setAuthIntent(null);
+              pendingCartCommitRef.current = null;
+            }}
+            next={configuratorAuthReturnPath(
+              configId,
+              searchParams.toString(),
+              activeCustomisationStepId,
+              authIntent ?? "save-design",
+            )}
+            onAuthenticated={() => {
+              const completedIntent = authIntent;
+              setAuthDialogOpen(false);
+              setAuthIntent(null);
               void customerSession.refresh();
               const pending = pendingCartCommitRef.current;
               pendingCartCommitRef.current = null;
-              if (pending) {
+              if (completedIntent === "add-to-cart" && pending) {
                 void pending();
               } else {
                 setDesignTitle(`${productName} — ${colour.name} — ${quantity} pcs`);

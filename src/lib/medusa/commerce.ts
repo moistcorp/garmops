@@ -137,6 +137,7 @@ export function addConfiguredLine(input: {
 
 export function updateConfiguredLine(input: {
   lineId: string;
+  versionId?: string;
   quantity: number;
   sizes: Record<string, number>;
   deliveryType?: "rush" | "standard" | "flexible";
@@ -145,6 +146,7 @@ export function updateConfiguredLine(input: {
   return request(`/store/garmops/cart-lines/${encodeURIComponent(input.lineId)}`, {
     method: "PATCH",
     body: {
+      versionId: input.versionId,
       quantity: input.quantity,
       sizes: input.sizes,
       deliveryType: input.deliveryType,
@@ -172,4 +174,17 @@ export function prepareConfiguredCheckout(input: {
   deliveryPreference?: string;
 }): Promise<{ checkout: { cartId: string; amountPaise: number; readyForPayment: boolean }; cart: ConfiguredCartSummary }> {
   return request("/store/garmops/checkout/prepare", { method: "POST", body: input });
+}
+
+export function saveCheckoutDetails(input: {
+  cartId: string;
+  email: string;
+  shippingAddress: Record<string, unknown>;
+  billingAddress: Record<string, unknown>;
+  billingEntity?: string;
+  gstin?: string;
+  requestedDeliveryDate?: string;
+  deliveryPreference?: string;
+}): Promise<{ cart: ConfiguredCartSummary }> {
+  return request("/store/garmops/checkout/details", { method: "POST", body: input });
 }

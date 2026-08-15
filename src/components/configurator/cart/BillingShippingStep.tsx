@@ -42,7 +42,7 @@ import {
   isDeliverySelectionValid,
 } from "@/lib/configurator/delivery";
 import { CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS } from "@/lib/configurator/colourRules";
-import { getConfiguredCart, updateConfiguredLine, type ConfiguredCartSummary } from "@/lib/medusa/commerce";
+import { getConfiguredCart, saveCheckoutDetails, updateConfiguredLine, type ConfiguredCartSummary } from "@/lib/medusa/commerce";
 import { ActionFeedback } from "@/components/configurator/ActionFeedback";
 import CustomerAuthFlow from "@/components/auth/CustomerAuthFlow";
 import { formatSpecCode } from "@/lib/orders/format";
@@ -317,10 +317,8 @@ export function BillingShippingStep({
   const [draft, setDraft] = useState<CartDraft>(() => createDraft(cartId));
   const [isDraftReady, setIsDraftReady] = useState(false);
   const [needsDetailsChoice, setNeedsDetailsChoice] = useState(false);
-  const [saveDetailsToAccount, setSaveDetailsToAccount] = useState(true);
   const [gstDetailsOpen, setGstDetailsOpen] = useState(false);
   const [showSavedSummary, setShowSavedSummary] = useState(false);
-  const [isSavingAccount, setIsSavingAccount] = useState(false);
   const [validationFeedback, setValidationFeedback] = useState<string | null>(null);
   const [storageSaveError, setStorageSaveError] = useState<string | null>(null);
 
@@ -468,7 +466,6 @@ export function BillingShippingStep({
     isDraftReady &&
     Boolean(accountContext) &&
     !needsDetailsChoice &&
-    !isSavingAccount &&
     draft.items.length > 0 &&
     procurementMissing.length === 0 &&
     gstDetailsValid;
@@ -539,39 +536,48 @@ export function BillingShippingStep({
       return;
     }
 
-    if (saveDetailsToAccount || !accountContext?.hasSavedDetails) {
-      setIsSavingAccount(true);
-      setValidationFeedback(null);
-      try {
-        const response = await fetch("/api/account/checkout-defaults", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contact: draft.projectContact,
-            shipping: { address: draft.shippingInformation.address },
-            billing: {
-              sameAsCompanyAddress: draft.billingInformation.sameAsCompanyAddress,
-              entity: draft.billingInformation.entity || `${draft.projectContact.firstName} ${draft.projectContact.lastName}`.trim(),
-              address: draft.billingInformation.sameAsCompanyAddress
-                ? draft.shippingInformation.address
-                : draft.billingInformation.address,
-              gstin: draft.billingInformation.gstin,
-            },
-          }),
-        });
-        const result = (await response.json().catch(() => null)) as
-          | { ok?: boolean; message?: string }
-          | null;
-        if (!response.ok || !result?.ok) {
-          throw new Error(result?.message ?? "Your account details could not be saved.");
-        }
-      } catch (error) {
-        setValidationFeedback(
-          error instanceof Error ? error.message : "Your account details could not be saved.",
-        );
-        setIsSavingAccount(false);
-        return;
-      }
+    setValidationFeedback(null);
+    try {
+      const billingAddress = draft.billingInformation.sameAsCompanyAddress
+        ? draft.shippingInformation.address
+        : draft.billingInformation.address;
+      const saved = await saveCheckoutDetails({
+        cartId,
+        email: draft.projectContact.email,
+        shippingAddress: {
+          first_name: draft.projectContact.firstName || "Customer",
+          last_name: draft.projectContact.lastName,
+          address_1: draft.shippingInformation.address.addressLine1,
+          address_2: draft.shippingInformation.address.addressLine2,
+          city: draft.shippingInformation.address.city,
+          province: draft.shippingInformation.address.state,
+          postal_code: draft.shippingInformation.address.zip,
+          country_code: "in",
+          phone: draft.projectContact.phone,
+        },
+        billingAddress: {
+          first_name: draft.billingInformation.entity || draft.projectContact.firstName || "Customer",
+          address_1: billingAddress.addressLine1,
+          address_2: billingAddress.addressLine2,
+          city: billingAddress.city,
+          province: billingAddress.state,
+          postal_code: billingAddress.zip,
+          country_code: "in",
+          phone: draft.projectContact.phone,
+        },
+        billingEntity: draft.billingInformation.entity || undefined,
+        gstin: draft.billingInformation.gstin || undefined,
+        requestedDeliveryDate: draft.selectedDeliveryDateIso
+          ? new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(draft.selectedDeliveryDateIso))
+          : undefined,
+        deliveryPreference: draft.deliveryType,
+      });
+      const next = { ...draft, backendCart: saved.cart, serverCartId: saved.cart.cartId };
+      setDraft(next);
+      writeDraft(cartId, next);
+    } catch (error) {
+      setValidationFeedback(error instanceof Error ? error.message : "The checkout details could not be saved.");
+      return;
     }
 
     router.push(`/configurator/cart/${encodeURIComponent(cartId)}/confirmation`);
@@ -855,21 +861,6 @@ export function BillingShippingStep({
             </div>
           </section>
 
-          <section className="techpack-panel rounded-sm border p-5">
-            <label className="flex items-start gap-3 text-sm text-(--text-primary)/75">
-              <input
-                type="checkbox"
-                checked={saveDetailsToAccount || !accountContext.hasSavedDetails}
-                disabled={!accountContext.hasSavedDetails}
-                onChange={(event) => setSaveDetailsToAccount(event.target.checked)}
-                className="mt-0.5 h-4 w-4 accent-(--color-accent)"
-              />
-              <span>
-                <strong className="block font-medium text-(--text-primary)">{accountContext.hasSavedDetails ? "Save these details to my account" : "Save these details to my new account"}</strong>
-                <span className="mt-0.5 block text-xs leading-relaxed text-(--text-primary)/50">{accountContext.hasSavedDetails ? "Keep this checked to update your default contact, shipping and optional GST billing details. Uncheck it to use these details for this order only." : "Your first completed delivery details become the defaults for future orders. The paid order will still keep its own immutable snapshot."}</span>
-              </span>
-            </label>
-          </section>
         </div>
 
         <div className="lg:sticky lg:top-36 lg:self-start">
@@ -881,7 +872,7 @@ export function BillingShippingStep({
             gst={totals.gst}
             total={totals.total}
             onNext={handleNext}
-            nextLabel={isSavingAccount ? "Saving account details…" : "Review & payment"}
+            nextLabel="Review & payment"
             nextDisabled={!isValid}
             disabledMessage={missingMessage}
             onDisabledNext={handleNext}

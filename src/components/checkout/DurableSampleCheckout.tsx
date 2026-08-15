@@ -55,18 +55,18 @@ function rupees(valuePaise: number): string {
 }
 
 function cartSignature(
-  items: ReadonlyArray<{ id: number; size: string; quantity: number }>,
+  items: ReadonlyArray<{ productSlug: string; size: string; quantity: number }>,
 ): string {
   return JSON.stringify(
     items
       .map((item) => ({
-        productId: String(item.id),
+        productSlug: item.productSlug,
         size: item.size,
         quantity: item.quantity,
       }))
       .sort((left, right) =>
-        `${left.productId}:${left.size}`.localeCompare(
-          `${right.productId}:${right.size}`,
+        `${left.productSlug}:${left.size}`.localeCompare(
+          `${right.productSlug}:${right.size}`,
         ),
       ),
   );
@@ -106,6 +106,14 @@ function durableIdempotencyKey(signature: string): string {
   return key;
 }
 
+function checkoutSignature(
+  items: ReadonlyArray<{ productSlug: string; size: string; quantity: number }>,
+  form: { firstName: string; lastName: string; email: string; phone: string; orderNotes: string },
+  address: Address,
+): string {
+  return JSON.stringify({ cart: cartSignature(items), form, address });
+}
+
 export default function DurableSampleCheckout({
   defaults,
 }: {
@@ -117,6 +125,7 @@ export default function DurableSampleCheckout({
   const displayedTotalPaise = cartTotalRupees * 100 + taxPaise;
 
   const idempotencyKey = useRef<string | null>(null);
+  const idempotencySignature = useRef<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [savedOrder, setSavedOrder] = useState<SubmitResponse["order"] | null>(
@@ -161,7 +170,11 @@ export default function DurableSampleCheckout({
       return;
     }
 
-    const signature = cartSignature(items);
+    const signature = checkoutSignature(items, form, deliveryAddress);
+    if (idempotencySignature.current !== signature) {
+      idempotencyKey.current = null;
+      idempotencySignature.current = signature;
+    }
     idempotencyKey.current ??= durableIdempotencyKey(signature);
     setLoading(true);
     setError("");
@@ -172,7 +185,7 @@ export default function DurableSampleCheckout({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: items.map((item) => ({
-            productId: item.id,
+            productSlug: item.productSlug,
             size: item.size,
             quantity: item.quantity,
           })),

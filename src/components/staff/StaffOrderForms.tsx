@@ -5,6 +5,7 @@ import {
   decideOrderCancellationAction,
   requestRefundAction,
   requestOrderCancellationAction,
+  setTrackingAction,
   transitionOrderAction,
 } from "@/app/staff/actions";
 import { INITIAL_STAFF_ACTION_STATE } from "@/lib/staff/actionState";
@@ -34,4 +35,9 @@ export function CancellationDecisionForm({ requestId, orderNumber }: { requestId
 export function RefundForm({ paymentId, orderNumber }: { paymentId: string; orderNumber: string }) {
   const [state, action, pending] = useActionState(requestRefundAction, INITIAL_STAFF_ACTION_STATE);
   return <form action={action} className="space-y-3"><input type="hidden" name="paymentId" value={paymentId} /><input type="hidden" name="orderNumber" value={orderNumber} /><p className="text-sm text-black/55">Request a full refund through the protected PayU boundary.</p><button disabled={pending} className="w-full rounded border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-800" type="submit">{pending ? "Requesting…" : "Request full refund"}</button><Result state={state} /></form>;
+}
+
+export function TrackingForm({ orderId, orderNumber, trackingNumber, trackingUrl }: { orderId: string; orderNumber: string; trackingNumber?: string; trackingUrl?: string }) {
+  const [state, action, pending] = useActionState(setTrackingAction, INITIAL_STAFF_ACTION_STATE);
+  return <form action={action} className="space-y-3"><input type="hidden" name="orderId" value={orderId} /><input type="hidden" name="orderNumber" value={orderNumber} /><label className="block text-xs font-semibold">Tracking number<input name="trackingNumber" required defaultValue={trackingNumber ?? ""} className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" /></label><label className="block text-xs font-semibold">Tracking URL<input name="trackingUrl" type="url" defaultValue={trackingUrl ?? ""} placeholder="https://carrier.example/track/…" className="mt-1 w-full rounded border border-black/10 px-3 py-2 text-sm" /></label><button disabled={pending} className="techpack-button w-full" type="submit">{pending ? "Saving…" : "Save tracking"}</button><Result state={state} /></form>;
 }
