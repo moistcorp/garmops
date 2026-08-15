@@ -276,17 +276,7 @@ export default function Navbar() {
             target="_blank"
             rel="noopener noreferrer"
             tabIndex={open ? 0 : -1}
-            onClick={() => {
-              const payload = {
-                event: 'whatsapp_click',
-                source_page: pathname,
-                destination: 'whatsapp',
-              }
-              window.dataLayer = window.dataLayer ?? []
-              window.dataLayer.push(payload)
-              window.dispatchEvent(new CustomEvent('garmops:analytics', { detail: payload }))
-              closeMenu()
-            }}
+            onClick={closeMenu}
             className="mt-2 block rounded-sm border border-(--color-accent) px-5 py-3 text-center font-mono text-sm uppercase tracking-[0.06em] text-(--color-accent-dark)"
           >
             Chat on WhatsApp

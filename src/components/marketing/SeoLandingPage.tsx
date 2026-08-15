@@ -72,7 +72,6 @@ export default function SeoLandingPage({ content }: { content: SeoLandingPageCon
         heading={content.productHeading}
         introduction={content.productIntroduction}
         products={selectedProducts}
-        pagePath={path}
       />
       {content.useCases && content.useCasesHeading && (
         <div className="techpack-section">

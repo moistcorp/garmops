@@ -2,7 +2,6 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
-    window.localStorage.setItem("garmops_analytics_consent", "rejected");
   });
 });
 
@@ -47,7 +46,6 @@ test("regular tee neck framing", async ({ page }) => {
 
 test("regular hoodie front framing", async ({ page }) => {
   await page.addInitScript(() => {
-    window.localStorage.setItem("garmops_analytics_consent", "rejected");
   });
   await page.goto("/configurator/build/regular-fit-hoodie-320gsm?draftId=e2e-visual-hoodie", { waitUntil: "domcontentloaded" });
   await expect(page.locator('[data-configurator-hydrated="true"]')).toBeAttached();
@@ -69,7 +67,6 @@ const garmentFamilies = [
 for (const garment of garmentFamilies) {
   test(`${garment.slug} photographic views`, async ({ page }) => {
     await page.addInitScript(() => {
-      window.localStorage.setItem("garmops_analytics_consent", "rejected");
     });
     await page.goto(
       `/configurator/build/${garment.productId}?draftId=e2e-visual-${garment.slug}`,

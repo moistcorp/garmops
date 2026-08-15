@@ -39,10 +39,6 @@ const serverEnvironmentSchema = z
     ENABLE_WHATSAPP_NOTIFICATIONS: booleanValue,
     ENABLE_SMS_NOTIFICATIONS: booleanValue,
 
-    NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN: optionalText(512),
-    NEXT_PUBLIC_POSTHOG_HOST: optionalUrl,
-    POSTHOG_ENABLED: booleanValue,
-    NEXT_PUBLIC_ANALYTICS_ENABLED: booleanValue,
     NEXT_PUBLIC_SENTRY_DSN: optionalUrl,
     SENTRY_ENABLED: booleanValue,
   })
@@ -99,14 +95,6 @@ const serverEnvironmentSchema = z
         path: ["CLOUD_DESIGNS_ENABLED"],
         message: "Cloud designs must be enabled before configurator checkout",
       });
-    }
-    if (environment.POSTHOG_ENABLED) {
-      if (!environment.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN) {
-        context.addIssue({ code: "custom", path: ["NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN"], message: "Required when PostHog is enabled" });
-      }
-      if (!environment.NEXT_PUBLIC_POSTHOG_HOST) {
-        context.addIssue({ code: "custom", path: ["NEXT_PUBLIC_POSTHOG_HOST"], message: "Required when PostHog is enabled" });
-      }
     }
   });
 

@@ -37,7 +37,6 @@ import ViewTabs from '../GarmentPreview/ViewTabs';
 import { ArtworkPositionProvider } from '@/lib/configurator/ArtworkPositionContext';
 import { restoreConfigurationUploads } from '@/lib/configurator/objectUrls';
 import { ActionFeedback, type ActionFeedbackTone } from '../ActionFeedback';
-import { trackConfiguratorEvent } from '@/lib/configurator/analytics';
 import { getArtworkSizeConflict } from '@/lib/configurator/artworkSizing';
 import {
   getRecommendedSizeAllocation,
@@ -221,11 +220,9 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
           candidate.id === itemId ? { ...candidate, sizeQuantities } : candidate,
         ),
       }));
-      trackConfiguratorEvent("size_allocation_edited", { cart_id: cartId, item_id: itemId, size, quantity: qty });
       return;
     }
     void commitLineUpdate(item, sizeQuantities);
-    trackConfiguratorEvent("size_allocation_edited", { cart_id: cartId, item_id: itemId, size, quantity: qty });
   }
 
   async function commitLineUpdate(item: CartItem, sizeQuantities: Record<Size, number>) {
@@ -312,7 +309,6 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
     if (!items.length) return;
     setIsDownloadingPdf(true);
     setFeedback({ tone: 'loading', title: 'Preparing approval PDF…', detail: 'Adding previews, sizes, pricing and payment details.' });
-    trackConfiguratorEvent('approval_pdf_started', { source: 'cart', cart_id: cartId });
     try {
       const previewDataUrls: Record<string, string | undefined> = {};
       items.forEach((item) => {
@@ -357,10 +353,8 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
         filename: `Garmops-Approval-${cartId}.pdf`,
       });
       setFeedback({ tone: 'success', title: 'Approval PDF downloaded', detail: 'This dated version can be forwarded for internal approval.' });
-      trackConfiguratorEvent('approval_pdf_downloaded', { source: 'cart', cart_id: cartId });
     } catch {
       setFeedback({ tone: 'error', title: 'Could not create the PDF', detail: 'Your cart is safe. Check the connection and try again.', });
-      trackConfiguratorEvent('approval_pdf_failed', { source: 'cart', cart_id: cartId });
     } finally {
       setIsDownloadingPdf(false);
     }

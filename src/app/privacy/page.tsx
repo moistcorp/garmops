@@ -33,7 +33,7 @@ const sections = [
   {
     title: '4. Sharing and service providers',
     paragraphs: [
-      'We use service-provider categories including application hosting, Medusa commerce and authentication, private file storage managed by the commerce backend, PayU payments, and—only after your choice—PostHog product analytics. Optional analytics does not include artwork filenames, contact details, addresses, GSTIN, or payment payloads, and session replay is disabled.',
+      'We use service-provider categories including application hosting, Medusa commerce and authentication, private file storage managed by the commerce backend, and PayU payments.',
       'We may also disclose information where necessary to comply with law, respond to lawful requests, protect our rights or safety, investigate abuse, or support a business transfer. We do not sell customer personal information.',
     ],
   },
@@ -54,7 +54,7 @@ const sections = [
   {
     title: '7. Cookies and updates',
     paragraphs: [
-      'Garmops uses essential storage to keep the site working, remember selected preferences and support ordering. Optional product analytics is off until accepted and can be withdrawn at any time through the Cookie settings link in the site footer.',
+      'Garmops uses essential storage to keep the site working, remember selected preferences and support ordering.',
       'We may update this policy as our services or legal obligations change. The current version and effective date will always be published on this page.',
     ],
   },

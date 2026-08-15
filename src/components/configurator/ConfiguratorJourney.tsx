@@ -5,7 +5,6 @@ import Link from "next/link";
 import { ArrowLeft, Download, LoaderCircle } from "lucide-react";
 import GarmopsLogo from "@/components/common/GarmopsLogo";
 import { formatSpecCode } from "@/lib/orders/format";
-import { ConfiguratorStageTracker } from "./ConfiguratorStageTracker";
 import ProductPickerCartLink from "./products/ProductPickerCartLink";
 
 export type ConfiguratorJourneyStep =
@@ -74,7 +73,6 @@ export function ConfiguratorJourney({
 
   return (
     <>
-      <ConfiguratorStageTracker stage={currentStep} />
       <nav
         aria-label="Configurator progress"
         className={`border border-(--color-rule) bg-(--color-cream) ${

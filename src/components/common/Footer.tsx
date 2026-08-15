@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import GarmopsLogo from '@/components/common/GarmopsLogo'
-import AnalyticsPreferencesTrigger from '@/components/privacy/AnalyticsPreferencesTrigger'
 
 const productLinks = [
   { label: 'Bulk Custom T-Shirts', href: '/custom-t-shirt-printing' },
@@ -84,7 +83,6 @@ export default function Footer() {
           <Link href="/contact" className={linkClass}>Help</Link>
           <Link href="/terms" className={linkClass}>Terms of Service</Link>
           <Link href="/privacy" className={linkClass}>Privacy Policy</Link>
-          <AnalyticsPreferencesTrigger className={linkClass} />
           <a href="mailto:hello@garmops.com" className={`${linkClass} break-all sm:break-normal`}>hello@garmops.com</a>
           <a href="tel:+918800711169" className={linkClass}>+91-8800711169</a>
           <a href="https://moistcorp.com" target="_blank" rel="noopener noreferrer" className={linkClass}>Moist Corp</a>

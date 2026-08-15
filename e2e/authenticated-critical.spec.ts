@@ -27,6 +27,5 @@ test.describe("Stage 4.1 authenticated browser smoke", () => {
     await loginStaff(page, "operations");
     await expect(page.getByText(/Production workflow/i)).toBeVisible();
     await expect(page.getByRole("link", { name: "Staff" })).toHaveCount(0);
-    await expect(page.getByRole("link", { name: "Analytics" })).toHaveCount(0);
   });
 });

@@ -1,18 +1,16 @@
 import Image from 'next/image'
+import Link from 'next/link'
 import type { Product } from '@/lib/products'
 import { productImageAlt } from '@/lib/products'
-import LandingTrackedLink from './LandingTrackedLink'
 
 export default function ProductCollection({
   heading,
   introduction,
   products,
-  pagePath,
 }: {
   heading: string
   introduction?: string
   products: Product[]
-  pagePath: string
 }) {
   if (products.length === 0) return null
 
@@ -26,12 +24,9 @@ export default function ProductCollection({
 
       <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {products.map(product => (
-          <LandingTrackedLink
+          <Link
             key={product.slug}
             href={`/products/${product.slug}`}
-            page={pagePath}
-            event="seo_landing_product_click"
-            label={product.slug}
             className="techpack-panel group flex min-w-0 flex-col overflow-hidden rounded-sm border transition-transform hover:-translate-y-0.5 hover:!border-(--color-accent)/45"
           >
             <div className="relative aspect-[4/3] overflow-hidden bg-(--color-cream-soft)">
@@ -61,7 +56,7 @@ export default function ProductCollection({
                 Sample: ₹{product.price.toLocaleString('en-IN')}
               </p>
             </div>
-          </LandingTrackedLink>
+          </Link>
         ))}
       </div>
     </section>

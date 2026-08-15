@@ -15,10 +15,4 @@ describe("server environment", () => {
     );
   });
 
-  it("requires analytics credentials only when enabled", () => {
-    expect(() => parseServerEnvironment({ POSTHOG_ENABLED: "true" })).toThrow(
-      "NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN",
-    );
-    expect(parseServerEnvironment({ POSTHOG_ENABLED: "false" }).POSTHOG_ENABLED).toBe(false);
-  });
 });

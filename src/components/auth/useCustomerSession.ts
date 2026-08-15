@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { identifyAnalyticsUser, resetAnalyticsUser } from "@/lib/analytics/client";
 
 export type CustomerSession = {
   loading: boolean;
@@ -20,11 +19,10 @@ export function useCustomerSession(enabled: boolean): CustomerSession {
     if (!enabled) { setLoading(false); return false; }
     try {
       const response = await fetch("/api/medusa/store/customers/me", { cache: "no-store" });
-      if (!response.ok) { setEmail(null); setLabel(null); resetAnalyticsUser(); return false; }
+      if (!response.ok) { setEmail(null); setLabel(null); return false; }
       const body = await response.json() as SessionBody;
       const identity = body.customer ?? body.user;
-      if (!identity?.email) { setEmail(null); setLabel(null); resetAnalyticsUser(); return false; }
-      identifyAnalyticsUser(identity.id ?? identity.email);
+      if (!identity?.email) { setEmail(null); setLabel(null); return false; }
       setEmail(identity.email);
       setLabel((identity.first_name ?? identity.email.split("@")[0]).trim() || "Account");
       return true;

@@ -2,7 +2,7 @@
 
 ## Architecture
 
-Customer and Foundry are separate Vercel deployments (`www.garmops.com`, `foundry.garmops.com`) backed by Supabase. Cloudflare provides DNS and separate public/private R2 buckets. PayU handles payment, Resend email, optional PostHog product analytics, optional Sentry monitoring, an external uptime monitor, and an optional private ClamAV scanner complete the system.
+Customer and Foundry are separate Vercel deployments (`www.garmops.com`, `foundry.garmops.com`) backed by Supabase. Cloudflare provides DNS and separate public/private R2 buckets. PayU handles payment, Resend email, optional Sentry monitoring, an external uptime monitor, and an optional private ClamAV scanner complete the system.
 
 ## Deploy checklist
 
@@ -17,7 +17,7 @@ Protect `main` with the CI application, database and E2E jobs required before me
 
 ## Rollback and kill switches
 
-Roll back the Vercel deployment first. Database migrations are forward-only: use a reviewed compensating migration, never rewrite applied history. Disable durable checkout, PostHog, Sentry, abandoned recovery, production capacity or malware scanning independently. Disabling optional observability must not stop checkout.
+Roll back the Vercel deployment first. Database migrations are forward-only: use a reviewed compensating migration, never rewrite applied history. Disable durable checkout, Sentry, abandoned recovery, production capacity or malware scanning independently. Disabling optional observability must not stop checkout.
 
 ## Incidents
 
@@ -29,10 +29,9 @@ Roll back the Vercel deployment first. Database migrations are forward-only: use
 - Worker stale: verify cron authorization, latest `system_job_runs`, queued/failed jobs, then invoke the authenticated worker once.
 - Scanner unavailable: downloads fail closed while scanning is enabled. Restore the private scanner or disable scanning only by an owner-approved incident decision; quarantined originals remain in R2.
 - Foundry unavailable: roll back the staff Vercel deployment; customer ordering is a separate surface.
-- Analytics outage: no checkout action is required; analytics is non-essential and fail-open.
 
 Configure Better Stack or an equivalent monitor against `/api/health` for public liveness and `/api/internal/integration-health` with `Authorization: Bearer <CRON_SECRET>` for dependencies. Alert on non-2xx and preserve the returned request/correlation context.
 
 ## Secrets and rotation
 
-Rotate Vercel/Supabase, R2, PayU, Resend, Turnstile, cron, PostHog, Sentry, scanner and GitHub backup credentials in their owning dashboards and both relevant Vercel deployments. Use overlap where supported, test, revoke the old credential, and record the rotation date. Never place values in source, logs, analytics, Sentry tags, or incident notes.
+Rotate Vercel/Supabase, R2, PayU, Resend, Turnstile, cron, Sentry, scanner and GitHub backup credentials in their owning dashboards and both relevant Vercel deployments. Use overlap where supported, test, revoke the old credential, and record the rotation date. Never place values in source, logs, Sentry tags, or incident notes.

@@ -51,7 +51,7 @@ The frontend image is built as a Next.js standalone server; no host Node.js
 installation is needed for that deployment.
 
 Without PayU credentials, durable payment initialization is unavailable. Normal
-CI never calls live PayU, Resend, R2, PostHog, Sentry, or the malware scanner.
+CI never calls live PayU, Resend, R2, Sentry, or the malware scanner.
 Optional integrations remain off until their feature flag and validated
 credentials are configured.
 
@@ -67,7 +67,6 @@ credentials are configured.
 | `RESEND_FROM_EMAIL` | Sender on a domain verified by Resend |
 | `CONTACT_TO_EMAIL` | Recipient for contact enquiries and paid sample-order notifications |
 | `GOOGLE_SITE_VERIFICATION` | Optional Google Search Console HTML-tag verification token; DNS verification is preferred |
-| `NEXT_PUBLIC_ANALYTICS_ENABLED`, `POSTHOG_ENABLED` | Consent-gated client/server PostHog kill switches |
 | `SENTRY_ENABLED` | Privacy-redacted Sentry kill switch |
 | `MALWARE_SCANNING_ENABLED` | Private-file quarantine/scanner kill switch |
 | `ABANDONED_DESIGN_EMAILS_ENABLED` | Consent-gated saved-design recovery kill switch |

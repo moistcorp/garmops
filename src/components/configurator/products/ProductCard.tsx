@@ -2,10 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { useState, type MouseEvent } from "react";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import type { Product } from "@/lib/configurator/products";
-import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 
 interface ProductCardProps {
   product: Product;
@@ -18,40 +17,9 @@ export default function ProductCard({
   configuratorHref,
   productDetailHref,
 }: ProductCardProps) {
-  const cardRef = useRef<HTMLElement>(null);
-  const hasTrackedView = useRef(false);
   const [isNavigating, setIsNavigating] = useState(false);
 
-  useEffect(() => {
-    const card = cardRef.current;
-    if (!card || hasTrackedView.current) return;
-    if (!("IntersectionObserver" in window)) {
-      hasTrackedView.current = true;
-      trackConfiguratorEvent("product_viewed", {
-        product_id: product.id,
-        product_name: product.name,
-      });
-      return;
-    }
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry?.isIntersecting || hasTrackedView.current) return;
-        hasTrackedView.current = true;
-        trackConfiguratorEvent("product_viewed", {
-          product_id: product.id,
-          product_name: product.name,
-        });
-        observer.disconnect();
-      },
-      { threshold: 0.45 },
-    );
-    observer.observe(card);
-    return () => observer.disconnect();
-  }, [product.id, product.name]);
-
   function handleCustomiseClick(event: MouseEvent<HTMLAnchorElement>) {
-    trackConfiguratorEvent("product_selected", { product_id: product.id });
-
     const modifiedClick = event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
     if (modifiedClick || event.button !== 0) return;
     if (isNavigating) {
@@ -63,7 +31,6 @@ export default function ProductCard({
 
   return (
     <article
-      ref={cardRef}
       className="techpack-panel flex h-full flex-col overflow-hidden rounded-sm border !bg-white transition-colors hover:!border-(--color-accent)/50"
     >
       <div className="relative aspect-[5/4] w-full overflow-hidden bg-white p-3 sm:p-4">

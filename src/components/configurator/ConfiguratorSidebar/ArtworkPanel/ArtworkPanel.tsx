@@ -283,7 +283,7 @@ export function ArtworkPanel({ productId, value, onChange, activeView, onViewCha
 
         {current && (
           <>
-            <TechniqueSelect value={selectedTechnique} fileType={current.fileType} side={panelSide} onChange={(technique) => handleTechniqueChange(panelSide, technique)} />
+            <TechniqueSelect value={selectedTechnique} side={panelSide} onChange={(technique) => handleTechniqueChange(panelSide, technique)} />
 
             {selectedTechnique === "reflective_print" && (
               <ReflectiveColourSelect

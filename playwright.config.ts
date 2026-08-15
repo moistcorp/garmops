@@ -36,8 +36,6 @@ export default defineConfig({
       // process uses NODE_ENV=test. Keep the dev server's diagnostics/CSP
       // behavior aligned with the server mode under test.
       NODE_ENV: "development",
-      NEXT_PUBLIC_ANALYTICS_ENABLED: "false",
-      POSTHOG_ENABLED: "false",
       SENTRY_ENABLED: "false",
     },
   },

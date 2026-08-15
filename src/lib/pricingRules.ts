@@ -37,7 +37,6 @@ export const CATALOGUE_BASE_PRICE_RUPEES = {
   "longsleeve-tee-260gsm": 565,
   "polo-280gsm": 595,
   "regular-fit-sweatshirt-320gsm": 565,
-  "boxy-fit-sweatshirt-320gsm": 585,
   "regular-fit-hoodie-320gsm": 575,
   "boxy-fit-hoodie-320gsm": 615,
   "canvas-tote-bag": 350,

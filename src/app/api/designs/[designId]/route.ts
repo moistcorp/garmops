@@ -29,7 +29,3 @@ export async function PATCH(request: NextRequest, context: Context) {
     return NextResponse.json({ error: status === 409 ? "Design has newer cloud changes" : "Design could not be saved" }, { status });
   }
 }
-
-export async function DELETE() {
-  return NextResponse.json({ error: "Design archiving is not present in the current Medusa contract." }, { status: 405 });
-}

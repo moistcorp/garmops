@@ -75,7 +75,6 @@ These articles answer commercial research questions without disguising sales cop
 3. Submit `https://www.garmops.com/sitemap.xml` in Search Console and inspect the homepage, products, pricing and four cornerstone articles.
 4. Create a Bing Webmaster Tools property and submit the same sitemap.
 5. Validate the homepage, one product and one article in Google Rich Results Test and Schema.org Validator after the production deployment.
-6. Create Google Analytics 4 or another privacy-appropriate analytics setup. Track quote submissions, configurator starts, sample purchases and WhatsApp clicks—not only page views.
 7. Consider a Google Merchant Center feed for the sample products after shipping and return policies are fully documented.
 8. Create or complete a Google Business Profile only if the Greater Noida location is eligible and accurately represents how customers interact with the business.
 

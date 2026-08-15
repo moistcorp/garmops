@@ -49,7 +49,6 @@ import { getProduct, getProductMinimumOrderQuantity } from "@/lib/configurator/p
 import CanvasRenderer from "../GarmentPreview/CanvasRenderer";
 import ViewTabs from "../GarmentPreview/ViewTabs";
 import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionContext";
-import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 import { ActionFeedback } from "../ActionFeedback";
 import { prepareConfiguratorCheckoutPayment } from "@/lib/orders/client";
 
@@ -259,12 +258,6 @@ export function ConfirmationStep({
       extraLeadTimeDays
     );
     if (!hasValidItems || procurementMissing.length > 0 || !deliveryComplete) {
-      trackConfiguratorEvent("checkout_validation_error", {
-        cart_id: cartId,
-        invalid_items: !hasValidItems,
-        missing_fields: procurementMissing.length,
-        delivery_incomplete: !deliveryComplete,
-      });
       setPaymentError(
         "Your order or delivery details are incomplete. Return to the previous step and review them."
       );
@@ -276,11 +269,6 @@ export function ConfirmationStep({
       return;
     }
 
-    trackConfiguratorEvent("payment_started", {
-      cart_id: cartId,
-      amount: orderTotal,
-      item_count: draft.items.length,
-    });
     setIsProcessing(true);
 
     try {
@@ -290,10 +278,6 @@ export function ConfirmationStep({
       });
       if (result.ok) {
         if (result.kind === "already_finalized") {
-          trackConfiguratorEvent("durable_order_submitted", {
-            cart_id: cartId,
-            order_number: result.order.orderNumber,
-          });
           clearPaidCart(cartId);
           window.location.assign(result.order.confirmationUrl);
         }
@@ -308,10 +292,6 @@ export function ConfirmationStep({
 
       setPaymentError(result.message);
       setIsProcessing(false);
-      trackConfiguratorEvent("durable_order_failed", {
-        cart_id: cartId,
-        error: result.message,
-      });
     } catch (error) {
       const message =
         error instanceof Error
@@ -319,10 +299,6 @@ export function ConfirmationStep({
           : "Your order could not be created. Please try again.";
       setPaymentError(message);
       setIsProcessing(false);
-      trackConfiguratorEvent("durable_order_failed", {
-        cart_id: cartId,
-        error: message,
-      });
     }
   };
 

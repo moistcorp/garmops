@@ -4,7 +4,6 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -43,7 +42,6 @@ import {
   isDeliverySelectionValid,
 } from "@/lib/configurator/delivery";
 import { CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS } from "@/lib/configurator/colourRules";
-import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 import { getConfiguredCart, updateConfiguredLine, type ConfiguredCartSummary } from "@/lib/medusa/commerce";
 import { ActionFeedback } from "@/components/configurator/ActionFeedback";
 import CustomerAuthFlow from "@/components/auth/CustomerAuthFlow";
@@ -325,7 +323,6 @@ export function BillingShippingStep({
   const [isSavingAccount, setIsSavingAccount] = useState(false);
   const [validationFeedback, setValidationFeedback] = useState<string | null>(null);
   const [storageSaveError, setStorageSaveError] = useState<string | null>(null);
-  const formStartedRef = useRef(false);
 
   useEffect(() => {
     const loadDraft = window.setTimeout(() => {
@@ -378,12 +375,6 @@ export function BillingShippingStep({
       }
     : calculateTotals(draft.items, draft.deliveryType);
 
-  const markFormStarted = useCallback(() => {
-    if (formStartedRef.current) return;
-    formStartedRef.current = true;
-    trackConfiguratorEvent("company_form_started", { cart_id: cartId });
-  }, [cartId]);
-
   const persistCartDraft = useCallback(
     (next: CartDraft) => {
       const saved = writeDraft(cartId, next);
@@ -400,7 +391,6 @@ export function BillingShippingStep({
 
   const updateDraft = useCallback(
     (patch: Partial<CartDraft>) => {
-      markFormStarted();
       setValidationFeedback(null);
       setDraft((previous) => {
         const next = withInferredCheckoutDetails(
@@ -411,7 +401,7 @@ export function BillingShippingStep({
         return next;
       });
     },
-    [accountDefaults, markFormStarted, persistCartDraft]
+    [accountDefaults, persistCartDraft]
   );
 
   const updateContact = useCallback(
@@ -521,11 +511,6 @@ export function BillingShippingStep({
   const handleNext = async () => {
     if (!isValid) {
       setValidationFeedback(missingMessage ?? "Complete the required fields to continue.");
-      trackConfiguratorEvent("checkout_validation_error", {
-        cart_id: cartId,
-        missing_count: missingLabels.length,
-        first_missing: missingLabels[0] ?? null,
-      });
       focusFirstMissingField();
       return;
     }

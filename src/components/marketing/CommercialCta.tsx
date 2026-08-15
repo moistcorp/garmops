@@ -1,9 +1,7 @@
-import LandingTrackedLink from './LandingTrackedLink'
+import Link from 'next/link'
 import type { SeoLandingPageContent } from '@/lib/landingPages'
 
 export default function CommercialCta({ content }: { content: SeoLandingPageContent }) {
-  const path = `/${content.slug}`
-
   return (
     <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
       <div className="techpack-dark relative overflow-hidden rounded-sm border p-6 text-white sm:p-10 lg:p-14">
@@ -11,25 +9,19 @@ export default function CommercialCta({ content }: { content: SeoLandingPageCont
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">{content.cta.title}</h2>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-white/70 sm:text-base">{content.cta.description}</p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <LandingTrackedLink
+            <Link
               href={content.cta.primary.href}
-              page={path}
-              event="seo_landing_cta_click"
-              label="primary_footer"
               className="rounded-sm bg-white px-6 py-3.5 text-center font-mono text-xs uppercase tracking-[0.05em] text-(--color-navy) transition-colors hover:bg-white/90"
             >
               {content.cta.primary.label}
-            </LandingTrackedLink>
+            </Link>
             {content.cta.secondary && (
-              <LandingTrackedLink
+              <Link
                 href={content.cta.secondary.href}
-                page={path}
-                event="seo_landing_cta_click"
-                label="secondary_footer"
                 className="rounded-sm border border-white/30 bg-white/5 px-6 py-3.5 text-center font-mono text-xs uppercase tracking-[0.05em] text-white transition-colors hover:bg-white/10"
               >
                 {content.cta.secondary.label}
-              </LandingTrackedLink>
+              </Link>
             )}
           </div>
         </div>

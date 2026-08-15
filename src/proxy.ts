@@ -33,7 +33,6 @@ const STAFF_PORTAL_PREFIXES = [
   '/discounts',
   '/staff-management',
   '/settings',
-  '/analytics',
 ]
 const PUBLIC_ASSET_PATH = /\.(?:avif|gif|ico|jpe?g|png|svg|webp|woff2?|webmanifest)$/i
 

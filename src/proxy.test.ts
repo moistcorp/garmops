@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { isStaffPortalPath } from "./proxy";
 
 describe("Foundry route boundary", () => {
-  it.each(["/analytics", "/analytics/overview", "/orders", "/orders/GAR-2026-000001"])(
+  it.each(["/orders", "/orders/GAR-2026-000001"])(
     "recognizes %s as a staff route",
     (path) => {
       expect(isStaffPortalPath(path)).toBe(true);

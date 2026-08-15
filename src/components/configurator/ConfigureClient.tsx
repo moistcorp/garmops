@@ -75,7 +75,6 @@ import {
 } from "@/lib/configurator/objectUrls";
 import { ActionFeedback, type ActionFeedbackTone } from "./ActionFeedback";
 import { useCustomerSession } from "@/components/auth/useCustomerSession";
-import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 import { readPreferredQuantity } from "@/lib/configurator/clientPreferences";
 import { getConfiguratorCtaLabel } from "@/lib/configurator/journey";
 import { MAX_CONFIGURATION_QUANTITY } from "@/lib/configurator/sizeQuantity";
@@ -1155,7 +1154,6 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
       };
       if (!writeDraft(canonicalCart.cartId, nextDraft)) throw new Error("Your browser could not save the synchronized cart.");
       if (requestedEstimateId && cloudLinkRef.current) writeEstimateForDesign(cloudLinkRef.current.designId, requestedEstimateId);
-      trackConfiguratorEvent("added_to_cart", { product_id: productId, quantity, editing: Boolean(editItemId), existing_cart: Boolean(editCartId) });
       clearBuildDraft(designStorageKey);
       router.push(`/configurator/cart/${encodeURIComponent(canonicalCart.cartId)}/review`);
     } catch (error) {
@@ -1185,7 +1183,6 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
       }
       const confirmedColour = { ...colour, confirmed: true };
       setColour(confirmedColour);
-      trackConfiguratorEvent("colour_selected", { product_id: productId, colour: confirmedColour.name, colour_type: confirmedColour.type });
       updateStep("garment-colour", {
         confirmed: true,
         skipped: false,
@@ -1199,7 +1196,6 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
     if (expandedStepId === "artwork") {
       const hasArtwork = Boolean(artwork.front || artwork.back);
       if (!hasArtwork) {
-        trackConfiguratorEvent("artwork_skipped", { product_id: productId });
         updateStep("artwork", {
           confirmed: true,
           skipped: true,
@@ -1280,7 +1276,6 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   async function handleDownloadPdf() {
     setIsDownloadingPdf(true);
     setFeedback({ tone: "loading", title: "Preparing product preview…", detail: "Your current configuration remains editable while the document is created." });
-    trackConfiguratorEvent("approval_pdf_started", { source: "studio", product_id: productId });
     try {
       const sizes = product?.sizes ?? ["XS", "S", "M", "L", "XL", "XXL"];
       const sizeQuantities = splitQuantityAcrossSizes(quantity, sizes);
@@ -1327,10 +1322,8 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
         filename: `Garmops-Design-${configId}.pdf`,
       });
       setFeedback({ tone: "success", title: "Design PDF downloaded", detail: "The document is a dated snapshot of this configuration." });
-      trackConfiguratorEvent("approval_pdf_downloaded", { source: "studio", product_id: productId });
     } catch {
       setFeedback({ tone: "error", title: "PDF generation failed", detail: "Your configuration is safe. Check your connection and try downloading again.", retryPdf: true });
-      trackConfiguratorEvent("approval_pdf_failed", { source: "studio", product_id: productId });
     } finally {
       setIsDownloadingPdf(false);
     }

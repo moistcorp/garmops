@@ -11,7 +11,6 @@ import type {
   ArtworkSide,
 } from "@/lib/configurator/types/configurator";
 import { isCustomerArtworkTechnique } from "@/lib/configurator/types/configurator";
-import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 import { normalizeArtwork } from "@/lib/configurator/artworkProcessing/normalize";
 import { artworkProcessingMessage } from "@/lib/configurator/artworkProcessing/errors";
 import { ArtworkProcessingError, type ArtworkProcessingResult } from "@/lib/configurator/artworkProcessing/types";
@@ -167,23 +166,6 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
           vectorized: true,
           sourceIsVector: true,
         };
-    if (processing.status === "needs_review") {
-      trackConfiguratorEvent("artwork_processing_needs_review", { side, file_type: fileType });
-    } else {
-      trackConfiguratorEvent("artwork_processing_ready", {
-        side,
-        file_type: fileType,
-        preview_kind: processing.previewKind,
-        vectorized: Boolean(processing.vectorized),
-        background_removed: Boolean(processing.backgroundRemoved),
-      });
-      if (processing.previewKind === "raster" && (fileType === "jpg" || fileType === "png")) {
-        trackConfiguratorEvent("artwork_processing_fallback_raster", { side, file_type: fileType, preview_kind: "raster" });
-      }
-      if (processing.backgroundRemoved) {
-        trackConfiguratorEvent("artwork_background_removed", { side, file_type: fileType, background_removed: true });
-      }
-    }
     if (token !== importTokenRef.current) {
       if (fileUrl !== SAMPLE_ARTWORK_HREF) revokeObjectUrl(fileUrl);
       return;
@@ -235,8 +217,6 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
     setError(null);
     setPersistenceWarning(null);
     setUploadState("preparing");
-    trackConfiguratorEvent("artwork_upload_started", { side, file_type: fileType, file_size: file.size });
-    trackConfiguratorEvent("artwork_processing_started", { side, file_type: fileType });
     const fileUrl = URL.createObjectURL(file);
     revokeObjectUrl(pendingObjectUrlRef.current ?? undefined);
     if (value?.fileUrl !== fileUrl) revokeObjectUrl(value?.fileUrl);
@@ -254,7 +234,6 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
           setPersistenceWarning("This browser could not save the upload for reload recovery. Keep this tab open or try a different browser.");
         }
         await importArtwork(fileUrl, fileType, token, file, fileKey, file.name);
-        if (token === importTokenRef.current) trackConfiguratorEvent("artwork_upload_succeeded", { side, file_type: fileType });
       })
       .catch((error: unknown) => {
         if (token !== importTokenRef.current) return;
@@ -268,7 +247,6 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
             ? artworkProcessingMessage(error.code)
             : "This artwork could not be read. Export it again or upload another file.",
         );
-        trackConfiguratorEvent("artwork_upload_failed", { side, reason: "import_failed" });
       });
   }
 
@@ -298,7 +276,6 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
       if (token !== importTokenRef.current) return;
       setUploadState(null);
       setError("The sample artwork could not be loaded. Upload your own file or try again.");
-      trackConfiguratorEvent("artwork_upload_failed", { side, reason: "sample_import_failed" });
     });
   }
 

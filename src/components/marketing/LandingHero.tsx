@@ -1,10 +1,8 @@
 import Image from 'next/image'
-import LandingTrackedLink from './LandingTrackedLink'
+import Link from 'next/link'
 import type { SeoLandingPageContent } from '@/lib/landingPages'
 
 export default function LandingHero({ content }: { content: SeoLandingPageContent }) {
-  const path = `/${content.slug}`
-
   return (
     <header className="mx-auto grid max-w-7xl items-center gap-8 px-4 pb-12 pt-8 sm:px-6 sm:pb-16 sm:pt-14 lg:grid-cols-[1.08fr_0.92fr] lg:gap-14 lg:pb-20">
       <div className="max-w-3xl">
@@ -18,25 +16,19 @@ export default function LandingHero({ content }: { content: SeoLandingPageConten
           {content.lead}
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <LandingTrackedLink
+          <Link
             href={content.cta.primary.href}
-            page={path}
-            event="seo_landing_cta_click"
-            label="primary"
             className="rounded-sm bg-(--color-accent) px-6 py-3.5 text-center text-sm font-medium text-white transition-colors hover:bg-(--color-accent-dark)"
           >
             {content.cta.primary.label}
-          </LandingTrackedLink>
+          </Link>
           {content.cta.secondary && (
-            <LandingTrackedLink
+            <Link
               href={content.cta.secondary.href}
-              page={path}
-              event="seo_landing_cta_click"
-              label="secondary"
               className="techpack-control rounded-sm border px-6 py-3.5 text-center text-sm font-medium text-(--text-primary) transition-colors hover:!border-(--color-accent) hover:text-(--color-accent-dark)"
             >
               {content.cta.secondary.label}
-            </LandingTrackedLink>
+            </Link>
           )}
         </div>
       </div>

@@ -1,12 +1,10 @@
 "use client";
 
-import type { ArtworkFileType, CustomerArtworkTechnique } from "@/lib/configurator/types/configurator";
+import type { CustomerArtworkTechnique } from "@/lib/configurator/types/configurator";
 import { CUSTOMER_PRINT_TECHNIQUE_LABELS } from "@/lib/pricingRules";
-import { trackConfiguratorEvent } from "@/lib/configurator/analytics";
 
 export interface TechniqueSelectProps {
   value?: CustomerArtworkTechnique;
-  fileType?: ArtworkFileType;
   side?: "front" | "back";
   onChange: (technique: CustomerArtworkTechnique) => void;
 }
@@ -25,15 +23,11 @@ const TECHNIQUE_DESCRIPTIONS: Record<CustomerArtworkTechnique, string> = {
   reflective_print: "Clean, smooth reflective film finish in a selected colour.",
 };
 
-export function TechniqueSelect({ value, fileType, side = "front", onChange }: TechniqueSelectProps) {
+export function TechniqueSelect({ value, side = "front", onChange }: TechniqueSelectProps) {
   const sideLabel = side === "front" ? "Front" : "Back";
 
   function chooseTechnique(technique: CustomerArtworkTechnique) {
     onChange(technique);
-    trackConfiguratorEvent("technique_selected", {
-      technique,
-      file_type: fileType ?? null,
-    });
   }
 
   return (

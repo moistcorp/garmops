@@ -11,7 +11,6 @@ function configuredOrigin(value: string | undefined) {
 }
 
 const medusaOrigin = configuredOrigin(process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL)
-const posthogOrigin = configuredOrigin(process.env.NEXT_PUBLIC_POSTHOG_HOST)
 const sentryOrigin = configuredOrigin(process.env.NEXT_PUBLIC_SENTRY_DSN)
 const isDevelopment = process.env.NODE_ENV === 'development'
 const productionHeaders = process.env.NODE_ENV === 'production'
@@ -75,7 +74,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://api.fontshare.com https://fonts.googleapis.com",
               "font-src 'self' https://cdn.fontshare.com https://fonts.gstatic.com",
               "img-src 'self' data: blob: https:",
-              `connect-src 'self' https://secure.payu.in https://test.payu.in https://challenges.cloudflare.com${medusaOrigin ? ` ${medusaOrigin}` : ''}${posthogOrigin ? ` ${posthogOrigin}` : ''}${sentryOrigin ? ` ${sentryOrigin}` : ''}`,
+              `connect-src 'self' https://secure.payu.in https://test.payu.in https://challenges.cloudflare.com${medusaOrigin ? ` ${medusaOrigin}` : ''}${sentryOrigin ? ` ${sentryOrigin}` : ''}`,
               "frame-src https://secure.payu.in https://test.payu.in https://challenges.cloudflare.com",
               "form-action 'self' https://secure.payu.in https://test.payu.in",
             ].join('; '),
