@@ -134,7 +134,7 @@ export default function GarmentColourPanel({
       id: colour.id,
       name: colour.name,
       hex: colour.hex,
-      confirmed: value.confirmed,
+      confirmed: true,
     });
   }
 
@@ -143,7 +143,7 @@ export default function GarmentColourPanel({
       type: "custom_dye",
       name: colour.code,
       hex: colour.hex,
-      confirmed: value.confirmed,
+      confirmed: true,
     });
   }
 
