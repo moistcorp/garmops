@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cookies } from "next/headers";
+import { readFileSync } from "node:fs";
 import { getServerEnvironment } from "@/lib/config/env";
 import { MedusaApiError, type MedusaRequestOptions } from "./types";
 
@@ -10,6 +11,20 @@ const STAFF_TOKEN_COOKIE = "garmops_medusa_staff";
 function backendOrigin(): string {
   const value = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
   return value.replace(/\/$/, "");
+}
+
+function publishableApiKey(): string | undefined {
+  const configured = process.env.MEDUSA_PUBLISHABLE_API_KEY?.trim();
+  if (configured) return configured;
+
+  const file = process.env.MEDUSA_PUBLISHABLE_API_KEY_FILE?.trim();
+  if (!file) return undefined;
+
+  try {
+    return readFileSync(file, "utf8").trim() || undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function cookieName(actor: "customer" | "staff"): string {
@@ -63,7 +78,7 @@ export async function medusaRequest<T = unknown>(path: string, options: MedusaRe
   headers.set("accept", "application/json");
   if (options.body !== undefined) headers.set("content-type", "application/json");
   headers.set("x-request-id", headers.get("x-request-id") ?? crypto.randomUUID());
-  const publishableKey = process.env.MEDUSA_PUBLISHABLE_API_KEY;
+  const publishableKey = publishableApiKey();
   if (publishableKey) headers.set("x-publishable-api-key", publishableKey);
   const token = options.token ?? (actor === "public" ? null : await medusaToken(actor));
   if (token) headers.set("authorization", `Bearer ${token}`);

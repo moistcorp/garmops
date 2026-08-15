@@ -44,6 +44,12 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+To run the customer app, Foundry, Medusa, PostgreSQL, Redis, and ClamAV as one
+self-contained Docker deployment, keep this repository beside
+`garmops-medusa` and run `./scripts/portable-up.sh` from `garmops-medusa`.
+The frontend image is built as a Next.js standalone server; no host Node.js
+installation is needed for that deployment.
+
 Without PayU credentials, durable payment initialization is unavailable. Normal
 CI never calls live PayU, Resend, R2, PostHog, Sentry, or the malware scanner.
 Optional integrations remain off until their feature flag and validated
