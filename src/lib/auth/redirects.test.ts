@@ -18,15 +18,10 @@ describe("authentication return paths", () => {
     expect(decodeAuthNextCookie("%not-valid")).toBeUndefined();
   });
 
-  it("embeds the checkout return path in the canonical OAuth callback", () => {
-    const callback = new URL(authCallbackUrl(
-      "/configurator/cart/cart-123/shipping",
-      "https://garmops.com/",
-    ));
-    expect(callback.origin).toBe("https://garmops.com");
+  it("uses a stable canonical OAuth callback", () => {
+    const callback = new URL(authCallbackUrl("https://www.garmops.com/"));
+    expect(callback.origin).toBe("https://www.garmops.com");
     expect(callback.pathname).toBe("/auth/callback");
-    expect(callback.searchParams.get("next")).toBe(
-      "/configurator/cart/cart-123/shipping",
-    );
+    expect(callback.search).toBe("");
   });
 });
