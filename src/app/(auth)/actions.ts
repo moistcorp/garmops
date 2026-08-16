@@ -31,14 +31,50 @@ export async function loginAction(_state: AuthActionState, formData: FormData): 
   if (!isFeatureEnabled("STAFF_PORTAL_ENABLED") || !isStaffSurface()) return actionError("Staff access is not enabled on this application.");
   const parsed = loginSchema.safeParse(fields(formData));
   if (!parsed.success) return validationError(parsed.error);
+  let requiresEnrollment = false;
   try {
-    const result = await medusaRequest<{ token?: string }>("/auth/user/emailpass", { method: "POST", body: { email: parsed.data.email, password: parsed.data.password }, actor: "public" });
+    const result = await medusaRequest<{ token?: string; mfa_required?: boolean; mfa_challenge?: { id: string; methods?: string[] } }>("/auth/user/emailpass", { method: "POST", body: { email: parsed.data.email, password: parsed.data.password }, actor: "public" });
     if (!result.token) return actionError("Unable to sign in with those staff credentials.");
     await setMedusaToken("staff", result.token);
+    if (result.mfa_required && result.mfa_challenge) return actionSuccess("Enter the authenticator code to continue.", { mfaChallengeId: result.mfa_challenge.id, mfaMethods: result.mfa_challenge.methods ?? ["totp"] });
+    const pending = await medusaRequest<{ mfaRequired?: boolean }>("/foundry/session?allowMfaPending=true", { actor: "staff" });
+    requiresEnrollment = Boolean(pending.mfaRequired);
   } catch (error) {
     return actionError(apiMessage(error, "Unable to sign in with those staff credentials."));
   }
+  if (requiresEnrollment) redirect(`/settings/security?next=${encodeURIComponent(safeInternalPath(parsed.data.next, "/orders"))}`);
   redirect(safeInternalPath(parsed.data.next, "/orders"));
+}
+
+export async function verifyStaffMfaAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {
+  const challengeId = String(formData.get("challengeId") ?? "");
+  const code = String(formData.get("code") ?? "");
+  const next = safeInternalPath(String(formData.get("next") ?? "/orders"), "/orders");
+  if (!challengeId || !/^\d{6}$/.test(code)) return actionError("Enter the 6-digit authenticator code.");
+  try {
+    const result = await medusaRequest<{ token?: string }>(`/auth/mfa/challenges/${encodeURIComponent(challengeId)}/verify`, { method: "POST", body: { method: "totp", code }, actor: "staff" });
+    if (!result.token) return actionError("The authenticator code was not accepted.");
+    await setMedusaToken("staff", result.token);
+  } catch (error) { return actionError(apiMessage(error, "The authenticator code was not accepted.")); }
+  redirect(next);
+}
+
+export async function startStaffMfaAction(_state: AuthActionState, _formData: FormData): Promise<AuthActionState> {
+  try {
+    const result = await medusaRequest<{ mfa_factor?: { id: string }; secret?: string; otpauth_url?: string }>("/auth/mfa/factors", { method: "POST", body: { provider: "totp", label: "Foundry authenticator", issuer: "Garmops" }, actor: "staff" });
+    if (!result.mfa_factor?.id || !result.secret) return actionError("MFA enrollment could not be started.");
+    return actionSuccess("Scan or enter the secret in your authenticator app, then verify it below.", { mfaFactorId: result.mfa_factor.id, mfaSecret: result.secret, mfaOtpAuthUrl: result.otpauth_url });
+  } catch (error) { return actionError(apiMessage(error, "MFA enrollment could not be started.")); }
+}
+
+export async function verifyStaffMfaEnrollmentAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {
+  const factorId = String(formData.get("factorId") ?? "");
+  const code = String(formData.get("code") ?? "");
+  if (!factorId || !/^\d{6}$/.test(code)) return actionError("Enter the 6-digit authenticator code.");
+  try {
+    await medusaRequest(`/auth/mfa/factors/${encodeURIComponent(factorId)}/verify`, { method: "POST", body: { code }, actor: "staff" });
+  } catch (error) { return actionError(apiMessage(error, "The authenticator code was not accepted.")); }
+  redirect("/login?next=%2Forders");
 }
 
 export async function requestCustomerOtpAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {

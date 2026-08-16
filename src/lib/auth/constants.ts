@@ -15,6 +15,11 @@ export type AuthActionState = {
   destination?: string;
   requiresOnboarding?: boolean;
   resetToken: number;
+  mfaChallengeId?: string;
+  mfaMethods?: string[];
+  mfaFactorId?: string;
+  mfaSecret?: string;
+  mfaOtpAuthUrl?: string;
 };
 
 export const INITIAL_AUTH_ACTION_STATE: AuthActionState = {
@@ -43,6 +48,11 @@ export function actionSuccess(
     testCode?: string;
     destination?: string;
     requiresOnboarding?: boolean;
+    mfaChallengeId?: string;
+    mfaMethods?: string[];
+    mfaFactorId?: string;
+    mfaSecret?: string;
+    mfaOtpAuthUrl?: string;
   },
 ): AuthActionState {
   return {
@@ -53,6 +63,11 @@ export function actionSuccess(
     testCode: options?.testCode,
     destination: options?.destination,
     requiresOnboarding: options?.requiresOnboarding,
+    mfaChallengeId: options?.mfaChallengeId,
+    mfaMethods: options?.mfaMethods,
+    mfaFactorId: options?.mfaFactorId,
+    mfaSecret: options?.mfaSecret,
+    mfaOtpAuthUrl: options?.mfaOtpAuthUrl,
     resetToken: Date.now(),
   };
 }

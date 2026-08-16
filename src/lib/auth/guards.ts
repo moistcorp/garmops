@@ -32,7 +32,7 @@ export async function requireCustomer(next = "/account") {
 export async function requireStaffRecord(options?: { allowMfaPending?: boolean; next?: string }) {
   const next = options?.next ?? "/orders";
   try {
-    const result = await medusaRequest<{ staff: StaffIdentity }>("/foundry/session", { actor: "staff" });
+    const result = await medusaRequest<{ staff: StaffIdentity; mfaRequired?: boolean }>(`/foundry/session${options?.allowMfaPending ? "?allowMfaPending=true" : ""}`, { actor: "staff" });
     if (!result.staff) throw new Error("No staff session");
     return { user: { id: result.staff.id, email: result.staff.email }, staff: result.staff, medusa: medusaRequest };
   } catch (error) {
