@@ -22,6 +22,9 @@
 # production
 /build
 
+# local source material for future immutable R2 asset versions
+/asset-staging/
+
 # misc
 .DS_Store
 *.pem

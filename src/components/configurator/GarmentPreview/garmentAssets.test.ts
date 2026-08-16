@@ -12,13 +12,23 @@ describe("garment preview asset mapping", () => {
   });
 
   it("uses byte-correct PNG details for regular tee front and back", () => {
-    expect(garmentAssetPath("regular-fit-tee-200gsm", "front", "texture")).toBe("/garments/regular-fit-tee/front/texture.png");
-    expect(garmentAssetPath("regular-fit-tee-200gsm", "neck", "texture")).toBe("/garments/regular-fit-tee/neck/texture.webp");
+    expect(garmentAssetPath("regular-fit-tee-200gsm", "front", "mask")).toBe("https://assets.garmops.com/garments/v1/regular-fit-tee/front/mask.png");
+    expect(garmentAssetPath("regular-fit-tee-200gsm", "front", "texture")).toBe("https://assets.garmops.com/garments/v1/regular-fit-tee/front/texture.png");
+    expect(garmentAssetPath("regular-fit-tee-200gsm", "neck", "texture")).toBe("https://assets.garmops.com/garments/v1/regular-fit-tee/neck/texture.webp");
+  });
+
+  it("keeps WebP detail layers for other garment families", () => {
+    expect(garmentAssetPath("polo-280gsm", "front", "texture")).toBe("https://assets.garmops.com/garments/v1/polo/front/texture.webp");
+    expect(garmentAssetPath("canvas-tote-bag", "back", "highlight")).toBe("https://assets.garmops.com/garments/v1/canvas-tote-bag/back/highlight.webp");
   });
 
   it("reuses the boxy hoodie neck layers for the regular hoodie", () => {
-    expect(garmentAssetPath("regular-fit-hoodie-320gsm", "neck", "mask")).toBe("/garments/boxy-fit-hoodie/neck/mask.png");
+    expect(garmentAssetPath("regular-fit-hoodie-320gsm", "neck", "mask")).toBe("https://assets.garmops.com/garments/v1/boxy-fit-hoodie/neck/mask.png");
     expect(getGarmentRenderConfig("regular-fit-hoodie-320gsm", "neck").assetFolder).toBe("boxy-fit-hoodie");
+  });
+
+  it("returns an empty URL for unmapped products", () => {
+    expect(garmentAssetPath("unknown-product" as never, "front", "mask")).toBe("");
   });
 
   it("selects photographic rendering explicitly instead of from asset filenames", () => {

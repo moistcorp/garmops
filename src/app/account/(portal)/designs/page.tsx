@@ -14,6 +14,7 @@ import {
 } from "@/lib/designs/schema";
 import { requireCustomer } from "@/lib/auth/guards";
 import { formatOrderTimestamp } from "@/lib/orders/format";
+import { flatlayAssetPath } from "@/lib/publicAssets";
 
 export const dynamic = "force-dynamic";
 
@@ -155,7 +156,7 @@ export default async function SavedDesignsPage({
                     aria-label={`View ${String(design.title)}`}
                 >
                   <Image
-                    src={product?.defaultImage ?? "/flatlays/regulartee.png"}
+                    src={product?.defaultImage ?? flatlayAssetPath("regulartee.png")}
                     alt={`${product?.name ?? "Garment"} in ${configuration.colour.name}`}
                     fill
                     sizes="(max-width: 640px) 100vw, 150px"

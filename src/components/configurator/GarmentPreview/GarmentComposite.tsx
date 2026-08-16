@@ -148,6 +148,7 @@ export function getDisplayPreviewHex(hex: string): string {
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const image = new Image();
+    image.crossOrigin = "anonymous";
     image.decoding = "async";
     image.onload = () => resolve(image);
     image.onerror = () => reject(new Error(`Unable to load garment preview asset: ${src}`));

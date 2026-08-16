@@ -13,6 +13,7 @@ export function useGarmentAssetPrefetch(productId: ProductId, view: GarmentView)
     const prefetch = () => {
       for (const layer of ["mask", "texture", "shadow", "highlight"]) {
         const image = new Image();
+        image.crossOrigin = "anonymous";
         image.decoding = "async";
         image.src = garmentAssetPath(productId, nextView, layer);
         images.push(image);

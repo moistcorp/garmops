@@ -14,10 +14,11 @@ import { isCustomerArtworkTechnique } from "@/lib/configurator/types/configurato
 import { normalizeArtwork } from "@/lib/configurator/artworkProcessing/normalize";
 import { artworkProcessingMessage } from "@/lib/configurator/artworkProcessing/errors";
 import { ArtworkProcessingError, type ArtworkProcessingResult } from "@/lib/configurator/artworkProcessing/types";
+import { garmentAssetUrl } from "@/lib/publicAssets";
 
 export const ACCEPTED_ARTWORK_EXTENSIONS = [".png", ".jpg", ".jpeg", ".pdf", ".svg", ".ai"] as const;
 export const MAX_ARTWORK_FILE_BYTES = 20 * 1024 * 1024;
-export const SAMPLE_ARTWORK_HREF = "/garments/artwork-sample.svg";
+export const SAMPLE_ARTWORK_HREF = garmentAssetUrl("artwork-sample.svg");
 export const SAMPLE_ARTWORK_DIMENSIONS = { width: 20, height: 3 } as const;
 const PRINT_TEMPLATES_HREF = "/downloads/Garmops-print_templates-1.0.zip";
 const DEFAULT_ARTWORK_WIDTH_CM = 20;
@@ -96,6 +97,7 @@ function makeDefaultSide(
 function getImageDimensions(fileUrl: string): Promise<{ naturalWidth: number; naturalHeight: number }> {
   return new Promise((resolve, reject) => {
     const image = new Image();
+    image.crossOrigin = "anonymous";
     image.onload = () => resolve({ naturalWidth: image.naturalWidth, naturalHeight: image.naturalHeight });
     image.onerror = reject;
     image.src = fileUrl;
@@ -329,7 +331,7 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
           <div className="flex flex-wrap items-center gap-2.5">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-(--color-rule) bg-white text-center text-[10px] font-semibold uppercase tracking-wide text-(--text-primary)/55">
               {(value.previewUrl || (value.fileType === "jpg" || value.fileType === "png" || value.fileType === "svg" ? value.fileUrl : undefined)) ? (
-                <img src={value.previewUrl || value.fileUrl} alt="" className="h-full w-full object-contain p-1" />
+                <img crossOrigin="anonymous" src={value.previewUrl || value.fileUrl} alt="" className="h-full w-full object-contain p-1" />
               ) : (
                 <span className="flex flex-col items-center gap-1">
                   <FileText size={17} strokeWidth={1.7} aria-hidden="true" />

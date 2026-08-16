@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { useState } from 'react'
+import { garmentAssetUrl } from '@/lib/publicAssets'
 
 const accordionItems = [
   {
@@ -14,7 +15,7 @@ const accordionItems = [
   {
     title: 'Customise it in one guided flow',
     body: 'Choose the garment colour, add artwork, define print placements and build the quantity and size split without moving the order across disconnected messages and spreadsheets.',
-    image: '/garments/artwork-sample.svg',
+    image: garmentAssetUrl('artwork-sample.svg'),
     alt: 'Artwork sample representing the Garmops garment customisation workflow',
     objectClass: 'object-contain p-10 sm:p-16',
   },

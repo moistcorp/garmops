@@ -1,5 +1,6 @@
 import type { ProductId } from "@/lib/configurator/pricing";
 import type { GarmentView } from "@/lib/configurator/types/garment";
+import { garmentAssetUrl } from "@/lib/publicAssets";
 
 export type GarmentRenderProfile = "standard" | "photographic";
 
@@ -116,5 +117,5 @@ export function garmentAssetPath(productId: ProductId, view: GarmentView, layer:
   const assetFolder = getGarmentRenderConfig(productId, view).assetFolder ?? garmentFolder;
   const regularTeePngDetail = garmentFolder === "regular-fit-tee" && (view === "front" || view === "back") && layer !== "mask";
   const extension = layer === "mask" || regularTeePngDetail ? "png" : "webp";
-  return `/garments/${assetFolder}/${view}/${layer}.${extension}`;
+  return garmentAssetUrl(`${assetFolder}/${view}/${layer}.${extension}`);
 }

@@ -4,6 +4,7 @@ import {
   products as catalogProducts,
 } from "../products";
 import type { ProductId } from "./pricing";
+import { flatlayAssetPath } from "../publicAssets";
 
 export type ProductUseCase =
   | "Employee onboarding"
@@ -34,17 +35,17 @@ export interface Product {
 }
 
 function getFlatlayImage(slug: string): string {
-  if (slug.includes("longsleeve")) return "/flatlays/longsleeve.png";
+  if (slug.includes("longsleeve")) return flatlayAssetPath("longsleeve.png");
   if (slug.includes("tee")) {
-    return slug.includes("boxy") ? "/flatlays/boxytee.webp" : "/flatlays/regulartee.png";
+    return flatlayAssetPath(slug.includes("boxy") ? "boxytee.webp" : "regulartee.png");
   }
   if (slug.includes("hoodie")) {
-    return slug.includes("boxy") ? "/flatlays/boxyhoodie.webp" : "/flatlays/regularhoodie.webp";
+    return flatlayAssetPath(slug.includes("boxy") ? "boxyhoodie.webp" : "regularhoodie.webp");
   }
-  if (slug.includes("polo")) return "/flatlays/polo.webp";
-  if (slug.includes("sweatshirt")) return "/flatlays/sweatshirt.png";
-  if (slug.includes("tote")) return "/flatlays/totebag.webp";
-  return "/flatlays/boxytee.webp";
+  if (slug.includes("polo")) return flatlayAssetPath("polo.webp");
+  if (slug.includes("sweatshirt")) return flatlayAssetPath("sweatshirt.png");
+  if (slug.includes("tote")) return flatlayAssetPath("totebag.webp");
+  return flatlayAssetPath("boxytee.webp");
 }
 
 function deriveProductGuidance(product: (typeof catalogProducts)[number]): Pick<

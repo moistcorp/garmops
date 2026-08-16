@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { CartItem } from "@/components/configurator/cart/OrderReviewStep";
+import { flatlayAssetPath } from "@/lib/publicAssets";
 import { buildCheckoutDraftForItem } from "./client";
 
 function cartItem(neckLabel?: CartItem["neckLabel"]): CartItem {
@@ -8,7 +9,7 @@ function cartItem(neckLabel?: CartItem["neckLabel"]): CartItem {
     id: "cart-item-1",
     productId: "regular-fit-tee-200gsm",
     productName: "Classic T-Shirt",
-    previewImage: "/garments/regular-fit-tee/front/base.webp",
+    previewImage: flatlayAssetPath("regulartee.png"),
     colour: {
       type: "signature",
       id: "jet-black",

@@ -102,3 +102,46 @@ for (const garment of garmentFamilies) {
     );
   });
 }
+
+test("remote garment pixels remain readable for all artwork material simulations", async ({ page }) => {
+  const browserErrors: string[] = [];
+  const failedAssetRequests: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") browserErrors.push(message.text());
+  });
+  page.on("requestfailed", (request) => {
+    if (request.url().startsWith("https://assets.garmops.com/")) {
+      failedAssetRequests.push(`${request.url()}: ${request.failure()?.errorText ?? "failed"}`);
+    }
+  });
+
+  await page.goto(
+    "/configurator/build/regular-fit-tee-200gsm?draftId=e2e-r2-artwork-materials",
+    { waitUntil: "domcontentloaded" },
+  );
+  await expect(page.locator('[data-configurator-hydrated="true"]')).toBeAttached();
+  await page.getByRole("button", { name: "Continue to artwork →" }).click();
+  await page.getByRole("button", { name: "Try sample artwork" }).click();
+  await expect(page.getByLabel("Artwork uploaded")).toBeVisible();
+
+  for (const technique of [
+    { label: "Screen Print", value: "screen_print" },
+    { label: "DTF", value: "dtf" },
+    { label: "Reflective Print", value: "reflective_print" },
+  ] as const) {
+    await page.getByRole("radio", { name: technique.label }).click();
+    const materialCanvas = page
+      .getByRole("main")
+      .locator(`canvas[data-artwork-technique="${technique.value}"]`);
+    await expect(materialCanvas).toHaveAttribute("data-render-state", "ready");
+    await expect(materialCanvas).toBeVisible();
+    await materialCanvas.evaluate((canvas) => {
+      const context = (canvas as HTMLCanvasElement).getContext("2d");
+      if (!context) throw new Error("Canvas 2D context unavailable");
+      context.getImageData(0, 0, 1, 1);
+    });
+  }
+
+  expect(failedAssetRequests).toEqual([]);
+  expect(browserErrors.filter((message) => /cors|taint|securityerror/iu.test(message))).toEqual([]);
+});

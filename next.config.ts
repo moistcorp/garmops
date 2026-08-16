@@ -10,8 +10,18 @@ function configuredOrigin(value: string | undefined) {
   }
 }
 
+function configuredHttpOrigin(value: string | undefined) {
+  const origin = configuredOrigin(value)
+  if (!origin) return undefined
+  const protocol = new URL(origin).protocol
+  return protocol === 'http:' || protocol === 'https:' ? origin : undefined
+}
+
 const medusaOrigin = configuredOrigin(process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL)
 const sentryOrigin = configuredOrigin(process.env.NEXT_PUBLIC_SENTRY_DSN)
+const assetCdnUrl = new URL(
+  configuredHttpOrigin(process.env.NEXT_PUBLIC_ASSET_CDN_URL) ?? 'https://assets.garmops.com',
+)
 const isDevelopment = process.env.NODE_ENV === 'development'
 const productionHeaders = process.env.NODE_ENV === 'production'
   ? [{ key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' }]
@@ -21,6 +31,17 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   poweredByHeader: false,
   devIndicators: false,
+  images: {
+    remotePatterns: [
+      {
+        protocol: assetCdnUrl.protocol === 'http:' ? 'http' : 'https',
+        hostname: assetCdnUrl.hostname,
+        port: assetCdnUrl.port,
+        pathname: '/**',
+        search: '',
+      },
+    ],
+  },
   async redirects() {
     return [
       {
@@ -53,10 +74,6 @@ const nextConfig: NextConfig = {
     }))
 
     return [
-      {
-        source: '/garments/:path*',
-        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
-      },
       {
         source: '/(.*)',
         headers: [

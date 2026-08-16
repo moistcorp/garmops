@@ -10,6 +10,7 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronUp, Cloud, CloudAlert, LoaderCircle } from "lucide-react";
 import type { GarmentView } from "@/lib/configurator/types/garment";
+import { flatlayAssetPath } from "@/lib/publicAssets";
 import {
   isCustomerArtworkTechnique,
   type GarmentColour,
@@ -1098,7 +1099,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
     const cartInput: ConfiguredCartItemInput = {
       productId,
       productName,
-      previewImage: product?.defaultImage ?? "/flatlays/regulartee.png",
+      previewImage: product?.defaultImage ?? flatlayAssetPath("regulartee.png"),
       colour: { ...colour, confirmed: true },
       artwork: cartArtwork,
       neckLabel:
@@ -1414,7 +1415,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
           {
             id: configId,
             productName,
-            previewImage: product?.defaultImage ?? "/flatlays/regulartee.png",
+            previewImage: product?.defaultImage ?? flatlayAssetPath("regulartee.png"),
             colour,
             artwork,
             neckLabel,

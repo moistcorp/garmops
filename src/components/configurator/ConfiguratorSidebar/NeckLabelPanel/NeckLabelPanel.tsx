@@ -21,6 +21,7 @@ import type {
 } from '@/lib/configurator/types/configurator';
 import PositionSelect from './PositionSelect';
 import StitchSelect from './StitchSelect';
+import { garmentAssetUrl } from '@/lib/publicAssets';
 
 export interface NeckLabelPanelProps {
   value?: NeckLabel;
@@ -36,7 +37,7 @@ const DEFAULT_DIMENSIONS: NeckLabelDimensions = '50x18';
 const DEFAULT_STITCH: NeckLabelStitch = '2_corner';
 const MAX_FILE_BYTES = 20 * 1024 * 1024;
 const TEMPLATE_HREF = '/downloads/neck-label-templates.zip';
-const SAMPLE_ARTWORK_HREF = '/garments/neck-label-sample.svg';
+const SAMPLE_ARTWORK_HREF = garmentAssetUrl('neck-label-sample.svg');
 
 type CustomDraft = {
   fileUrl: string;

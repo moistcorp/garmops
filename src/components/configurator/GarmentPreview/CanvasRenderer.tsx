@@ -37,6 +37,7 @@ import {
 } from "./garmentAssets";
 import { useGarmentAssetPrefetch } from "./useGarmentAssetPrefetch";
 import ArtworkMaterialCanvas from "./ArtworkMaterialCanvas";
+import { garmentAssetUrl } from "@/lib/publicAssets";
 
 // Matches the small top margin PositionControls/the box default use as the
 // garment's overall printable boundary — the guideline overlays anchor here
@@ -45,7 +46,7 @@ import ArtworkMaterialCanvas from "./ArtworkMaterialCanvas";
 // Neck labels are internal details, so they render only in the dedicated
 // close-up instead of floating above the garment in front/back views.
 const NECK_LABEL_VIEWS = ["neck"] as const;
-const SAMPLE_NECK_LABEL_HREF = "/garments/neck-label-sample.svg";
+const SAMPLE_NECK_LABEL_HREF = garmentAssetUrl("neck-label-sample.svg");
 type NeckLabelView = (typeof NECK_LABEL_VIEWS)[number];
 
 const NECK_LABEL_PX_PER_MM: Record<NeckLabelView, number> = {

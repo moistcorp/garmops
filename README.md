@@ -66,6 +66,7 @@ credentials are configured.
 | `RESEND_API_KEY` | Server-side Resend API key |
 | `RESEND_FROM_EMAIL` | Sender on a domain verified by Resend |
 | `CONTACT_TO_EMAIL` | Recipient for contact enquiries and paid sample-order notifications |
+| `NEXT_PUBLIC_ASSET_CDN_URL` | Public origin for immutable garment and flatlay assets; defaults to `https://assets.garmops.com` |
 | `GOOGLE_SITE_VERIFICATION` | Optional Google Search Console HTML-tag verification token; DNS verification is preferred |
 | `SENTRY_ENABLED` | Privacy-redacted Sentry kill switch |
 | `MALWARE_SCANNING_ENABLED` | Private-file quarantine/scanner kill switch |

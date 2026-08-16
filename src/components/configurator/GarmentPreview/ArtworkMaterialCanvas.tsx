@@ -35,6 +35,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   if (cached) return cached;
   const promise = new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image();
+    image.crossOrigin = "anonymous";
     image.decoding = "async";
     image.onload = () => resolve(image);
     image.onerror = () => reject(new Error(`Unable to load print preview asset: ${src}`));
@@ -100,6 +101,7 @@ export default function ArtworkMaterialCanvas({
     let cancelled = false;
     const target = canvasRef.current;
     if (!target) return;
+    target.dataset.renderState = "loading";
 
     Promise.all([
       loadImage(artworkSrc),
@@ -232,9 +234,12 @@ export default function ArtworkMaterialCanvas({
       pixelsContext.putImageData(output, 0, 0);
 
       const context = target.getContext("2d");
-      context?.clearRect(0, 0, width, height);
-      context?.drawImage(warped, 0, 0);
+      if (!context) return;
+      context.clearRect(0, 0, width, height);
+      context.drawImage(warped, 0, 0);
+      target.dataset.renderState = "ready";
     }).catch((error: unknown) => {
+      target.dataset.renderState = "error";
       if (process.env.NODE_ENV !== "production") console.error(error);
     });
 
@@ -243,7 +248,7 @@ export default function ArtworkMaterialCanvas({
     };
   }, [assetKey, artworkSrc, artworkWidthCm, box, garmentFolder, garmentInsetPercent, highlightSrc, material, reflectiveHex, shadowSrc, technique, textureSrc]);
 
-  return <canvas ref={canvasRef} className="h-full w-full object-contain" aria-hidden="true" />;
+  return <canvas ref={canvasRef} className="h-full w-full object-contain" aria-hidden="true" data-artwork-technique={technique} data-render-state="loading" />;
 }
 
 function parseHex(hex: string): [number, number, number] {
