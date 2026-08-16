@@ -8,7 +8,10 @@ import type {
   NeckLabel,
 } from "@/lib/configurator/types/configurator";
 import { isStandardNeckLabel } from "@/lib/configurator/neckLabel";
-import { uploadReadableAssetUrl } from "@/lib/configurator/sampleAssets";
+import {
+  isConfiguratorSampleAssetUrl,
+  uploadReadableAssetUrl,
+} from "@/lib/configurator/sampleAssets";
 import type { CloudDesignSnapshot } from "@/lib/designs/schema";
 
 const CLOUD_LINK_PREFIX = "mf_configurator_cloud:";
@@ -259,6 +262,7 @@ function uploadReferences(draft: BuildDraft): UploadReference[] {
     filename: string,
     contentType?: string,
   ) => {
+    if (isConfiguratorSampleAssetUrl(input.fileUrl)) return;
     const cacheKey = uploadCacheKey(input);
     if (!cacheKey || seen.has(cacheKey)) return;
     const sourceUrl = input.fileKey ? undefined : safeCloudAssetUrl(input.fileUrl);

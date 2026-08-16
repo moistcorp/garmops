@@ -55,9 +55,8 @@ function sampleDraft(fileUrl: string): BuildDraft {
 describe("cloud design artwork ownership", () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it("copies public sample artwork into a server-owned upload before saving the cart version", async () => {
+  it("keeps built-in sample artwork as a trusted public asset", async () => {
     const sampleUrl = "https://assets.garmops.com/garments/v1/artwork-sample.svg";
-    const fileId = "11111111-1111-4111-8111-111111111111";
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(json({
         design: {
@@ -68,20 +67,6 @@ describe("cloud design artwork ownership", () => {
           lastSavedAt: "2026-08-16T04:51:00.000Z",
         },
       }, 201))
-      .mockResolvedValueOnce(new Response("<svg></svg>", {
-        headers: { "content-type": "image/svg+xml" },
-      }))
-      .mockResolvedValueOnce(json({
-        fileId,
-        upload: {
-          url: "https://uploads.example.test/artwork",
-          method: "PUT",
-          headers: { "Content-Type": "image/svg+xml" },
-        },
-        finalizeUrl: `/api/uploads/${fileId}/finalize`,
-      }, 201))
-      .mockResolvedValueOnce(new Response(null, { status: 200 }))
-      .mockResolvedValueOnce(json({ fileId, uploadStatus: "uploaded" }))
       .mockResolvedValueOnce(json({
         design: {
           draftRevision: 2,
@@ -109,17 +94,12 @@ describe("cloud design artwork ownership", () => {
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.uploadedDraft.artwork.front?.fileId).toBe(fileId);
+    expect(result.uploadedDraft.artwork.front?.fileId).toBeUndefined();
     expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
       "/api/designs",
-      "/api/configurator/sample-assets/artwork-sample.svg",
-      "/api/uploads/create",
-      "https://uploads.example.test/artwork",
-      `/api/uploads/${fileId}/finalize`,
       "/api/designs/design_123",
-      "/api/designs/design_123/versions",
     ]);
-    const patchBody = JSON.parse(String(fetchMock.mock.calls[5]?.[1]?.body));
-    expect(patchBody.snapshot.configuration.artwork.front.fileId).toBe(fileId);
+    const patchBody = JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body));
+    expect(patchBody.snapshot.configuration.artwork.front.fileUrl).toBe(sampleUrl);
   });
 });

@@ -22,6 +22,15 @@ export function configuratorSampleAssetUrl(
   return garmentAssetUrl(filename);
 }
 
+export function isConfiguratorSampleAssetUrl(value: string | undefined): boolean {
+  return Boolean(
+    value &&
+      CONFIGURATOR_SAMPLE_ASSET_FILENAMES.some(
+        (filename) => configuratorSampleAssetUrl(filename) === value,
+      ),
+  );
+}
+
 export function uploadReadableAssetUrl(sourceUrl: string): string {
   const filename = CONFIGURATOR_SAMPLE_ASSET_FILENAMES.find(
     (candidate) => configuratorSampleAssetUrl(candidate) === sourceUrl,
