@@ -1114,7 +1114,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
           : undefined,
       rushDelivery: false,
     };
-    setFeedback({ tone: "loading", title: editItemId ? "Updating your configuration…" : "Adding configuration to cart…", detail: "Medusa is validating the design, quantity and price." });
+    setFeedback({ tone: "loading", title: editItemId ? "Updating your configuration…" : "Adding configuration to cart…", detail: "Checking your design, quantity and price before opening sizes." });
 
     try {
       const storageKey = editItemId ? `cart-item:${editItemId}` : designStorageKey;
@@ -1244,7 +1244,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
           title: editItemId
             ? "Updating your configuration…"
             : "Adding configuration to cart…",
-          detail: "Your account is ready. Medusa is validating the design and price.",
+          detail: "Your account is ready. Checking your design and price before opening sizes.",
         });
         void commitConfigurationToCart(undefined, true);
         return;

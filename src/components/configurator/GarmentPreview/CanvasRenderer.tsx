@@ -24,6 +24,7 @@ import {
   constrainArtworkToPrintArea,
   resizeWithAspect,
 } from "@/lib/configurator/ArtworkPositionContext";
+import type { PositionControlsState } from "@/lib/configurator/ArtworkPositionContext";
 import { getGarmentInsetPercent, getGarmentPrintArea } from "@/lib/configurator/garmentGeometry";
 import {
   LEFT_CHEST_DIMENSIONS,
@@ -301,8 +302,11 @@ export default function CanvasRenderer({
 }: CanvasRendererProps) {
   const { positions, updatePosition } = useArtworkPosition();
   const dragOrigin = useRef<DragOrigin | null>(null);
+  const dragPositionRef = useRef<PositionControlsState | null>(null);
+  const dragFrameRef = useRef<number | null>(null);
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const [dragMode, setDragMode] = useState<DragMode | null>(null);
+  const [dragPosition, setDragPosition] = useState<PositionControlsState | null>(null);
   const garmentFolder = getGarmentFolder(productId);
   const garmentRenderConfig = getGarmentRenderConfig(productId, view);
   useGarmentAssetPrefetch(productId, view);
@@ -360,10 +364,15 @@ export default function CanvasRenderer({
   const renderBoxState = printAreaDims
     ? constrainArtworkToPrintArea(boxState, printAreaDims)
     : boxState;
-  const boxWidthPx = renderBoxState.widthCm * PX_PER_CM_X;
-  const boxHeightPx = renderBoxState.heightCm * PX_PER_CM_Y;
-  const boxLeftPx = PRINT_ORIGIN_PX.x + renderBoxState.fromCenterCm * PX_PER_CM_X - boxWidthPx / 2;
-  const boxTopPx = PRINT_ORIGIN_PX.y + renderBoxState.fromNeckCm * PX_PER_CM_Y;
+  const displayBoxState = dragPosition ?? renderBoxState;
+  const boxWidthPx = displayBoxState.widthCm * PX_PER_CM_X;
+  const boxHeightPx = displayBoxState.heightCm * PX_PER_CM_Y;
+  const boxLeftPx = PRINT_ORIGIN_PX.x + displayBoxState.fromCenterCm * PX_PER_CM_X - boxWidthPx / 2;
+  const boxTopPx = PRINT_ORIGIN_PX.y + displayBoxState.fromNeckCm * PX_PER_CM_Y;
+  const materialWidthPx = renderBoxState.widthCm * PX_PER_CM_X;
+  const materialHeightPx = renderBoxState.heightCm * PX_PER_CM_Y;
+  const materialLeftPx = PRINT_ORIGIN_PX.x + renderBoxState.fromCenterCm * PX_PER_CM_X - materialWidthPx / 2;
+  const materialTopPx = PRINT_ORIGIN_PX.y + renderBoxState.fromNeckCm * PX_PER_CM_Y;
   const printTechnique: CustomerArtworkTechnique | undefined =
     isCustomerArtworkTechnique(activeArtwork?.technique)
       ? activeArtwork.technique
@@ -375,14 +384,17 @@ export default function CanvasRenderer({
       printTechnique &&
       garmentFolder,
   );
+  // Keep the costly fabric/lighting sample anchored to the committed box while
+  // a gesture is active. The outer artwork layer supplies the live movement or
+  // scale, then one accurate material render runs after pointer-up.
   const materialBox = useMemo(
     () => ({
-      left: Math.max(0, Math.round(boxLeftPx)),
-      top: Math.max(0, Math.round(boxTopPx)),
-      width: Math.max(1, Math.round(boxWidthPx)),
-      height: Math.max(1, Math.round(boxHeightPx)),
+      left: Math.max(0, Math.round(materialLeftPx)),
+      top: Math.max(0, Math.round(materialTopPx)),
+      width: Math.max(1, Math.round(materialWidthPx)),
+      height: Math.max(1, Math.round(materialHeightPx)),
     }),
-    [boxHeightPx, boxLeftPx, boxTopPx, boxWidthPx],
+    [materialHeightPx, materialLeftPx, materialTopPx, materialWidthPx],
   );
 
   useEffect(() => {
@@ -433,7 +445,7 @@ export default function CanvasRenderer({
     PRINT_ORIGIN_PX.y +
     LEFT_CHEST_PLACEMENT.fromNeckCm * PX_PER_CM_Y;
 
-  const handlePointerMove = (e: PointerEvent) => {
+  const handlePointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     const origin = dragOrigin.current;
     if (!origin || !printAreaDims) return;
     const rect = canvasRef.current?.getBoundingClientRect();
@@ -454,10 +466,8 @@ export default function CanvasRenderer({
       alignV: null,
     };
 
-    if (origin.mode === "move") {
-      updatePosition(
-        view,
-        constrainArtworkToPrintArea(
+    const nextPosition = origin.mode === "move"
+      ? constrainArtworkToPrintArea(
           {
             ...originState,
             fromCenterCm:
@@ -467,22 +477,25 @@ export default function CanvasRenderer({
           },
           printAreaDims
         )
-      );
-      return;
-    }
+      : constrainArtworkToPrintArea(
+          {
+            ...originState,
+            ...resizeWithAspect(
+              originState,
+              "height",
+              origin.startHeightCm + dCanvasPxY / PX_PER_CM_Y
+            ),
+          },
+          printAreaDims
+        );
 
-    const resized = resizeWithAspect(
-      originState,
-      "height",
-      origin.startHeightCm + dCanvasPxY / PX_PER_CM_Y
-    );
-    updatePosition(
-      view,
-      constrainArtworkToPrintArea(
-        { ...originState, ...resized },
-        printAreaDims
-      )
-    );
+    dragPositionRef.current = nextPosition;
+    if (dragFrameRef.current === null) {
+      dragFrameRef.current = window.requestAnimationFrame(() => {
+        dragFrameRef.current = null;
+        setDragPosition(dragPositionRef.current);
+      });
+    }
   };
 
   const handleCanvasKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
@@ -537,17 +550,26 @@ export default function CanvasRenderer({
   };
 
   const handlePointerUp = () => {
+    if (dragFrameRef.current !== null) {
+      window.cancelAnimationFrame(dragFrameRef.current);
+      dragFrameRef.current = null;
+    }
+    const finalPosition = dragPositionRef.current;
     dragOrigin.current = null;
+    dragPositionRef.current = null;
+    if (finalPosition) updatePosition(view, finalPosition);
+    setDragPosition(null);
     setDragMode(null);
-    window.removeEventListener("pointermove", handlePointerMove);
-    window.removeEventListener("pointerup", handlePointerUp);
   };
 
   const handleDragStart = (e: ReactPointerEvent<HTMLDivElement>, mode: DragMode) => {
     if (!canEditArtwork) return;
     e.preventDefault();
     e.stopPropagation();
+    e.currentTarget.setPointerCapture(e.pointerId);
     setDragMode(mode);
+    setDragPosition(renderBoxState);
+    dragPositionRef.current = renderBoxState;
     dragOrigin.current = {
       mode,
       pointerX: e.clientX,
@@ -557,8 +579,6 @@ export default function CanvasRenderer({
       startFromNeckCm: renderBoxState.fromNeckCm,
       startFromCenterCm: renderBoxState.fromCenterCm,
     };
-    window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerUp);
   };
 
   return (
@@ -619,6 +639,9 @@ export default function CanvasRenderer({
       {activeArtwork && (
         <div
           onPointerDown={(e) => handleDragStart(e, "move")}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
           className={`absolute z-20 ${
             canEditArtwork ? "cursor-move touch-none" : "pointer-events-none"
           }`}
@@ -668,19 +691,19 @@ export default function CanvasRenderer({
               {dragMode === "move" ? (
                 <>
                   <span className="block">
-                    Centre: {formatPlacementCm(boxState.fromCenterCm, true)} cm
+                    Centre: {formatPlacementCm(displayBoxState.fromCenterCm, true)} cm
                   </span>
                   <span className="block">
-                    From neck: {formatPlacementCm(boxState.fromNeckCm)} cm
+                    From neck: {formatPlacementCm(displayBoxState.fromNeckCm)} cm
                   </span>
                 </>
               ) : (
                 <>
                   <span className="block">
-                    Width: {formatPlacementCm(boxState.widthCm)} cm
+                    Width: {formatPlacementCm(displayBoxState.widthCm)} cm
                   </span>
                   <span className="block">
-                    Height: {formatPlacementCm(boxState.heightCm)} cm
+                    Height: {formatPlacementCm(displayBoxState.heightCm)} cm
                   </span>
                 </>
               )}

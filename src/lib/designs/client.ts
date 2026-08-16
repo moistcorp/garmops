@@ -39,7 +39,9 @@ export type CloudSaveResult =
   | { ok: false; kind: "conflict"; conflict: CloudSaveConflict };
 
 type UploadReference = {
-  fileKey: string;
+  cacheKey: string;
+  fileKey?: string;
+  sourceUrl?: string;
   filename: string;
   contentType: string;
 };
@@ -120,12 +122,24 @@ function safeCloudAssetUrl(fileUrl?: string): string | undefined {
     : undefined;
 }
 
+function uploadCacheKey(input: {
+  fileId?: string;
+  fileKey?: string;
+  fileUrl?: string;
+}): string | undefined {
+  if (input.fileId) return undefined;
+  if (input.fileKey) return input.fileKey;
+  const sourceUrl = safeCloudAssetUrl(input.fileUrl);
+  return sourceUrl ? `asset:${sourceUrl}` : undefined;
+}
+
 function cloudArtworkSide(
   side: ArtworkSide,
   uploadFileIds: Record<string, string>,
 ): CloudDesignSnapshot["configuration"]["artwork"]["front"] {
+  const sourceUploadKey = uploadCacheKey(side);
   const fileId =
-    side.fileId ?? (side.fileKey ? uploadFileIds[side.fileKey] : undefined);
+    side.fileId ?? (sourceUploadKey ? uploadFileIds[sourceUploadKey] : undefined);
   const previewFileId =
     side.previewFileId ?? (side.previewFileKey ? uploadFileIds[side.previewFileKey] : undefined);
   const fileUrl = safeCloudAssetUrl(side.fileUrl);
@@ -173,8 +187,9 @@ function cloudNeckLabel(
   label: NeckLabel,
   uploadFileIds: Record<string, string>,
 ): CloudDesignSnapshot["configuration"]["neckLabel"] {
+  const sourceUploadKey = uploadCacheKey(label);
   const fileId =
-    label.fileId ?? (label.fileKey ? uploadFileIds[label.fileKey] : undefined);
+    label.fileId ?? (sourceUploadKey ? uploadFileIds[sourceUploadKey] : undefined);
   const fileUrl = safeCloudAssetUrl(label.fileUrl);
   return {
     ...(label.labelType ? { labelType: label.labelType } : {}),
@@ -237,10 +252,20 @@ function contentTypeFor(filename: string, fallback?: string): string {
 
 function uploadReferences(draft: BuildDraft): UploadReference[] {
   const references: UploadReference[] = [];
-  const add = (fileKey: string | undefined, filename: string, contentType?: string) => {
-    if (!fileKey) return;
+  const seen = new Set<string>();
+  const add = (
+    input: { fileId?: string; fileKey?: string; fileUrl?: string },
+    filename: string,
+    contentType?: string,
+  ) => {
+    const cacheKey = uploadCacheKey(input);
+    if (!cacheKey || seen.has(cacheKey)) return;
+    const sourceUrl = input.fileKey ? undefined : safeCloudAssetUrl(input.fileUrl);
+    seen.add(cacheKey);
     references.push({
-      fileKey,
+      cacheKey,
+      ...(input.fileKey ? { fileKey: input.fileKey } : {}),
+      ...(sourceUrl ? { sourceUrl } : {}),
       filename,
       contentType: contentTypeFor(filename, contentType),
     });
@@ -248,17 +273,28 @@ function uploadReferences(draft: BuildDraft): UploadReference[] {
   const addArtwork = (value: ArtworkSide | undefined, fallbackName: string) => {
     if (!value) return;
     const originalName = value.fileName || `${fallbackName}.${value.fileType}`;
-    add(value.fileKey, originalName);
+    add(value, originalName);
     if (value.previewFileKey) {
       const extension = value.previewKind === "vector" ? "svg" : "png";
       const stem = originalName.replace(/\.[^.]+$/u, "");
-      add(value.previewFileKey, `${stem}.preview.${extension}`, value.previewKind === "vector" ? "image/svg+xml" : "image/png");
+      add(
+        {
+          fileId: value.previewFileId,
+          fileKey: value.previewFileKey,
+          fileUrl: value.previewUrl,
+        },
+        `${stem}.preview.${extension}`,
+        value.previewKind === "vector" ? "image/svg+xml" : "image/png",
+      );
     }
   };
   addArtwork(draft.artwork.front, "front-artwork");
   addArtwork(draft.artwork.back, "back-artwork");
   if (draft.neckLabel?.fileUrl) {
-    add(draft.neckLabel.fileKey, draft.neckLabel.fileName || `neck-label.${draft.neckLabel.fileType || "svg"}`);
+    add(
+      draft.neckLabel,
+      draft.neckLabel.fileName || `neck-label.${draft.neckLabel.fileType || "svg"}`,
+    );
   }
   return references;
 }
@@ -267,7 +303,13 @@ async function uploadReference(
   designId: string,
   reference: UploadReference,
 ): Promise<string> {
-  const stored = await readUploadedFile(reference.fileKey);
+  let stored = reference.fileKey
+    ? await readUploadedFile(reference.fileKey)
+    : undefined;
+  if (!stored && reference.sourceUrl) {
+    const response = await fetch(reference.sourceUrl, { cache: "force-cache" });
+    if (response.ok) stored = await response.blob();
+  }
   if (!stored) throw new Error(`Re-upload ${reference.filename} to save it`);
 
   const contentType = contentTypeFor(reference.filename, stored.type);
@@ -318,8 +360,8 @@ async function ensureCloudUploads(
     uploadFileIds: { ...link.uploadFileIds },
   };
   for (const reference of uploadReferences(draft)) {
-    if (nextLink.uploadFileIds[reference.fileKey]) continue;
-    nextLink.uploadFileIds[reference.fileKey] = await uploadReference(
+    if (nextLink.uploadFileIds[reference.cacheKey]) continue;
+    nextLink.uploadFileIds[reference.cacheKey] = await uploadReference(
       link.designId,
       reference,
     );
@@ -364,18 +406,20 @@ function draftWithFileIds(
   draft: BuildDraft,
   uploadFileIds: Record<string, string>,
 ): BuildDraft {
-  const artworkSide = (side?: ArtworkSide): ArtworkSide | undefined =>
-    side
-      ? {
-          ...side,
-          fileId:
-            side.fileId ??
-            (side.fileKey ? uploadFileIds[side.fileKey] : undefined),
-          previewFileId:
-            side.previewFileId ??
-            (side.previewFileKey ? uploadFileIds[side.previewFileKey] : undefined),
-        }
-      : undefined;
+  const artworkSide = (side?: ArtworkSide): ArtworkSide | undefined => {
+    if (!side) return undefined;
+    const sourceUploadKey = uploadCacheKey(side);
+    return {
+      ...side,
+      fileId:
+        side.fileId ??
+        (sourceUploadKey ? uploadFileIds[sourceUploadKey] : undefined),
+      previewFileId:
+        side.previewFileId ??
+        (side.previewFileKey ? uploadFileIds[side.previewFileKey] : undefined),
+    };
+  };
+  const neckLabelUploadKey = uploadCacheKey(draft.neckLabel);
   return {
     ...draft,
     artwork: {
@@ -387,8 +431,8 @@ function draftWithFileIds(
           ...draft.neckLabel,
           fileId:
             draft.neckLabel.fileId ??
-            (draft.neckLabel.fileKey
-              ? uploadFileIds[draft.neckLabel.fileKey]
+            (neckLabelUploadKey
+              ? uploadFileIds[neckLabelUploadKey]
               : undefined),
         }
       : draft.neckLabel,
