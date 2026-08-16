@@ -45,7 +45,6 @@ import { CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS } from "@/lib/configurator/colourRules"
 import { getConfiguredCart, saveCheckoutDetails, updateConfiguredLine, type ConfiguredCartSummary } from "@/lib/medusa/commerce";
 import { ActionFeedback } from "@/components/configurator/ActionFeedback";
 import CustomerAuthFlow from "@/components/auth/CustomerAuthFlow";
-import { formatSpecCode } from "@/lib/orders/format";
 
 export interface BillingShippingStepProps {
   cartId: string;
@@ -671,9 +670,6 @@ export function BillingShippingStep({
           )}
 
           <div>
-            <p className="font-mono text-xs font-medium uppercase tracking-[0.06em] text-(--text-primary)/50">
-              {formatSpecCode(`CART-${cartId}`)}
-            </p>
             <h1 className="text-2xl font-semibold text-(--text-primary)">
               Delivery details
             </h1>
