@@ -12,7 +12,7 @@ export default function ProcessSteps({
   return (
     <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
       <div className="max-w-3xl">
-        <p className="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-(--text-primary)/45">Process</p>
+        <p className="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-(--text-muted)">Process</p>
         <h2 className="text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">{title}</h2>
         {introduction && <p className="mt-4 max-w-2xl text-sm leading-7 text-[#3f3f3f] sm:text-base">{introduction}</p>}
       </div>

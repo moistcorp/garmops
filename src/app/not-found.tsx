@@ -6,7 +6,7 @@ export default function NotFound() {
       <div className="techpack-surface max-w-md rounded-sm border p-6 text-center sm:rounded-sm sm:p-10">
         <p className="mb-6 text-7xl font-bold leading-none text-(--text-primary)/8 sm:text-8xl">404</p>
         <h1 className="text-3xl font-bold text-(--text-primary) mb-3 tracking-tight">Page not found</h1>
-        <p className="text-(--text-primary)/50 text-sm mb-10 leading-relaxed">
+        <p className="text-(--text-muted) text-sm mb-10 leading-relaxed">
           The page you&apos;re looking for doesn&apos;t exist or has been moved.
         </p>
         <div className="flex flex-col justify-center gap-3 min-[360px]:flex-row">

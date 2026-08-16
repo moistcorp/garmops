@@ -25,7 +25,7 @@ export default function IndustriesPage() {
 
       <section className="mx-auto max-w-7xl px-4 pb-12 pt-10 sm:px-6 sm:pb-16 sm:pt-14 lg:pb-20 lg:pt-20">
         <div className="max-w-4xl">
-          <p className="mb-4 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-primary)/45">Industries</p>
+          <p className="mb-4 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">Industries</p>
           <h1 className="text-balance text-4xl font-bold leading-[1.06] tracking-tight text-(--text-primary) sm:text-5xl lg:text-6xl">
             Merchandise made for how you’ll actually use it.
           </h1>
@@ -38,7 +38,7 @@ export default function IndustriesPage() {
       <section className="techpack-section">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
           <div className="max-w-3xl">
-            <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-primary)/45">Choose your industry</p>
+            <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">Choose your industry</p>
             <h2 className="text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">Start with the situation, not the specification.</h2>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-[#3f3f3f] sm:text-base">
               Each route below translates a business need into practical product starting points using the same customer-friendly garment language as the Products page.
@@ -66,12 +66,12 @@ export default function IndustriesPage() {
                     <p className="mt-2 text-sm leading-6 text-[#3f3f3f]">{card.description}</p>
 
                     <div className="mt-5 border-t border-(--color-rule) pt-4">
-                      <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-(--text-primary)/45">For</p>
+                      <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-(--text-muted)">For</p>
                       <p className="mt-2 text-sm leading-6 text-(--text-primary)/70">{card.for.join(' · ')}</p>
                     </div>
 
                     <div className="mt-4">
-                      <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-(--text-primary)/45">Popular products</p>
+                      <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-(--text-muted)">Popular products</p>
                       <p className="mt-2 text-sm leading-6 text-(--text-primary)/70">{card.popularProducts.join(' · ')}</p>
                     </div>
 

@@ -34,7 +34,7 @@ function MeasurementGuide({ product, sizeChart }: { product: Product; sizeChart:
 
   return (
     <div className="techpack-panel rounded-sm border p-5 sm:p-6">
-      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-(--text-primary)/40">How to read the chart</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-(--text-muted)">How to read the chart</p>
 
       <div className="mt-5 rounded-sm bg-(--color-cream-soft) p-4">
         {isTote ? (
@@ -91,7 +91,7 @@ function MeasurementGuide({ product, sizeChart }: { product: Product; sizeChart:
         {hasSleeve && <p><span className="font-semibold text-(--text-primary)">Sleeve:</span> sleeve length shown in the approved chart.</p>}
       </div>
 
-      <p className="mt-5 border-t border-[#E5E0D8] pt-4 text-xs leading-5 text-(--text-primary)/45">
+      <p className="mt-5 border-t border-[#E5E0D8] pt-4 text-xs leading-5 text-(--text-muted)">
         Measurement conventions can vary by style. Compare measurements within the same product rather than comparing chest numbers across different fits.
       </p>
     </div>
@@ -128,9 +128,9 @@ function SimpleSizeChart({ chart }: { chart: SizeChart }) {
           <table className="w-full min-w-[420px] text-sm">
             <thead>
               <tr className="bg-(--color-cream-soft)">
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--text-primary)/45">Size</th>
-                {showChest && <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--text-primary)/45">{chart.chestLabel ?? 'Chest'}</th>}
-                {showLength && <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--text-primary)/45">{chart.lengthLabel ?? 'Length'}</th>}
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--text-muted)">Size</th>
+                {showChest && <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--text-muted)">{chart.chestLabel ?? 'Chest'}</th>}
+                {showLength && <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--text-muted)">{chart.lengthLabel ?? 'Length'}</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E5E0D8]">
@@ -156,11 +156,11 @@ function SimpleSizeChart({ chart }: { chart: SizeChart }) {
             <table className="w-full min-w-[520px] text-sm">
               <thead>
                 <tr className="bg-(--color-cream-soft)/70">
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--text-primary)/45">Size</th>
-                  {showChest && <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--text-primary)/45">{chart.chestLabel ?? 'Chest'}</th>}
-                  {showLength && <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--text-primary)/45">{chart.lengthLabel ?? 'Length'}</th>}
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--text-muted)">Size</th>
+                  {showChest && <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--text-muted)">{chart.chestLabel ?? 'Chest'}</th>}
+                  {showLength && <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--text-muted)">{chart.lengthLabel ?? 'Length'}</th>}
                   {extraColumns.map(column => (
-                    <th key={column.key} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--text-primary)/45">{column.label}</th>
+                    <th key={column.key} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--text-muted)">{column.label}</th>
                   ))}
                 </tr>
               </thead>
@@ -181,7 +181,7 @@ function SimpleSizeChart({ chart }: { chart: SizeChart }) {
         </details>
       )}
 
-      {chart.note && <p className="mt-3 text-xs leading-5 text-(--text-primary)/45">{chart.note}</p>}
+      {chart.note && <p className="mt-3 text-xs leading-5 text-(--text-muted)">{chart.note}</p>}
     </div>
   )
 }
@@ -274,15 +274,15 @@ export default function ShopProductClient({
               </div>
             ) : (
               <div className="flex aspect-[3/4] items-center justify-center rounded-sm border border-[#ECE7DF] bg-(--color-cream-soft)">
-                <span className="text-xs uppercase tracking-wide text-(--text-primary)/20">Product photo</span>
+                <span className="text-xs uppercase tracking-wide text-(--text-muted)">Product photo</span>
               </div>
             )}
           </div>
 
           <div className="flex flex-col justify-center py-1 md:py-6">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-(--text-primary)/40">{product.selectorCategory}</p>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-(--text-muted)">{product.selectorCategory}</p>
             <h1 className="text-3xl font-bold leading-tight tracking-tight text-(--text-primary) sm:text-4xl lg:text-5xl">{product.name}</h1>
-            <p className="mt-3 text-sm font-medium text-(--text-primary)/55">
+            <p className="mt-3 text-sm font-medium text-(--text-muted)">
               {productFitLabel(product)} · {productFabricFeel(product)}
             </p>
             <p className="mt-6 max-w-xl text-base leading-7 text-(--text-primary)/65">{product.description}</p>
@@ -294,7 +294,7 @@ export default function ShopProductClient({
             </div>
 
             <div className="mt-7 border-y border-[#E5E0D8] py-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-(--text-primary)/35">Best for</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-(--text-muted)">Best for</p>
               <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
                 {product.bestFor.map(item => (
                   <span key={item} className="inline-flex items-center gap-1.5 text-sm text-(--text-primary)/65">
@@ -318,10 +318,10 @@ export default function ShopProductClient({
                 Order a sample
               </a>
             </div>
-            <p className="mt-3 text-xs text-(--text-primary)/45">Custom orders from {product.minimumOrderQuantity} pieces per product configuration.</p>
+            <p className="mt-3 text-xs text-(--text-muted)">Custom orders from {product.minimumOrderQuantity} pieces per product configuration.</p>
 
             {related.length > 0 && (
-              <a href="#compare-similar" className="mt-5 w-fit text-sm font-medium text-(--text-primary)/55 underline underline-offset-4 hover:text-(--color-accent)">
+              <a href="#compare-similar" className="mt-5 w-fit text-sm font-medium text-(--text-muted) underline underline-offset-4 hover:text-(--color-accent)">
                 Not sure? Compare similar products
               </a>
             )}
@@ -331,7 +331,7 @@ export default function ShopProductClient({
         {/* Why choose */}
         <section className="mt-16 border-t border-[#E5E0D8] pt-12 sm:mt-24 sm:pt-16" aria-labelledby="why-choose-title">
           <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-primary)/40">Product guidance</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-muted)">Product guidance</p>
             <h2 id="why-choose-title" className="mt-2 text-2xl font-bold tracking-tight text-(--text-primary) sm:text-3xl">Why choose this {product.selectorCategory === 'Tote Bags' ? 'tote' : 'garment'}?</h2>
           </div>
           <div className="mt-7 grid gap-4 md:grid-cols-3">
@@ -347,7 +347,7 @@ export default function ShopProductClient({
 
         {/* At a glance */}
         <section className="mt-12 sm:mt-16" aria-labelledby="at-a-glance-title">
-          <h2 id="at-a-glance-title" className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-primary)/40">At a glance</h2>
+          <h2 id="at-a-glance-title" className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-muted)">At a glance</h2>
           <div className="mt-4 grid grid-cols-2 overflow-hidden rounded-sm border border-[#E5E0D8] md:grid-cols-4">
             {[
               ['Fit', productFitLabel(product)],
@@ -356,7 +356,7 @@ export default function ShopProductClient({
               ['Material', product.selectorMaterial],
             ].map(([label, value], index) => (
               <div key={label} className={`min-h-24 p-4 sm:p-5 ${index % 2 !== 0 ? 'border-l border-[#E5E0D8]' : ''} ${index >= 2 ? 'border-t border-[#E5E0D8] md:border-t-0' : ''} ${index > 0 ? 'md:border-l md:border-[#E5E0D8]' : ''}`}>
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-(--text-primary)/35">{label}</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-(--text-muted)">{label}</p>
                 <p className="mt-2 text-sm font-semibold leading-5 text-(--text-primary)">{value}</p>
               </div>
             ))}
@@ -366,12 +366,12 @@ export default function ShopProductClient({
         {/* Specs + printing */}
         <section className="mt-16 grid gap-8 border-t border-[#E5E0D8] pt-12 sm:mt-20 sm:pt-16 lg:grid-cols-2 lg:gap-12">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-primary)/40">Construction</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-muted)">Construction</p>
             <h2 className="mt-2 text-2xl font-bold tracking-tight text-(--text-primary) sm:text-3xl">Product specification</h2>
             <div className="mt-6 overflow-hidden rounded-sm border border-[#E5E0D8]">
               {specifications.map((specification, index) => (
                 <div key={specification.label} className={`grid grid-cols-[120px_1fr] gap-4 px-4 py-3.5 sm:grid-cols-[150px_1fr] sm:px-5 ${index > 0 ? 'border-t border-[#E5E0D8]' : ''}`}>
-                  <span className="text-xs font-medium text-(--text-primary)/40">{specification.label}</span>
+                  <span className="text-xs font-medium text-(--text-muted)">{specification.label}</span>
                   <span className="text-sm font-medium text-(--text-primary)">{specification.value}</span>
                 </div>
               ))}
@@ -379,7 +379,7 @@ export default function ShopProductClient({
           </div>
 
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-primary)/40">Customisation</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-muted)">Customisation</p>
             <h2 className="mt-2 text-2xl font-bold tracking-tight text-(--text-primary) sm:text-3xl">Branding compatibility</h2>
             <p className="mt-4 max-w-xl text-sm leading-6 text-(--text-primary)/60">
               Garmops currently supports these three print techniques. Final suitability is reviewed against the artwork, print position and garment colour.
@@ -404,7 +404,7 @@ export default function ShopProductClient({
         {sizeChart && (
           <section className="mt-16 border-t border-[#E5E0D8] pt-12 sm:mt-20 sm:pt-16" aria-labelledby="size-fit-title">
             <div className="max-w-3xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-primary)/40">Sizing</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-muted)">Sizing</p>
               <h2 id="size-fit-title" className="mt-2 text-2xl font-bold tracking-tight text-(--text-primary) sm:text-3xl">Size & fit</h2>
               <p className="mt-4 text-sm leading-6 text-(--text-primary)/60">{productFitDescription(product)}</p>
             </div>
@@ -419,21 +419,21 @@ export default function ShopProductClient({
         <section id="order-sample" className="mt-16 scroll-mt-24 border-t border-[#E5E0D8] pt-12 sm:mt-20 sm:pt-16">
           <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:gap-14">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-primary)/40">Catalogue sample</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-muted)">Catalogue sample</p>
               <h2 className="mt-2 text-2xl font-bold tracking-tight text-(--text-primary) sm:text-3xl">Want to check the garment first?</h2>
               <p className="mt-4 max-w-md text-sm leading-6 text-(--text-primary)/60">
                 Order a catalogue sample to review the blank garment, fabric, construction and fit before starting a custom production order.
               </p>
               <div className="mt-6">
                 <p className="text-2xl font-bold text-(--text-primary)">₹{product.price.toLocaleString('en-IN')}</p>
-                <p className="mt-1 text-xs text-(--text-primary)/40">Catalogue sample price per piece</p>
+                <p className="mt-1 text-xs text-(--text-muted)">Catalogue sample price per piece</p>
               </div>
             </div>
 
             <div className="techpack-panel rounded-sm border p-5 sm:p-6">
               {product.sizes.length > 1 ? (
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-(--text-primary)/40">Choose sample size</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-(--text-muted)">Choose sample size</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {product.sizes.map(size => (
                       <button
@@ -450,13 +450,13 @@ export default function ShopProductClient({
                 </div>
               ) : (
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-(--text-primary)/40">Size</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-(--text-muted)">Size</p>
                   <p className="mt-2 text-sm font-medium text-(--text-primary)">{displaySize(product.sizes[0])}</p>
                 </div>
               )}
 
               <div className="mt-6 border-t border-[#E5E0D8] pt-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-(--text-primary)/40">Quantity</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-(--text-muted)">Quantity</p>
                 <div className="mt-3 flex items-center gap-3">
                   <button type="button" onClick={() => setQuantity(value => Math.max(1, value - 1))} className="techpack-control flex h-10 w-10 items-center justify-center rounded-sm border text-lg">−</button>
                   <span className="w-8 text-center text-sm font-semibold text-(--text-primary)">{quantity}</span>
@@ -479,7 +479,7 @@ export default function ShopProductClient({
         {/* Make it yours */}
         <section className="mt-16 overflow-hidden rounded-sm border border-[#E5E0D8] bg-(--color-cream-soft) px-5 py-8 sm:mt-20 sm:px-8 sm:py-10 lg:px-10" aria-labelledby="make-it-yours-title">
           <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-primary)/40">Custom production</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-muted)">Custom production</p>
             <h2 id="make-it-yours-title" className="mt-2 text-2xl font-bold tracking-tight text-(--text-primary) sm:text-3xl">Make it yours</h2>
             <p className="mt-3 text-sm leading-6 text-(--text-primary)/60">You have already chosen the garment. Continue directly into Studio and build the custom order from here.</p>
           </div>
@@ -492,7 +492,7 @@ export default function ShopProductClient({
               <div key={number} className="rounded-sm border border-[#DED8CF] bg-white/45 p-5">
                 <span className="text-[10px] font-semibold tracking-[0.16em] text-(--color-accent)">{number}</span>
                 <h3 className="mt-3 text-sm font-semibold text-(--text-primary)">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-(--text-primary)/55">{copy}</p>
+                <p className="mt-2 text-sm leading-6 text-(--text-muted)">{copy}</p>
               </div>
             ))}
           </div>
@@ -506,25 +506,25 @@ export default function ShopProductClient({
           <section id="compare-similar" className="mt-16 scroll-mt-24 border-t border-[#E5E0D8] pt-12 sm:mt-20 sm:pt-16">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-primary)/40">Product comparison</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-muted)">Product comparison</p>
                 <h2 className="mt-2 text-2xl font-bold tracking-tight text-(--text-primary) sm:text-3xl">Compare similar options</h2>
               </div>
-              <p className="text-sm text-(--text-primary)/50">Current: <span className="font-semibold text-(--text-primary)">{productFabricFeel(product)} · {productFitLabel(product)}</span></p>
+              <p className="text-sm text-(--text-muted)">Current: <span className="font-semibold text-(--text-primary)">{productFabricFeel(product)} · {productFitLabel(product)}</span></p>
             </div>
 
             <div className="mt-7 grid gap-5 md:grid-cols-3">
               {related.map(relatedProduct => (
-                <Link key={relatedProduct.id} href={`/products/${relatedProduct.slug}`} className="techpack-panel group overflow-hidden rounded-sm border transition hover:-translate-y-0.5 hover:!border-(--color-accent)/40">
+                <Link key={relatedProduct.id} href={`/products/${relatedProduct.slug}`} className="storefront-interactive-card techpack-panel group overflow-hidden rounded-sm border">
                   <div className="relative aspect-[4/3] overflow-hidden bg-(--color-cream-soft)">
                     {relatedProduct.image ? (
-                      <Image src={relatedProduct.image} alt={productImageAlt(relatedProduct)} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
+                      <Image src={relatedProduct.image} alt={productImageAlt(relatedProduct)} fill sizes="(max-width: 768px) 100vw, 33vw" className="storefront-interactive-image object-cover" />
                     ) : (
-                      <div className="flex h-full items-center justify-center text-xs uppercase tracking-wide text-(--text-primary)/20">Product photo</div>
+                      <div className="flex h-full items-center justify-center text-xs uppercase tracking-wide text-(--text-muted)">Product photo</div>
                     )}
                   </div>
                   <div className="p-5">
                     <h3 className="text-base font-semibold text-(--text-primary) group-hover:underline">{relatedProduct.name}</h3>
-                    <p className="mt-1.5 text-xs font-medium text-(--text-primary)/45">{productFabricFeel(relatedProduct)} · {productFitLabel(relatedProduct)}</p>
+                    <p className="mt-1.5 text-xs font-medium text-(--text-muted)">{productFabricFeel(relatedProduct)} · {productFitLabel(relatedProduct)}</p>
                     <p className="mt-3 text-sm leading-6 text-(--text-primary)/60">{relatedProduct.selectorDescription}</p>
                     <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-(--color-accent)">View product <ArrowRight size={13} /></span>
                   </div>

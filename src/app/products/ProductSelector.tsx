@@ -69,46 +69,49 @@ export default function ProductSelector({ products }: { products: Product[] }) {
       <div className="mb-7 border-y border-[#E5E0D8] py-6 sm:py-7">
         <div className="flex flex-col gap-5">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-primary)/40">Product selector</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-muted)">Product selector</p>
             <div className="mt-2 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h2 className="text-xl font-semibold tracking-tight text-(--text-primary) sm:text-2xl">What are you looking for?</h2>
-                <p className="mt-1 text-sm text-(--text-primary)/50">
+                <p className="mt-1 text-sm text-(--text-muted)">
                   Start with the product type. When there is a meaningful choice, narrow it by fit or fabric feel.
                 </p>
               </div>
-              <p className="mt-2 text-xs font-medium text-(--text-primary)/40 sm:mt-0">
+              <p className="mt-2 text-xs font-medium text-(--text-muted) sm:mt-0">
                 {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'}
               </p>
             </div>
           </div>
 
-          <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {categories.map(item => {
-              const active = category === item
-              return (
-                <button
-                  key={item}
-                  type="button"
-                  onClick={() => selectCategory(item)}
-                  aria-pressed={active}
-                  className={`shrink-0 rounded-sm border px-4 py-2 text-sm font-medium transition ${
-                    active
-                      ? 'border-(--color-accent) bg-(--color-accent) text-white'
-                      : 'border-[#DDD7CE] bg-white text-(--text-primary)/65 hover:border-(--text-primary)/25 hover:text-(--text-primary)'
-                  }`}
-                >
-                  {item}
-                </button>
-              )
-            })}
+          <div className="relative -mr-4 sm:mr-0">
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-linear-to-l from-(--color-cream) to-transparent sm:hidden" aria-hidden="true" />
+            <div className="flex gap-2 overflow-x-auto pb-1 pr-10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Product categories">
+              {categories.map(item => {
+                const active = category === item
+                return (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => selectCategory(item)}
+                    aria-pressed={active}
+                    className={`shrink-0 rounded-sm border px-4 py-2 text-sm font-medium transition-colors duration-200 ${
+                      active
+                        ? 'border-(--color-accent) bg-(--color-accent) text-white'
+                        : 'border-[#DDD7CE] bg-white text-(--text-primary)/65 hover:border-(--text-primary)/25 hover:text-(--text-primary)'
+                    }`}
+                  >
+                    {item}
+                  </button>
+                )
+              })}
+            </div>
           </div>
 
           {(showFitFilter || showFeelFilter) && (
             <div className={`grid gap-4 border-t border-[#ECE7DF] pt-5 ${showFitFilter && showFeelFilter ? 'lg:grid-cols-2' : ''}`}>
               {showFitFilter && (
                 <div>
-                  <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.13em] text-(--text-primary)/40">
+                  <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.13em] text-(--text-muted)">
                     <SlidersHorizontal size={13} /> Fit
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -120,10 +123,10 @@ export default function ProductSelector({ products }: { products: Product[] }) {
                           type="button"
                           onClick={() => setFit(item)}
                           aria-pressed={active}
-                          className={`rounded-sm border px-3 py-1.5 text-xs font-medium transition ${
+                          className={`rounded-sm border px-3 py-1.5 text-xs font-medium transition-colors duration-200 ${
                             active
                               ? 'border-(--text-primary) bg-(--text-primary) text-white'
-                              : 'border-[#DDD7CE] bg-white text-(--text-primary)/55 hover:text-(--text-primary)'
+                              : 'border-[#DDD7CE] bg-white text-(--text-muted) hover:text-(--text-primary)'
                           }`}
                         >
                           {item}
@@ -136,7 +139,7 @@ export default function ProductSelector({ products }: { products: Product[] }) {
 
               {showFeelFilter && (
                 <div>
-                  <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.13em] text-(--text-primary)/40">
+                  <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.13em] text-(--text-muted)">
                     <SlidersHorizontal size={13} /> Fabric feel
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -148,10 +151,10 @@ export default function ProductSelector({ products }: { products: Product[] }) {
                           type="button"
                           onClick={() => setFeel(item)}
                           aria-pressed={active}
-                          className={`rounded-sm border px-3 py-1.5 text-xs font-medium transition ${
+                          className={`rounded-sm border px-3 py-1.5 text-xs font-medium transition-colors duration-200 ${
                             active
                               ? 'border-(--text-primary) bg-(--text-primary) text-white'
-                              : 'border-[#DDD7CE] bg-white text-(--text-primary)/55 hover:text-(--text-primary)'
+                              : 'border-[#DDD7CE] bg-white text-(--text-muted) hover:text-(--text-primary)'
                           }`}
                         >
                           {item}
@@ -168,7 +171,7 @@ export default function ProductSelector({ products }: { products: Product[] }) {
             <button
               type="button"
               onClick={resetFilters}
-              className="inline-flex w-fit items-center gap-1.5 text-xs font-medium text-(--text-primary)/50 hover:text-(--text-primary)"
+              className="inline-flex w-fit items-center gap-1.5 text-xs font-medium text-(--text-muted) hover:text-(--text-primary)"
             >
               <X size={13} /> Show all products
             </button>
@@ -177,12 +180,12 @@ export default function ProductSelector({ products }: { products: Product[] }) {
       </div>
 
       {filteredProducts.length > 0 ? (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {filteredProducts.map(product => (
             <Link
               key={product.id}
               href={`/products/${product.slug}`}
-              className="techpack-panel group flex flex-col overflow-hidden rounded-sm border transition-all duration-300 hover:-translate-y-0.5 hover:!border-(--color-accent)/45"
+              className="storefront-interactive-card techpack-panel group flex flex-col overflow-hidden rounded-sm border"
             >
               <div className="relative aspect-[3/4] w-full overflow-hidden bg-(--color-cream-soft)">
                 {product.image ? (
@@ -190,11 +193,11 @@ export default function ProductSelector({ products }: { products: Product[] }) {
                     src={product.image}
                     alt={productImageAlt(product)}
                     fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1280px) 33vw, 20vw"
+                    className="storefront-interactive-image object-cover"
                   />
                 ) : (
-                  <span className="flex h-full items-center justify-center text-xs uppercase tracking-wide text-(--text-primary)/20">
+                  <span className="flex h-full items-center justify-center text-xs uppercase tracking-wide text-(--text-muted)">
                     Product photo
                   </span>
                 )}
@@ -203,12 +206,12 @@ export default function ProductSelector({ products }: { products: Product[] }) {
                 </span>
               </div>
 
-              <div className="flex flex-1 flex-col p-5 sm:p-6">
+              <div className="flex flex-1 flex-col p-5 xl:p-4">
                 <div>
                   <h3 className="text-lg font-semibold leading-snug tracking-tight text-(--text-primary) group-hover:underline">
                     {product.name}
                   </h3>
-                  <p className="mt-1.5 text-xs font-medium text-(--text-primary)/50">
+                  <p className="mt-1.5 text-xs font-medium text-(--text-muted)">
                     {[product.selectorFit ? `${product.selectorFit} fit` : null, product.selectorFeel].filter(Boolean).join(' · ')}
                   </p>
                   <p className="mt-3 text-sm leading-6 text-(--text-primary)/65">{product.selectorDescription}</p>
@@ -224,10 +227,10 @@ export default function ProductSelector({ products }: { products: Product[] }) {
                 </div>
 
                 <div className="mt-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.13em] text-(--text-primary)/35">Best for</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.13em] text-(--text-muted)">Best for</p>
                   <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1.5">
                     {product.bestFor.map(item => (
-                      <span key={item} className="inline-flex items-center gap-1 text-xs text-(--text-primary)/55">
+                      <span key={item} className="inline-flex items-center gap-1 text-xs text-(--text-muted)">
                         <Check size={11} className="text-(--color-accent)" /> {item}
                       </span>
                     ))}
@@ -237,7 +240,7 @@ export default function ProductSelector({ products }: { products: Product[] }) {
                 <div className="mt-auto pt-6">
                   <div className="flex items-center justify-between border-t border-[#ECE7DF] pt-4">
                     <p className="text-base font-bold text-(--text-primary)">&#8377;{product.price.toLocaleString('en-IN')}</p>
-                    <span className="text-xs font-medium text-(--text-primary)/40">{sizeRange(product)}</span>
+                    <span className="text-xs font-medium text-(--text-muted)">{sizeRange(product)}</span>
                   </div>
                   <div className="mt-4 flex items-center justify-between text-xs font-semibold text-(--color-accent)">
                     <span>View product</span>
@@ -251,7 +254,7 @@ export default function ProductSelector({ products }: { products: Product[] }) {
       ) : (
         <div className="techpack-panel rounded-sm border px-6 py-12 text-center">
           <h3 className="text-lg font-semibold text-(--text-primary)">No products match those filters.</h3>
-          <p className="mt-2 text-sm text-(--text-primary)/50">Try another fit or fabric feel.</p>
+          <p className="mt-2 text-sm text-(--text-muted)">Try another fit or fabric feel.</p>
           <button
             type="button"
             onClick={resetFilters}

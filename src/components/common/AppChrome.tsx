@@ -42,6 +42,7 @@ export default function AppChrome({
       "/forgot-password",
       "/reset-password",
     ].includes(pathname);
+  const suppressFloatingHelp = isWithin("/cart") || isWithin("/checkout") || isWithin("/payment");
 
   useEffect(() => {
     const markHydrated = () => useCartStore.getState().setHasHydrated(true);
@@ -67,11 +68,11 @@ export default function AppChrome({
   return (
     <>
       <BackendStatusNotice />
-      <div className="techpack-canvas min-h-screen min-w-0 overflow-x-clip">
+      <div className="storefront-shell techpack-canvas min-h-screen min-w-0 overflow-x-clip">
         <Navbar />
         <main className="min-w-0">{children}</main>
         <Footer />
-        <WhatsAppButton />
+        {!suppressFloatingHelp && <WhatsAppButton />}
       </div>
     </>
   );

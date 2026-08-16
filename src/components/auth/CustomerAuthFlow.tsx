@@ -51,7 +51,7 @@ function AuthProgress({ step }: { step: Step }) {
               ? "bg-(--color-accent) text-white"
               : index < activeIndex
                 ? "bg-(--color-cream-soft) text-(--color-navy)"
-                : "text-(--text-primary)/35"
+                : "text-(--text-muted)"
           }`}
         >
           {String(index + 1).padStart(2, "0")} {label}

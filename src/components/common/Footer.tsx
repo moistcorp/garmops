@@ -22,12 +22,40 @@ const solutionLinks = [
   { label: 'Guides', href: '/journal' },
 ]
 
-const linkClass = 'py-1 transition-colors hover:text-(--color-accent)'
+const linkClass = 'py-1 transition-colors duration-200 hover:text-(--color-accent)'
+
+function FooterDirectory({
+  label,
+  links,
+  ariaLabel,
+}: {
+  label: string
+  links: Array<{ label: string; href: string }>
+  ariaLabel: string
+}) {
+  return (
+    <>
+      <details className="group col-span-2 border-t border-[#DED8CF] md:hidden">
+        <summary className="flex min-h-12 list-none items-center justify-between text-xs font-semibold uppercase tracking-widest text-(--text-muted) [&::-webkit-details-marker]:hidden">
+          {label}
+          <span aria-hidden="true" className="text-base transition-transform duration-200 group-open:rotate-45">+</span>
+        </summary>
+        <nav aria-label={ariaLabel} className="grid grid-cols-2 gap-x-5 gap-y-1 pb-4 text-sm text-(--text-muted)">
+          {links.map(link => <Link key={link.href} href={link.href} className={linkClass}>{link.label}</Link>)}
+        </nav>
+      </details>
+      <nav aria-label={ariaLabel} className="hidden flex-col gap-1 md:flex">
+        <span className="mb-1 text-xs font-medium uppercase tracking-widest text-(--text-muted)">{label}</span>
+        {links.map(link => <Link key={link.href} href={link.href} className={linkClass}>{link.label}</Link>)}
+      </nav>
+    </>
+  )
+}
 
 function PaymentMarks() {
   return (
     <section aria-label="Accepted payment methods" className="mx-auto mt-8 max-w-7xl border-t border-[#ECE7DF] pt-6 sm:mt-10 sm:pt-8">
-      <p className="text-center font-mono text-xs font-medium uppercase tracking-[0.16em] text-(--text-primary)/40">Secure payments accepted</p>
+      <p className="text-center font-mono text-xs font-medium uppercase tracking-[0.16em] text-(--text-muted)">Secure payments accepted</p>
       <div className="mt-4 flex flex-wrap items-center justify-center gap-x-10 gap-y-5 sm:gap-x-14" aria-hidden="true">
         <span className="-skew-x-6 font-sans text-[2.2rem] font-black italic leading-none tracking-[-0.1em] text-[#1434CB]">VISA</span>
         <span className="relative block h-8 w-[52px]" title="Mastercard">
@@ -48,37 +76,26 @@ function PaymentMarks() {
 export default function Footer() {
   return (
     <footer className="bg-transparent px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-10 sm:px-6 sm:py-14">
-      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-6 gap-y-10 text-sm text-(--text-primary)/55 md:grid-cols-[1.25fr_1fr_1fr_1.1fr] md:gap-8">
+      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-6 gap-y-6 text-sm text-(--text-muted) md:grid-cols-[1.25fr_1fr_1fr_1.1fr] md:gap-8">
         <div className="col-span-2 md:col-span-1">
           <Link href="/" aria-label="Garmops home">
             <GarmopsLogo className="mb-3 h-8 w-auto" />
           </Link>
-          <p className="max-w-xs text-sm leading-6 text-(--text-primary)/55">
+          <p className="max-w-xs text-sm leading-6 text-(--text-muted)">
             Bulk custom apparel and branded merchandise made in India from 50 pieces per style.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <span className="rounded-sm border border-[#ECE7DF] bg-white px-3 py-1 text-xs text-(--text-primary)/50">GST Compliant</span>
-            <span className="rounded-sm border border-[#ECE7DF] bg-white px-3 py-1 text-xs text-(--text-primary)/50">Udyam Registered MSME</span>
-            <span className="rounded-sm border border-[#ECE7DF] bg-white px-3 py-1 text-xs text-(--text-primary)/50">Export Registered (IEC)</span>
+            <span className="rounded-sm border border-[#DED8CF] bg-white px-3 py-1 text-xs text-(--text-muted)">GST Compliant</span>
+            <span className="rounded-sm border border-[#DED8CF] bg-white px-3 py-1 text-xs text-(--text-muted)">Udyam Registered MSME</span>
+            <span className="rounded-sm border border-[#DED8CF] bg-white px-3 py-1 text-xs text-(--text-muted)">Export Registered (IEC)</span>
           </div>
         </div>
 
-        <nav aria-label="Product links" className="flex flex-col gap-1">
-          <span className="mb-1 text-xs font-medium uppercase tracking-widest text-(--text-primary)/40">Products</span>
-          {productLinks.map(link => (
-            <Link key={link.href} href={link.href} className={linkClass}>{link.label}</Link>
-          ))}
-        </nav>
-
-        <nav aria-label="Solution links" className="flex flex-col gap-1">
-          <span className="mb-1 text-xs font-medium uppercase tracking-widest text-(--text-primary)/40">Industries</span>
-          {solutionLinks.map(link => (
-            <Link key={link.href} href={link.href} className={linkClass}>{link.label}</Link>
-          ))}
-        </nav>
+        <FooterDirectory label="Products" links={productLinks} ariaLabel="Product links" />
+        <FooterDirectory label="Industries" links={solutionLinks} ariaLabel="Solution links" />
 
         <div className="col-span-2 flex min-w-0 flex-col gap-1 md:col-span-1">
-          <span className="mb-1 text-xs font-medium uppercase tracking-widest text-(--text-primary)/40">Company & help</span>
+          <span className="mb-1 text-xs font-medium uppercase tracking-widest text-(--text-muted)">Company & help</span>
           <Link href="/about" className={linkClass}>About Garmops</Link>
           <Link href="/contact" className={linkClass}>Help</Link>
           <Link href="/terms" className={linkClass}>Terms of Service</Link>
@@ -125,7 +142,7 @@ export default function Footer() {
 
       <PaymentMarks />
 
-      <div className="mx-auto mt-6 max-w-7xl border-t border-[#ECE7DF] pt-6 text-xs text-(--text-primary)/40 sm:mt-8">
+      <div className="mx-auto mt-6 max-w-7xl border-t border-[#DED8CF] pt-6 text-xs text-(--text-muted) sm:mt-8">
         © {new Date().getFullYear()} Garmops. All rights reserved.
       </div>
     </footer>

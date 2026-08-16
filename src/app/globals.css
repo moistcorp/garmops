@@ -44,9 +44,65 @@
   --color-surface: #ffffff;
   --color-studio-bg: #f4f6f8;
   --color-control-border: #dce1e6;
+  --ease-out-ui: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-ui: cubic-bezier(0.77, 0, 0.175, 1);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+}
+
+/* Public storefront interactions. The configurator has dedicated interaction
+   rules and sits outside .storefront-shell. */
+.storefront-shell :where(a[href], button:not(:disabled), summary) {
+  -webkit-tap-highlight-color: transparent;
+  transition-duration: 160ms;
+  transition-property: color, background-color, border-color, opacity, transform, scale;
+  transition-timing-function: var(--ease-out-ui);
+}
+
+.storefront-shell :where(a[href], button:not(:disabled), summary):active {
+  scale: 0.98;
+}
+
+.storefront-interactive-card {
+  transition:
+    border-color 200ms var(--ease-out-ui),
+    transform 200ms var(--ease-out-ui),
+    scale 140ms var(--ease-out-ui);
+}
+
+.whatsapp-float {
+  transition:
+    gap 200ms var(--ease-out-ui),
+    border-color 200ms var(--ease-out-ui),
+    background-color 200ms var(--ease-out-ui),
+    scale 140ms var(--ease-out-ui) !important;
+}
+
+.storefront-interactive-image {
+  transition: transform 220ms var(--ease-out-ui);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .storefront-interactive-card:hover {
+    border-color: color-mix(in srgb, var(--color-accent) 45%, transparent) !important;
+    transform: translateY(-2px);
+  }
+
+  .group:hover .storefront-interactive-image {
+    transform: scale(1.025);
+  }
+
+  .whatsapp-float:hover {
+    gap: 0.5rem;
+    border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+    background: white;
+  }
+
+  .whatsapp-float:hover .whatsapp-label {
+    max-width: 5rem;
+    opacity: 1;
+  }
 }
 
 html {
@@ -302,7 +358,53 @@ canvas {
   }
 }
 
-/* Garmops production-blueprint route loader. */
+/* Lightweight route skeleton: ordinary navigation resembles the incoming page. */
+.route-skeleton-shell {
+  min-height: min(680px, calc(100svh - 4rem));
+  padding: clamp(2rem, 7vw, 5rem) clamp(1rem, 4vw, 2rem);
+}
+
+.route-skeleton-frame {
+  width: min(100%, 1280px);
+  margin-inline: auto;
+}
+
+.route-skeleton-kicker,
+.route-skeleton-title,
+.route-skeleton-copy,
+.route-skeleton-block,
+.route-skeleton-line {
+  border-radius: 3px;
+  background: #e7e2da;
+  animation: route-skeleton-pulse 1.4s ease-in-out infinite alternate;
+}
+
+.route-skeleton-kicker { width: 7rem; height: 0.65rem; }
+.route-skeleton-title { width: min(34rem, 82%); height: clamp(2.4rem, 7vw, 4.5rem); margin-top: 1.25rem; }
+.route-skeleton-copy { width: min(30rem, 72%); height: 1rem; margin-top: 1.5rem; }
+.route-skeleton-grid { display: grid; gap: 1rem; margin-top: clamp(3rem, 7vw, 5rem); }
+.route-skeleton-block { min-height: 13rem; }
+.route-skeleton-line { width: 68%; height: 0.75rem; margin-top: 1rem; }
+.route-skeleton-line-short { width: 42%; margin-top: 0.6rem; }
+
+@media (min-width: 720px) {
+  .route-skeleton-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-skeleton-kicker,
+  .route-skeleton-title,
+  .route-skeleton-copy,
+  .route-skeleton-block,
+  .route-skeleton-line { animation: none; }
+}
+
+@keyframes route-skeleton-pulse {
+  from { opacity: 0.58; }
+  to { opacity: 1; }
+}
+
+/* Rich workspace loader retained for explicit, determinate production tasks. */
 .garmops-loader-shell {
   display: grid;
   min-height: min(760px, calc(100svh - 4rem));

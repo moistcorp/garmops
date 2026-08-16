@@ -21,7 +21,7 @@ export default function TechniqueComparison({
   return (
     <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
       <div className="max-w-3xl">
-        <p className="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-(--text-primary)/45">Decoration</p>
+        <p className="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-(--text-muted)">Decoration</p>
         <h2 className="text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">
           Print technique choices
         </h2>

@@ -1,5 +1,5 @@
-import GarmopsLoadingScreen from "@/components/common/GarmopsLoadingScreen";
+import RouteLoadingSkeleton from "@/components/common/RouteLoadingSkeleton";
 
 export default function Loading() {
-  return <GarmopsLoadingScreen />;
+  return <RouteLoadingSkeleton />;
 }

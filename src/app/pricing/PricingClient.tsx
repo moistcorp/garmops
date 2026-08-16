@@ -89,7 +89,7 @@ export default function PricingClient() {
         <div className="grid gap-6 lg:grid-cols-[0.94fr_1.06fr] lg:gap-10">
           <section className="techpack-surface rounded-sm border p-5 sm:p-7" aria-label="Starting estimate controls">
             <div>
-              <p id="pricing-product-label" className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-(--text-primary)/45">1. Choose a product</p>
+              <p id="pricing-product-label" className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-(--text-muted)">1. Choose a product</p>
               <div ref={productPickerRef} className="relative mt-3">
                 <button
                   ref={productPickerButtonRef}
@@ -106,9 +106,9 @@ export default function PricingClient() {
                   </span>
                   <span id="pricing-selected-product" className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-semibold text-(--text-primary)">{product?.name}</span>
-                    <span className="mt-1 block truncate text-xs text-(--text-primary)/50">{product?.gsm} GSM · {product?.selectorMaterial}</span>
+                    <span className="mt-1 block truncate text-xs text-(--text-muted)">{product?.gsm} GSM · {product?.selectorMaterial}</span>
                   </span>
-                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`h-4 w-4 shrink-0 text-(--text-primary)/45 transition-transform ${productPickerOpen ? "rotate-180" : ""}`}><path strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" /></svg>
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`h-4 w-4 shrink-0 text-(--text-muted) transition-transform ${productPickerOpen ? "rotate-180" : ""}`}><path strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" /></svg>
                 </button>
                 {productPickerOpen && (
                   <div id="pricing-product-options" role="listbox" aria-labelledby="pricing-product-label" className="techpack-surface absolute z-30 mt-2 max-h-96 w-full overflow-y-auto rounded-sm border p-1.5 shadow-xl">
@@ -126,7 +126,7 @@ export default function PricingClient() {
                           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[3px] border border-(--color-rule) bg-white">
                             <Image src={item.icon} alt="" width={32} height={32} className="h-8 w-8 object-contain" />
                           </span>
-                          <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-(--text-primary)">{item.name}</span><span className="mt-0.5 block truncate text-xs text-(--text-primary)/50">{item.gsm} GSM · {item.selectorDescription}</span></span>
+                          <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-(--text-primary)">{item.name}</span><span className="mt-0.5 block truncate text-xs text-(--text-muted)">{item.gsm} GSM · {item.selectorDescription}</span></span>
                           {selected && <Check size={16} className="shrink-0 text-(--color-accent)" aria-hidden="true" />}
                         </button>
                       );
@@ -134,12 +134,12 @@ export default function PricingClient() {
                   </div>
                 )}
               </div>
-              <p className="mt-2 text-xs text-(--text-primary)/50">Custom production starts from {minimumQuantity} pieces of this configured product.</p>
+              <p className="mt-2 text-xs text-(--text-muted)">Custom production starts from {minimumQuantity} pieces of this configured product.</p>
             </div>
 
             <div className="mt-8">
               <div className="flex items-end justify-between gap-4">
-                <label htmlFor="pricing-quantity" className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-(--text-primary)/45">2. Enter quantity</label>
+                <label htmlFor="pricing-quantity" className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-(--text-muted)">2. Enter quantity</label>
                 <div className="flex items-center rounded-sm border border-(--color-rule) bg-white px-3 py-2">
                   <input
                     id="pricing-quantity"
@@ -150,7 +150,7 @@ export default function PricingClient() {
                     onChange={(event) => setQuantity(Number(event.target.value))}
                     className="w-20 appearance-none bg-transparent text-right font-mono text-sm font-semibold outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                   />
-                  <span className="ml-2 text-xs text-(--text-primary)/45">pcs</span>
+                  <span className="ml-2 text-xs text-(--text-muted)">pcs</span>
                 </div>
               </div>
               <input
@@ -163,17 +163,17 @@ export default function PricingClient() {
                 aria-label="Quantity"
                 className="mt-5 w-full accent-(--color-accent)"
               />
-              <div className="mt-1 flex justify-between text-xs text-(--text-primary)/40"><span>{minimumQuantity} pcs</span><span>1,000 pcs</span></div>
+              <div className="mt-1 flex justify-between text-xs text-(--text-muted)"><span>{minimumQuantity} pcs</span><span>1,000 pcs</span></div>
             </div>
 
             <div className="mt-8 border-t border-(--color-rule) pt-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="font-semibold text-(--text-primary)">Rush production</p>
-                  <p className="mt-1 text-xs leading-5 text-(--text-primary)/55">Target {RUSH_DELIVERY_DAYS} days instead of {DELIVERY_DAYS} days, subject to the finished specification and destination.</p>
+                  <p className="mt-1 text-xs leading-5 text-(--text-muted)">Target {RUSH_DELIVERY_DAYS} days instead of {DELIVERY_DAYS} days, subject to the finished specification and destination.</p>
                 </div>
                 <button type="button" role="switch" aria-checked={rush} onClick={() => setRush((value) => !value)} className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${rush ? "bg-(--color-accent)" : "bg-[#DAD6D0]"}`}>
-                  <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-all ${rush ? "left-6" : "left-1"}`} />
+                  <span className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] ${rush ? "translate-x-5" : "translate-x-0"}`} />
                 </button>
               </div>
               {rush && <p className="mt-3 rounded-sm bg-(--color-cream-soft) px-3 py-2 text-xs text-(--text-primary)/65">+₹75 per piece before GST · {formatInr(rushFee)} for this quantity</p>}
@@ -181,9 +181,9 @@ export default function PricingClient() {
           </section>
 
           <section className="techpack-dark rounded-sm border p-5 text-white sm:p-8" aria-live="polite">
-        <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Starting estimate</p>
+        <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-white/65">Starting estimate</p>
             <h2 className="mt-3 text-2xl font-bold tracking-tight">{product?.name}</h2>
-            <p className="mt-1 text-sm text-white/55">{safeQuantity.toLocaleString("en-IN")} pieces · {rush ? `${RUSH_DELIVERY_DAYS}-day rush target` : `${DELIVERY_DAYS}-day standard target`}</p>
+            <p className="mt-1 text-sm text-white/65">{safeQuantity.toLocaleString("en-IN")} pieces · {rush ? `${RUSH_DELIVERY_DAYS}-day rush target` : `${DELIVERY_DAYS}-day standard target`}</p>
             <div className="mt-7 space-y-3 border-y border-white/10 py-5 text-sm">
               <PriceRow label="Starting garment price" value={`${formatInr(estimate.undiscountedUnitPrice)} / piece`} />
               {volumeSavings > 0 && <PriceRow label={`Volume discount (${estimate.discountPercent}%)`} value={`− ${formatInr(volumeSavings)}`} />}
@@ -192,7 +192,7 @@ export default function PricingClient() {
               <PriceRow label="GST (5% / 12% as applicable)" value={formatInr(estimate.gst)} />
             </div>
             <div className="mt-5 flex items-end justify-between gap-4">
-              <div><p className="text-sm font-semibold">Estimated total</p><p className="mt-1 text-xs text-white/45">GST included · free shipping</p></div>
+              <div><p className="text-sm font-semibold">Estimated total</p><p className="mt-1 text-xs text-white/65">GST included · free shipping</p></div>
               <p className="font-mono text-2xl font-bold">{formatInr(estimate.total)}</p>
             </div>
             <Link href={designHref} className="mt-7 flex min-h-12 items-center justify-center gap-2 rounded-sm bg-white px-5 py-3 text-sm font-semibold text-(--color-navy) transition hover:bg-[#F4F1EB]">Configure this product <ArrowRight size={16} /></Link>
@@ -218,7 +218,7 @@ export default function PricingClient() {
         <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-start"><div><p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-(--color-accent)">Volume pricing</p><h2 className="mt-3 text-3xl font-bold tracking-tight">More units, lower garment cost.</h2><p className="mt-4 text-sm leading-7 text-(--text-primary)/60">Discounts apply independently to each configured product line, so the quantities and specifications stay clear at checkout.</p></div><div className="overflow-hidden rounded-sm border border-(--color-rule)">{VOLUME_DISCOUNT_TIERS.map((tier) => <div key={tier.minQty} className={`flex items-center justify-between px-5 py-4 text-sm ${safeQuantity >= tier.minQty && (tier.maxQty === null || safeQuantity <= tier.maxQty) ? "bg-(--color-cream-soft) font-semibold text-(--color-accent-dark)" : "border-t border-(--color-rule) first:border-t-0 text-(--text-primary)/65"}`}><span>{quantityLabel(tier)} pieces</span><span>{tier.discountPercent ? `${tier.discountPercent}% off` : "Starting price"}</span></div>)}</div></div>
       </section>
 
-      <section className="bg-(--color-navy)"><div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-12 text-white sm:px-6 sm:py-16 lg:flex-row lg:items-center lg:justify-between"><div><div className="flex items-center gap-2 text-white/55"><Clock3 size={16} /><span className="font-mono text-[10px] uppercase tracking-[0.14em]">Ready when your brief is</span></div><h2 className="mt-3 text-3xl font-bold tracking-tight">Build the exact order next.</h2><p className="mt-3 max-w-xl text-sm leading-6 text-white/60">Choose the garment, colour, artwork and size split. You will see the exact configuration total before payment.</p></div><Link href="/products" className="rounded-sm bg-white px-6 py-3.5 text-center text-sm font-semibold text-(--color-navy) transition hover:bg-[#F4F1EB]">Browse products</Link></div></section>
+      <section className="bg-(--color-navy)"><div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-12 text-white sm:px-6 sm:py-16 lg:flex-row lg:items-center lg:justify-between"><div><div className="flex items-center gap-2 text-white/65"><Clock3 size={16} /><span className="font-mono text-[10px] uppercase tracking-[0.14em]">Ready when your brief is</span></div><h2 className="mt-3 text-3xl font-bold tracking-tight">Build the exact order next.</h2><p className="mt-3 max-w-xl text-sm leading-6 text-white/60">Choose the garment, colour, artwork and size split. You will see the exact configuration total before payment.</p></div><Link href="/products" className="rounded-sm bg-white px-6 py-3.5 text-center text-sm font-semibold text-(--color-navy) transition hover:bg-[#F4F1EB]">Browse products</Link></div></section>
     </main>
   );
 }

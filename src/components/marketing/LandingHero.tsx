@@ -6,7 +6,7 @@ export default function LandingHero({ content }: { content: SeoLandingPageConten
   return (
     <header className="mx-auto grid max-w-7xl items-center gap-8 px-4 pb-12 pt-8 sm:px-6 sm:pb-16 sm:pt-14 lg:grid-cols-[1.08fr_0.92fr] lg:gap-14 lg:pb-20">
       <div className="max-w-3xl">
-        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-(--text-primary)/45">
+        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-(--text-muted)">
           {content.eyebrow}
         </p>
         <h1 className="text-balance text-4xl font-bold leading-[1.06] tracking-tight text-(--text-primary) sm:text-5xl lg:text-6xl">

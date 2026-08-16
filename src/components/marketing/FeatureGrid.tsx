@@ -18,7 +18,7 @@ export default function FeatureGrid({
     <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
       <div className="max-w-3xl">
         {eyebrow && (
-          <p className="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-(--text-primary)/45">
+          <p className="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-(--text-muted)">
             {eyebrow}
           </p>
         )}

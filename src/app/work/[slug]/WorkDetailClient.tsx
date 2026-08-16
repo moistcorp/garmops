@@ -16,7 +16,7 @@ function FieldGrid({ fields }: { fields: Array<{ label: string; value: string }>
     <dl className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
       {fields.map(field => (
         <div key={`${field.label}-${field.value}`}>
-          <dt className="font-mono text-[10px] uppercase tracking-[0.1em] text-(--text-primary)/45">{field.label}</dt>
+          <dt className="font-mono text-[10px] uppercase tracking-[0.1em] text-(--text-muted)">{field.label}</dt>
           <dd className="mt-1 text-sm leading-6 text-(--text-primary)">{field.value}</dd>
         </div>
       ))}
@@ -37,7 +37,7 @@ function ProjectFacts({ study }: { study: CaseStudy }) {
     <dl className="grid grid-cols-2 border-y border-(--color-rule) sm:grid-cols-4 lg:grid-cols-5">
       {facts.map(fact => (
         <div key={fact.label} className="border-b border-(--color-rule) px-4 py-4 first:pl-0 sm:border-b-0 sm:border-r last:border-r-0 lg:px-5 lg:first:pl-0">
-          <dt className="font-mono text-[9px] uppercase tracking-[0.1em] text-(--text-primary)/45">{fact.label}</dt>
+          <dt className="font-mono text-[9px] uppercase tracking-[0.1em] text-(--text-muted)">{fact.label}</dt>
           <dd className="mt-2 text-sm font-semibold leading-5 text-(--text-primary)">{fact.value}</dd>
         </div>
       ))}
@@ -84,7 +84,7 @@ function ProductSpecification({ productRecord }: { productRecord: CaseStudy['pro
         <dl className="mt-6 grid gap-x-5 gap-y-4 border-t border-(--color-rule) pt-5 sm:grid-cols-2 lg:grid-cols-3">
           {specs.map(spec => (
             <div key={spec.label}>
-              <dt className="font-mono text-[10px] uppercase tracking-[0.08em] text-(--text-primary)/45">{spec.label}</dt>
+              <dt className="font-mono text-[10px] uppercase tracking-[0.08em] text-(--text-muted)">{spec.label}</dt>
               <dd className="mt-1 text-sm leading-6 text-(--text-primary)">{spec.value}</dd>
             </div>
           ))}
@@ -121,9 +121,9 @@ export default function WorkDetailClient({
               {industry.name}
             </Link>
           ) : (
-            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-primary)/45">{industry?.name ?? cs.industryId}</p>
+            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">{industry?.name ?? cs.industryId}</p>
           )}
-          <p className="mt-5 text-sm font-medium text-(--text-primary)/55">{cs.client}</p>
+          <p className="mt-5 text-sm font-medium text-(--text-muted)">{cs.client}</p>
           <h1 className="mt-2 text-4xl font-bold leading-[1.05] tracking-tight text-(--text-primary) sm:text-6xl">{cs.headline}</h1>
           <p className="mt-6 max-w-3xl text-base leading-7 text-[#3f3f3f] sm:text-lg sm:leading-8">{cs.summary}</p>
         </header>
@@ -139,7 +139,7 @@ export default function WorkDetailClient({
         <div className="mt-16 grid gap-12 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-20 lg:mt-24">
           <div className="min-w-0">
             <section aria-labelledby="brief-heading">
-              <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-primary)/45">01 / Context</p>
+              <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">01 / Context</p>
               <h2 id="brief-heading" className="mt-3 text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">The brief</h2>
               <div className="mt-7 rounded-sm border border-(--color-rule) p-5 sm:p-7">
                 <FieldGrid fields={cs.brief} />
@@ -147,7 +147,7 @@ export default function WorkDetailClient({
             </section>
 
             <section aria-labelledby="made-heading" className="mt-16 sm:mt-24">
-              <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-primary)/45">02 / Production</p>
+              <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">02 / Production</p>
               <h2 id="made-heading" className="mt-3 text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">What we made</h2>
               <p className="mt-4 max-w-2xl text-sm leading-7 text-[#3f3f3f]">{formatCaseStudyProducts(cs)} configured around the stored project brief.</p>
               <div className="mt-7 grid gap-5">
@@ -159,7 +159,7 @@ export default function WorkDetailClient({
 
             {cs.configuration && cs.configuration.length > 0 && (
               <section aria-labelledby="configuration-heading" className="mt-16 sm:mt-24">
-                <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-primary)/45">03 / Order specification</p>
+                <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">03 / Order specification</p>
                 <h2 id="configuration-heading" className="mt-3 text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">Project configuration</h2>
                 <div className="mt-7 rounded-sm bg-(--color-cream-soft) p-5 sm:p-7">
                   <FieldGrid fields={cs.configuration} />
@@ -169,7 +169,7 @@ export default function WorkDetailClient({
 
             {cs.gallery && cs.gallery.length > 1 && (
               <section aria-labelledby="process-heading" className="mt-16 sm:mt-24">
-                <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-primary)/45">04 / Visual record</p>
+                <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">04 / Visual record</p>
                 <h2 id="process-heading" className="mt-3 text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">From artwork to finished garment</h2>
                 <div className="mt-7 grid gap-5 sm:grid-cols-2">
                   {cs.gallery.map(image => (
@@ -177,7 +177,7 @@ export default function WorkDetailClient({
                       <div className="relative aspect-[4/3] bg-(--color-cream-soft)">
                         <Image src={image.src} alt={image.alt} fill sizes="(max-width: 640px) 100vw, 50vw" className="object-cover" />
                       </div>
-                      {image.caption ? <figcaption className="p-4 text-xs leading-5 text-(--text-primary)/55">{image.caption}</figcaption> : null}
+                      {image.caption ? <figcaption className="p-4 text-xs leading-5 text-(--text-muted)">{image.caption}</figcaption> : null}
                     </figure>
                   ))}
                 </div>
@@ -186,14 +186,14 @@ export default function WorkDetailClient({
 
             {cs.outcomes && cs.outcomes.length > 0 && (
               <section aria-labelledby="outcome-heading" className="mt-16 sm:mt-24">
-                <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-primary)/45">05 / Record</p>
+                <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">05 / Record</p>
                 <h2 id="outcome-heading" className="mt-3 text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">Outcome</h2>
                 <div className="mt-7 divide-y divide-(--color-rule) border-y border-(--color-rule)">
                   {cs.outcomes.map(outcome => (
                     <article key={outcome.title} className="py-5 sm:py-6">
                       <h3 className="text-base font-semibold text-(--text-primary)">{outcome.title}</h3>
                       <p className="mt-2 text-sm leading-6 text-[#3f3f3f]">{outcome.description}</p>
-                      {outcome.sourceNote ? <p className="mt-2 text-xs leading-5 text-(--text-primary)/45">{outcome.sourceNote}</p> : null}
+                      {outcome.sourceNote ? <p className="mt-2 text-xs leading-5 text-(--text-muted)">{outcome.sourceNote}</p> : null}
                     </article>
                   ))}
                 </div>
@@ -202,12 +202,12 @@ export default function WorkDetailClient({
 
             {cs.testimonial && (
               <section aria-labelledby="quote-heading" className="mt-16 border-t border-(--color-rule) pt-10 sm:mt-24 sm:pt-12">
-                <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-primary)/45">Client comment</p>
+                <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">Client comment</p>
                 <h2 id="quote-heading" className="sr-only">Client comment</h2>
                 <blockquote className="mt-5 max-w-3xl text-2xl font-semibold leading-snug tracking-tight text-(--text-primary) sm:text-3xl">“{cs.testimonial.quote}”</blockquote>
                 <p className="mt-6 text-sm font-semibold text-(--text-primary)">{cs.testimonial.name}</p>
                 {cs.testimonial.role || cs.testimonial.company ? (
-                  <p className="mt-1 text-xs text-(--text-primary)/50">{[cs.testimonial.role, cs.testimonial.company].filter(Boolean).join(' · ')}</p>
+                  <p className="mt-1 text-xs text-(--text-muted)">{[cs.testimonial.role, cs.testimonial.company].filter(Boolean).join(' · ')}</p>
                 ) : null}
               </section>
             )}
@@ -215,7 +215,7 @@ export default function WorkDetailClient({
 
           <aside className="lg:pt-1">
             <div className="techpack-dark rounded-sm border p-6 text-white sm:p-7 lg:sticky lg:top-24">
-              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-white/55">Building something similar?</p>
+              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-white/65">Building something similar?</p>
               <h2 className="mt-3 text-2xl font-bold tracking-tight">Start with the same garment.</h2>
               <p className="mt-3 text-sm leading-6 text-white/70">
                 Choose the product, then configure your artwork, colour and quantity with the current Garmops print methods.
@@ -244,12 +244,12 @@ export default function WorkDetailClient({
       {related.length > 0 && (
         <section aria-labelledby="related-heading" className="techpack-section py-12 sm:py-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-primary)/45">Related work</p>
+            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">Related work</p>
             <h2 id="related-heading" className="mt-3 text-3xl font-bold tracking-tight text-(--text-primary)">More production work</h2>
             <div className="mt-7 grid gap-5 md:grid-cols-2">
               {related.map(item => (
                 <Link key={item.slug} href={`/work/${item.slug}`} className="techpack-panel rounded-sm border p-5 transition-colors hover:!border-(--color-accent)/55 sm:p-6">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--text-primary)/45">{getCaseStudyIndustry(item.industryId)?.name ?? item.industryId}</p>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--text-muted)">{getCaseStudyIndustry(item.industryId)?.name ?? item.industryId}</p>
                   <h3 className="mt-3 text-xl font-semibold tracking-tight text-(--text-primary)">{item.client}</h3>
                   <p className="mt-2 text-sm text-(--text-primary)/60">{formatCaseStudyProducts(item)}</p>
                 </Link>

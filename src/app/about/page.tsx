@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import JsonLd from '@/components/seo/JsonLd'
 import { generateMeta } from '@/lib/seo'
@@ -27,18 +28,26 @@ export default function AboutPage() {
   return (
     <div className="techpack-canvas">
       <JsonLd data={organizationSchema()} />
-      <section className="mx-auto max-w-7xl px-4 pb-10 pt-10 sm:px-6 sm:pb-16 sm:pt-20">
-        <p className="mb-4 text-xs font-medium uppercase tracking-widest text-(--text-primary)/40">About Garmops</p>
-        <h1 className="max-w-3xl text-4xl font-bold leading-tight tracking-tight text-(--text-primary) sm:text-5xl">
-          Custom apparel production, made clearer
-        </h1>
-        <p className="mt-6 max-w-2xl text-base leading-7 text-(--text-primary)/60 sm:text-lg">
-          Garmops is a B2B custom apparel and branded merchandise platform operated by Moist Corp from Greater Noida, India. We help businesses turn a product, artwork and quantity into a production-ready order without an opaque sourcing process.
-        </p>
+      <section className="mx-auto grid max-w-7xl gap-10 px-4 pb-14 pt-10 sm:px-6 sm:pb-20 sm:pt-20 lg:grid-cols-[0.86fr_1.14fr] lg:items-center lg:gap-16">
+        <div>
+          <p className="mb-4 text-xs font-medium uppercase tracking-widest text-(--text-muted)">About Garmops</p>
+          <h1 className="max-w-3xl text-4xl font-bold leading-tight tracking-tight text-(--text-primary) sm:text-5xl">
+            Custom apparel production, made clearer
+          </h1>
+          <p className="mt-6 max-w-2xl text-base leading-7 text-(--text-primary)/65 sm:text-lg">
+            Garmops is a B2B custom apparel and branded merchandise platform operated by Moist Corp from Greater Noida, India. We help businesses turn a product, artwork and quantity into a production-ready order without an opaque sourcing process.
+          </p>
+        </div>
+        <figure>
+          <div className="relative aspect-[4/3] overflow-hidden rounded-sm bg-(--color-cream-soft)">
+            <Image src="/images/manufacturing-facility.webp" alt="Garment manufacturing floor used to illustrate the Garmops production workflow" fill sizes="(max-width: 1024px) 100vw, 56vw" className="object-cover" preload />
+          </div>
+          <figcaption className="mt-3 font-mono text-[10px] uppercase tracking-[0.12em] text-(--text-muted)">Garment manufacturing · Production reference</figcaption>
+        </figure>
       </section>
 
       <section className="mx-auto grid max-w-7xl gap-6 px-4 pb-16 sm:px-6 sm:pb-24 lg:grid-cols-[1.4fr_1fr]">
-        <div className="techpack-surface rounded-sm border p-6 sm:p-9">
+        <div className="border-y border-(--color-rule) py-7 sm:py-9 lg:pr-10">
           <h2 className="text-2xl font-bold tracking-tight text-(--text-primary)">What we make</h2>
           <div className="mt-5 space-y-4 text-sm leading-7 text-(--text-primary)/65">
             <p>
@@ -61,13 +70,13 @@ export default function AboutPage() {
           </div>
         </div>
 
-        <aside className="techpack-panel rounded-sm border p-6 sm:p-8" aria-label="Garmops at a glance">
-          <h2 className="text-lg font-bold tracking-tight text-(--text-primary)">At a glance</h2>
-          <dl className="mt-5 divide-y divide-white/60">
+        <aside className="rounded-sm bg-(--color-navy) p-6 text-white sm:p-8" aria-label="Garmops at a glance">
+          <h2 className="text-lg font-bold tracking-tight">At a glance</h2>
+          <dl className="mt-5 divide-y divide-white/15">
             {facts.map(([label, value]) => (
               <div key={label} className="py-4 first:pt-0 last:pb-0">
-                <dt className="text-xs uppercase tracking-wider text-(--text-primary)/40">{label}</dt>
-                <dd className="mt-1 text-sm font-medium text-(--text-primary)">{value}</dd>
+                <dt className="text-xs uppercase tracking-wider text-white/65">{label}</dt>
+                <dd className="mt-1 text-sm font-medium text-white">{value}</dd>
               </div>
             ))}
           </dl>

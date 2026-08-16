@@ -19,9 +19,9 @@ export default function Journal() {
   return (
     <div className="techpack-canvas">
       <section className="max-w-7xl mx-auto px-4 pb-10 pt-10 sm:px-6 sm:pb-16 sm:pt-20">
-        <p className="text-xs text-(--text-primary)/40 font-medium mb-4 tracking-widest uppercase">Guides</p>
+        <p className="text-xs text-(--text-muted) font-medium mb-4 tracking-widest uppercase">Guides</p>
         <h1 className="text-4xl sm:text-5xl font-bold text-(--text-primary) max-w-2xl leading-tight mb-6 tracking-tight">Custom apparel &amp; merchandise guides</h1>
-        <p className="max-w-2xl text-base leading-relaxed text-(--text-primary)/50 sm:text-lg">Clear, production-led answers about bulk T-shirt printing, garment specifications, decoration methods, pricing, MOQs and planning branded merchandise in India.</p>
+        <p className="max-w-2xl text-base leading-relaxed text-(--text-muted) sm:text-lg">Clear, production-led answers about bulk T-shirt printing, garment specifications, decoration methods, pricing, MOQs and planning branded merchandise in India.</p>
       </section>
 
       {/* Featured */}
@@ -30,8 +30,8 @@ export default function Journal() {
           <div className="flex-1">
             <span className="inline-block text-xs px-2.5 py-1 border border-white/20 text-white/60 mb-4">{posts[0].category}</span>
             <h2 className="text-3xl font-bold text-white mb-4 leading-tight tracking-tight">{posts[0].title}</h2>
-            <p className="text-white/50 leading-relaxed mb-6 max-w-lg text-sm">{posts[0].excerpt}</p>
-            <div className="flex items-center gap-4 text-xs text-white/30">
+            <p className="text-white/65 leading-relaxed mb-6 max-w-lg text-sm">{posts[0].excerpt}</p>
+            <div className="flex items-center gap-4 text-xs text-white/65">
               <time dateTime={posts[0].publishedAt}>{posts[0].date}</time>
               <span>{posts[0].readTime}</span>
             </div>
@@ -45,18 +45,25 @@ export default function Journal() {
       {/* Grid */}
       <section className="max-w-7xl mx-auto px-4 pb-16 sm:px-6 sm:pb-24">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {posts.slice(1).map(post => (
+          {posts.slice(1).map((post, index, remainingPosts) => {
+            const isLast = index === remainingPosts.length - 1
+            return (
             <Link key={post.slug} href={`/journal/${post.slug}`}
-              className="techpack-panel group flex flex-col gap-4 rounded-sm border p-6 transition-all duration-300 hover:-translate-y-0.5 hover:!border-(--color-accent)/45">
+              className={`storefront-interactive-card techpack-panel group flex gap-4 rounded-sm border p-6 ${isLast ? 'flex-col md:col-span-2 md:grid md:grid-cols-[0.7fr_1.3fr_auto] md:items-center lg:col-span-3' : 'flex-col'}`}>
               <div className="flex items-center justify-between">
-                <span className="text-xs border border-[#ECE7DF] rounded-sm px-2.5 py-1 text-(--text-primary)/50">{post.category}</span>
-                <span className="text-xs text-(--text-primary)/30">{post.readTime}</span>
+                <span className="text-xs border border-[#ECE7DF] rounded-sm px-2.5 py-1 text-(--text-muted)">{post.category}</span>
+                {!isLast && <span className="text-xs text-(--text-muted)">{post.readTime}</span>}
               </div>
-              <h3 className="text-sm font-semibold text-(--text-primary) leading-snug group-hover:underline">{post.title}</h3>
-              <p className="text-xs text-(--text-primary)/50 leading-relaxed flex-1">{post.excerpt}</p>
-              <time dateTime={post.publishedAt} className="text-xs text-(--text-primary)/30">{post.date}</time>
+              <div>
+                <h3 className={`${isLast ? 'text-lg' : 'text-sm'} font-semibold text-(--text-primary) leading-snug group-hover:underline`}>{post.title}</h3>
+                <p className="mt-2 text-xs text-(--text-muted) leading-relaxed flex-1">{post.excerpt}</p>
+              </div>
+              <div className="flex items-center justify-between gap-4 md:flex-col md:items-end">
+                {isLast && <span className="text-xs text-(--text-muted)">{post.readTime}</span>}
+                <time dateTime={post.publishedAt} className="text-xs text-(--text-muted)">{post.date}</time>
+              </div>
             </Link>
-          ))}
+          )})}
         </div>
       </section>
 
@@ -64,7 +71,7 @@ export default function Journal() {
         <div className="max-w-7xl mx-auto flex flex-col items-stretch justify-between gap-6 px-4 sm:px-6 md:flex-row md:items-center">
           <div>
             <h2 className="text-2xl font-bold mb-1 tracking-tight">Ready to place an order?</h2>
-            <p className="text-(--text-primary)/50 text-sm">50 pieces minimum. Quote within 24 hours.</p>
+            <p className="text-(--text-muted) text-sm">50 pieces minimum. Quote within 24 hours.</p>
           </div>
           <div className="flex flex-col gap-3 min-[360px]:flex-row">
             <Link href="/configurator" className="rounded-sm bg-(--color-accent) px-6 py-3 text-center text-sm font-medium text-white transition hover:bg-(--color-accent-dark)">Start designing</Link>

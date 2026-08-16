@@ -81,7 +81,7 @@ export default function Navbar() {
 
       if (event.key !== 'Tab') return
       const focusable = Array.from(
-        mobileNavRef.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [],
+        mobileNavRef.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), summary, [tabindex]:not([tabindex="-1"])') ?? [],
       ).filter(element => !element.hasAttribute('disabled'))
       if (focusable.length === 0) return
 
@@ -214,7 +214,7 @@ export default function Navbar() {
           ref={mobileNavRef}
           id="mobile-navigation"
           aria-label="Mobile navigation"
-          className={`absolute inset-x-0 top-14 max-h-screen-safe overflow-y-auto border-b border-(--color-rule) bg-(--color-cream) px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 transition-all duration-200 sm:px-5 sm:pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pt-4 ${
+          className={`absolute inset-x-0 top-14 max-h-screen-safe overflow-y-auto border-b border-(--color-rule) bg-(--color-cream) px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] sm:px-5 sm:pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pt-4 ${
             open ? 'translate-y-0 opacity-100' : '-translate-y-3 opacity-0'
           }`}
         >
@@ -239,37 +239,41 @@ export default function Navbar() {
             })}
           </div>
 
-          <div className="mt-5 grid gap-5 border-t border-(--color-rule) pt-5 sm:grid-cols-2">
+          <Link
+            href="/configurator"
+            tabIndex={open ? 0 : -1}
+            onClick={closeMenu}
+            className="mt-5 block rounded-sm bg-(--color-accent) px-5 py-3.5 text-center font-mono text-sm uppercase tracking-[0.06em] text-(--color-cream) transition-colors duration-200 hover:bg-(--color-accent-dark)"
+          >
+            START DESIGNING
+          </Link>
+
+          <div className="mt-5 grid gap-2 border-t border-(--color-rule) pt-4 sm:grid-cols-2">
             {mobileGroups.map(group => (
-              <div key={group.label}>
-                <p className="px-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-(--text-primary)/40">
+              <details key={group.label} className="group border-b border-(--color-rule) sm:border-b-0">
+                <summary
+                  tabIndex={open ? 0 : -1}
+                  className="flex min-h-11 list-none items-center justify-between px-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-(--text-muted) [&::-webkit-details-marker]:hidden"
+                >
                   {group.label}
-                </p>
-                <div className="mt-2 flex flex-col">
+                  <span aria-hidden="true" className="text-base transition-transform duration-200 group-open:rotate-45">+</span>
+                </summary>
+                <div className="flex flex-col pb-2">
                   {group.links.map(link => (
                     <Link
                       key={link.href}
                       href={link.href}
                       tabIndex={open ? 0 : -1}
                       onClick={closeMenu}
-                      className="px-1 py-2.5 text-sm text-(--text-primary)/65 transition-colors hover:text-(--color-accent)"
+                      className="px-1 py-2.5 text-sm text-(--text-muted) transition-colors hover:text-(--color-accent)"
                     >
                       {link.label}
                     </Link>
                   ))}
                 </div>
-              </div>
+              </details>
             ))}
           </div>
-
-          <Link
-            href="/configurator"
-            tabIndex={open ? 0 : -1}
-            onClick={closeMenu}
-            className="mt-5 block rounded-sm bg-(--color-accent) px-5 py-3.5 text-center font-mono text-sm uppercase tracking-[0.06em] text-(--color-cream) transition-colors hover:bg-(--color-accent-dark)"
-          >
-            START DESIGNING
-          </Link>
           {accountsEnabled && <CustomerAccountControl session={customerSession} mobile onOpenAuth={() => setAuthOpen(true)} onNavigate={closeMenu} />}
           <a
             href="https://wa.me/918800711169?text=Hi%2C%20I%20found%20Garmops%20and%20would%20like%20to%20know%20more%20about%20custom%20apparel."

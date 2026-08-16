@@ -29,7 +29,7 @@ export default function IndustryPrintTechniques({
   return (
     <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
       <div className="max-w-3xl">
-        <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-primary)/45">
+        <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">
           Print finish
         </p>
         <h2 className="text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">Choose your print finish</h2>
@@ -41,7 +41,7 @@ export default function IndustryPrintTechniques({
           <article key={technique.key} className="techpack-panel rounded-sm border p-5 sm:p-6">
             <h3 className="text-lg font-semibold text-(--text-primary)">{technique.name}</h3>
             <p className="mt-3 text-sm leading-6 text-[#3f3f3f]">{technique.description}</p>
-            <p className="mt-4 border-t border-(--color-rule) pt-4 font-mono text-[10px] uppercase tracking-[0.08em] text-(--text-primary)/50">
+            <p className="mt-4 border-t border-(--color-rule) pt-4 font-mono text-[10px] uppercase tracking-[0.08em] text-(--text-muted)">
               Good for
             </p>
             <p className="mt-1 text-sm font-medium text-(--text-primary)">{technique.goodFor}</p>

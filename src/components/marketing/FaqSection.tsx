@@ -4,7 +4,7 @@ export default function FaqSection({ faqs }: { faqs: LandingPageFaq[] }) {
   return (
     <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
       <div className="max-w-3xl">
-        <p className="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-(--text-primary)/45">FAQ</p>
+        <p className="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-(--text-muted)">FAQ</p>
         <h2 className="text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">Questions buyers ask before approval</h2>
       </div>
       <dl className="mt-8 grid gap-4">

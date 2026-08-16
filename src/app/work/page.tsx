@@ -25,19 +25,19 @@ function ProjectImage({
   if (!src) {
     return (
       <div className="flex h-full min-h-64 items-center justify-center bg-(--color-cream-soft)">
-        <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-(--text-primary)/35">Image unavailable</span>
+        <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-(--text-muted)">Image unavailable</span>
       </div>
     )
   }
 
-  return <Image src={src} alt={alt} fill sizes={sizes} className={className} />
+  return <Image src={src} alt={alt} fill sizes={sizes} className={className} preload />
 }
 
 export default function Work() {
   return (
     <main className="techpack-canvas">
       <section className="mx-auto max-w-7xl px-4 pb-12 pt-12 sm:px-6 sm:pb-16 sm:pt-20 lg:pb-20">
-        <p className="mb-4 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-primary)/45">Case Studies</p>
+        <p className="mb-4 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">Case Studies</p>
         <h1 className="max-w-3xl text-4xl font-bold leading-[1.06] tracking-tight text-(--text-primary) sm:text-6xl">
           Made with Garmops.
         </h1>
@@ -47,7 +47,7 @@ export default function Work() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 sm:pb-24">
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6">
           {caseStudies.map(study => {
             const industry = getCaseStudyIndustry(study.industryId)
 
@@ -55,22 +55,22 @@ export default function Work() {
               <Link
                 key={study.slug}
                 href={`/work/${study.slug}`}
-                className="techpack-panel group flex flex-col overflow-hidden rounded-sm border transition-colors hover:!border-(--color-accent)/55"
+                className="storefront-interactive-card techpack-panel group flex flex-col overflow-hidden rounded-sm border lg:grid lg:grid-cols-[1.15fr_0.85fr]"
               >
-                <div className="relative aspect-[4/3] overflow-hidden bg-(--color-cream-soft)">
+                <div className="relative aspect-[4/3] overflow-hidden bg-(--color-cream-soft) lg:aspect-auto lg:min-h-[520px]">
                   <ProjectImage
                     src={study.coverImage}
                     alt={study.gallery?.[0]?.alt ?? `${study.client} project image`}
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                    sizes="(max-width: 1024px) 100vw, 58vw"
+                    className="storefront-interactive-image object-cover"
                   />
                 </div>
 
-                <div className="flex flex-1 flex-col p-5 sm:p-7">
+                <div className="flex flex-1 flex-col justify-center p-5 sm:p-8 lg:p-10">
                   {industry?.href ? (
                     <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-(--color-accent-dark)">{industry.name}</span>
                   ) : (
-                    <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-(--text-primary)/45">{industry?.name ?? study.industryId}</span>
+                    <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-(--text-muted)">{industry?.name ?? study.industryId}</span>
                   )}
                   <h2 className="mt-3 text-2xl font-semibold leading-tight tracking-tight text-(--text-primary) group-hover:underline sm:text-3xl">
                     {study.client}
@@ -78,7 +78,7 @@ export default function Work() {
                   <p className="mt-2 text-sm font-medium text-(--text-primary)/75">{formatCaseStudyProducts(study)}</p>
                   <p className="mt-3 text-sm leading-6 text-[#3f3f3f]">{study.summary}</p>
 
-                  <div className="mt-6 flex flex-wrap gap-x-4 gap-y-2 border-t border-(--color-rule) pt-4 font-mono text-[10px] uppercase tracking-[0.08em] text-(--text-primary)/50">
+                  <div className="mt-6 flex flex-wrap gap-x-4 gap-y-2 border-t border-(--color-rule) pt-4 font-mono text-[10px] uppercase tracking-[0.08em] text-(--text-muted)">
                     <span>{study.printTechniques.join(' · ')}</span>
                     {study.totalQuantity ? <span>{study.totalQuantity} pieces</span> : null}
                   </div>

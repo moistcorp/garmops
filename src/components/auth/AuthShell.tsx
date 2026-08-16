@@ -23,17 +23,17 @@ export default function AuthShell({
               <Link href="/" aria-label="Garmops home" className="inline-flex">
                 <GarmopsLogo inverted className="h-4 w-auto" />
               </Link>
-              <p className="mt-2 font-mono text-xs uppercase tracking-[0.14em] text-white/35">Access control / secure</p>
+              <p className="mt-2 font-mono text-xs uppercase tracking-[0.14em] text-white/65">Access control / secure</p>
             </div>
             <div>
-              <p className="mb-4 text-xs uppercase tracking-[0.24em] text-white/45">
+              <p className="mb-4 text-xs uppercase tracking-[0.24em] text-white/65">
                 Production, without guesswork
               </p>
               <p className="max-w-sm text-3xl font-semibold leading-tight">
                 One secure workspace from approved design to dispatch.
               </p>
             </div>
-            <p className="text-xs leading-relaxed text-white/40">
+            <p className="text-xs leading-relaxed text-white/65">
               Foundry is isolated from customer access. Every staff session requires an approved account and authenticator verification.
             </p>
           </aside>

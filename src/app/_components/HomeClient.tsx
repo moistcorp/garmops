@@ -1,7 +1,6 @@
 'use client'
 
 import HeroScrollVideo, { HomeProductionShowcase } from '@/app/HeroScrollVideo'
-import WhyGarmops from '@/app/_components/WhyGarmops'
 import Reveal from '@/app/_components/Reveal'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -143,7 +142,7 @@ export default function HomeClient() {
               <div className="techpack-dark flex h-full flex-col overflow-hidden rounded-sm border p-4 sm:p-6">
                 <div className="mb-4 flex items-center justify-between border-b border-white/15 pb-4">
                   <div>
-                    <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-white/45">Garmops Studio</p>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-white/65">Garmops Studio</p>
                     <p className="mt-1 text-sm font-medium text-white">Build your product specification</p>
                   </div>
                   <span className="rounded-sm border border-white/20 px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.05em] text-white/60">01 / 04</span>
@@ -174,8 +173,8 @@ export default function HomeClient() {
                     ].map(([label, value], index) => (
                       <div key={label} className="rounded-sm border border-white/15 bg-white/[0.04] px-4 py-3">
                         <div className="flex items-center justify-between gap-3">
-                          <p className="font-mono text-[9px] uppercase tracking-[0.06em] text-white/40">{label}</p>
-                          <span className="font-mono text-[9px] text-white/30">0{index + 1}</span>
+                          <p className="font-mono text-[9px] uppercase tracking-[0.06em] text-white/65">{label}</p>
+                          <span className="font-mono text-[9px] text-white/65">0{index + 1}</span>
                         </div>
                         <p className="mt-1 text-xs leading-5 text-white/80">{value}</p>
                       </div>
@@ -189,47 +188,6 @@ export default function HomeClient() {
                   </div>
                 </div>
               </div>
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
-      {/* ROUTER */}
-      <section className="techpack-section">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-24">
-          <Reveal>
-            <div className="mb-8 max-w-2xl sm:mb-10">
-              <p className="mb-4 text-xs font-medium uppercase tracking-widest text-[#595959]">Where to start</p>
-              <h2 className="text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">Not sure where to start?</h2>
-              <p className="mt-3 text-sm leading-relaxed text-[#4a4a4a]">
-                Use the route that matches what you already know. Both paths lead to the same product configurator once you have chosen a garment.
-              </p>
-            </div>
-          </Reveal>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <Reveal>
-              <Link href="/products" className="techpack-panel group flex min-h-[250px] flex-col rounded-sm border p-6 transition-all hover:-translate-y-0.5 hover:!border-(--color-accent)/45 sm:p-8">
-                <div className="mb-10 flex items-center justify-between">
-                  <span className="rounded-sm border border-[#E5E5E5] px-3 py-1.5 font-mono text-xs uppercase tracking-[0.06em] text-[#595959]">I know the garment</span>
-                  <span className="text-lg text-(--color-accent-dark) transition-transform group-hover:translate-x-0.5">→</span>
-                </div>
-                <h3 className="text-2xl font-semibold tracking-tight text-(--text-primary)">Explore products</h3>
-                <p className="mt-3 max-w-md text-sm leading-6 text-[#4a4a4a]">Compare T-shirts, polos, hoodies, sweatshirts and totes by fit, fabric feel and intended use.</p>
-                <p className="mt-auto pt-8 text-sm font-medium text-(--color-accent-dark)">Choose a garment →</p>
-              </Link>
-            </Reveal>
-
-            <Reveal delay={70}>
-              <Link href="/industries" className="techpack-panel group flex min-h-[250px] flex-col rounded-sm border p-6 transition-all hover:-translate-y-0.5 hover:!border-(--color-accent)/45 sm:p-8">
-                <div className="mb-10 flex items-center justify-between">
-                  <span className="rounded-sm border border-[#E5E5E5] px-3 py-1.5 font-mono text-xs uppercase tracking-[0.06em] text-[#595959]">I know the use case</span>
-                  <span className="text-lg text-(--color-accent-dark) transition-transform group-hover:translate-x-0.5">→</span>
-                </div>
-                <h3 className="text-2xl font-semibold tracking-tight text-(--text-primary)">Find by industry</h3>
-                <p className="mt-3 max-w-md text-sm leading-6 text-[#4a4a4a]">Start with company apparel, hospitality, events or another use case and see sensible garment starting points.</p>
-                <p className="mt-auto pt-8 text-sm font-medium text-(--color-accent-dark)">Find recommendations →</p>
-              </Link>
             </Reveal>
           </div>
         </div>
@@ -254,7 +212,7 @@ export default function HomeClient() {
               <Reveal key={product.slug} delay={index * 50}>
                 <Link
                   href={`/products/${product.slug}`}
-                  className="techpack-panel group flex h-full flex-col overflow-hidden rounded-sm border transition-all hover:-translate-y-0.5 hover:!border-(--color-accent)/45"
+                  className="storefront-interactive-card techpack-panel group flex h-full flex-col overflow-hidden rounded-sm border"
                 >
                   <div className="relative aspect-[4/5] overflow-hidden bg-(--color-cream-soft)">
                     {product.image && (
@@ -263,7 +221,7 @@ export default function HomeClient() {
                         alt={product.name}
                         fill
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-[1.025]"
+                        className="storefront-interactive-image object-cover"
                       />
                     )}
                     <div className="absolute left-3 top-3 rounded-sm border border-white/50 bg-white/90 px-3 py-1.5 text-[10px] font-medium text-(--text-primary) backdrop-blur-sm">
@@ -305,7 +263,7 @@ export default function HomeClient() {
               <Reveal key={industry.id} delay={index * 70}>
                 <Link
                   href={industry.href ?? industry.contactHref ?? '/industries'}
-                  className="techpack-panel group flex h-full flex-col overflow-hidden rounded-sm border transition-all hover:-translate-y-0.5 hover:!border-(--color-accent)/45"
+                  className="storefront-interactive-card techpack-panel group flex h-full flex-col overflow-hidden rounded-sm border"
                 >
                   <div className="relative h-[290px] overflow-hidden bg-(--color-cream-soft) sm:h-[360px]">
                     <Image
@@ -313,7 +271,7 @@ export default function HomeClient() {
                       alt={industry.alt}
                       fill
                       sizes="(max-width: 1024px) 100vw, 33vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-[1.025]"
+                      className="storefront-interactive-image object-cover"
                     />
                     <div className="absolute left-4 top-4 rounded-sm border border-white/60 bg-white/90 px-3 py-1.5 text-[10px] font-medium text-(--text-primary) backdrop-blur-sm">
                       {industry.name}
@@ -336,8 +294,6 @@ export default function HomeClient() {
         </div>
       </section>
 
-      <WhyGarmops />
-
       <HomeProductionShowcase />
 
       {/* PRINT METHODS */}
@@ -354,7 +310,7 @@ export default function HomeClient() {
           <div className="grid gap-4 md:grid-cols-3">
             {printMethods.map((method, index) => (
               <Reveal key={method.name} delay={index * 60}>
-                <div className="techpack-panel h-full rounded-sm border p-5 sm:p-6">
+                <div className="h-full border-t-2 border-(--color-rule) px-1 py-6 sm:py-8">
                   <div className="mb-9 flex items-center justify-between">
                     <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-(--color-accent-dark)">{method.index}</span>
                     <span className="h-px w-10 bg-[#D7D7D7]" />
@@ -378,7 +334,7 @@ export default function HomeClient() {
           <Reveal>
             <div className="techpack-dark relative flex flex-col items-stretch justify-between gap-8 overflow-hidden rounded-sm border p-6 sm:p-10 md:flex-row md:items-center md:p-14">
               <div className="relative max-w-xl">
-                <p className="mb-4 text-xs font-medium uppercase tracking-widest text-white/55">Pricing</p>
+                <p className="mb-4 text-xs font-medium uppercase tracking-widest text-white/65">Pricing</p>
                 <h2 className="font-mono text-3xl font-bold tracking-tight text-white md:text-4xl">Clear pricing before production.</h2>
                 <p className="mt-4 text-sm leading-relaxed text-white/70">
                   Build the product and quantity first, then review how the order is priced before you commit. Standard delivery is {DELIVERY_DAYS} days, with a {RUSH_DELIVERY_DAYS}-day rush option where available.
@@ -419,7 +375,7 @@ export default function HomeClient() {
                 {faqs.map((item, i) => (
                   <div
                     key={item.q}
-                    className={`border-b border-[#E5E5E5] transition-all duration-300 ${openFaq === i ? 'techpack-panel my-2 rounded-sm border px-5' : ''}`}
+                    className={`border-b border-[#E5E5E5] transition-[border-color,background-color] duration-200 ${openFaq === i ? 'my-2 rounded-sm border border-(--color-rule) bg-(--color-cream-soft)/55 px-5' : ''}`}
                   >
                     <button
                       type="button"
@@ -432,7 +388,7 @@ export default function HomeClient() {
                       <span className="text-base font-semibold text-(--text-primary)">{item.q}</span>
                       <svg
                         aria-hidden="true"
-                        className={`h-4 w-4 shrink-0 transition-all duration-300 ${openFaq === i ? 'rotate-45 text-(--color-accent)' : 'text-[#555555]'}`}
+                        className={`h-4 w-4 shrink-0 transition-[transform,color] duration-200 ${openFaq === i ? 'rotate-45 text-(--color-accent)' : 'text-[#555555]'}`}
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -446,7 +402,7 @@ export default function HomeClient() {
                       role="region"
                       aria-labelledby={`homepage-faq-button-${i}`}
                       aria-hidden={openFaq !== i}
-                      className={`grid transition-all duration-300 ease-in-out ${openFaq === i ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
+                      className={`grid transition-[grid-template-rows,opacity] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] ${openFaq === i ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
                     >
                       <div className="overflow-hidden">
                         <p className="pb-5 pr-2 text-sm leading-relaxed text-[#4a4a4a] sm:pb-6 sm:pr-10">{item.a}</p>

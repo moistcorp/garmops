@@ -243,10 +243,10 @@ export default function ContactClient() {
         <section className="mt-12 border-t border-(--color-rule) pt-10 sm:mt-16" aria-labelledby="help-intents-heading">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-primary)/40">Start here</p>
+              <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">Start here</p>
               <h2 id="help-intents-heading" className="mt-2 text-2xl font-bold tracking-tight text-(--color-navy) sm:text-3xl">What do you need help with?</h2>
             </div>
-            <p className="max-w-md text-sm leading-6 text-(--text-primary)/55">Choose a product → configure → add quantities and sizes → review → pay → track your order.</p>
+            <p className="max-w-md text-sm leading-6 text-(--text-muted)">Choose a product → configure → add quantities and sizes → review → pay → track your order.</p>
           </div>
 
           <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -257,7 +257,7 @@ export default function ContactClient() {
                   <Icon size={19} strokeWidth={1.8} className="text-(--color-accent)" aria-hidden="true" />
                 </div>
                 <h3 className="mt-8 text-lg font-semibold tracking-tight text-(--color-navy)">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-(--text-primary)/55">{description}</p>
+                <p className="mt-2 text-sm leading-6 text-(--text-muted)">{description}</p>
                 <Link href={href} className="mt-auto inline-flex items-center gap-2 pt-6 text-sm font-semibold text-(--color-accent-dark) transition-colors hover:text-(--color-accent)">
                   {label} <ArrowRight size={15} aria-hidden="true" />
                 </Link>
@@ -270,7 +270,7 @@ export default function ContactClient() {
           <div className="max-w-2xl">
             <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--color-accent)">Direct support</p>
             <h2 id="contact-heading" className="mt-2 text-2xl font-bold tracking-tight text-(--color-navy) sm:text-3xl">Contact Garmops</h2>
-            <p className="mt-3 text-sm leading-6 text-(--text-primary)/55">Choose the channel that suits the question. We are available Monday to Saturday, 10:00 AM–7:00 PM.</p>
+            <p className="mt-3 text-sm leading-6 text-(--text-muted)">Choose the channel that suits the question. We are available Monday to Saturday, 10:00 AM–7:00 PM.</p>
           </div>
 
           <div className="mt-7 grid gap-3 sm:grid-cols-3">
@@ -278,7 +278,7 @@ export default function ContactClient() {
               <article key={title} className="flex min-h-52 flex-col rounded-sm border border-(--color-rule) bg-white p-5 sm:p-6">
                 <Icon size={20} strokeWidth={1.8} className="text-(--color-accent)" aria-hidden="true" />
                 <h3 className="mt-5 text-lg font-semibold tracking-tight text-(--color-navy)">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-(--text-primary)/55">{description}</p>
+                <p className="mt-2 text-sm leading-6 text-(--text-muted)">{description}</p>
                 <DirectContactLink href={href} label={label} external={external} />
               </article>
             ))}
@@ -289,7 +289,7 @@ export default function ContactClient() {
           <div className="max-w-2xl">
             <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--color-accent)">FAQ</p>
             <h2 id="help-faq-heading" className="mt-2 text-2xl font-bold tracking-tight text-(--color-navy) sm:text-3xl">Frequently asked questions</h2>
-            <p className="mt-3 text-sm leading-6 text-(--text-primary)/55">Short answers for choosing, configuring, paying for and following a Garmops order.</p>
+            <p className="mt-3 text-sm leading-6 text-(--text-muted)">Short answers for choosing, configuring, paying for and following a Garmops order.</p>
           </div>
 
           <div className="mt-8 grid gap-x-10 gap-y-10 lg:grid-cols-2">
@@ -317,24 +317,24 @@ export default function ContactClient() {
             <div>
               <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--color-accent)">Company information</p>
               <h2 id="business-details-heading" className="mt-2 text-2xl font-bold tracking-tight text-(--color-navy) sm:text-3xl">Business details</h2>
-              <p className="mt-3 max-w-md text-sm leading-6 text-(--text-primary)/55">Garmops is operated by Moist Corp from Greater Noida, India.</p>
+              <p className="mt-3 max-w-md text-sm leading-6 text-(--text-muted)">Garmops is operated by Moist Corp from Greater Noida, India.</p>
             </div>
 
             <dl className="grid gap-x-8 gap-y-6 border-t border-(--color-rule) pt-6 sm:grid-cols-2 lg:border-t-0 lg:pt-0">
               <div>
-              <dt className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-(--text-primary)/40">Legal / business name</dt>
+              <dt className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-(--text-muted)">Legal / business name</dt>
                 <dd className="mt-2 text-sm font-semibold text-(--color-navy)">Moist Corp</dd>
               </div>
               <div>
-              <dt className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-(--text-primary)/40">Address</dt>
+              <dt className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-(--text-muted)">Address</dt>
                 <dd className="mt-2 text-sm leading-6 text-(--text-primary)/65">Q5, Surajpur Industrial Area, Site-5, Kasna, Greater Noida, UP, India</dd>
               </div>
               <div>
-              <dt className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-(--text-primary)/40">Support email</dt>
+              <dt className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-(--text-muted)">Support email</dt>
                 <dd className="mt-2 text-sm"><a href={`mailto:${siteConfig.email}`} className={faqLinkClass}>{siteConfig.email}</a></dd>
               </div>
               <div>
-              <dt className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-(--text-primary)/40">Phone</dt>
+              <dt className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-(--text-muted)">Phone</dt>
                 <dd className="mt-2 text-sm"><a href={`tel:${phoneNumber}`} className={faqLinkClass}>{siteConfig.phone}</a></dd>
               </div>
             </dl>

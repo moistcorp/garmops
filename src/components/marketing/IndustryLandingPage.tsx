@@ -88,7 +88,7 @@ export default function IndustryLandingPage({ content }: { content: IndustryPage
 
       <header className="mx-auto grid max-w-7xl items-center gap-8 px-4 pb-12 pt-8 sm:px-6 sm:pb-16 sm:pt-14 lg:grid-cols-[1.06fr_0.94fr] lg:gap-14 lg:pb-20">
         <div className="max-w-3xl">
-          <p className="mb-4 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-primary)/45">
+          <p className="mb-4 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">
             {content.eyebrow}
           </p>
           <h1 className="text-balance text-4xl font-bold leading-[1.06] tracking-tight text-(--text-primary) sm:text-5xl lg:text-6xl">
@@ -139,7 +139,7 @@ export default function IndustryLandingPage({ content }: { content: IndustryPage
       <section className="techpack-section">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
           <div className="max-w-3xl">
-            <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-primary)/45">
+            <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">
               Start with the job
             </p>
             <h2 className="text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">What are you making?</h2>
@@ -153,7 +153,7 @@ export default function IndustryLandingPage({ content }: { content: IndustryPage
               <article key={useCase.title} className="techpack-panel rounded-sm border p-5 sm:p-6">
                 <h3 className="text-lg font-semibold text-(--text-primary)">{useCase.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-[#3f3f3f]">{useCase.description}</p>
-                <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.08em] text-(--text-primary)/45">
+                <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.08em] text-(--text-muted)">
                   Recommended starting points
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -167,7 +167,7 @@ export default function IndustryLandingPage({ content }: { content: IndustryPage
 
       <section id="recommended-products" className="mx-auto max-w-7xl scroll-mt-24 px-4 py-14 sm:px-6 sm:py-20">
         <div className="max-w-3xl">
-          <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-primary)/45">Products</p>
+          <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">Products</p>
           <h2 className="text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">Recommended starting points</h2>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-[#3f3f3f] sm:text-base">
             These garments cover the most common needs for this industry. Open a product to check its size chart, material and full specification before customising it.
@@ -179,7 +179,7 @@ export default function IndustryLandingPage({ content }: { content: IndustryPage
             <Link
               key={product.slug}
               href={`/products/${product.slug}`}
-              className="techpack-panel group flex min-w-0 flex-col overflow-hidden rounded-sm border transition-transform hover:-translate-y-0.5 hover:!border-(--color-accent)/45"
+              className="storefront-interactive-card techpack-panel group flex min-w-0 flex-col overflow-hidden rounded-sm border"
             >
               <div className="relative aspect-[4/3] overflow-hidden bg-(--color-cream-soft)">
                 {product.image && (
@@ -188,20 +188,20 @@ export default function IndustryLandingPage({ content }: { content: IndustryPage
                     alt={productImageAlt(product)}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                    className="storefront-interactive-image object-cover"
                   />
                 )}
               </div>
               <div className="flex flex-1 flex-col p-5">
                 <h3 className="text-lg font-semibold leading-snug text-(--text-primary) group-hover:underline">{product.name}</h3>
-                <p className="mt-1 text-xs font-medium text-(--text-primary)/55">
+                <p className="mt-1 text-xs font-medium text-(--text-muted)">
                   {productFabricFeel(product)} · {productFitLabel(product)}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <span className="rounded-sm bg-(--color-cream-soft) px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.06em] text-(--text-primary)/55">
+                  <span className="rounded-sm bg-(--color-cream-soft) px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.06em] text-(--text-muted)">
                     {product.gsm} GSM
                   </span>
-                  <span className="rounded-sm bg-(--color-cream-soft) px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.06em] text-(--text-primary)/55">
+                  <span className="rounded-sm bg-(--color-cream-soft) px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.06em] text-(--text-muted)">
                     {product.selectorMaterial}
                   </span>
                 </div>
@@ -226,7 +226,7 @@ export default function IndustryLandingPage({ content }: { content: IndustryPage
       <section className="techpack-section">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
           <div className="max-w-3xl">
-            <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-primary)/45">How it works</p>
+            <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">How it works</p>
             <h2 className="text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">From garment to production</h2>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-[#3f3f3f] sm:text-base">
               The same four-step flow applies across industries so the product, artwork and quantities stay connected.
@@ -248,14 +248,14 @@ export default function IndustryLandingPage({ content }: { content: IndustryPage
 
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
         <div className="max-w-3xl">
-          <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-primary)/45">Planning</p>
+          <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">Planning</p>
           <h2 className="text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">{content.planningTitle}</h2>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-[#3f3f3f] sm:text-base">{content.planningIntroduction}</p>
         </div>
 
         <details className="techpack-panel mt-8 rounded-sm border">
           <summary className="cursor-pointer list-none px-5 py-5 text-sm font-semibold text-(--text-primary) sm:px-6">
-            Planning & order notes <span className="ml-2 text-(--text-primary)/40">+</span>
+            Planning & order notes <span className="ml-2 text-(--text-muted)">+</span>
           </summary>
           <div className="grid gap-px border-t border-(--color-rule) bg-(--color-rule) sm:grid-cols-2">
             {content.planningNotes.map(note => (
@@ -271,14 +271,14 @@ export default function IndustryLandingPage({ content }: { content: IndustryPage
       <section className="techpack-section">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
           <div className="max-w-3xl">
-            <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-primary)/45">FAQ</p>
+            <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">FAQ</p>
             <h2 className="text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">Common questions before you start</h2>
           </div>
           <div className="mt-8 grid gap-3">
             {content.faqs.map(faq => (
               <details key={faq.question} className="techpack-panel rounded-sm border">
                 <summary className="cursor-pointer list-none px-5 py-5 text-sm font-semibold leading-6 text-(--text-primary) sm:px-6">
-                  {faq.question} <span className="ml-2 text-(--text-primary)/40">+</span>
+                  {faq.question} <span className="ml-2 text-(--text-muted)">+</span>
                 </summary>
                 <p className="border-t border-(--color-rule) px-5 py-5 text-sm leading-6 text-[#3f3f3f] sm:px-6">{faq.answer}</p>
               </details>

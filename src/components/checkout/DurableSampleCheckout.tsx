@@ -16,7 +16,7 @@ import { calculateTaxPaise, gstRateForProduct } from "@/lib/tax";
 const inputClass =
   "techpack-control w-full rounded-sm border px-4 py-3 text-sm transition-colors focus:!border-(--color-accent) focus:outline-none";
 const labelClass =
-  "mb-1.5 block text-xs font-medium uppercase tracking-wide text-(--text-primary)/50";
+  "mb-1.5 block text-xs font-medium uppercase tracking-wide text-(--text-muted)";
 const SAMPLE_CHECKOUT_IDEMPOTENCY_KEY =
   "garmops-durable-sample-checkout-idempotency";
 const SAMPLE_CHECKOUT_REQUEST_TIMEOUT_MS = 30_000;
@@ -379,7 +379,7 @@ export default function DurableSampleCheckout({
             }}
           >
             <section className="techpack-panel rounded-sm border p-5 sm:p-7">
-              <p className="mb-5 text-xs font-medium uppercase tracking-widest text-(--text-primary)/40">
+              <p className="mb-5 text-xs font-medium uppercase tracking-widest text-(--text-muted)">
                 Account and contact
               </p>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -466,10 +466,10 @@ export default function DurableSampleCheckout({
 
             <section className="techpack-panel rounded-sm border p-5 sm:p-7">
               <div className="mb-5">
-                <p className="text-xs font-medium uppercase tracking-widest text-(--text-primary)/40">
+                <p className="text-xs font-medium uppercase tracking-widest text-(--text-muted)">
                   Delivery address
                 </p>
-                <p className="mt-1 text-xs text-(--text-primary)/50">
+                <p className="mt-1 text-xs text-(--text-muted)">
                   This address becomes the immutable delivery and billing snapshot for this sample purchase. Shipping is free.
                 </p>
               </div>
@@ -554,15 +554,15 @@ export default function DurableSampleCheckout({
               </div>
               <div className="flex flex-col gap-2 border-t border-[#ECE7DF] pt-4 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-(--text-primary)/50">Subtotal</span>
+                  <span className="text-(--text-muted)">Subtotal</span>
                   <span>{rupees(cartTotalRupees * 100)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-(--text-primary)/50">GST (5% / 12% as applicable)</span>
+                  <span className="text-(--text-muted)">GST (5% / 12% as applicable)</span>
                   <span>{rupees(taxPaise)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-(--text-primary)/50">Shipping</span>
+                  <span className="text-(--text-muted)">Shipping</span>
                   <span>Free</span>
                 </div>
               </div>
@@ -585,7 +585,7 @@ export default function DurableSampleCheckout({
             </div>
             <Link
               href="/cart"
-              className="text-center text-xs text-(--text-primary)/40 hover:text-(--text-primary)"
+              className="text-center text-xs text-(--text-muted) hover:text-(--text-primary)"
             >
               Back to cart
             </Link>

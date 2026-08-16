@@ -56,7 +56,7 @@ export default async function JournalPostPage({ params }: { params: Promise<{ sl
         { label: post.title },
       ]} />
       <div className="mb-8 border-b border-[#ECE7DF] pb-8 sm:mb-10 sm:pb-10">
-        <div className="mb-5 flex flex-wrap items-center gap-3 text-xs text-(--text-primary)/45">
+        <div className="mb-5 flex flex-wrap items-center gap-3 text-xs text-(--text-muted)">
           <span className="techpack-chip rounded-sm px-3 py-1">{post.category}</span>
           <time dateTime={post.publishedAt}>{post.date}</time>
           <span aria-hidden="true">·</span>
@@ -64,7 +64,7 @@ export default async function JournalPostPage({ params }: { params: Promise<{ sl
         </div>
         <h1 className="text-3xl font-bold leading-tight tracking-tight text-(--text-primary) sm:text-5xl">{post.title}</h1>
         <p className="mt-5 text-base leading-relaxed text-(--text-primary)/60 sm:mt-6 sm:text-lg">{post.excerpt}</p>
-        <p className="mt-5 text-xs text-(--text-primary)/45">
+        <p className="mt-5 text-xs text-(--text-muted)">
           Written and reviewed by {post.author ?? 'Garmops Production Team'}
           {post.updatedAt && post.updatedAt !== post.publishedAt ? (
             <> · Updated <time dateTime={post.updatedAt}>{post.updatedAt}</time></>
@@ -169,7 +169,7 @@ export default async function JournalPostPage({ params }: { params: Promise<{ sl
       <div className="techpack-surface mt-12 flex flex-col gap-4 rounded-sm border p-5 sm:mt-14 sm:flex-row sm:items-center sm:justify-between sm:p-7">
         <div>
           <h2 className="font-semibold text-(--text-primary)">Planning a production run?</h2>
-          <p className="mt-1 text-sm text-(--text-primary)/55">Configure your order or ask us about the right specification.</p>
+          <p className="mt-1 text-sm text-(--text-muted)">Configure your order or ask us about the right specification.</p>
         </div>
         <Link href="/contact" className="shrink-0 rounded-sm bg-(--color-accent) px-6 py-3 text-center text-sm font-medium text-white hover:bg-(--color-accent-dark)">
           Talk to us
