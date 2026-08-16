@@ -37,7 +37,6 @@ import ViewTabs from '../GarmentPreview/ViewTabs';
 import { ArtworkPositionProvider } from '@/lib/configurator/ArtworkPositionContext';
 import { restoreConfigurationUploads } from '@/lib/configurator/objectUrls';
 import { ActionFeedback, type ActionFeedbackTone } from '../ActionFeedback';
-import { getArtworkSizeConflict } from '@/lib/configurator/artworkSizing';
 import {
   getRecommendedSizeAllocation,
   MAX_CONFIGURATION_QUANTITY,
@@ -387,8 +386,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
       const minimumUnits = getProductMinimumOrderQuantity(item.productId, { colourType: item.colour.type, customDyeMinimum: CUSTOM_DYE_MOQ_UNITS });
       const quantity = totalUnits(item.sizeQuantities);
       return quantity >= minimumUnits &&
-        quantity <= MAX_CONFIGURATION_QUANTITY &&
-        !getArtworkSizeConflict(item.artwork, item.sizeQuantities);
+        quantity <= MAX_CONFIGURATION_QUANTITY;
     });
 
   const cartValidationMessage = (() => {
@@ -407,9 +405,6 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
       }
       if (quantity > MAX_CONFIGURATION_QUANTITY) {
         return `${item.productName} exceeds the supported quantity limit.`;
-      }
-      if (getArtworkSizeConflict(item.artwork, item.sizeQuantities)) {
-        return `Adjust the artwork or remove the conflicting size for ${item.productName}.`;
       }
     }
     return undefined;
@@ -512,7 +507,6 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                 ),
               )
             : 100;
-          const artworkSizeConflict = getArtworkSizeConflict(item.artwork, item.sizeQuantities);
           const quantityShortfall = Math.max(0, itemMinimumUnits - itemUnits);
           const isOneSize = itemSizes.length === 1 && itemSizes[0] === "One Size";
           return (
@@ -661,33 +655,6 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                     idPrefix={item.id}
                   />
                   {pendingLineId === item.id ? <p className="mt-2 text-xs text-(--color-accent)" role="status">Updating the Medusa cart…</p> : null}
-
-                  {artworkSizeConflict && (
-                    <div className="flex flex-col gap-3 rounded-sm border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="alert">
-                      <div>
-                        <p className="font-mono text-xs font-semibold uppercase tracking-[0.08em]">Artwork adjustment needed</p>
-                        <p className="mt-1 text-xs leading-relaxed">
-                          Your artwork was positioned for {artworkSizeConflict.configuredFor} and above. You&apos;ve added size {artworkSizeConflict.actualSmallestSize}, which has a smaller printable area.
-                        </p>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          onClick={() => router.push(`/configurator/build/${encodeURIComponent(item.productId)}?cartId=${encodeURIComponent(cartId)}&itemId=${encodeURIComponent(item.id)}&step=artwork&returnTo=size-quantity`)}
-                          className="rounded-sm border border-amber-900/25 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-amber-100"
-                        >
-                          Adjust artwork →
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleQtyChange(item.id, artworkSizeConflict.actualSmallestSize, 0)}
-                          className="rounded-sm border border-amber-900/25 px-3 py-1.5 text-xs font-semibold hover:bg-amber-100"
-                        >
-                          Remove {artworkSizeConflict.actualSmallestSize}
-                        </button>
-                      </div>
-                    </div>
-                  )}
 
                   {sizeChart && (
                     <details className="mt-1 text-xs text-(--text-primary)">
