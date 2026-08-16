@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, LoaderCircle } from "lucide-react";
 import { formatInr } from "@/lib/configurator/pricing";
 
 interface CartSummarySidebarProps {
@@ -14,6 +14,7 @@ interface CartSummarySidebarProps {
   onNext?: () => void;
   nextLabel?: string;
   nextDisabled?: boolean;
+  nextLoading?: boolean;
   disabledMessage?: string;
   onDisabledNext?: () => void;
   sticky?: boolean;
@@ -31,6 +32,7 @@ export function CartSummarySidebar({
   onNext,
   nextLabel = "Continue",
   nextDisabled = false,
+  nextLoading = false,
   disabledMessage,
   onDisabledNext,
   sticky = true,
@@ -67,17 +69,21 @@ export function CartSummarySidebar({
         <>
           <button
             type="button"
-            aria-disabled={nextDisabled}
-            disabled={nextDisabled && !onDisabledNext}
-            onClick={nextDisabled ? onDisabledNext : onNext}
+            aria-disabled={nextDisabled || nextLoading}
+            aria-busy={nextLoading}
+            disabled={nextLoading || (nextDisabled && !onDisabledNext)}
+            onClick={nextLoading ? undefined : nextDisabled ? onDisabledNext : onNext}
             className={`mt-5 flex w-full items-center justify-center gap-2 rounded-sm px-4 py-3 text-sm font-semibold transition-colors ${
-              nextDisabled
+              nextDisabled && !nextLoading
                 ? "cursor-not-allowed bg-[#E5E5E5] text-(--text-primary)/45"
-                : "bg-(--color-accent) text-white hover:bg-(--color-accent-dark)"
+                : nextLoading
+                  ? "cursor-wait bg-(--color-accent) text-white/85"
+                  : "bg-(--color-accent) text-white hover:bg-(--color-accent-dark)"
             }`}
           >
-            {nextLabel}
-            <ArrowRight size={16} />
+            {nextLoading ? <LoaderCircle size={16} className="animate-spin" aria-hidden="true" /> : null}
+            <span>{nextLabel}</span>
+            {!nextLoading ? <ArrowRight size={16} aria-hidden="true" /> : null}
           </button>
           {nextDisabled && disabledMessage && (
             <p className="mt-2 text-center text-xs text-(--text-primary)/50">{disabledMessage}</p>

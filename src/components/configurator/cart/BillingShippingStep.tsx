@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, MapPin, ReceiptText, ShieldCheck, UserRound } from "lucide-react";
+import { CheckCircle2, LoaderCircle, MapPin, ReceiptText, ShieldCheck, UserRound } from "lucide-react";
 import {
   AddressForm,
   digitsOnly,
@@ -320,6 +320,7 @@ export function BillingShippingStep({
   const [showSavedSummary, setShowSavedSummary] = useState(false);
   const [validationFeedback, setValidationFeedback] = useState<string | null>(null);
   const [storageSaveError, setStorageSaveError] = useState<string | null>(null);
+  const [isContinuing, setIsContinuing] = useState(false);
 
   useEffect(() => {
     const loadDraft = window.setTimeout(() => {
@@ -511,6 +512,8 @@ export function BillingShippingStep({
       return;
     }
 
+    setIsContinuing(true);
+
     try {
       let canonicalCart: ConfiguredCartSummary = await getConfiguredCart(cartId);
       for (const item of draft.items) {
@@ -532,6 +535,7 @@ export function BillingShippingStep({
       });
     } catch (error) {
       setValidationFeedback(error instanceof Error ? error.message : "The Medusa cart could not be refreshed.");
+      setIsContinuing(false);
       return;
     }
 
@@ -576,6 +580,7 @@ export function BillingShippingStep({
       writeDraft(cartId, next);
     } catch (error) {
       setValidationFeedback(error instanceof Error ? error.message : "The checkout details could not be saved.");
+      setIsContinuing(false);
       return;
     }
 
@@ -868,8 +873,9 @@ export function BillingShippingStep({
             gst={totals.gst}
             total={totals.total}
             onNext={handleNext}
-            nextLabel="Review & payment"
+            nextLabel={isContinuing ? "Preparing review & payment…" : "Review & payment"}
             nextDisabled={!isValid}
+            nextLoading={isContinuing}
             disabledMessage={missingMessage}
             onDisabledNext={handleNext}
             sticky={false}

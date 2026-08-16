@@ -171,8 +171,10 @@ export function prepareConfiguredCheckout(input: {
   privacyVersion?: string;
   requestedDeliveryDate?: string;
   deliveryPreference?: string;
+  signal?: AbortSignal;
 }): Promise<{ checkout: { cartId: string; amountPaise: number; readyForPayment: boolean }; cart: ConfiguredCartSummary }> {
-  return request("/store/garmops/checkout/prepare", { method: "POST", body: input });
+  const { signal, ...body } = input;
+  return request("/store/garmops/checkout/prepare", { method: "POST", body, signal });
 }
 
 export function saveCheckoutDetails(input: {

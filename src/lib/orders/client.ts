@@ -30,6 +30,24 @@ type SubmissionResult =
       message: string;
     };
 
+const CHECKOUT_REQUEST_TIMEOUT_MS = 30_000;
+
+async function withCheckoutTimeout<T>(
+  operation: (signal: AbortSignal) => Promise<T>,
+  message: string,
+): Promise<T> {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), CHECKOUT_REQUEST_TIMEOUT_MS);
+  try {
+    return await operation(controller.signal);
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error(message);
+    throw error;
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
 export function buildCheckoutDraftForItem(item: CartItem): BuildDraft {
   const hasArtwork = Boolean(item.artwork.front || item.artwork.back);
   const currentNeckLabel = item.neckLabel ?? createStandardNeckLabel();
@@ -80,6 +98,7 @@ export async function prepareConfiguratorCheckoutPayment(input: {
 
   const contact = input.draft.projectContact;
   const billing = input.draft.billingInformation;
+  const selectedDeliveryDateIso = input.draft.selectedDeliveryDateIso;
   const fullName = `${contact.firstName} ${contact.lastName}`.trim();
   const billingAddress = billing.sameAsCompanyAddress
     ? input.draft.shippingInformation.address
@@ -87,7 +106,8 @@ export async function prepareConfiguratorCheckoutPayment(input: {
   if (input.draft.promoCode.trim()) return { ok: false, kind: "validation", message: "Promotional codes are not available for this checkout." };
 
   try {
-    const prepared = await prepareConfiguredCheckout({
+    const prepared = await withCheckoutTimeout(
+      (signal) => prepareConfiguredCheckout({
       cartId: input.cartId,
       email: contact.email,
       projectName: input.draft.projectName.trim() || "Merch project",
@@ -117,15 +137,22 @@ export async function prepareConfiguratorCheckoutPayment(input: {
       },
       termsVersion: CONFIGURATOR_ORDER_TERMS_VERSION,
       privacyVersion: CHECKOUT_PRIVACY_VERSION,
-      requestedDeliveryDate: localDateInIndia(input.draft.selectedDeliveryDateIso),
+      requestedDeliveryDate: localDateInIndia(selectedDeliveryDateIso),
       deliveryPreference: input.draft.deliveryType,
-    });
+      signal,
+    }),
+      "Checkout preparation is taking too long. Please try again.",
+    );
 
-    const paymentResponse = await fetch("/api/payments/payu/initiate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ cartId: prepared.checkout.cartId }),
-  });
+    const paymentResponse = await withCheckoutTimeout(
+      (signal) => fetch("/api/payments/payu/initiate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cartId: prepared.checkout.cartId }),
+        signal,
+      }),
+      "Secure payment could not be started in time. Please try again.",
+    );
   const paymentBody = (await paymentResponse.json().catch(() => ({}))) as {
     error?: string;
     checkoutUrl?: string;
