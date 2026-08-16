@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   CheckCircle2,
+  ChevronDown,
   LoaderCircle,
   MapPin,
   ShieldCheck,
@@ -504,26 +505,33 @@ export function ConfirmationStep({
         </div>
 
         <div className="space-y-4 lg:sticky lg:top-36 lg:self-start">
-          <details className="techpack-panel rounded-sm border p-4">
-            <summary className="flex cursor-pointer list-none items-center gap-2">
-            <span className="text-sm font-semibold text-(--text-primary)">Promotional codes</span>
-            </summary>
-            <div className="mt-3 flex gap-2">
-              <input
-                readOnly
-                value=""
-                aria-label="Promotional codes are unavailable"
-                className="techpack-control min-w-0 flex-1 rounded-sm border px-3 py-2 text-sm text-(--text-primary)/45"
+          <details className="techpack-panel group overflow-hidden rounded-sm border">
+            <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
+              <span className="text-sm font-semibold text-(--text-primary)">Promotional codes</span>
+              <ChevronDown
+                size={17}
+                aria-hidden="true"
+                className="shrink-0 text-(--text-primary)/45 transition-transform group-open:rotate-180"
               />
-              <button
-                type="button"
-                disabled
-                className="rounded-sm bg-black px-3 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                Apply
-              </button>
+            </summary>
+            <div className="border-t border-(--color-rule) px-4 pb-4 pt-3">
+              <div className="flex gap-2">
+                <input
+                  readOnly
+                  value=""
+                  aria-label="Promotional codes are unavailable"
+                  className="techpack-control min-w-0 flex-1 rounded-sm border px-3 py-2 text-sm text-(--text-primary)/45"
+                />
+                <button
+                  type="button"
+                  disabled
+                  className="rounded-sm bg-black px-3 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Apply
+                </button>
+              </div>
+              <p className="mt-2 text-xs text-(--text-primary)/45">Promotional codes are not part of the current Medusa checkout contract.</p>
             </div>
-            <p className="mt-2 text-xs text-(--text-primary)/45">Promotional codes are not part of the current Medusa checkout contract.</p>
           </details>
           <CartSummarySidebar
             subtotal={subtotal}
