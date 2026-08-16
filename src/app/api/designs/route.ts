@@ -12,13 +12,13 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const body = await request.json().catch(() => null) as { title?: string; snapshot?: unknown } | null;
+  const body = await request.json().catch(() => null) as { title?: string; snapshot?: unknown; clientImportId?: string } | null;
   const snapshot = cloudDesignSnapshotSchema.safeParse(body?.snapshot);
   if (!body?.title || !snapshot.success) return NextResponse.json({ error: "Invalid design request" }, { status: 400 });
   try {
     const result = await medusaRequest<Record<string, unknown>>("/store/garmops/designs", {
       method: "POST", actor: "customer",
-      body: { title: body.title, productSlug: snapshot.data.configId, configuration: snapshot.data.configuration, quantity: snapshot.data.configuration.quantity },
+      body: { title: body.title, productSlug: snapshot.data.configId, configuration: snapshot.data.configuration, quantity: snapshot.data.configuration.quantity, clientOperationId: body.clientImportId },
     });
     const project = result.project as Record<string, unknown>;
     const version = result.version as Record<string, unknown>;

@@ -17,11 +17,11 @@ export async function GET(_request: NextRequest, context: Context) {
 
 export async function PATCH(request: NextRequest, context: Context) {
   const { designId } = await context.params;
-  const body = await request.json().catch(() => null) as { expectedRevision?: number; snapshot?: unknown } | null;
+  const body = await request.json().catch(() => null) as { expectedRevision?: number; snapshot?: unknown; clientOperationId?: string } | null;
   const snapshot = cloudDesignSnapshotSchema.safeParse(body?.snapshot);
   if (!snapshot.success || !Number.isInteger(body?.expectedRevision)) return NextResponse.json({ error: "Invalid design request" }, { status: 400 });
-  try {
-    const result = await medusaRequest<Record<string, unknown>>(`/store/garmops/designs/${encodeURIComponent(designId)}`, { method: "PATCH", actor: "customer", body: { revision: body!.expectedRevision, productSlug: snapshot.data.configId, configuration: snapshot.data.configuration, quantity: snapshot.data.configuration.quantity } });
+    try {
+    const result = await medusaRequest<Record<string, unknown>>(`/store/garmops/designs/${encodeURIComponent(designId)}`, { method: "PATCH", actor: "customer", body: { revision: body!.expectedRevision, clientOperationId: body?.clientOperationId, productSlug: snapshot.data.configId, configuration: snapshot.data.configuration, quantity: snapshot.data.configuration.quantity } });
     const version = result.version as Record<string, unknown>;
     return NextResponse.json({ design: { id: designId, draftRevision: version.revision, currentVersion: version.revision, currentVersionId: version.id, lastSavedAt: version.created_at } });
   } catch (error) {

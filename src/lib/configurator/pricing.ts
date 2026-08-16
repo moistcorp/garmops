@@ -15,7 +15,7 @@ import {
   getVolumeDiscountPercent,
   type VolumeDiscountTier,
 } from "../pricingRules";
-import { calculateTaxPaise } from "@/lib/tax";
+import { calculateTaxPaise, gstRateForProduct } from "@/lib/tax";
 import type { Artwork, ArtworkTechnique, GarmentColour, NeckLabel } from "./types/configurator";
 import { isCustomNeckLabel } from "./neckLabel";
 
@@ -219,7 +219,8 @@ export function getConfiguredPricingSummary(
   const rushUnitPaise = rushDelivery ? Math.round(RUSH_DELIVERY_FEE_PER_UNIT * 100) : 0;
   const taxableSubtotalPaise =
     line.discountedSubtotalPaise + rushUnitPaise * safeQuantity;
-  const gstPaise = calculateTaxPaise(taxableSubtotalPaise);
+  const gstRateBasisPoints = gstRateForProduct(productId, Math.round((line.discountedUnitPaise + rushUnitPaise)));
+  const gstPaise = calculateTaxPaise(taxableSubtotalPaise, gstRateBasisPoints);
 
   return {
     undiscountedUnitPrice: line.configuredUnitPaise / 100,

@@ -16,7 +16,6 @@ export interface OrderBarProps {
   ctaLabel: string;
   onCtaClick?: () => void;
   pricingBreakdown: PricingBreakdown;
-  pricingStatus?: "live" | "estimate";
   ctaErrorMessage?: string | null;
   ctaErrorNonce?: number;
 }
@@ -94,18 +93,22 @@ export function getVolumeDiscountProgress(
   };
 }
 
-function VolumeDiscountProgress({ quantity, pricingStatus }: { quantity: number; pricingStatus: "live" | "estimate" }) {
+export function getVolumeDiscountMessage(quantity: number): string {
   const state = getVolumeDiscountProgress(quantity);
   const hasNextTier = state.nextDiscountPercent !== null && state.progressMax !== null;
-  const message = pricingStatus === "estimate"
-    ? "Volume pricing is an estimate until the configuration is synchronized"
-    : state.isHighestTier
+  return state.isHighestTier
     ? `${state.currentDiscountPercent}% volume discount applied · Highest discount tier`
     : hasNextTier && state.currentDiscountPercent > 0
       ? `${state.currentDiscountPercent}% volume discount applied · ${state.unitsToNextTier} more unit${state.unitsToNextTier === 1 ? "" : "s"} to unlock ${state.nextDiscountPercent}%`
       : hasNextTier
         ? `${state.unitsToNextTier <= 20 ? "Only " : "Add "}${state.unitsToNextTier} more unit${state.unitsToNextTier === 1 ? "" : "s"} to unlock ${state.nextDiscountPercent}% off`
         : "Volume pricing updates automatically in the Sizes & quantity step";
+}
+
+function VolumeDiscountProgress({ quantity }: { quantity: number }) {
+  const state = getVolumeDiscountProgress(quantity);
+  const hasNextTier = state.nextDiscountPercent !== null && state.progressMax !== null;
+  const message = getVolumeDiscountMessage(quantity);
 
   return (
     <div className="px-1">
@@ -139,7 +142,6 @@ export function OrderBar({
   ctaLabel,
   onCtaClick,
   pricingBreakdown,
-  pricingStatus = "estimate",
   ctaErrorMessage,
   ctaErrorNonce,
 }: OrderBarProps) {
@@ -182,7 +184,7 @@ export function OrderBar({
       aria-label="Order estimate"
       className="techpack-surface rounded-md !border-(--color-control-border) !bg-white border p-2"
     >
-      <VolumeDiscountProgress quantity={quantity} pricingStatus={pricingStatus} />
+      <VolumeDiscountProgress quantity={quantity} />
 
       <div
         className="mt-1.5 grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-x-3 border-t border-(--color-control-border)/70 pt-1.5 sm:grid-cols-[minmax(132px,1.2fr)_minmax(92px,1fr)_minmax(92px,1fr)]"
@@ -240,7 +242,7 @@ export function OrderBar({
 
         <div className="min-w-0 border-l border-white/55 pl-2">
           <div className="text-xs font-semibold uppercase tracking-wide text-(--text-primary)/45">
-            {pricingStatus === "live" ? "Unit cost" : "Unit estimate"}
+            Unit cost
           </div>
           <div className="mt-1 flex min-w-0 items-baseline gap-1.5">
             {pricingBreakdown.discountPercent > 0 && (
@@ -261,7 +263,7 @@ export function OrderBar({
 
         <div className="min-w-0 border-l border-white/55 pl-2">
           <div className="text-xs font-semibold uppercase tracking-wide text-(--text-primary)/45">
-            {pricingStatus === "live" ? "Order total" : "Estimated total"}
+            Order total
           </div>
           <div className="mt-1 truncate font-mono text-sm font-semibold text-(--text-primary)">
             {formatInr(pricingBreakdown.total)}

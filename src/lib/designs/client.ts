@@ -8,6 +8,7 @@ import type {
   NeckLabel,
 } from "@/lib/configurator/types/configurator";
 import { isStandardNeckLabel } from "@/lib/configurator/neckLabel";
+import { uploadReadableAssetUrl } from "@/lib/configurator/sampleAssets";
 import type { CloudDesignSnapshot } from "@/lib/designs/schema";
 
 const CLOUD_LINK_PREFIX = "mf_configurator_cloud:";
@@ -307,7 +308,9 @@ async function uploadReference(
     ? await readUploadedFile(reference.fileKey)
     : undefined;
   if (!stored && reference.sourceUrl) {
-    const response = await fetch(reference.sourceUrl, { cache: "force-cache" });
+    const response = await fetch(uploadReadableAssetUrl(reference.sourceUrl), {
+      cache: "force-cache",
+    });
     if (response.ok) stored = await response.blob();
   }
   if (!stored) throw new Error(`Re-upload ${reference.filename} to save it`);
@@ -518,6 +521,7 @@ export async function saveBuildDraftToCloud(input: {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         expectedRevision: input.forceRevision ?? link.draftRevision,
+        clientOperationId: replaySafeImportId(`${operationKeyForSave(input, link)}:revision:${link.draftRevision}`),
         schemaVersion: 1,
         snapshot: buildCloudDesignSnapshot(
           input.configId,
@@ -580,6 +584,10 @@ export async function saveBuildDraftToCloud(input: {
 
   writeCloudDesignLink(storageKey, link);
   return { ok: true, link, uploadedDraft };
+}
+
+function operationKeyForSave(input: { configId: string; operationKey?: string }, link: CloudDesignLink): string {
+  return input.operationKey ?? `${input.configId}:${link.designId}`;
 }
 
 export async function loadCloudDesign(

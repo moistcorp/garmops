@@ -320,7 +320,6 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
 
   const pricingBreakdown = buildPricingBreakdown(productId, colour, artwork, neckLabel, quantity);
   const [serverPricing, setServerPricing] = useState<PricingSnapshot | null>(null);
-  const [serverPricingLoading, setServerPricingLoading] = useState(false);
   const [catalogProductActive, setCatalogProductActive] = useState<boolean | null>(null);
   const minimumQuantity = getProductMinimumOrderQuantity(productId, {
     colourType: colour.type,
@@ -362,7 +361,6 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   useEffect(() => {
     let cancelled = false;
     const timer = window.setTimeout(() => {
-      setServerPricingLoading(true);
       void getServerPricing({
         productSlug: productId,
         quantity,
@@ -377,8 +375,6 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
         if (!cancelled) setServerPricing(pricing);
       }).catch(() => {
         if (!cancelled) setServerPricing(null);
-      }).finally(() => {
-        if (!cancelled) setServerPricingLoading(false);
       });
     }, 250);
     return () => {
@@ -1709,7 +1705,6 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
                 }
                 onCtaClick={handleCtaClick}
                 pricingBreakdown={orderBarPricing}
-                pricingStatus={serverPricing && !serverPricingLoading ? "live" : "estimate"}
                 ctaErrorMessage={ctaErrorMessage}
                 ctaErrorNonce={ctaErrorNonce}
               />

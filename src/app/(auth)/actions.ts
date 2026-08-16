@@ -13,7 +13,7 @@ const email = z.string().trim().email().max(320).transform((value) => value.toLo
 const password = z.string().min(8).max(128);
 const name = z.string().trim().min(1).max(80);
 const fields = (formData: FormData) => Object.fromEntries(formData.entries());
-const emailSchema = z.object({ email });
+const emailSchema = z.object({ email, "cf-turnstile-response": z.string().trim().optional() });
 const loginSchema = z.object({ email, password, next: z.string().optional(), portal: z.literal("staff") });
 const emailOtpSchema = z.object({ email, challengeId: z.string().min(1), token: z.string().trim().regex(/^\d{6}$/, "Enter the 6-digit code"), next: z.string().optional() });
 const minimalOnboardingSchema = z.object({ firstName: name, lastName: name, consent: z.literal("on"), next: z.string().optional() });
@@ -46,7 +46,7 @@ export async function requestCustomerOtpAction(_state: AuthActionState, formData
   const parsed = emailSchema.safeParse(fields(formData));
   if (!parsed.success) return validationError(parsed.error);
   try {
-    const result = await medusaRequest<{ challengeId?: string; testCode?: string }>("/store/garmops/otp/request", { method: "POST", body: { email: parsed.data.email }, actor: "public" });
+    const result = await medusaRequest<{ challengeId?: string; testCode?: string }>("/store/garmops/otp/request", { method: "POST", body: { email: parsed.data.email, turnstileToken: parsed.data["cf-turnstile-response"] }, actor: "public" });
     if (!result.challengeId) return actionError("We could not send a sign-in code. Please try again.");
     return actionSuccess("If that email can receive customer sign-in codes, one is on its way.", { verificationEmail: parsed.data.email, challengeId: result.challengeId, testCode: process.env.NODE_ENV !== "production" && process.env.GARMOPS_E2E === "true" ? result.testCode : undefined });
   } catch (error) {

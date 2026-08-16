@@ -20,6 +20,8 @@ export type CatalogProduct = {
   details: string[];
   careInstructions: string[];
   metadata?: Record<string, unknown>;
+  hsnCode?: string;
+  gstRateBasisPoints?: number;
 };
 
 export type PricingSnapshot = {
@@ -130,7 +132,6 @@ export function addConfiguredLine(input: {
   quantity: number;
   sizes: Record<string, number>;
   deliveryType?: "rush" | "standard" | "flexible";
-  configuration?: Record<string, unknown>;
 }): Promise<{ line: Record<string, unknown>; pricing: PricingSnapshot; cart: ConfiguredCartSummary }> {
   return request("/store/garmops/cart-lines", { method: "POST", body: input });
 }
@@ -141,7 +142,6 @@ export function updateConfiguredLine(input: {
   quantity: number;
   sizes: Record<string, number>;
   deliveryType?: "rush" | "standard" | "flexible";
-  configuration?: Record<string, unknown>;
 }): Promise<{ line: Record<string, unknown>; pricing: PricingSnapshot; cart: ConfiguredCartSummary }> {
   return request(`/store/garmops/cart-lines/${encodeURIComponent(input.lineId)}`, {
     method: "PATCH",
@@ -150,7 +150,6 @@ export function updateConfiguredLine(input: {
       quantity: input.quantity,
       sizes: input.sizes,
       deliveryType: input.deliveryType,
-      configuration: input.configuration,
     },
   });
 }

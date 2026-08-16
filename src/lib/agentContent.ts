@@ -9,7 +9,6 @@ import { journalPosts } from './journal'
 import { landingPageByPath } from './landingPages'
 import {
   DELIVERY_DAYS,
-  GST_RATE,
   RUSH_DELIVERY_DAYS,
   VOLUME_TIERS,
 } from './pricing'
@@ -300,7 +299,7 @@ ${table(
 ## What affects the final quote
 
 - The base estimate includes the garment, stitching, a single-colour screen print, and a neck label.
-- GST is ${(GST_RATE * 100).toFixed(0)}%; shipping is free.
+- GST is 5% for apparel up to ₹1,000 per piece and 12% above that threshold; cotton shopping bags are 12%. Shipping is free.
 - Additional artwork positions, colours, techniques, sampling, custom dyeing, packaging, and rush production add cost.
 - Standard delivery targets ${DELIVERY_DAYS} days from confirmation.
 - A ${RUSH_DELIVERY_DAYS}-day rush option is subject to feasibility and currently adds a rush fee.

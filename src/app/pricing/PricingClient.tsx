@@ -10,7 +10,6 @@ import {
   RUSH_DELIVERY_DAYS,
   VOLUME_DISCOUNT_TIERS,
 } from "@/lib/pricingRules";
-import { formatGstRate } from "@/lib/tax";
 import { formatInr, getConfiguredPricingSummary } from "@/lib/configurator/pricing";
 
 function quantityLabel(tier: (typeof VOLUME_DISCOUNT_TIERS)[number]) {
@@ -190,7 +189,7 @@ export default function PricingClient() {
               {volumeSavings > 0 && <PriceRow label={`Volume discount (${estimate.discountPercent}%)`} value={`− ${formatInr(volumeSavings)}`} />}
               {rush && <PriceRow label="Rush production" value={`+ ${formatInr(rushFee)}`} />}
               <PriceRow label="Subtotal before GST" value={formatInr(estimate.taxableSubtotal)} />
-              <PriceRow label={`GST (${formatGstRate()})`} value={formatInr(estimate.gst)} />
+              <PriceRow label="GST (5% / 12% as applicable)" value={formatInr(estimate.gst)} />
             </div>
             <div className="mt-5 flex items-end justify-between gap-4">
               <div><p className="text-sm font-semibold">Estimated total</p><p className="mt-1 text-xs text-white/45">GST included · free shipping</p></div>

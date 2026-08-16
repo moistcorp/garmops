@@ -112,7 +112,7 @@ describe("cloud design artwork ownership", () => {
     expect(result.uploadedDraft.artwork.front?.fileId).toBe(fileId);
     expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
       "/api/designs",
-      sampleUrl,
+      "/api/configurator/sample-assets/artwork-sample.svg",
       "/api/uploads/create",
       "https://uploads.example.test/artwork",
       `/api/uploads/${fileId}/finalize`,

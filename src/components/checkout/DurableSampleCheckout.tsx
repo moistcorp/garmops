@@ -10,7 +10,7 @@ import {
 } from "@/components/configurator/cart/AddressForm";
 import { submitPayuCheckout } from "@/lib/payuClient";
 import { useCartStore } from "@/lib/store";
-import { calculateTaxPaise, formatGstRate } from "@/lib/tax";
+import { calculateTaxPaise, gstRateForProduct } from "@/lib/tax";
 
 const inputClass =
   "techpack-control w-full rounded-sm border px-4 py-3 text-sm transition-colors focus:!border-(--color-accent) focus:outline-none";
@@ -121,7 +121,11 @@ export default function DurableSampleCheckout({
 }) {
   const { items, total, hasHydrated } = useCartStore();
   const cartTotalRupees = total();
-  const taxPaise = calculateTaxPaise(Math.round(cartTotalRupees * 100));
+  const taxPaise = items.reduce((sum, item) => {
+    const unitPricePaise = Math.round((item.price ?? 0) * 100);
+    const taxablePaise = unitPricePaise * item.quantity;
+    return sum + calculateTaxPaise(taxablePaise, gstRateForProduct(item.productSlug, unitPricePaise));
+  }, 0);
   const displayedTotalPaise = cartTotalRupees * 100 + taxPaise;
 
   const idempotencyKey = useRef<string | null>(null);
@@ -486,7 +490,7 @@ export default function DurableSampleCheckout({
                   <span>{rupees(cartTotalRupees * 100)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-(--text-primary)/50">GST ({formatGstRate()})</span>
+                  <span className="text-(--text-primary)/50">GST (5% / 12% as applicable)</span>
                   <span>{rupees(taxPaise)}</span>
                 </div>
                 <div className="flex justify-between">

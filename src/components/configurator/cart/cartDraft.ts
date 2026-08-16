@@ -6,7 +6,7 @@ import {
 import { getProduct, getProductMinimumOrderQuantity } from "@/lib/configurator/products";
 import { RUSH_DELIVERY_SURCHARGE_PAISE } from "@/lib/configurator/delivery";
 import { CUSTOM_DYE_MOQ_UNITS } from "@/lib/configurator/colourRules";
-import { calculateTaxPaise } from "@/lib/tax";
+import { calculateTaxPaise, gstRateForProduct } from "@/lib/tax";
 import type { ProductId } from "@/lib/configurator/pricing";
 import type { GarmentColour, Artwork, NeckLabel } from "@/lib/configurator/types/configurator";
 import type { CartItem } from "./OrderReviewStep";
@@ -611,19 +611,22 @@ export function calculateTotals(
   items: CartItem[],
   deliveryType?: CartDraft["deliveryType"],
 ) {
-  const linePricing = items.map((item) => getConfiguredLinePricingPaise({
-    productId: item.productId,
-    colour: item.colour,
-    artwork: item.artwork,
-    neckLabel: item.neckLabel,
-    quantity: totalUnits(item.sizeQuantities),
+  const linePricing = items.map((item) => ({
+    item,
+    pricing: getConfiguredLinePricingPaise({
+      productId: item.productId,
+      colour: item.colour,
+      artwork: item.artwork,
+      neckLabel: item.neckLabel,
+      quantity: totalUnits(item.sizeQuantities),
+    }),
   }));
   const garmentSubtotalPaise = linePricing.reduce(
-    (sum, line) => sum + line.merchandiseSubtotalPaise,
+    (sum, line) => sum + line.pricing.merchandiseSubtotalPaise,
     0,
   );
   const volumeDiscountPaise = linePricing.reduce(
-    (sum, line) => sum + line.volumeDiscountPaise,
+    (sum, line) => sum + line.pricing.volumeDiscountPaise,
     0,
   );
   const quantity = items.reduce(
@@ -636,7 +639,12 @@ export function calculateTotals(
     garmentSubtotalPaise - volumeDiscountPaise;
   const taxableSubtotalPaise =
     merchandiseAfterVolumeDiscountPaise + rushFeePaise;
-  const gstPaise = calculateTaxPaise(taxableSubtotalPaise);
+  const gstPaise = linePricing.reduce((sum, line) => {
+    const rushUnitPaise = deliveryType === "rush" ? RUSH_DELIVERY_SURCHARGE_PAISE : 0;
+    const unitPricePaise = line.pricing.discountedUnitPaise + rushUnitPaise;
+    const lineTaxablePaise = line.pricing.discountedSubtotalPaise + rushUnitPaise * line.pricing.quantity;
+    return sum + calculateTaxPaise(lineTaxablePaise, gstRateForProduct(line.item.productId, unitPricePaise));
+  }, 0);
   const totalPaise = taxableSubtotalPaise + gstPaise;
 
   return {
