@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef } from "react";
 import type { GarmentRenderProfile } from "./garmentAssets";
 
 const MAX_STANDARD_RENDER_DIMENSION = 1400;
@@ -19,6 +19,19 @@ interface GarmentCompositeProps {
   cacheScope: string;
   exclusiveCacheScope?: boolean;
   className?: string;
+  onRenderProgress?: (progress: GarmentCompositeRenderProgress) => void;
+}
+
+export type GarmentCompositeRenderState =
+  | "loading"
+  | "compositing"
+  | "ready"
+  | "error";
+
+export interface GarmentCompositeRenderProgress {
+  state: GarmentCompositeRenderState;
+  loadedLayers: number;
+  totalLayers: number;
 }
 
 interface LayerPixels {
@@ -36,9 +49,12 @@ interface LayerPixels {
 interface LayerCacheEntry {
   scope: string;
   promise: Promise<LayerPixels>;
+  loadedLayers: number;
+  progressListeners: Set<(loadedLayers: number, totalLayers: number) => void>;
 }
 
 const layerCache = new Map<string, LayerCacheEntry>();
+const GARMENT_LAYER_COUNT = 4;
 
 function clamp(value: number, min = 0, max = 1): number {
   return Math.min(max, Math.max(min, value));
@@ -260,7 +276,8 @@ function loadLayers(
   maskSrc: string,
   textureSrc: string,
   shadowSrc: string,
-  highlightSrc: string
+  highlightSrc: string,
+  onProgress?: (loadedLayers: number, totalLayers: number) => void,
 ): Promise<LayerPixels> {
   if (exclusiveCacheScope) {
     for (const [cacheKey, entry] of layerCache) {
@@ -279,14 +296,27 @@ function loadLayers(
   const cached = layerCache.get(cacheKey);
   if (cached) {
     touchCacheEntry(cacheKey, cached);
+    if (onProgress) {
+      cached.progressListeners.add(onProgress);
+      onProgress(cached.loadedLayers, GARMENT_LAYER_COUNT);
+    }
     return cached.promise;
   }
 
+  const layerProgress = { loadedLayers: 0 };
+  const progressListeners = new Set(onProgress ? [onProgress] : []);
+  const trackedImage = (src: string) => loadImage(src).then((image) => {
+    layerProgress.loadedLayers += 1;
+    progressListeners.forEach((listener) => {
+      listener(layerProgress.loadedLayers, GARMENT_LAYER_COUNT);
+    });
+    return image;
+  });
   const promise = Promise.all([
-    loadImage(maskSrc),
-    loadImage(textureSrc),
-    loadImage(shadowSrc),
-    loadImage(highlightSrc),
+    trackedImage(maskSrc),
+    trackedImage(textureSrc),
+    trackedImage(shadowSrc),
+    trackedImage(highlightSrc),
   ]).then(([maskImage, textureImage, shadowImage, highlightImage]) => {
     const sourceWidth = maskImage.naturalWidth;
     const sourceHeight = maskImage.naturalHeight;
@@ -308,7 +338,14 @@ function loadLayers(
     };
   });
 
-  const entry = { scope: cacheScope, promise };
+  const entry: LayerCacheEntry = {
+    scope: cacheScope,
+    promise,
+    get loadedLayers() {
+      return layerProgress.loadedLayers;
+    },
+    progressListeners,
+  };
   touchCacheEntry(cacheKey, entry);
   trimLayerCache();
   promise.catch(() => {
@@ -519,8 +556,12 @@ export default function GarmentComposite({
   cacheScope,
   exclusiveCacheScope = false,
   className = "absolute inset-0 h-full w-full object-contain",
+  onRenderProgress,
 }: GarmentCompositeProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const notifyRenderProgress = useEffectEvent((progress: GarmentCompositeRenderProgress) => {
+    onRenderProgress?.(progress);
+  });
   const assetKey = useMemo(
     () => [maskSrc, textureSrc, shadowSrc, highlightSrc].join("|"),
     [maskSrc, textureSrc, shadowSrc, highlightSrc]
@@ -528,13 +569,28 @@ export default function GarmentComposite({
 
   useEffect(() => {
     let cancelled = false;
+    let renderFrame: number | null = null;
+    let loadedLayers = 0;
     const canvas = canvasRef.current;
     if (!canvas) return;
     canvas.dataset.renderState = "loading";
     delete canvas.dataset.renderColour;
+    notifyRenderProgress({
+      state: "loading",
+      loadedLayers,
+      totalLayers: GARMENT_LAYER_COUNT,
+    });
 
     const context = canvas.getContext("2d");
-    if (!context) return;
+    if (!context) {
+      canvas.dataset.renderState = "error";
+      notifyRenderProgress({
+        state: "error",
+        loadedLayers,
+        totalLayers: GARMENT_LAYER_COUNT,
+      });
+      return;
+    }
 
     context.clearRect(0, 0, canvas.width, canvas.height);
     const renderDimension = getRenderDimension(canvas, renderProfile);
@@ -546,7 +602,16 @@ export default function GarmentComposite({
       maskSrc,
       textureSrc,
       shadowSrc,
-      highlightSrc
+      highlightSrc,
+      (nextLoadedLayers, totalLayers) => {
+        loadedLayers = nextLoadedLayers;
+        if (cancelled) return;
+        notifyRenderProgress({
+          state: "loading",
+          loadedLayers: nextLoadedLayers,
+          totalLayers,
+        });
+      },
     )
       .then((layers) => {
         if (cancelled || !canvasRef.current) return;
@@ -554,19 +619,51 @@ export default function GarmentComposite({
         const target = canvasRef.current;
         if (target.width !== layers.width) target.width = layers.width;
         if (target.height !== layers.height) target.height = layers.height;
+        notifyRenderProgress({
+          state: "compositing",
+          loadedLayers: GARMENT_LAYER_COUNT,
+          totalLayers: GARMENT_LAYER_COUNT,
+        });
 
-        const targetContext = target.getContext("2d");
-        if (!targetContext) return;
-        renderComposite(targetContext, layers, colourHex, renderProfile);
-        target.dataset.renderColour = colourHex;
-        target.dataset.renderState = "ready";
+        renderFrame = window.requestAnimationFrame(() => {
+          renderFrame = null;
+          if (cancelled || !canvasRef.current) return;
+          try {
+            const targetContext = target.getContext("2d");
+            if (!targetContext) throw new Error("Canvas 2D rendering is unavailable.");
+            renderComposite(targetContext, layers, colourHex, renderProfile);
+            target.dataset.renderColour = colourHex;
+            target.dataset.renderState = "ready";
+            notifyRenderProgress({
+              state: "ready",
+              loadedLayers: GARMENT_LAYER_COUNT,
+              totalLayers: GARMENT_LAYER_COUNT,
+            });
+          } catch (error: unknown) {
+            target.dataset.renderState = "error";
+            notifyRenderProgress({
+              state: "error",
+              loadedLayers,
+              totalLayers: GARMENT_LAYER_COUNT,
+            });
+            if (process.env.NODE_ENV !== "production") console.error(error);
+          }
+        });
       })
       .catch((error: unknown) => {
+        if (cancelled || !canvasRef.current) return;
+        canvasRef.current.dataset.renderState = "error";
+        notifyRenderProgress({
+          state: "error",
+          loadedLayers,
+          totalLayers: GARMENT_LAYER_COUNT,
+        });
         if (process.env.NODE_ENV !== "production") console.error(error);
       });
 
     return () => {
       cancelled = true;
+      if (renderFrame !== null) window.cancelAnimationFrame(renderFrame);
     };
   }, [
     assetKey,

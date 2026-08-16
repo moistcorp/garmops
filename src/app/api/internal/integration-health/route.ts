@@ -6,7 +6,10 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    await medusaRequest("/store/garmops/catalog", { method: "GET" });
+    await medusaRequest("/store/garmops/catalog", {
+      method: "GET",
+      signal: AbortSignal.timeout(5_000),
+    });
     return NextResponse.json(
       { status: "ok", backend: "medusa" },
       { headers: { "Cache-Control": "no-store" } },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
 import type { ProductId } from "@/lib/configurator/pricing";
 import type {
@@ -30,7 +30,10 @@ import {
   LEFT_CHEST_DIMENSIONS,
   LEFT_CHEST_PLACEMENT,
 } from "@/components/configurator/ConfiguratorSidebar/ArtworkPanel/GuidelinesToggles";
-import GarmentComposite, { getDisplayPreviewHex } from "./GarmentComposite";
+import GarmentComposite, {
+  getDisplayPreviewHex,
+  type GarmentCompositeRenderProgress,
+} from "./GarmentComposite";
 import {
   garmentAssetPath,
   getGarmentFolder,
@@ -87,6 +90,16 @@ interface CanvasRendererProps {
   style?: CSSProperties;
   showProductionGuides?: boolean;
   exclusiveLayerCache?: boolean;
+  onGarmentRenderProgress?: (result: GarmentRenderResult) => void;
+}
+
+export interface GarmentRenderResult {
+  productId: ProductId;
+  view: GarmentView;
+  colourHex: string;
+  state: GarmentCompositeRenderProgress["state"];
+  loadedLayers: number;
+  totalLayers: number;
 }
 
 const CANVAS_SIZE = CANVAS_PX;
@@ -299,6 +312,7 @@ export default function CanvasRenderer({
   style,
   showProductionGuides = true,
   exclusiveLayerCache = false,
+  onGarmentRenderProgress,
 }: CanvasRendererProps) {
   const { positions, updatePosition } = useArtworkPosition();
   const dragOrigin = useRef<DragOrigin | null>(null);
@@ -310,6 +324,13 @@ export default function CanvasRenderer({
   const garmentFolder = getGarmentFolder(productId);
   const garmentRenderConfig = getGarmentRenderConfig(productId, view);
   useGarmentAssetPrefetch(productId, view);
+
+  const handleGarmentRenderProgress = useCallback(
+    (progress: GarmentCompositeRenderProgress) => {
+      onGarmentRenderProgress?.({ productId, view, colourHex, ...progress });
+    },
+    [colourHex, onGarmentRenderProgress, productId, view],
+  );
 
   const garmentInsetPercent = getGarmentInsetPercent(productId, view);
 
@@ -633,6 +654,7 @@ export default function CanvasRenderer({
           renderProfile={garmentRenderConfig.profile}
           cacheScope={garmentFolder ?? productId}
           exclusiveCacheScope={exclusiveLayerCache}
+          onRenderProgress={handleGarmentRenderProgress}
         />
       </div>
 

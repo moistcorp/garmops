@@ -57,9 +57,15 @@ export default function Cart() {
           {items.map(item => (
             <div key={`${item.id}-${item.size}`} className="techpack-panel flex flex-col gap-4 rounded-sm border p-4 sm:flex-row sm:gap-5 sm:p-5">
               <div className="flex min-w-0 gap-4 sm:contents">
-              <div className="relative w-20 h-20 bg-(--color-cream-soft) rounded-sm shrink-0 flex items-center justify-center overflow-hidden">
+              <div className="relative flex aspect-[2/3] w-20 shrink-0 items-center justify-center overflow-hidden rounded-sm bg-(--color-cream-soft)">
                 {item.image ? (
-                  <Image src={item.image} alt={item.name} fill sizes="80px" className="object-cover" />
+                  <Image
+                    src={item.image}
+                    alt={item.name}
+                    fill
+                    sizes="80px"
+                    className="object-contain p-1"
+                  />
                 ) : (
                   <span className="text-xs text-(--text-primary)/20">IMG</span>
                 )}

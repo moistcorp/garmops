@@ -6,6 +6,7 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import WhatsAppButton from "@/components/ui/WhatsAppButton";
 import { useCartStore } from "@/lib/store";
+import BackendStatusNotice from "./BackendStatusNotice";
 
 const FOUNDRY_PORTAL_ROUTES = [
   "/orders",
@@ -55,15 +56,23 @@ export default function AppChrome({
   }, []);
 
   if (hasDedicatedChrome) {
-    return <>{children}</>;
+    return (
+      <>
+        <BackendStatusNotice />
+        {children}
+      </>
+    );
   }
 
   return (
-    <div className="techpack-canvas min-h-screen min-w-0 overflow-x-clip">
-      <Navbar />
-      <main className="min-w-0">{children}</main>
-      <Footer />
-      <WhatsAppButton />
-    </div>
+    <>
+      <BackendStatusNotice />
+      <div className="techpack-canvas min-h-screen min-w-0 overflow-x-clip">
+        <Navbar />
+        <main className="min-w-0">{children}</main>
+        <Footer />
+        <WhatsAppButton />
+      </div>
+    </>
   );
 }

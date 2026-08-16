@@ -2,7 +2,22 @@ import GarmopsLogo from "@/components/common/GarmopsLogo";
 
 const productionSteps = ["Cut", "Print", "Stitch", "QC"] as const;
 
-export default function GarmopsLoadingScreen() {
+interface GarmopsLoadingScreenProps {
+  progress?: number;
+  statusText?: string;
+  description?: string;
+}
+
+export default function GarmopsLoadingScreen({
+  progress,
+  statusText = "Preparing workspace…",
+  description = "Loading product specifications, orders and production details.",
+}: GarmopsLoadingScreenProps = {}) {
+  const normalizedProgress = typeof progress === "number"
+    ? Math.min(100, Math.max(0, Math.round(progress)))
+    : undefined;
+  const isDeterminate = normalizedProgress !== undefined;
+
   return (
     <section
       role="status"
@@ -67,7 +82,7 @@ export default function GarmopsLoadingScreen() {
           <div>
             <GarmopsLogo className="h-3 w-auto" />
             <p className="garmops-loader-title">Preparing your workspace</p>
-            <p>Loading product specifications, orders and production details.</p>
+            <p>{description}</p>
           </div>
           <ol className="garmops-loader-steps" aria-hidden="true">
             {productionSteps.map((step, index) => (
@@ -79,11 +94,31 @@ export default function GarmopsLoadingScreen() {
           </ol>
         </div>
 
-        <div className="garmops-loader-progress" aria-hidden="true">
-          <span />
+        <div className="garmops-loader-progress-panel">
+          <div className="garmops-loader-progress-status">
+            <span>{statusText}</span>
+            <span aria-hidden="true">
+              {isDeterminate ? `${normalizedProgress}%` : "IN PROGRESS"}
+            </span>
+          </div>
+          <div
+            className="garmops-loader-progress"
+            data-mode={isDeterminate ? "determinate" : "indeterminate"}
+            role={isDeterminate ? "progressbar" : undefined}
+            aria-label={isDeterminate ? "Workspace loading progress" : undefined}
+            aria-valuemin={isDeterminate ? 0 : undefined}
+            aria-valuemax={isDeterminate ? 100 : undefined}
+            aria-valuenow={normalizedProgress}
+          >
+            <span
+              style={isDeterminate
+                ? { transform: `scaleX(${normalizedProgress / 100})` }
+                : undefined}
+            />
+          </div>
         </div>
       </div>
-      <span className="sr-only">Loading. Please wait.</span>
+      <span className="sr-only">{statusText} Please wait.</span>
     </section>
   );
 }

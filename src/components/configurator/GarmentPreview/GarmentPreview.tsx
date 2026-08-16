@@ -5,6 +5,7 @@ import type { ProductId } from "@/lib/configurator/pricing";
 import type { Artwork, NeckLabel } from "@/lib/configurator/types/configurator";
 import { getArtworkQuality } from "@/lib/configurator/artworkQuality";
 import CanvasRenderer from "./CanvasRenderer";
+import type { GarmentRenderResult } from "./CanvasRenderer";
 import ViewTabs from "./ViewTabs";
 
 interface GarmentPreviewProps {
@@ -18,6 +19,7 @@ interface GarmentPreviewProps {
   hideBackView?: boolean;
   showProductionGuides?: boolean;
   exclusiveLayerCache?: boolean;
+  onGarmentRenderProgress?: (result: GarmentRenderResult) => void;
 }
 
 export const NECK_PREVIEW_CANVAS_CLASS =
@@ -34,6 +36,7 @@ export default function GarmentPreview({
   hideBackView = false,
   showProductionGuides = false,
   exclusiveLayerCache = false,
+  onGarmentRenderProgress,
 }: GarmentPreviewProps) {
   const activeArtwork = activeView === "front" ? artwork.front : activeView === "back" ? artwork.back : undefined;
   const quality = getArtworkQuality(activeArtwork);
@@ -51,6 +54,7 @@ export default function GarmentPreview({
             neckLabelPreviewUrl={neckLabelPreviewUrl}
             showProductionGuides={showProductionGuides}
             exclusiveLayerCache={exclusiveLayerCache}
+            onGarmentRenderProgress={onGarmentRenderProgress}
             className={
               activeView === "neck"
                 ? NECK_PREVIEW_CANVAS_CLASS
