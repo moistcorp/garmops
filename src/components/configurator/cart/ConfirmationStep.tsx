@@ -39,7 +39,6 @@ import { formatInr } from "@/lib/configurator/pricing";
 import { hasArtworkAsset } from "@/lib/configurator/pricing";
 import { placementLabel } from "@/lib/configurator/artworkPlacement";
 import { isCustomNeckLabel } from "@/lib/configurator/neckLabel";
-import { formatSpecCode } from "@/lib/orders/format";
 import { getPaymentJourneyStep } from "@/lib/configurator/journey";
 import {
   CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS,
@@ -353,9 +352,6 @@ export function ConfirmationStep({
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-6">
           <div>
-            <p className="font-mono text-xs font-medium uppercase tracking-[0.06em] text-(--text-primary)/50">
-              {formatSpecCode(`CART-${cartId}`)}
-            </p>
             <h1 className="text-2xl font-semibold text-(--text-primary)">
               Review your order
             </h1>
