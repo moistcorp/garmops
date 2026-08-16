@@ -502,9 +502,6 @@ export default function DurableSampleCheckout({
                 <span>Total</span>
                 <span>{rupees(displayedTotalPaise)}</span>
               </div>
-              <p className="text-xs leading-relaxed text-black/40">
-                The server validates every product, size, quantity, price, GST amount, and free shipping.
-              </p>
               <button
                 type="submit"
                 form="sample-checkout-details"
@@ -517,10 +514,6 @@ export default function DurableSampleCheckout({
                     : "Preparing payment…"
                   : `Pay ${rupees(displayedTotalPaise)}`}
               </button>
-              <p className="text-center text-xs text-(--text-primary)/40">
-                Full payment through PayU. Card details are never stored by
-                Garmops.
-              </p>
             </div>
             <Link
               href="/cart"
