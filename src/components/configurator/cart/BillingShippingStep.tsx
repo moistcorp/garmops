@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, LoaderCircle, MapPin, ReceiptText, ShieldCheck, UserRound } from "lucide-react";
+import { CheckCircle2, MapPin, ReceiptText, ShieldCheck, UserRound } from "lucide-react";
 import {
   AddressForm,
   digitsOnly,
@@ -45,6 +45,10 @@ import { CUSTOM_DYE_EXTRA_LEAD_TIME_DAYS } from "@/lib/configurator/colourRules"
 import { getConfiguredCart, saveCheckoutDetails, updateConfiguredLine, type ConfiguredCartSummary } from "@/lib/medusa/commerce";
 import { ActionFeedback } from "@/components/configurator/ActionFeedback";
 import CustomerAuthFlow from "@/components/auth/CustomerAuthFlow";
+import {
+  PaymentAttemptRecoveryError,
+  retryAfterFailedPaymentAttempt,
+} from "@/lib/orders/client";
 
 export interface BillingShippingStepProps {
   cartId: string;
@@ -515,25 +519,37 @@ export function BillingShippingStep({
     setIsContinuing(true);
 
     try {
-      let canonicalCart: ConfiguredCartSummary = await getConfiguredCart(cartId);
-      for (const item of draft.items) {
-        if (!item.medusaLineId) throw new Error(`${item.productName} is not synchronized with the Medusa cart.`);
-        const line = canonicalCart.lines.find((candidate) => candidate.id === item.medusaLineId);
-        if (!line || line.deliveryType === draft.deliveryType) continue;
-        const result = await updateConfiguredLine({
-          lineId: item.medusaLineId,
-          quantity: totalUnits(item.sizeQuantities),
-          sizes: item.sizeQuantities,
-          deliveryType: draft.deliveryType,
-        });
-        canonicalCart = result.cart;
-      }
+      const canonicalCart = await retryAfterFailedPaymentAttempt(cartId, async () => {
+        let nextCart: ConfiguredCartSummary = await getConfiguredCart(cartId);
+        for (const item of draft.items) {
+          if (!item.medusaLineId) throw new Error(`${item.productName} is not synchronized with the Medusa cart.`);
+          const line = nextCart.lines.find((candidate) => candidate.id === item.medusaLineId);
+          if (!line || line.deliveryType === draft.deliveryType) continue;
+          const result = await updateConfiguredLine({
+            lineId: item.medusaLineId,
+            quantity: totalUnits(item.sizeQuantities),
+            sizes: item.sizeQuantities,
+            deliveryType: draft.deliveryType,
+          });
+          nextCart = result.cart;
+        }
+        return nextCart;
+      });
       setDraft((previous) => {
         const next = { ...previous, backendCart: canonicalCart, serverCartId: canonicalCart.cartId };
         writeDraft(cartId, next);
         return next;
       });
     } catch (error) {
+      if (error instanceof PaymentAttemptRecoveryError) {
+        if (error.confirmationUrl) {
+          window.location.assign(error.confirmationUrl);
+          return;
+        }
+        setValidationFeedback(error.message);
+        setIsContinuing(false);
+        return;
+      }
       setValidationFeedback(error instanceof Error ? error.message : "The Medusa cart could not be refreshed.");
       setIsContinuing(false);
       return;
@@ -544,7 +560,7 @@ export function BillingShippingStep({
       const billingAddress = draft.billingInformation.sameAsCompanyAddress
         ? draft.shippingInformation.address
         : draft.billingInformation.address;
-      const saved = await saveCheckoutDetails({
+      const saved = await retryAfterFailedPaymentAttempt(cartId, () => saveCheckoutDetails({
         cartId,
         email: draft.projectContact.email,
         shippingAddress: {
@@ -574,11 +590,20 @@ export function BillingShippingStep({
           ? new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(draft.selectedDeliveryDateIso))
           : undefined,
         deliveryPreference: draft.deliveryType,
-      });
+      }));
       const next = { ...draft, backendCart: saved.cart, serverCartId: saved.cart.cartId };
       setDraft(next);
       writeDraft(cartId, next);
     } catch (error) {
+      if (error instanceof PaymentAttemptRecoveryError) {
+        if (error.confirmationUrl) {
+          window.location.assign(error.confirmationUrl);
+          return;
+        }
+        setValidationFeedback(error.message);
+        setIsContinuing(false);
+        return;
+      }
       setValidationFeedback(error instanceof Error ? error.message : "The checkout details could not be saved.");
       setIsContinuing(false);
       return;

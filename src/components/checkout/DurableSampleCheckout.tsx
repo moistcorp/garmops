@@ -9,6 +9,7 @@ import {
   type Address,
 } from "@/components/configurator/cart/AddressForm";
 import { submitPayuCheckout } from "@/lib/payuClient";
+import { recheckCheckoutPaymentAttempt } from "@/lib/orders/client";
 import { useCartStore } from "@/lib/store";
 import { calculateTaxPaise, gstRateForProduct } from "@/lib/tax";
 
@@ -18,6 +19,26 @@ const labelClass =
   "mb-1.5 block text-xs font-medium uppercase tracking-wide text-(--text-primary)/50";
 const SAMPLE_CHECKOUT_IDEMPOTENCY_KEY =
   "garmops-durable-sample-checkout-idempotency";
+const SAMPLE_CHECKOUT_REQUEST_TIMEOUT_MS = 30_000;
+
+async function withSampleCheckoutTimeout<T>(
+  operation: (signal: AbortSignal) => Promise<T>,
+  message: string,
+): Promise<T> {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(
+    () => controller.abort(),
+    SAMPLE_CHECKOUT_REQUEST_TIMEOUT_MS,
+  );
+  try {
+    return await operation(controller.signal);
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error(message);
+    throw error;
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
 
 export type SampleCheckoutDefaults = Readonly<{
   firstName: string;
@@ -183,52 +204,68 @@ export default function DurableSampleCheckout({
     setLoading(true);
     setError("");
 
+    let checkoutPaymentAttemptId: string | undefined;
+    let preparedOrder: SubmitResponse["order"] | null = null;
+
     try {
-      const response = await fetch("/api/orders/samples/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: items.map((item) => ({
-            productSlug: item.productSlug,
-            size: item.size,
-            quantity: item.quantity,
-          })),
-          contact: {
-            firstName: form.firstName.trim(),
-            lastName: form.lastName.trim() || undefined,
-            email: form.email.trim().toLowerCase(),
-            phone: `+91${normalizedPhone}`,
-          },
-          shipping: {
-            recipientName:
-              `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
-            address: deliveryAddress,
-          },
-          orderNotes: form.orderNotes.trim() || undefined,
-          acceptedTerms: true,
-          idempotencyKey: idempotencyKey.current,
+      const response = await withSampleCheckoutTimeout(
+        (signal) => fetch("/api/orders/samples/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            items: items.map((item) => ({
+              productSlug: item.productSlug,
+              size: item.size,
+              quantity: item.quantity,
+            })),
+            contact: {
+              firstName: form.firstName.trim(),
+              lastName: form.lastName.trim() || undefined,
+              email: form.email.trim().toLowerCase(),
+              phone: `+91${normalizedPhone}`,
+            },
+            shipping: {
+              recipientName:
+                `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
+              address: deliveryAddress,
+            },
+            orderNotes: form.orderNotes.trim() || undefined,
+            acceptedTerms: true,
+            idempotencyKey: idempotencyKey.current,
+          }),
+          signal,
         }),
-      });
+        "Sample checkout is taking too long. Please try again.",
+      );
       const body = (await response.json()) as SubmitResponse;
       if (!response.ok || !body.order) {
         throw new Error(body.error ?? "The sample order could not be saved.");
       }
 
-      setSavedOrder(body.order);
+      preparedOrder = body.order;
       if (body.order.alreadyFinalized && body.order.orderNumber) {
+        try {
+          window.sessionStorage.removeItem(SAMPLE_CHECKOUT_IDEMPOTENCY_KEY);
+        } catch {
+          // The completed order is authoritative even if cleanup is blocked.
+        }
         window.location.assign(`/account/orders/${encodeURIComponent(body.order.orderNumber)}`);
         return;
       }
-      if (!body.order.checkoutPaymentAttemptId) {
+      checkoutPaymentAttemptId = body.order.checkoutPaymentAttemptId ?? undefined;
+      setSavedOrder(body.order);
+      if (!checkoutPaymentAttemptId) {
         throw new Error("Secure payment could not be prepared.");
       }
-      const paymentResponse = await fetch("/api/payments/payu/initiate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          checkoutPaymentAttemptId: body.order.checkoutPaymentAttemptId,
+      const paymentResponse = await withSampleCheckoutTimeout(
+        (signal) => fetch("/api/payments/payu/initiate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ checkoutPaymentAttemptId }),
+          signal,
         }),
-      });
+        "Secure payment is taking too long to start. We will check the existing payment attempt before allowing a retry.",
+      );
       const payment = (await paymentResponse.json()) as InitiateResponse;
       if (!paymentResponse.ok || !payment.checkoutUrl || !payment.fields) {
         throw new Error(
@@ -236,13 +273,44 @@ export default function DurableSampleCheckout({
             "The checkout is prepared, but secure payment could not be opened.",
         );
       }
-      try {
-        window.sessionStorage.removeItem(SAMPLE_CHECKOUT_IDEMPOTENCY_KEY);
-      } catch {
-        // The prepared database checkout is authoritative even if cleanup is blocked.
-      }
       await submitPayuCheckout(payment.fields, payment.checkoutUrl);
     } catch (submissionError) {
+      if (checkoutPaymentAttemptId) {
+        try {
+          const recovery = await recheckCheckoutPaymentAttempt(checkoutPaymentAttemptId);
+          if (recovery.outcome === "success" && recovery.confirmationUrl) {
+            try {
+              window.sessionStorage.removeItem(SAMPLE_CHECKOUT_IDEMPOTENCY_KEY);
+            } catch {
+              // The completed order is authoritative even if cleanup is blocked.
+            }
+            window.location.assign(recovery.confirmationUrl);
+            return;
+          }
+          if (recovery.outcome !== "failure") {
+            setSavedOrder(preparedOrder);
+            setError(
+              recovery.outcome === "needs_review"
+                ? "The sample payment needs review. Do not start another payment."
+                : "The sample payment is still being verified. Do not start another payment yet.",
+            );
+            setLoading(false);
+            return;
+          }
+          try {
+            window.sessionStorage.removeItem(SAMPLE_CHECKOUT_IDEMPOTENCY_KEY);
+          } catch {
+            // A fresh idempotency key remains safe when cleanup is blocked.
+          }
+          idempotencyKey.current = null;
+          idempotencySignature.current = null;
+        } catch {
+          setSavedOrder(preparedOrder);
+          setError("The existing sample payment could not be verified yet. Do not start another payment until its status is confirmed.");
+          setLoading(false);
+          return;
+        }
+      }
       setSavedOrder(null);
       setError(
         submissionError instanceof Error

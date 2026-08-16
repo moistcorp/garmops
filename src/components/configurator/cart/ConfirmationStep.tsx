@@ -50,7 +50,11 @@ import CanvasRenderer from "../GarmentPreview/CanvasRenderer";
 import ViewTabs from "../GarmentPreview/ViewTabs";
 import { ArtworkPositionProvider } from "@/lib/configurator/ArtworkPositionContext";
 import { ActionFeedback } from "../ActionFeedback";
-import { prepareConfiguratorCheckoutPayment } from "@/lib/orders/client";
+import {
+  PaymentAttemptRecoveryError,
+  prepareConfiguratorCheckoutPayment,
+  recheckConfiguratorPayment,
+} from "@/lib/orders/client";
 
 export interface ConfirmationStepProps {
   cartId: string;
@@ -84,6 +88,7 @@ export function ConfirmationStep({
   const [verificationState, setVerificationState] = useState<"idle" | "pending" | "checking" | "failed" | "review">(
     paymentOutcome === "pending" ? "pending" : "idle",
   );
+  const [activeCheckoutAttemptId, setActiveCheckoutAttemptId] = useState(checkoutAttemptId);
   const automaticRecheckStarted = useRef(false);
   const [paymentError, setPaymentError] = useState(() =>
     paymentOutcome === "failure"
@@ -94,32 +99,23 @@ export function ConfirmationStep({
   );
 
   const recheckPayment = async () => {
-    if (!checkoutAttemptId || verificationState === "checking") return;
+    const attemptId = activeCheckoutAttemptId;
+    if (!attemptId || verificationState === "checking") return;
     setVerificationState("checking");
     setPaymentError("Checking the verified payment status with PayU…");
     try {
-      const response = await fetch("/api/payments/payu/recheck", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ checkoutAttemptId }),
-      });
-      const body = (await response.json().catch(() => ({}))) as {
-        outcome?: "success" | "failure" | "pending" | "needs_review";
-        confirmationUrl?: string | null;
-        error?: string;
-      };
-      if (!response.ok) throw new Error(body.error ?? "Payment status could not be checked");
-      if (body.outcome === "success" && body.confirmationUrl) {
+      const result = await recheckConfiguratorPayment(attemptId);
+      if (result.outcome === "success" && result.confirmationUrl) {
         clearPaidCart(cartId);
-        window.location.assign(body.confirmationUrl);
+        window.location.assign(result.confirmationUrl);
         return;
       }
-      if (body.outcome === "failure") {
+      if (result.outcome === "failure") {
         setVerificationState("failed");
         setPaymentError("PayU confirmed that the previous payment was not completed. You can start a new payment safely.");
         return;
       }
-      if (body.outcome === "needs_review") {
+      if (result.outcome === "needs_review") {
         setVerificationState("review");
         setPaymentError("We received an unusual payment status. Don't make another payment. Our payments team is reviewing it.");
         return;
@@ -280,6 +276,9 @@ export function ConfirmationStep({
         if (result.kind === "already_finalized") {
           clearPaidCart(cartId);
           window.location.assign(result.order.confirmationUrl);
+        } else if (result.kind === "payment_completed") {
+          clearPaidCart(cartId);
+          window.location.assign(result.confirmationUrl);
         }
         return;
       }
@@ -290,9 +289,22 @@ export function ConfirmationStep({
         return;
       }
 
+      if (result.kind === "payment_pending") {
+        setActiveCheckoutAttemptId(result.checkoutAttemptId);
+        setVerificationState("pending");
+      }
       setPaymentError(result.message);
       setIsProcessing(false);
     } catch (error) {
+      if (error instanceof PaymentAttemptRecoveryError) {
+        setVerificationState(error.outcome === "needs_review" ? "review" : error.outcome === "success" ? "checking" : "pending");
+        setPaymentError(error.message);
+        if (error.confirmationUrl) {
+          clearPaidCart(cartId);
+          window.location.assign(error.confirmationUrl);
+          return;
+        }
+      }
       const message =
         error instanceof Error
           ? error.message
@@ -302,11 +314,12 @@ export function ConfirmationStep({
     }
   };
 
+  const paymentInProgress = isProcessing || verificationState === "pending" || verificationState === "checking" || verificationState === "review";
   const topBar = (
     <ConfiguratorTopBar
-      currentStep={getPaymentJourneyStep(isProcessing)}
+      currentStep={getPaymentJourneyStep(paymentInProgress)}
       backHref={
-        isProcessing
+        paymentInProgress
           ? undefined
           : `/configurator/cart/${encodeURIComponent(cartId)}/shipping`
       }
@@ -544,7 +557,7 @@ export function ConfirmationStep({
           {!termsAccepted && (
             <p className="text-center text-xs text-(--text-primary)/55">Accept the order terms to continue.</p>
           )}
-          {paymentError && <ActionFeedback tone={verificationState === "pending" || verificationState === "checking" || verificationState === "review" ? "info" : "error"} title={verificationState === "review" ? "Payment needs review" : verificationState === "pending" || verificationState === "checking" ? "We're confirming your payment" : "Payment wasn't completed"} detail={`${paymentError} Your configuration is still saved.`} actionLabel={verificationState === "pending" ? (checkoutAttemptId ? "Check payment status" : undefined) : verificationState === "checking" || verificationState === "review" ? undefined : "Try payment again"} onAction={verificationState === "pending" ? (checkoutAttemptId ? recheckPayment : undefined) : verificationState === "checking" || verificationState === "review" ? undefined : handlePayment} onDismiss={verificationState === "review" ? undefined : () => setPaymentError("")} />}
+          {paymentError && <ActionFeedback tone={verificationState === "pending" || verificationState === "checking" || verificationState === "review" ? "info" : "error"} title={verificationState === "review" ? "Payment needs review" : verificationState === "pending" || verificationState === "checking" ? "We're confirming your payment" : "Payment wasn't completed"} detail={`${paymentError} Your configuration is still saved.`} actionLabel={verificationState === "pending" ? (activeCheckoutAttemptId ? "Check payment status" : undefined) : verificationState === "checking" || verificationState === "review" ? undefined : "Try payment again"} onAction={verificationState === "pending" ? (activeCheckoutAttemptId ? recheckPayment : undefined) : verificationState === "checking" || verificationState === "review" ? undefined : handlePayment} onDismiss={verificationState === "review" ? undefined : () => setPaymentError("")} />}
         </div>
       </div>
     </>
