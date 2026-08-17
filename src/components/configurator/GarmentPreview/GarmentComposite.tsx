@@ -8,8 +8,8 @@ const MAX_PHOTOGRAPHIC_RENDER_DIMENSION = 3000;
 const MIN_STANDARD_RENDER_DIMENSION = 720;
 const MIN_PHOTOGRAPHIC_RENDER_DIMENSION = 1800;
 const MAX_CACHED_VIEWS = 2;
-const WATERCOLOUR_TRANSITION_DURATION_MS = 280;
-const WATERCOLOUR_BLOOM_POINTS = 44;
+const WATERCOLOUR_TRANSITION_DURATION_MS = 520;
+const WATERCOLOUR_BLOOM_POINTS = 64;
 
 interface GarmentCompositeProps {
   maskSrc: string;
@@ -67,8 +67,10 @@ function smoothstep(edge0: number, edge1: number, value: number): number {
   return progress * progress * (3 - 2 * progress);
 }
 
-function easeOutCubic(progress: number): number {
-  return 1 - Math.pow(1 - progress, 3);
+function easeInOutCubic(progress: number): number {
+  return progress < 0.5
+    ? 4 * Math.pow(progress, 3)
+    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
 }
 
 interface WatercolourBloom {
@@ -80,32 +82,10 @@ interface WatercolourBloom {
 }
 
 const WATERCOLOUR_BLOOMS: readonly WatercolourBloom[] = [
-  { x: 0.5, y: 0.46, delay: 0, scale: 1.08, seed: 1.7 },
-  { x: 0.39, y: 0.38, delay: 0.07, scale: 0.78, seed: 4.2 },
-  { x: 0.62, y: 0.58, delay: 0.11, scale: 0.72, seed: 7.9 },
+  { x: 0.39, y: 0.38, delay: 0, scale: 0.64, seed: 1.7 },
+  { x: 0.61, y: 0.43, delay: 0.06, scale: 0.66, seed: 4.2 },
+  { x: 0.49, y: 0.64, delay: 0.12, scale: 0.72, seed: 7.9 },
 ];
-
-function distanceToCanvasEdge(
-  originX: number,
-  originY: number,
-  directionX: number,
-  directionY: number,
-  width: number,
-  height: number,
-): number {
-  const horizontalDistance = directionX > 0
-    ? (width - originX) / directionX
-    : directionX < 0
-      ? -originX / directionX
-      : Number.POSITIVE_INFINITY;
-  const verticalDistance = directionY > 0
-    ? (height - originY) / directionY
-    : directionY < 0
-      ? -originY / directionY
-      : Number.POSITIVE_INFINITY;
-
-  return Math.min(horizontalDistance, verticalDistance);
-}
 
 /**
  * Adds a slightly uneven bloom to the current path. Several of these paths
@@ -125,24 +105,18 @@ function traceWatercolourBloom(
 
   const originX = bloom.x * width;
   const originY = bloom.y * height;
+  const bloomRadius = Math.max(width, height) * localProgress * bloom.scale * expansion;
 
   for (let point = 0; point < WATERCOLOUR_BLOOM_POINTS; point += 1) {
     const angle = (point / WATERCOLOUR_BLOOM_POINTS) * Math.PI * 2;
     const directionX = Math.cos(angle);
     const directionY = Math.sin(angle);
-    const edgeDistance = distanceToCanvasEdge(
-      originX,
-      originY,
-      directionX,
-      directionY,
-      width,
-      height,
-    );
     const ripple =
       1 +
-      Math.sin(angle * 5 + bloom.seed) * 0.055 +
-      Math.sin(angle * 11 - bloom.seed * 1.8) * 0.027;
-    const radius = edgeDistance * localProgress * bloom.scale * expansion * ripple;
+      Math.sin(angle * 5 + bloom.seed) * 0.085 +
+      Math.sin(angle * 11 - bloom.seed * 1.8) * 0.038 +
+      Math.sin(angle * 17 + bloom.seed * 0.7) * 0.018;
+    const radius = bloomRadius * ripple;
     const x = originX + directionX * radius;
     const y = originY + directionY * radius;
 
@@ -160,9 +134,9 @@ function drawWatercolourPass(
   expansion: number,
   opacity: number,
 ): void {
-  context.save();
-  context.beginPath();
   WATERCOLOUR_BLOOMS.forEach((bloom) => {
+    context.save();
+    context.beginPath();
     traceWatercolourBloom(
       context,
       bloom,
@@ -171,11 +145,11 @@ function drawWatercolourPass(
       progress,
       expansion,
     );
+    context.clip();
+    context.globalAlpha = opacity;
+    context.drawImage(incomingCanvas, 0, 0);
+    context.restore();
   });
-  context.clip();
-  context.globalAlpha = opacity;
-  context.drawImage(incomingCanvas, 0, 0);
-  context.restore();
 }
 
 function paintWatercolourReveal(
@@ -183,13 +157,14 @@ function paintWatercolourReveal(
   incomingCanvas: HTMLCanvasElement,
   progress: number,
 ): void {
-  const easedProgress = easeOutCubic(clamp(progress));
+  const easedProgress = easeInOutCubic(clamp(progress));
 
-  // A translucent wet edge leads the denser pigment. Repainting it as the
-  // bloom grows naturally builds colour at the boundary without per-pixel work.
-  drawWatercolourPass(context, incomingCanvas, easedProgress, 1.13, 0.14);
-  drawWatercolourPass(context, incomingCanvas, easedProgress, 1, 0.34);
-  drawWatercolourPass(context, incomingCanvas, easedProgress, 0.88, 1);
+  // Wide translucent washes lead the denser pigment. Drawing each bloom
+  // separately lets their overlaps deepen like layered watercolour on paper.
+  drawWatercolourPass(context, incomingCanvas, easedProgress, 1.18, 0.1);
+  drawWatercolourPass(context, incomingCanvas, easedProgress, 1, 0.24);
+  drawWatercolourPass(context, incomingCanvas, easedProgress, 0.82, 0.58);
+  drawWatercolourPass(context, incomingCanvas, easedProgress, 0.65, 0.92);
 }
 
 function parseHex(hex: string): [number, number, number] {
