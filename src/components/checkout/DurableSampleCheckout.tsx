@@ -461,11 +461,14 @@ export default function DurableSampleCheckout({
                       onChange={(event) =>
                         setForm((current) => ({
                           ...current,
-                          phone: event.target.value,
+                          phone: event.target.value.replace(/\D/g, "").slice(0, 10),
                         }))
                       }
                       className="techpack-control min-w-0 flex-1 rounded-l-[4px] border px-4 py-3 text-sm focus:!border-(--color-accent) focus:outline-none"
                       autoComplete="tel-national"
+                      inputMode="numeric"
+                      maxLength={10}
+                      placeholder="10-digit mobile number"
                       required
                     />
                   </div>
