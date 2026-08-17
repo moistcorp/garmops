@@ -21,6 +21,44 @@ async function waitForPhotographicGarment(
   return preview;
 }
 
+async function observeWatercolourTransition(preview: Locator): Promise<void> {
+  await preview.evaluate((canvas) => {
+    const element = canvas as HTMLCanvasElement;
+    element.dataset.watercolourObserved = "false";
+    const observer = new MutationObserver(() => {
+      if (element.dataset.colourTransition !== "watercolour") return;
+      element.dataset.watercolourObserved = "true";
+      observer.disconnect();
+    });
+    observer.observe(element, {
+      attributes: true,
+      attributeFilter: ["data-colour-transition"],
+    });
+    window.setTimeout(() => observer.disconnect(), 2_000);
+  });
+}
+
+test("colour selection blooms through the garment and respects reduced motion", async ({ page }) => {
+  await page.goto(
+    "/configurator/build/regular-fit-tee-200gsm?draftId=e2e-watercolour-transition",
+    { waitUntil: "domcontentloaded" },
+  );
+  await expect(page.locator('[data-configurator-hydrated="true"]')).toBeAttached();
+  const preview = await waitForPhotographicGarment(page, "front", "#F5F5F2");
+
+  await observeWatercolourTransition(preview);
+  await page.getByRole("button", { name: "Select Jet Black" }).click();
+  await expect(preview).toHaveAttribute("data-watercolour-observed", "true");
+  await waitForPhotographicGarment(page, "front", "#161616");
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await observeWatercolourTransition(preview);
+  await page.getByRole("button", { name: "Select Navy Blue" }).click();
+  await waitForPhotographicGarment(page, "front", "#202C46");
+  await page.waitForTimeout(350);
+  await expect(preview).toHaveAttribute("data-watercolour-observed", "false");
+});
+
 for (const colour of [
   { name: "Jet Black", hex: "#161616" },
   { name: "Classic White", hex: "#F5F5F2" },

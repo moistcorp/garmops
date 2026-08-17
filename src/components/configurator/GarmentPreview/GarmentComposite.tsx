@@ -8,6 +8,8 @@ const MAX_PHOTOGRAPHIC_RENDER_DIMENSION = 3000;
 const MIN_STANDARD_RENDER_DIMENSION = 720;
 const MIN_PHOTOGRAPHIC_RENDER_DIMENSION = 1800;
 const MAX_CACHED_VIEWS = 2;
+const WATERCOLOUR_TRANSITION_DURATION_MS = 280;
+const WATERCOLOUR_BLOOM_POINTS = 44;
 
 interface GarmentCompositeProps {
   maskSrc: string;
@@ -63,6 +65,131 @@ function clamp(value: number, min = 0, max = 1): number {
 function smoothstep(edge0: number, edge1: number, value: number): number {
   const progress = clamp((value - edge0) / (edge1 - edge0));
   return progress * progress * (3 - 2 * progress);
+}
+
+function easeOutCubic(progress: number): number {
+  return 1 - Math.pow(1 - progress, 3);
+}
+
+interface WatercolourBloom {
+  x: number;
+  y: number;
+  delay: number;
+  scale: number;
+  seed: number;
+}
+
+const WATERCOLOUR_BLOOMS: readonly WatercolourBloom[] = [
+  { x: 0.5, y: 0.46, delay: 0, scale: 1.08, seed: 1.7 },
+  { x: 0.39, y: 0.38, delay: 0.07, scale: 0.78, seed: 4.2 },
+  { x: 0.62, y: 0.58, delay: 0.11, scale: 0.72, seed: 7.9 },
+];
+
+function distanceToCanvasEdge(
+  originX: number,
+  originY: number,
+  directionX: number,
+  directionY: number,
+  width: number,
+  height: number,
+): number {
+  const horizontalDistance = directionX > 0
+    ? (width - originX) / directionX
+    : directionX < 0
+      ? -originX / directionX
+      : Number.POSITIVE_INFINITY;
+  const verticalDistance = directionY > 0
+    ? (height - originY) / directionY
+    : directionY < 0
+      ? -originY / directionY
+      : Number.POSITIVE_INFINITY;
+
+  return Math.min(horizontalDistance, verticalDistance);
+}
+
+/**
+ * Adds a slightly uneven bloom to the current path. Several of these paths
+ * overlap to make the colour feel absorbed by fabric rather than revealed by
+ * one mechanically perfect circle.
+ */
+function traceWatercolourBloom(
+  context: CanvasRenderingContext2D,
+  bloom: WatercolourBloom,
+  width: number,
+  height: number,
+  progress: number,
+  expansion: number,
+): void {
+  const localProgress = clamp((progress - bloom.delay) / (1 - bloom.delay));
+  if (localProgress <= 0) return;
+
+  const originX = bloom.x * width;
+  const originY = bloom.y * height;
+
+  for (let point = 0; point < WATERCOLOUR_BLOOM_POINTS; point += 1) {
+    const angle = (point / WATERCOLOUR_BLOOM_POINTS) * Math.PI * 2;
+    const directionX = Math.cos(angle);
+    const directionY = Math.sin(angle);
+    const edgeDistance = distanceToCanvasEdge(
+      originX,
+      originY,
+      directionX,
+      directionY,
+      width,
+      height,
+    );
+    const ripple =
+      1 +
+      Math.sin(angle * 5 + bloom.seed) * 0.055 +
+      Math.sin(angle * 11 - bloom.seed * 1.8) * 0.027;
+    const radius = edgeDistance * localProgress * bloom.scale * expansion * ripple;
+    const x = originX + directionX * radius;
+    const y = originY + directionY * radius;
+
+    if (point === 0) context.moveTo(x, y);
+    else context.lineTo(x, y);
+  }
+
+  context.closePath();
+}
+
+function drawWatercolourPass(
+  context: CanvasRenderingContext2D,
+  incomingCanvas: HTMLCanvasElement,
+  progress: number,
+  expansion: number,
+  opacity: number,
+): void {
+  context.save();
+  context.beginPath();
+  WATERCOLOUR_BLOOMS.forEach((bloom) => {
+    traceWatercolourBloom(
+      context,
+      bloom,
+      incomingCanvas.width,
+      incomingCanvas.height,
+      progress,
+      expansion,
+    );
+  });
+  context.clip();
+  context.globalAlpha = opacity;
+  context.drawImage(incomingCanvas, 0, 0);
+  context.restore();
+}
+
+function paintWatercolourReveal(
+  context: CanvasRenderingContext2D,
+  incomingCanvas: HTMLCanvasElement,
+  progress: number,
+): void {
+  const easedProgress = easeOutCubic(clamp(progress));
+
+  // A translucent wet edge leads the denser pigment. Repainting it as the
+  // bloom grows naturally builds colour at the boundary without per-pixel work.
+  drawWatercolourPass(context, incomingCanvas, easedProgress, 1.13, 0.14);
+  drawWatercolourPass(context, incomingCanvas, easedProgress, 1, 0.34);
+  drawWatercolourPass(context, incomingCanvas, easedProgress, 0.88, 1);
 }
 
 function parseHex(hex: string): [number, number, number] {
@@ -573,8 +700,15 @@ export default function GarmentComposite({
     let loadedLayers = 0;
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const previousAssetKey = canvas.dataset.renderAsset;
+    const previousColour = canvas.dataset.renderColour;
+    const hasPreviousComposite =
+      previousAssetKey === assetKey &&
+      Boolean(previousColour) &&
+      canvas.width > 0 &&
+      canvas.height > 0;
     canvas.dataset.renderState = "loading";
-    delete canvas.dataset.renderColour;
+    delete canvas.dataset.colourTransition;
     notifyRenderProgress({
       state: "loading",
       loadedLayers,
@@ -592,7 +726,11 @@ export default function GarmentComposite({
       return;
     }
 
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    if (!hasPreviousComposite) {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      delete canvas.dataset.renderColour;
+      delete canvas.dataset.renderAsset;
+    }
     const renderDimension = getRenderDimension(canvas, renderProfile);
 
     loadLayers(
@@ -624,23 +762,68 @@ export default function GarmentComposite({
           loadedLayers: GARMENT_LAYER_COUNT,
           totalLayers: GARMENT_LAYER_COUNT,
         });
+        target.dataset.renderState = "compositing";
 
-        renderFrame = window.requestAnimationFrame(() => {
+        renderFrame = window.requestAnimationFrame((renderStartedAt) => {
           renderFrame = null;
           if (cancelled || !canvasRef.current) return;
           try {
             const targetContext = target.getContext("2d");
             if (!targetContext) throw new Error("Canvas 2D rendering is unavailable.");
-            renderComposite(targetContext, layers, colourHex, renderProfile);
-            target.dataset.renderColour = colourHex;
-            target.dataset.renderState = "ready";
-            notifyRenderProgress({
-              state: "ready",
-              loadedLayers: GARMENT_LAYER_COUNT,
-              totalLayers: GARMENT_LAYER_COUNT,
-            });
+
+            const incomingCanvas = document.createElement("canvas");
+            incomingCanvas.width = layers.width;
+            incomingCanvas.height = layers.height;
+            const incomingContext = incomingCanvas.getContext("2d");
+            if (!incomingContext) throw new Error("Canvas 2D rendering is unavailable.");
+            renderComposite(incomingContext, layers, colourHex, renderProfile);
+
+            const shouldAnimateColourChange =
+              hasPreviousComposite &&
+              previousColour !== colourHex &&
+              document.visibilityState !== "hidden" &&
+              !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+            const finishRender = () => {
+              targetContext.clearRect(0, 0, target.width, target.height);
+              targetContext.drawImage(incomingCanvas, 0, 0);
+              target.dataset.renderColour = colourHex;
+              target.dataset.renderAsset = assetKey;
+              target.dataset.renderState = "ready";
+              delete target.dataset.colourTransition;
+              notifyRenderProgress({
+                state: "ready",
+                loadedLayers: GARMENT_LAYER_COUNT,
+                totalLayers: GARMENT_LAYER_COUNT,
+              });
+            };
+
+            if (!shouldAnimateColourChange) {
+              finishRender();
+              return;
+            }
+
+            target.dataset.colourTransition = "watercolour";
+            const animateReveal = (now: number) => {
+              renderFrame = null;
+              if (cancelled || !canvasRef.current) return;
+              const progress = clamp(
+                (now - renderStartedAt) / WATERCOLOUR_TRANSITION_DURATION_MS,
+              );
+              paintWatercolourReveal(targetContext, incomingCanvas, progress);
+
+              if (progress < 1) {
+                renderFrame = window.requestAnimationFrame(animateReveal);
+                return;
+              }
+
+              finishRender();
+            };
+
+            animateReveal(renderStartedAt);
           } catch (error: unknown) {
             target.dataset.renderState = "error";
+            delete target.dataset.colourTransition;
             notifyRenderProgress({
               state: "error",
               loadedLayers,
@@ -653,6 +836,7 @@ export default function GarmentComposite({
       .catch((error: unknown) => {
         if (cancelled || !canvasRef.current) return;
         canvasRef.current.dataset.renderState = "error";
+        delete canvasRef.current.dataset.colourTransition;
         notifyRenderProgress({
           state: "error",
           loadedLayers,
