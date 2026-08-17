@@ -293,6 +293,7 @@ export async function prepareConfiguratorCheckoutPayment(input: {
         error?: string;
         checkoutUrl?: string;
         fields?: Record<string, string>;
+        amountPaise?: number;
       };
       if (!paymentResponse.ok || !paymentBody.fields || !paymentBody.checkoutUrl) {
         const message = paymentBody.error ?? "Secure payment could not be started";
@@ -301,6 +302,19 @@ export async function prepareConfiguratorCheckoutPayment(input: {
           ok: false,
           kind: paymentResponse.status === 401 ? "unauthorized" : paymentResponse.status === 409 ? "conflict" : "unavailable",
           message,
+        };
+      }
+      const approvedTotalPaise = input.draft.backendCart?.grandTotalPaise;
+      const chargedTotalPaise = paymentBody.amountPaise;
+      if (
+        typeof approvedTotalPaise === "number" &&
+        typeof chargedTotalPaise === "number" &&
+        approvedTotalPaise !== chargedTotalPaise
+      ) {
+        return {
+          ok: false,
+          kind: "conflict",
+          message: "Your order total changed since this page loaded. Review the updated total before payment.",
         };
       }
       try {

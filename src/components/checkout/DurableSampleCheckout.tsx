@@ -65,6 +65,7 @@ type InitiateResponse = {
   error?: string;
   checkoutUrl?: string;
   fields?: Record<string, string>;
+  amountPaise?: number;
 };
 
 function rupees(valuePaise: number): string {
@@ -271,6 +272,14 @@ export default function DurableSampleCheckout({
         throw new Error(
           payment.error ??
             "The checkout is prepared, but secure payment could not be opened.",
+        );
+      }
+      if (
+        typeof payment.amountPaise === "number" &&
+        payment.amountPaise !== displayedTotalPaise
+      ) {
+        throw new Error(
+          "Your order total changed since this page loaded. Review the updated total before payment.",
         );
       }
       await submitPayuCheckout(payment.fields, payment.checkoutUrl);

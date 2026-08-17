@@ -3,10 +3,13 @@
 const PAYU_TEST_URL = "https://test.payu.in/_payment";
 const PAYU_PRODUCTION_URL = "https://secure.payu.in/_payment";
 const PAYU_NAVIGATION_TIMEOUT_MS = 15_000;
-const ALLOWED_PAYU_ORIGINS = new Set([
-  "https://test.payu.in",
-  "https://secure.payu.in",
-]);
+const PAYU_PRODUCTION_ORIGIN = "https://secure.payu.in";
+
+function getAllowedPayuOrigins(): Set<string> {
+  return process.env.NODE_ENV === "production"
+    ? new Set([PAYU_PRODUCTION_ORIGIN])
+    : new Set([PAYU_PRODUCTION_ORIGIN, "https://test.payu.in"]);
+}
 
 export type PayuCheckoutFields = Record<string, string>;
 
@@ -19,7 +22,7 @@ function getPayuCheckoutUrl(): string {
 function validateCheckoutUrl(value: string): string {
   const url = new URL(value);
   if (
-    !ALLOWED_PAYU_ORIGINS.has(url.origin) ||
+    !getAllowedPayuOrigins().has(url.origin) ||
     url.pathname !== "/_payment" ||
     url.search ||
     url.hash ||

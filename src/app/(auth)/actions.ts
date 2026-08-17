@@ -14,7 +14,7 @@ const password = z.string().min(8).max(128);
 const name = z.string().trim().min(1).max(80);
 const fields = (formData: FormData) => Object.fromEntries(formData.entries());
 const emailSchema = z.object({ email, "cf-turnstile-response": z.string().trim().optional() });
-const loginSchema = z.object({ email, password, next: z.string().optional(), portal: z.literal("staff") });
+const loginSchema = z.object({ email, password, next: z.string().optional(), portal: z.literal("staff"), "cf-turnstile-response": z.string().trim().optional() });
 const emailOtpSchema = z.object({ email, challengeId: z.string().min(1), token: z.string().trim().regex(/^\d{6}$/, "Enter the 6-digit code"), next: z.string().optional() });
 const minimalOnboardingSchema = z.object({ firstName: name, lastName: name, consent: z.literal("on"), next: z.string().optional() });
 
@@ -33,7 +33,7 @@ export async function loginAction(_state: AuthActionState, formData: FormData): 
   if (!parsed.success) return validationError(parsed.error);
   let requiresEnrollment = false;
   try {
-    const result = await medusaRequest<{ token?: string; mfa_required?: boolean; mfa_challenge?: { id: string; methods?: string[] } }>("/auth/user/emailpass", { method: "POST", body: { email: parsed.data.email, password: parsed.data.password }, actor: "public" });
+    const result = await medusaRequest<{ token?: string; mfa_required?: boolean; mfa_challenge?: { id: string; methods?: string[] } }>("/auth/user/emailpass", { method: "POST", body: { email: parsed.data.email, password: parsed.data.password, turnstileToken: parsed.data["cf-turnstile-response"] }, actor: "public" });
     if (!result.token) return actionError("Unable to sign in with those staff credentials.");
     await setMedusaToken("staff", result.token);
     if (result.mfa_required && result.mfa_challenge) return actionSuccess("Enter the authenticator code to continue.", { mfaChallengeId: result.mfa_challenge.id, mfaMethods: result.mfa_challenge.methods ?? ["totp"] });
