@@ -7,10 +7,8 @@ export async function POST(request: NextRequest) {
   try {
     const result = await medusaRequest<{ fileId: string; uploadUrl: string; expiresIn: number; state: string }>("/store/garmops/files/upload", { method: "POST", actor: "customer", body: {
       filename: body.filename,
-      safeFilename: body.filename,
       contentType: body.contentType,
       byteSize: body.byteSize,
-      extension: String(body.filename).split(".").pop()?.toLowerCase(),
       sha256: body.sha256,
       kind: body.kind,
       visibility: "customer",

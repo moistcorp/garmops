@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { BuildDraft } from "@/lib/configurator/buildDraft";
+
+vi.mock("@/lib/configurator/objectUrls", () => ({
+  readUploadedFile: vi.fn(async () => new Blob(["fake-artwork"], { type: "image/png" })),
+}));
+
 import { saveBuildDraftToCloud } from "./client";
 
 function json(body: unknown, status = 200): Response {
@@ -101,5 +106,73 @@ describe("cloud design artwork ownership", () => {
     ]);
     const patchBody = JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body));
     expect(patchBody.snapshot.configuration.artwork.front.fileUrl).toBe(sampleUrl);
+  });
+
+  it("re-uploads a user artwork file with only the backend upload schema fields", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(json({
+        design: {
+          id: "design_456",
+          draftRevision: 1,
+          currentVersion: 1,
+          currentVersionId: "version_1",
+          lastSavedAt: "2026-08-16T04:51:00.000Z",
+        },
+      }, 201))
+      .mockResolvedValueOnce(json({
+        fileId: "file_9",
+        upload: { url: "https://presigned.example/file_9", method: "PUT", headers: {} },
+        finalizeUrl: "/api/uploads/file_9/finalize",
+      }))
+      .mockResolvedValueOnce(json({}))
+      .mockResolvedValueOnce(json({ ok: true }))
+      .mockResolvedValueOnce(json({
+        design: {
+          draftRevision: 2,
+          currentVersion: 2,
+          currentVersionId: "version_2",
+          lastSavedAt: "2026-08-16T04:52:00.000Z",
+        },
+      }))
+      .mockResolvedValueOnce(json({
+        version: {
+          id: "version_2",
+          number: 2,
+          draftRevision: 2,
+          createdAt: "2026-08-16T04:52:00.000Z",
+        },
+      }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const draft = sampleDraft("https://assets.garmops.com/garments/v1/artwork-sample.svg");
+    draft.artwork.front = {
+      ...draft.artwork.front!,
+      fileUrl: "",
+      fileKey: "user-upload-key",
+      fileName: "front artwork final.png",
+      fileType: "png",
+    };
+
+    const result = await saveBuildDraftToCloud({
+      configId: "regular-fit-tee-200gsm",
+      productName: "Classic T-Shirt",
+      draft,
+      existingLink: null,
+    });
+
+    expect(result.ok).toBe(true);
+    const uploadCall = fetchMock.mock.calls.find(([url]) => url === "/api/uploads/create");
+    expect(uploadCall).toBeDefined();
+    const body = JSON.parse(String(uploadCall?.[1]?.body));
+    expect(body).toEqual({
+      designProjectId: "design_456",
+      kind: "customer_artwork",
+      visibility: "customer",
+      filename: "front artwork final.png",
+      contentType: "image/png",
+      byteSize: expect.any(Number),
+    });
+    expect(body).not.toHaveProperty("safeFilename");
+    expect(body).not.toHaveProperty("extension");
   });
 });
