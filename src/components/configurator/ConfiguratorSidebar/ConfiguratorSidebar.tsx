@@ -192,6 +192,7 @@ export function ConfiguratorSidebar({
         ) : activeStep.id === "artwork" ? (
           <ArtworkPanel
             productId={productId}
+            garmentColourHex={colour.hex}
             value={artwork}
             onChange={(next) => {
               if (controlledArtwork === undefined) setInternalArtwork(next);

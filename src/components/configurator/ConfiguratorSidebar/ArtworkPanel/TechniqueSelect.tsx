@@ -2,11 +2,14 @@
 
 import type { CustomerArtworkTechnique } from "@/lib/configurator/types/configurator";
 import { CUSTOMER_PRINT_TECHNIQUE_LABELS } from "@/lib/pricingRules";
+import { CUSTOMER_PRINT_TECHNIQUE_UNIT_DELTAS } from "@/lib/pricingRules";
+import { formatInr } from "@/lib/configurator/pricing";
 
 export interface TechniqueSelectProps {
   value?: CustomerArtworkTechnique;
   side?: "front" | "back";
   onChange: (technique: CustomerArtworkTechnique) => void;
+  recommendedTechnique?: CustomerArtworkTechnique;
 }
 
 export const TECHNIQUE_LABELS = CUSTOMER_PRINT_TECHNIQUE_LABELS;
@@ -18,12 +21,12 @@ const TECHNIQUE_ORDER: CustomerArtworkTechnique[] = [
 ];
 
 const TECHNIQUE_DESCRIPTIONS: Record<CustomerArtworkTechnique, string> = {
-  screen_print: "Premium, smooth finish with a soft and durable hand feel.",
-  dtf: "Crisp, smooth finish with a flexible, slightly raised feel.",
-  reflective_print: "Clean, smooth reflective film finish in a selected colour.",
+  screen_print: "Best for bold logos and 1–4 flat colours. Durable and cost-effective at scale.",
+  dtf: "Best for gradients, photos and detailed multi-colour artwork.",
+  reflective_print: "Best when visibility is the priority. Available in selected reflective colours.",
 };
 
-export function TechniqueSelect({ value, side = "front", onChange }: TechniqueSelectProps) {
+export function TechniqueSelect({ value, side = "front", onChange, recommendedTechnique }: TechniqueSelectProps) {
   const sideLabel = side === "front" ? "Front" : "Back";
 
   function chooseTechnique(technique: CustomerArtworkTechnique) {
@@ -35,7 +38,8 @@ export function TechniqueSelect({ value, side = "front", onChange }: TechniqueSe
       <legend className="text-xs font-semibold text-(--text-primary)/70">
         <span className="whitespace-nowrap">2 -</span> Print method
       </legend>
-      <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Print method">
+      {recommendedTechnique ? <p className="text-xs leading-relaxed text-(--text-primary)/58"><span className="font-semibold text-(--color-accent-dark)">Recommended:</span> {TECHNIQUE_LABELS[recommendedTechnique]} based on the uploaded artwork.</p> : null}
+      <div className="grid gap-2" role="radiogroup" aria-label="Print method">
         {TECHNIQUE_ORDER.map((technique) => {
           const selected = value === technique;
           return (
@@ -45,15 +49,16 @@ export function TechniqueSelect({ value, side = "front", onChange }: TechniqueSe
               role="radio"
               aria-checked={selected}
               onClick={() => chooseTechnique(technique)}
-              className={`flex min-h-11 items-center rounded-sm border px-2.5 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)/45 ${
+              className={`flex min-h-14 items-center rounded-sm border px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)/45 ${
                 selected
                   ? "border-(--color-accent) bg-(--color-accent)/8"
                   : "techpack-control hover:!border-(--color-accent)/45"
               }`}
             >
-              <span className="flex w-full items-center justify-between gap-2">
-                <span className="min-w-0 text-[13px] font-semibold leading-tight text-(--text-primary)/85">
-                  {TECHNIQUE_LABELS[technique]}
+              <span className="flex w-full items-center justify-between gap-3">
+                <span className="min-w-0">
+                  <span className="flex flex-wrap items-center gap-1.5 text-[13px] font-semibold leading-tight text-(--text-primary)/85">{TECHNIQUE_LABELS[technique]}{recommendedTechnique === technique ? <span className="rounded-sm bg-(--color-accent)/10 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-(--color-accent-dark)">Recommended</span> : null}</span>
+                  <span className="mt-1 block text-xs leading-relaxed text-(--text-primary)/50">{TECHNIQUE_DESCRIPTIONS[technique]} · +{formatInr(CUSTOMER_PRINT_TECHNIQUE_UNIT_DELTAS[technique])}/unit</span>
                 </span>
                 <span
                   aria-hidden="true"
@@ -71,13 +76,6 @@ export function TechniqueSelect({ value, side = "front", onChange }: TechniqueSe
       {!value && (
         <p className="text-xs leading-relaxed text-(--text-primary)/50">
           Choose a print method to continue.
-        </p>
-      )}
-      {value && (
-        <p className="text-xs leading-relaxed text-(--text-primary)/58">
-          <span className="font-semibold text-(--text-primary)/75">{TECHNIQUE_LABELS[value]}</span>
-          <span aria-hidden="true"> · </span>
-          {TECHNIQUE_DESCRIPTIONS[value]}
         </p>
       )}
     </fieldset>

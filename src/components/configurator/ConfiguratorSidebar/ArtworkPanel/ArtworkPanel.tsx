@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { AlertTriangle } from "lucide-react";
 import {
   ArtworkUploadSide,
   SAMPLE_ARTWORK_DIMENSIONS,
@@ -34,6 +35,7 @@ import { isCustomerArtworkTechnique } from "@/lib/configurator/types/configurato
 import type { ReflectiveColourKey } from "@/lib/configurator/reflectiveColours";
 import { DEFAULT_REFLECTIVE_COLOUR } from "@/lib/configurator/reflectiveColours";
 import type { GarmentView } from "@/lib/configurator/types/garment";
+import { getArtworkContrast, getArtworkQuality } from "@/lib/configurator/artworkQuality";
 
 export interface ArtworkPanelProps {
   productId?: ProductId;
@@ -41,6 +43,7 @@ export interface ArtworkPanelProps {
   onChange?: (artwork: Artwork) => void;
   activeView?: GarmentView;
   onViewChange?: (view: GarmentView) => void;
+  garmentColourHex?: string;
 }
 
 type Side = "front" | "back";
@@ -64,7 +67,7 @@ function artworkFilename(side?: ArtworkSide): string {
   return side?.fileName ?? side?.fileUrl?.split("/").pop() ?? "Artwork";
 }
 
-export function ArtworkPanel({ productId, value, onChange, activeView, onViewChange }: ArtworkPanelProps = {}) {
+export function ArtworkPanel({ productId, value, onChange, activeView, onViewChange, garmentColourHex = "#FFFFFF" }: ArtworkPanelProps = {}) {
   const [internalArtwork, setInternalArtwork] = useState<Artwork>(value ?? {});
   const artwork = value !== undefined ? value : internalArtwork;
   const [activeSide, setActiveSide] = useState<Side>(activeView === "back" ? "back" : "front");
@@ -250,6 +253,13 @@ export function ArtworkPanel({ productId, value, onChange, activeView, onViewCha
   const selectedTechnique = isCustomerArtworkTechnique(current?.technique) ? current.technique : undefined;
   const placementPresets = panelSide === "front" ? FRONT_PLACEMENT_PRESETS : BACK_PLACEMENT_PRESETS;
   const selectedPlacement = current?.placementPreset ?? "custom";
+  const artworkQuality = getArtworkQuality(current);
+  const artworkContrast = getArtworkContrast(current, garmentColourHex);
+  const recommendedTechnique: CustomerArtworkTechnique | undefined = current
+    ? current.isContinuousTone || (current.detectedColorCount ?? 0) > 4
+      ? "dtf"
+      : "screen_print"
+    : undefined;
 
   return (
     <div className="flex flex-col gap-3.5 text-sm text-(--text-primary)">
@@ -283,7 +293,22 @@ export function ArtworkPanel({ productId, value, onChange, activeView, onViewCha
 
         {current && (
           <>
-            <TechniqueSelect value={selectedTechnique} side={panelSide} onChange={(technique) => handleTechniqueChange(panelSide, technique)} />
+            <div className="grid gap-2" aria-label="Artwork production checks">
+              {artworkContrast?.lowContrast ? (
+                <div className="flex items-start gap-2 rounded-sm border border-amber-700/30 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-950" role="alert">
+                  <AlertTriangle size={15} className="mt-0.5 shrink-0" aria-hidden="true" />
+                  <div><p className="font-semibold">Low colour contrast</p><p className="mt-0.5 opacity-75">{artworkContrast.message}</p></div>
+                </div>
+              ) : null}
+              {artworkQuality?.label.startsWith("May") ? (
+                <div className="rounded-sm border border-amber-700/30 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-950">
+                  <p className="font-semibold text-(--text-primary)">{artworkQuality.label}{artworkQuality.effectivePpi ? ` · ${artworkQuality.effectivePpi} PPI` : ""}</p>
+                  {artworkQuality.detail ? <p className="mt-0.5 opacity-75">{artworkQuality.detail}</p> : null}
+                </div>
+              ) : null}
+            </div>
+
+            <TechniqueSelect value={selectedTechnique} side={panelSide} recommendedTechnique={recommendedTechnique} onChange={(technique) => handleTechniqueChange(panelSide, technique)} />
 
             {selectedTechnique === "reflective_print" && (
               <ReflectiveColourSelect

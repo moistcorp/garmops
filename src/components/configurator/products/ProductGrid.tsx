@@ -30,7 +30,7 @@ export default function ProductGrid({ cartId }: { cartId?: string }) {
       if (!cancelled) setActiveSlugs(new Set(catalog.products.map((product) => product.slug)));
     }).catch(() => {
       if (!cancelled) {
-        setActiveSlugs(new Set());
+        setActiveSlugs(new Set(products.map((product) => product.id)));
         setCatalogError(true);
       }
     });
@@ -88,37 +88,42 @@ export default function ProductGrid({ cartId }: { cartId?: string }) {
 
       {activeSlugs === null ? (
         <p className="border border-dashed border-(--color-rule) px-4 py-8 text-center text-sm text-(--text-primary)/60" role="status">Loading the current catalogue…</p>
-      ) : catalogError ? (
-        <div className="border border-(--color-accent)/30 bg-(--color-cream-soft) px-5 py-7 text-center" role="alert">
-          <p className="font-semibold text-(--text-primary)">The product catalogue could not be reached.</p>
-          <p className="mt-2 text-sm text-(--text-primary)/60">Check that the Garmops backend is running, then try again.</p>
-          <button
-            type="button"
-            onClick={() => {
-              setActiveSlugs(null);
-              setCatalogError(false);
-              setCatalogAttempt((attempt) => attempt + 1);
-            }}
-            className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-sm border border-(--color-accent) px-4 py-2 text-sm font-semibold text-(--color-accent-dark)"
-          >
-            <RefreshCw size={15} aria-hidden="true" /> Retry catalogue
-          </button>
-        </div>
-      ) : filteredProducts.length > 0 ? (
-        <div className="grid grid-cols-1 items-stretch gap-5 sm:grid-cols-2 xl:grid-cols-4">
-          {filteredProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              configuratorHref={configuratorHref(product.id)}
-              productDetailHref={productDetailHref(product.id)}
-            />
-          ))}
-        </div>
       ) : (
-        <p className="border border-dashed border-(--color-rule) px-4 py-8 text-center text-sm text-(--text-primary)/60">
-          No products available in this category.
-        </p>
+        <>
+          {catalogError ? (
+            <div className="mb-5 flex flex-col gap-3 border border-amber-700/25 bg-amber-50 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between" role="alert">
+              <div>
+                <p className="font-semibold text-amber-950">Live availability is temporarily unavailable.</p>
+                <p className="mt-0.5 text-amber-950/65">You can still explore the standard range. Availability will be checked before checkout.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveSlugs(null);
+                  setCatalogError(false);
+                  setCatalogAttempt((attempt) => attempt + 1);
+                }}
+                className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-sm border border-amber-800/30 px-4 py-2 text-sm font-semibold text-amber-950"
+              >
+                <RefreshCw size={15} aria-hidden="true" /> Check again
+              </button>
+            </div>
+          ) : null}
+          {filteredProducts.length > 0 ? (
+            <div className="grid grid-cols-1 items-stretch gap-5 sm:grid-cols-2 xl:grid-cols-4">
+              {filteredProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  configuratorHref={configuratorHref(product.id)}
+                  productDetailHref={productDetailHref(product.id)}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="border border-dashed border-(--color-rule) px-4 py-8 text-center text-sm text-(--text-primary)/60">No products available in this category.</p>
+          )}
+        </>
       )}
 
       <section className="border-t border-(--color-rule) pt-7" aria-labelledby="product-research-title">

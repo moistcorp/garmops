@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { effectiveArtworkPpi, getArtworkQuality } from "./artworkQuality";
+import { effectiveArtworkPpi, getArtworkContrast, getArtworkQuality, hexRelativeLuminance } from "./artworkQuality";
 
 describe("artwork quality", () => {
   it("uses physical print size for raster quality", () => {
@@ -38,5 +38,29 @@ describe("artwork quality", () => {
     };
     expect(getArtworkQuality(side)?.isVector).toBe(false);
     expect(getArtworkQuality(side)?.label).toBe("May print soft at this size");
+  });
+
+  it("warns when dark artwork is placed on a dark garment", () => {
+    const darkArtwork = {
+      fileUrl: "sample.svg",
+      fileType: "svg" as const,
+      vectorized: true,
+      averageLuminance: 0.02,
+      width: 20,
+      height: 3,
+      fromNeck: 8,
+      fromCenter: 0,
+      printArea: "M" as const,
+      guidelines: { maximumArea: true, leftChest: false },
+      confirmed: false,
+    };
+    expect(getArtworkContrast(darkArtwork, "#111111")?.lowContrast).toBe(true);
+    expect(getArtworkContrast(darkArtwork, "#FFFFFF")?.lowContrast).toBe(false);
+  });
+
+  it("parses shorthand and full garment colours", () => {
+    expect(hexRelativeLuminance("#fff")).toBeCloseTo(1);
+    expect(hexRelativeLuminance("#000000")).toBe(0);
+    expect(hexRelativeLuminance("not-a-colour")).toBeUndefined();
   });
 });

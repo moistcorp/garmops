@@ -119,7 +119,7 @@ export function ConfiguratorJourney({
                         aria-hidden="true"
                         className="h-4 w-px shrink-0 bg-(--text-primary)/15"
                       />
-                      <span className="max-w-40 truncate text-sm font-medium text-(--text-primary)/85 sm:max-w-64">
+                      <span className="hidden max-w-40 truncate text-sm font-medium text-(--text-primary)/85 sm:inline sm:max-w-64">
                         {productName}
                       </span>
                     </>
@@ -200,8 +200,8 @@ export function ConfiguratorJourney({
                     <span className={`mt-2 block font-mono text-xs uppercase tracking-[0.04em] ${
                       active ? "text-(--color-accent)" : complete ? "text-(--color-navy)" : "text-[rgba(22,33,43,0.5)]"
                     }`}>
-                      <span className="sm:hidden">{String(index + 1).padStart(2, "0")}</span>
-                      <span className="hidden sm:inline">{String(index + 1).padStart(2, "0")} {step.label}</span>
+                      <span className="xl:hidden">{String(index + 1).padStart(2, "0")}{active ? <span className="hidden sm:inline"> {step.label}</span> : null}</span>
+                      <span className="hidden xl:inline">{String(index + 1).padStart(2, "0")} {step.label}</span>
                     </span>
                   </>
                 );

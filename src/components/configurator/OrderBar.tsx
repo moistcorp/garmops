@@ -179,12 +179,31 @@ export function OrderBar({
     };
   }, [ctaErrorNonce]);
 
+  const quantityPresets = [...new Set([minQuantity, 50, 100, 250, 500])]
+    .filter((preset) => preset >= minQuantity)
+    .sort((left, right) => left - right);
+
   return (
     <section
       aria-label="Order estimate"
       className="techpack-surface rounded-md !border-(--color-control-border) !bg-white border p-2"
     >
       <VolumeDiscountProgress quantity={quantity} />
+
+      <div className="mt-2 flex items-center gap-1.5" aria-label="Quantity presets">
+        <span className="mr-auto text-xs font-medium text-(--text-primary)/45">Quick set</span>
+        {quantityPresets.map((preset) => (
+          <button
+            key={preset}
+            type="button"
+            aria-pressed={quantity === preset}
+            onClick={() => onQuantityChange(preset)}
+            className={`min-h-7 min-w-11 rounded-sm border px-2 text-xs font-semibold transition-[background-color,border-color,color] duration-150 ${quantity === preset ? "border-(--color-accent) bg-(--color-accent) text-white" : "border-(--color-control-border) text-(--text-primary)/65 hover:border-(--color-accent)/50"}`}
+          >
+            {preset}
+          </button>
+        ))}
+      </div>
 
       <div
         className="mt-1.5 grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-x-3 border-t border-(--color-control-border)/70 pt-1.5 sm:grid-cols-[minmax(132px,1.2fr)_minmax(92px,1fr)_minmax(92px,1fr)]"
@@ -200,10 +219,10 @@ export function OrderBar({
           <div className="techpack-control flex h-10 w-full items-center justify-between rounded-sm border px-1.5">
             <button
               type="button"
-              aria-label="Decrease quantity"
+              aria-label="Decrease quantity by 10"
               disabled={quantity <= minQuantity}
               onClick={() =>
-                onQuantityChange(Math.max(minQuantity, quantity - 1))
+                onQuantityChange(Math.max(minQuantity, quantity - 10))
               }
               className="flex h-8 w-8 items-center justify-center rounded-sm text-lg leading-none text-(--text-primary)/80 hover:bg-white disabled:cursor-not-allowed disabled:text-(--text-primary)/25"
             >
@@ -231,8 +250,8 @@ export function OrderBar({
             />
             <button
               type="button"
-              aria-label="Increase quantity"
-              onClick={() => onQuantityChange(quantity + 1)}
+              aria-label="Increase quantity by 10"
+              onClick={() => onQuantityChange(quantity + 10)}
               className="flex h-8 w-8 items-center justify-center rounded-sm text-lg leading-none text-(--text-primary)/80 hover:bg-white"
             >
               +
@@ -274,7 +293,7 @@ export function OrderBar({
       <button
         type="button"
         onClick={onCtaClick}
-        className={`mt-2 min-h-11 w-full rounded-sm px-4 py-2 text-sm font-semibold leading-tight text-white transition-all hover:opacity-90 ${
+        className={`mt-2 min-h-11 w-full rounded-sm px-4 py-2 text-sm font-semibold leading-tight text-white transition-[background-color,box-shadow,opacity] duration-150 hover:opacity-90 ${
           flashError
             ? "bg-[#C62828] ring-2 ring-[#C62828]/40 ring-offset-2"
             : "bg-(--color-accent) hover:bg-(--color-accent-dark)"

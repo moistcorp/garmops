@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   CheckCircle2,
-  ChevronDown,
   LoaderCircle,
   MapPin,
   ShieldCheck,
@@ -260,11 +259,6 @@ export function ConfirmationStep({
       return;
     }
 
-    if (draft.promoCode.trim()) {
-      setPaymentError("Promotional codes are not available for this checkout yet. Remove the code to continue.");
-      return;
-    }
-
     setIsProcessing(true);
 
     try {
@@ -490,49 +484,9 @@ export function ConfirmationStep({
           </div>
         </section>
 
-        <section className="techpack-panel rounded-sm border p-5">
-          <p className="mb-3 font-mono text-xs font-semibold uppercase tracking-[0.12em] text-(--color-accent)">04 / Payment authorisation</p>
-          <label className="flex cursor-pointer items-start gap-3 text-sm text-(--text-primary)">
-            <input
-              type="checkbox"
-              checked={termsAccepted}
-              onChange={(event) => setTermsAccepted(event.target.checked)}
-              className="mt-0.5 h-4 w-4 accent-(--color-accent)"
-            />
-            <span>I agree to the <Link href="/terms" className="underline">order terms</Link> and <Link href="/privacy" className="underline">privacy notice</Link>.</span>
-          </label>
-        </section>
         </div>
 
         <div className="space-y-4 lg:sticky lg:top-36 lg:self-start">
-          <details className="techpack-panel group overflow-hidden rounded-sm border">
-            <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
-              <span className="text-sm font-semibold text-(--text-primary)">Promotional codes</span>
-              <ChevronDown
-                size={17}
-                aria-hidden="true"
-                className="shrink-0 text-(--text-primary)/45 transition-transform group-open:rotate-180"
-              />
-            </summary>
-            <div className="border-t border-(--color-rule) px-4 pb-4 pt-3">
-              <div className="flex gap-2">
-                <input
-                  readOnly
-                  value=""
-                  aria-label="Promotional codes are unavailable"
-                  className="techpack-control min-w-0 flex-1 rounded-sm border px-3 py-2 text-sm text-(--text-primary)/45"
-                />
-                <button
-                  type="button"
-                  disabled
-                  className="rounded-sm bg-black px-3 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  Apply
-                </button>
-              </div>
-              <p className="mt-2 text-xs text-(--text-primary)/45">Promotional codes are not part of the current Medusa checkout contract.</p>
-            </div>
-          </details>
           <CartSummarySidebar
             subtotal={subtotal}
             volumeDiscount={volumeDiscount}
@@ -543,6 +497,15 @@ export function ConfirmationStep({
             total={orderTotal}
             sticky={false}
           />
+          <label className="techpack-panel flex cursor-pointer items-start gap-3 rounded-sm border p-4 text-sm text-(--text-primary)">
+            <input
+              type="checkbox"
+              checked={termsAccepted}
+              onChange={(event) => setTermsAccepted(event.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 accent-(--color-accent)"
+            />
+            <span>I agree to the <Link href="/terms" className="underline">order terms</Link> and <Link href="/privacy" className="underline">privacy notice</Link>.</span>
+          </label>
           <button
             type="button"
             disabled={!termsAccepted || isProcessing || verificationState === "pending" || verificationState === "checking" || verificationState === "review"}

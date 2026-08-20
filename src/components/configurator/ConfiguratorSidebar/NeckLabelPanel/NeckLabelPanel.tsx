@@ -1,6 +1,5 @@
 'use client';
 
-/* eslint-disable @next/next/no-img-element */
 import { JSX, useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Check, Download, Plus, Trash2, Upload } from 'lucide-react';
 import { persistUploadedFile, revokeObjectUrl } from '@/lib/configurator/objectUrls';
@@ -511,21 +510,6 @@ export default function NeckLabelPanel({
               />
               {hasArtwork ? (
                 <div className="techpack-subtle flex min-h-[104px] items-center gap-3 rounded-sm p-3">
-                  <div className="techpack-control flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-sm border bg-white">
-                    {customDraft.source === 'sample' || customDraft.fileType === 'svg' ? (
-                      <img
-                        src={customDraft.source === 'sample' ? SAMPLE_ARTWORK_HREF : customDraft.fileUrl}
-                        alt="Uploaded label artwork preview"
-                        className="h-full w-full object-contain p-2"
-                      />
-                    ) : aiPreviewUrl ? (
-                      <img src={aiPreviewUrl} alt="Rendered Illustrator label artwork preview" className="h-full w-full object-contain p-2" />
-                    ) : (
-                      <span className="px-1 text-center text-xs font-medium leading-relaxed text-(--text-primary)/50">
-                        Preview unavailable
-                      </span>
-                    )}
-                  </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[13px] font-semibold leading-tight text-(--text-primary)/85">
                       {customDraft.source === 'sample' ? `Garmops sample · ${formatDimensions(customDraft.dimensions)}` : customDraft.fileName ?? `${labelNoun}.${customDraft.fileType ?? 'ai'}`}

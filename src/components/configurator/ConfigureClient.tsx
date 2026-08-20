@@ -290,7 +290,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   const [steps, setSteps] = useState<AccordionStepState[]>(() =>
     stepsForConfiguration(DEFAULT_COLOUR, {}, undefined)
   );
-  const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [draftRestored, setDraftRestored] = useState(false);
   const [hydrationComplete, setHydrationComplete] = useState(false);
   const [previewRenderProgress, setPreviewRenderProgress] =
@@ -1508,12 +1508,12 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
 
   return (
     <ArtworkPositionProvider activeView={activeView}>
-      {!configuratorOpened ? (
+      {!hydrationComplete ? (
         <div className="fixed inset-0 z-[100] overflow-y-auto bg-(--color-cream)">
           <GarmopsLoadingScreen
             progress={configuratorLoadProgress}
             statusText={configuratorLoadingStatus}
-            description="Your product preview is being assembled now. This screen will close automatically as soon as the workspace is ready."
+            description="Restoring your saved selections. The workspace will open while the garment preview finishes loading."
           />
         </div>
       ) : null}
@@ -1521,8 +1521,8 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
         className="techpack-studio-bg flex h-dvh min-h-0 flex-col overflow-hidden text-(--text-primary)"
         data-configurator-hydrated={hydrationComplete ? "true" : "false"}
         data-configurator-ready={configuratorOpened ? "true" : "false"}
-        aria-hidden={!configuratorOpened}
-        inert={!configuratorOpened}
+        aria-hidden={!hydrationComplete}
+        inert={!hydrationComplete}
       >
         <ConfiguratorTopBar
           currentStep={JOURNEY_STEP_FOR_CUSTOMISATION[activeCustomisationStepId]}
@@ -1540,11 +1540,11 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
                 ? `DESIGN-${cloudLink?.designId ?? requestedDesignId}`
                 : undefined
           }
-          accountSaveNotice={
+          accountSaveNotice={savedDesignsEnabled ? (
             <div
               role="status"
               aria-live="polite"
-              className={`flex min-w-0 max-w-[42vw] items-center gap-2 text-xs ${
+              className={`hidden min-w-0 max-w-[42vw] items-center gap-2 text-xs md:flex ${
                 cloudSaveStatus === "conflict"
                   ? "text-amber-950"
                   : cloudSaveStatus === "error"
@@ -1559,7 +1559,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
               ) : (
                 <Cloud size={15} className="shrink-0" aria-hidden="true" />
               )}
-              <span className="min-w-0 flex-1 truncate font-medium">{cloudMessage}</span>
+              <span className="hidden min-w-0 flex-1 truncate font-medium md:block">{cloudMessage}</span>
 
               {cloudSaveStatus === "conflict" ? (
                 <div className="flex shrink-0 items-center gap-1.5">
@@ -1572,13 +1572,13 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
                   {cloudLink ? (
                     <button type="button" onClick={() => router.push(`/account/designs/${encodeURIComponent(cloudLink.designId)}`)} className="rounded-sm border border-(--color-accent)/20 bg-white/70 px-3 py-1.5 font-semibold hover:bg-white">View saved design</button>
                   ) : null}
-                  <button type="button" onClick={handleSaveToAccount} disabled={!savedDesignsEnabled} title={!savedDesignsEnabled ? "Saving designs is not available right now" : undefined} className="rounded-sm bg-(--color-accent) px-3 py-1.5 font-semibold text-white hover:bg-(--color-accent-dark)">
-                    {!savedDesignsEnabled ? "Save design unavailable" : cloudLink ? "Save now" : "Save design"}
+                  <button type="button" onClick={handleSaveToAccount} className="rounded-sm bg-(--color-accent) px-3 py-1.5 font-semibold text-white hover:bg-(--color-accent-dark)">
+                    {cloudLink ? "Save now" : "Save design"}
                   </button>
                 </div>
               ) : null}
             </div>
-          }
+          ) : null}
           links={{ product: productCatalogHref }}
           onStepSelect={journeyStepSelection}
           className="px-4"
@@ -1599,6 +1599,8 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
         {accountsEnabled && authDialogOpen ? (
           <CustomerAuthDialog
             open={authDialogOpen}
+            title={authIntent === "add-to-cart" ? "Sign in to continue" : "Sign in to save your design"}
+            description={authIntent === "add-to-cart" ? "Sign in to secure this design and continue to sizes. Your work is already saved on this device." : "Sign in to save this design to your account and access it on another device."}
             onClose={() => {
               setAuthDialogOpen(false);
               setAuthIntent(null);
@@ -1671,23 +1673,22 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
                 showProductionGuides={activeCustomisationStepId === "artwork"}
                 exclusiveLayerCache
                 onGarmentRenderProgress={handleGarmentRenderProgress}
+                previewPending={!activePreviewSettled}
               />
             </div>
 
             <div
-              className={`absolute right-4 z-30 transition-[bottom] duration-300 ease-in-out ${
-                isDrawerOpen ? "bottom-[calc(42%+1rem)]" : "bottom-16"
-              } lg:bottom-4`}
+              className="absolute right-4 top-4 z-30 lg:bottom-4 lg:top-auto"
             >
               <WhatsAppAssistantBar configId={configId} productName={productName} />
             </div>
           </main>
 
-          <aside className="contents lg:flex lg:min-h-0 lg:min-w-0 lg:flex-col lg:gap-3 lg:overflow-hidden">
+          <aside className="fixed inset-x-2 bottom-0 z-50 flex max-h-[calc(100dvh-5rem)] min-w-0 flex-col gap-2 overflow-y-auto rounded-t-md bg-(--color-studio-bg) p-1.5 pb-[max(.5rem,env(safe-area-inset-bottom))] shadow-[0_-12px_40px_rgba(22,33,43,0.14)] lg:static lg:z-auto lg:min-h-0 lg:max-h-none lg:flex-col lg:gap-3 lg:overflow-hidden lg:rounded-none lg:bg-transparent lg:p-0 lg:shadow-none">
             <section
               aria-label="Active customisation controls"
-              className={`techpack-stack techpack-surface fixed inset-x-3 bottom-0 z-50 flex flex-col overflow-hidden rounded-t-md border-(--color-control-border)! bg-white! border border-b-0 transition-[height] duration-300 ease-in-out lg:static lg:z-auto lg:min-h-0 lg:flex-1 lg:rounded-md lg:border-b ${
-                isDrawerOpen ? "h-[42dvh]" : "h-14"
+              className={`techpack-stack techpack-surface flex shrink-0 flex-col overflow-hidden rounded-md border-(--color-control-border)! bg-white! border transition-[height] duration-250 ease-[cubic-bezier(.22,1,.36,1)] lg:min-h-0 lg:flex-1 ${
+                isDrawerOpen ? "h-[min(42dvh,390px)]" : "h-14"
               } lg:h-auto`}
             >
               <button
@@ -1716,10 +1717,9 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
 
               <div
                 id="customisation-drawer-content"
-                aria-hidden={!isDrawerOpen}
-                className={`flex min-h-0 flex-1 flex-col overflow-hidden transition-opacity duration-200 ${
-                  isDrawerOpen ? "opacity-100" : "pointer-events-none opacity-0"
-                } lg:pointer-events-auto lg:opacity-100`}
+                className={`min-h-0 flex-1 flex-col overflow-hidden transition-opacity duration-200 ${
+                  isDrawerOpen ? "flex opacity-100" : "hidden opacity-0 lg:flex lg:opacity-100"
+                }`}
               >
                 <div className="min-h-0 flex-1">
                   <ConfiguratorSidebar
@@ -1780,6 +1780,8 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
                 ctaLabel={
                   returnToSizeQuantity && expandedStepId === "artwork"
                     ? "Return to sizes & quantity →"
+                    : accountsEnabled && !customerSession.loading && !customerSession.email && expandedStepId === "neck-label"
+                      ? "Sign in to continue to sizes →"
                     : getConfiguratorCtaLabel(expandedStepId, {
                         hasArtwork: Boolean(artwork.front || artwork.back),
                         hasCustomLabel: isCustomNeckLabel(neckLabel),

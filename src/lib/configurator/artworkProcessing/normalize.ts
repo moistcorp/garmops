@@ -8,15 +8,27 @@ export async function normalizeArtwork(file: Blob, fileType: ArtworkFileType): P
   try {
     if (fileType === "svg") {
       const sanitized = sanitizeAndNormalizeSvg(await file.text());
+      const previewBlob = svgBlob(sanitized.text);
+      let analysis: Awaited<ReturnType<typeof normalizeRaster>>["analysis"] | undefined;
+      try {
+        analysis = (await normalizeRaster(previewBlob)).analysis;
+      } catch {
+        // The vector remains production-ready even when this browser cannot
+        // rasterise it for automated colour/contrast guidance.
+      }
       return {
         status: "ready",
         originalFileType: fileType,
         previewKind: "vector",
         previewMimeType: "image/svg+xml",
-        previewBlob: svgBlob(sanitized.text),
+        previewBlob,
         vectorized: false,
         sourceIsVector: true,
         warnings: sanitized.warnings,
+        averageLuminance: analysis?.averageLuminance,
+        detectedColorCount: analysis?.detectedColorCount,
+        hasTransparency: analysis?.hasTransparency,
+        isContinuousTone: analysis?.isContinuousTone,
       };
     }
     if (fileType === "ai") {

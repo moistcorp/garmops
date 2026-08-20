@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("product selection keeps the workspace loader open until the preview is rendered", async ({ page }) => {
+test("product selection opens the workspace while the preview finishes rendering", async ({ page }) => {
   await page.route("**/api/medusa/store/garmops/catalog", async (route) => {
     await route.fulfill({
       contentType: "application/json",
@@ -28,24 +28,32 @@ test("product selection keeps the workspace loader open until the preview is ren
   const loader = page.getByRole("status", {
     name: "Preparing your Garmops workspace",
   });
-  await expect(loader).toBeVisible();
+  await expect(loader).toHaveCount(0);
   await expect(page.locator('[data-configurator-ready="false"]')).toBeAttached();
-  const progress = loader.getByRole("progressbar", {
-    name: "Workspace loading progress",
-  });
-  await expect(progress).toBeVisible();
-  await expect
-    .poll(async () => Number(await progress.getAttribute("aria-valuenow")))
-    .toBeGreaterThan(8);
-  await expect
-    .poll(async () => Number(await progress.getAttribute("aria-valuenow")))
-    .toBeLessThan(100);
+  await expect(page.getByText("Updating garment preview…")).toBeVisible();
+  await expect(page.getByLabel("Active customisation controls")).toBeAttached();
 
   releaseGarmentAssets();
 
   await expect(page.locator('[data-configurator-ready="true"]')).toBeAttached();
-  await expect(loader).toHaveCount(0);
+  await expect(page.getByText("Updating garment preview…")).toHaveCount(0);
   await expect(
     page.getByRole("main").getByLabel(/front garment preview/i),
   ).toBeVisible();
+});
+
+test("mobile opens preview-first and exposes the bottom controls", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/configurator/build/regular-fit-tee-200gsm", { waitUntil: "domcontentloaded" });
+
+  await expect(page.locator('[data-configurator-hydrated="true"]')).toBeAttached();
+  await expect(page.getByText("Desktop required")).toHaveCount(0);
+  await expect(page.locator('[data-configurator-preview="true"]')).toBeVisible();
+  await expect(page.getByLabel("Order estimate")).toBeVisible();
+
+  const controlsButton = page.getByRole("button", { name: /^Colour ·/ });
+  await expect(controlsButton).toHaveAttribute("aria-expanded", "false");
+  await controlsButton.click();
+  await expect(controlsButton).toHaveAttribute("aria-expanded", "true");
+  await expect(page.getByRole("heading", { name: "Choose your garment colour" })).toBeVisible();
 });

@@ -1,8 +1,7 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Download, FileText, RefreshCw, Trash2, Upload } from "lucide-react";
+import { Download, RefreshCw, Trash2, Upload } from "lucide-react";
 import { clampDim, useArtworkPosition } from "@/lib/configurator/ArtworkPositionContext";
 import { DEFAULT_ARTWORK_PRINT_AREA, PRINT_AREA_TOP_OFFSET_CM } from "@/lib/configurator/sizecharts";
 import { persistUploadedBlob, persistUploadedFile, revokeObjectUrl } from "@/lib/configurator/objectUrls";
@@ -76,7 +75,7 @@ function makeDefaultSide(
     processingErrorCode: processing?.errorCode,
     technique: isCustomerArtworkTechnique(previous?.technique) ? previous.technique : undefined,
     reflectiveColour: previous?.reflectiveColour,
-    placementPreset: "custom",
+    placementPreset: fileUrl === SAMPLE_ARTWORK_HREF ? "centre-chest" : "custom",
     width: dimensions.width,
     height: dimensions.height,
     fromNeck: PRINT_AREA_TOP_OFFSET_CM,
@@ -167,6 +166,9 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
           previewKind: "vector" as const,
           vectorized: true,
           sourceIsVector: true,
+          ...(fileUrl === SAMPLE_ARTWORK_HREF
+            ? { averageLuminance: 0.02, detectedColorCount: 1, isContinuousTone: false }
+            : {}),
         };
     if (token !== importTokenRef.current) {
       if (fileUrl !== SAMPLE_ARTWORK_HREF) revokeObjectUrl(fileUrl);
@@ -329,16 +331,6 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
       ) : (
         <div className="techpack-subtle rounded-sm px-2.5 py-2">
           <div className="flex flex-wrap items-center gap-2.5">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-(--color-rule) bg-white text-center text-[10px] font-semibold uppercase tracking-wide text-(--text-primary)/55">
-              {(value.previewUrl || (value.fileType === "jpg" || value.fileType === "png" || value.fileType === "svg" ? value.fileUrl : undefined)) ? (
-                <img crossOrigin="anonymous" src={value.previewUrl || value.fileUrl} alt="" className="h-full w-full object-contain p-1" />
-              ) : (
-                <span className="flex flex-col items-center gap-1">
-                  <FileText size={17} strokeWidth={1.7} aria-hidden="true" />
-                  <span>{value.fileType.toUpperCase()}</span>
-                </span>
-              )}
-            </div>
             <div className="min-w-[9rem] flex-1">
               <p className="flex items-center gap-1.5 truncate text-[13px] font-medium text-(--text-primary)">
                 <span className="truncate">{filename || "Artwork"}</span>

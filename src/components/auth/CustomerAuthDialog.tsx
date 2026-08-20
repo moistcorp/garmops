@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 import { useEffect, useRef } from "react";
 import CustomerAuthFlow from "./CustomerAuthFlow";
 
-export default function CustomerAuthDialog({ open, onClose, next, onAuthenticated }: { open: boolean; onClose: () => void; next?: string; onAuthenticated: (destination: string) => void }) {
+export default function CustomerAuthDialog({ open, onClose, next, onAuthenticated, title = "Sign in or create an account", description = "Use your email to view and track your Garmops orders." }: { open: boolean; onClose: () => void; next?: string; onAuthenticated: (destination: string) => void; title?: string; description?: string }) {
   const panelRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const onCloseRef = useRef(onClose);
@@ -31,7 +31,7 @@ export default function CustomerAuthDialog({ open, onClose, next, onAuthenticate
   return <div className="fixed inset-0 z-[70] flex items-end justify-center bg-(--color-navy)/55 p-4 sm:items-center" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
     <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="customer-auth-title" aria-describedby="customer-auth-description" className="max-h-[calc(100dvh-2rem)] w-full max-w-[520px] overflow-y-auto rounded-sm border border-(--color-navy) bg-white p-6 sm:p-8">
       <div className="mb-5 flex items-center justify-between border-b border-(--color-rule) pb-3 font-mono text-xs font-semibold uppercase tracking-[0.12em] text-(--text-muted)"><span>Access / Customer</span><span className="techpack-stamp" data-tone="accent">Email OTP</span></div>
-      <div className="flex items-start justify-between gap-4"><div><h2 id="customer-auth-title" className="text-3xl font-semibold tracking-tight">Login / Sign up</h2><p id="customer-auth-description" className="mt-2 text-sm leading-relaxed text-black/55">Use your email to view and track your Garmops orders.</p></div><button type="button" onClick={onClose} className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-transparent hover:border-(--color-rule)" aria-label="Close login dialog"><X size={18} /></button></div>
+      <div className="flex items-start justify-between gap-4"><div><h2 id="customer-auth-title" className="text-3xl font-semibold tracking-tight">{title}</h2><p id="customer-auth-description" className="mt-2 text-sm leading-relaxed text-black/55">{description}</p></div><button type="button" onClick={onClose} className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-transparent hover:border-(--color-rule)" aria-label="Close login dialog"><X size={18} /></button></div>
       <div className="mt-7"><CustomerAuthFlow next={next} onAuthenticated={onAuthenticated} /></div>
     </div>
   </div>;

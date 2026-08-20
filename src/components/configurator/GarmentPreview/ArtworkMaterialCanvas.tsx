@@ -1,6 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CustomerArtworkTechnique } from "@/lib/configurator/types/configurator";
 import type { ReflectiveColourKey } from "@/lib/configurator/reflectiveColours";
 import { getReflectiveColour } from "@/lib/configurator/reflectiveColours";
@@ -15,6 +16,7 @@ const imageCache = new Map<string, Promise<HTMLImageElement>>();
 
 interface ArtworkMaterialCanvasProps {
   artworkSrc: string;
+  fallbackArtworkSrc?: string;
   technique: CustomerArtworkTechnique;
   garmentFolder: GarmentFolder;
   artworkWidthCm: number;
@@ -79,6 +81,7 @@ function getLuminanceReference(data: Uint8ClampedArray): number {
 
 export default function ArtworkMaterialCanvas({
   artworkSrc,
+  fallbackArtworkSrc,
   technique,
   garmentFolder,
   artworkWidthCm,
@@ -90,6 +93,7 @@ export default function ArtworkMaterialCanvas({
   reflectiveColour,
 }: ArtworkMaterialCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [renderFailed, setRenderFailed] = useState(false);
   const material = PRINT_MATERIAL_PROFILES[technique];
   const reflectiveHex = getReflectiveColour(reflectiveColour).hex;
   const assetKey = useMemo(
@@ -102,6 +106,7 @@ export default function ArtworkMaterialCanvas({
     const target = canvasRef.current;
     if (!target) return;
     target.dataset.renderState = "loading";
+    const resetFailure = window.setTimeout(() => setRenderFailed(false), 0);
 
     Promise.all([
       loadImage(artworkSrc),
@@ -239,16 +244,33 @@ export default function ArtworkMaterialCanvas({
       context.drawImage(warped, 0, 0);
       target.dataset.renderState = "ready";
     }).catch((error: unknown) => {
+      if (cancelled) return;
       target.dataset.renderState = "error";
-      if (process.env.NODE_ENV !== "production") console.error(error);
+      setRenderFailed(true);
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("Print material preview unavailable; showing the original artwork.", error);
+      }
     });
 
     return () => {
       cancelled = true;
+      window.clearTimeout(resetFailure);
     };
   }, [assetKey, artworkSrc, artworkWidthCm, box, garmentFolder, garmentInsetPercent, highlightSrc, material, reflectiveHex, shadowSrc, technique, textureSrc]);
 
-  return <canvas ref={canvasRef} className="h-full w-full object-contain" aria-hidden="true" data-artwork-technique={technique} data-render-state="loading" />;
+  return (
+    <div className="relative h-full w-full">
+      <canvas ref={canvasRef} className="h-full w-full object-contain" aria-hidden="true" data-artwork-technique={technique} data-render-state="loading" />
+      {renderFailed ? (
+        <img
+          src={fallbackArtworkSrc ?? artworkSrc}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full object-contain"
+        />
+      ) : null}
+    </div>
+  );
 }
 
 function parseHex(hex: string): [number, number, number] {

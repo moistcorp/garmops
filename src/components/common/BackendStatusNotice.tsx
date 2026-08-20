@@ -62,7 +62,7 @@ export default function BackendStatusNotice() {
   }, []);
 
   useEffect(() => {
-    void checkBackend();
+    const initialCheck = window.setTimeout(() => void checkBackend(), 0);
 
     const interval = window.setInterval(() => {
       if (document.visibilityState === "visible") void checkBackend();
@@ -76,6 +76,7 @@ export default function BackendStatusNotice() {
     document.addEventListener("visibilitychange", checkWhenVisible);
 
     return () => {
+      window.clearTimeout(initialCheck);
       window.clearInterval(interval);
       window.removeEventListener("online", checkWhenOnline);
       document.removeEventListener("visibilitychange", checkWhenVisible);

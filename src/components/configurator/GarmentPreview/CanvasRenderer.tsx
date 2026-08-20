@@ -42,6 +42,7 @@ import {
 import { useGarmentAssetPrefetch } from "./useGarmentAssetPrefetch";
 import ArtworkMaterialCanvas from "./ArtworkMaterialCanvas";
 import { garmentAssetUrl } from "@/lib/publicAssets";
+import { uploadReadableAssetUrl } from "@/lib/configurator/sampleAssets";
 
 // Matches the small top margin PositionControls/the box default use as the
 // garment's overall printable boundary — the guideline overlays anchor here
@@ -398,7 +399,10 @@ export default function CanvasRenderer({
     isCustomerArtworkTechnique(activeArtwork?.technique)
       ? activeArtwork.technique
       : undefined;
-  const simulatorArtworkUrl = activeArtwork?.previewUrl ?? activeArtwork?.fileUrl;
+  const sourceArtworkUrl = activeArtwork?.previewUrl ?? activeArtwork?.fileUrl;
+  const simulatorArtworkUrl = sourceArtworkUrl
+    ? uploadReadableAssetUrl(sourceArtworkUrl)
+    : undefined;
   const canRenderPrintMaterial = Boolean(
     simulatorArtworkUrl &&
       isRenderableImage(simulatorArtworkUrl, activeArtwork?.fileType, activeArtwork?.previewKind) &&
@@ -677,6 +681,7 @@ export default function CanvasRenderer({
           {canRenderPrintMaterial && printTechnique && garmentFolder && simulatorArtworkUrl ? (
             <ArtworkMaterialCanvas
               artworkSrc={simulatorArtworkUrl}
+              fallbackArtworkSrc={sourceArtworkUrl}
               technique={printTechnique}
               garmentFolder={garmentFolder}
               artworkWidthCm={renderBoxState.widthCm}

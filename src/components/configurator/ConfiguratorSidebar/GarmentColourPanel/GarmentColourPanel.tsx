@@ -279,8 +279,6 @@ export default function GarmentColourPanel({
               {pantoneError ? <p className="sr-only" role="alert">{pantoneError}</p> : null}
             </div>
           )}
-
-          {value.type === "custom_dye" ? <SelectedColourSummary value={value} /> : null}
         </section>
       )}
     </div>
