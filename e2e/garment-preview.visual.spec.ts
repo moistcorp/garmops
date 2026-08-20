@@ -16,8 +16,11 @@ async function waitForPhotographicGarment(
 ): Promise<Locator> {
   const preview = renderedGarment(page, view);
   await expect(preview).toBeVisible();
+  // Photographic layers are served from the public garment CDN. Wait for the
+  // completed composite before checking its colour so a slow cold-cache fetch
+  // does not fail the visual assertion while the canvas is still loading.
+  await expect(preview).toHaveAttribute("data-render-state", "ready", { timeout: 60_000 });
   await expect(preview).toHaveAttribute("data-render-colour", colourHex);
-  await expect(preview).toHaveAttribute("data-render-state", "ready");
   return preview;
 }
 

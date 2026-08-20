@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, type MouseEvent } from "react";
-import { ArrowRight, LoaderCircle } from "lucide-react";
+import { ArrowRight, ChevronDown, LoaderCircle } from "lucide-react";
 import type { Product } from "@/lib/configurator/products";
 import { formatInr, getBasePrice } from "@/lib/configurator/pricing";
 
@@ -19,7 +19,10 @@ export default function ProductCard({
   productDetailHref,
 }: ProductCardProps) {
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const startingPrice = getBasePrice(product.id);
+  const detailsId = `product-details-${product.id}`;
+  const detailsTriggerId = `${detailsId}-trigger`;
 
   function handleCustomiseClick(event: MouseEvent<HTMLAnchorElement>) {
     const modifiedClick = event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
@@ -53,17 +56,69 @@ export default function ProductCard({
           <p className="mt-1 text-sm text-(--text-primary)/65">
             {product.fabricFeel} · {product.fit}
           </p>
-          <p className="mt-1 text-xs font-medium text-(--text-primary)/55">
-            {product.gsm} GSM · {product.material}
-          </p>
-          <p className="mt-3 line-clamp-2 text-sm leading-5 text-(--text-primary)/65">
-            {product.description}
-          </p>
-          <dl className="mt-4 grid grid-cols-2 gap-x-3 gap-y-2 border-t border-(--color-rule) pt-3 text-xs">
-            <div><dt className="text-(--text-primary)/45">From</dt><dd className="mt-0.5 font-semibold text-(--text-primary)">{formatInr(startingPrice)} / unit</dd></div>
-            <div><dt className="text-(--text-primary)/45">Minimum</dt><dd className="mt-0.5 font-semibold text-(--text-primary)">{product.minimumOrderQuantity} units</dd></div>
-            <div className="col-span-2"><dt className="text-(--text-primary)/45">Typical lead time</dt><dd className="mt-0.5 font-medium text-(--text-primary)/80">{product.standardLeadTime}</dd></div>
+          <dl className="mt-4 border-t border-(--color-rule) pt-3 text-xs">
+            <div>
+              <dt className="text-(--text-primary)/45">From</dt>
+              <dd className="mt-0.5 font-semibold text-(--text-primary)">
+                {formatInr(startingPrice)} / unit
+              </dd>
+            </div>
           </dl>
+
+          <div className="mt-4 overflow-hidden rounded-sm border border-(--color-rule) bg-(--color-cream-soft)/45">
+            <button
+              id={detailsTriggerId}
+              type="button"
+              onClick={() => setIsDetailsOpen((open) => !open)}
+              aria-expanded={isDetailsOpen}
+              aria-controls={detailsId}
+              className="flex min-h-11 w-full items-center justify-between gap-3 px-3.5 py-2.5 text-left text-sm font-semibold text-(--text-primary) transition-colors hover:bg-(--color-cream-soft) focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-(--color-accent)"
+            >
+              Product details
+              <ChevronDown
+                size={16}
+                className={`shrink-0 text-(--text-primary)/55 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none ${isDetailsOpen ? "rotate-180" : "rotate-0"}`}
+                aria-hidden="true"
+              />
+            </button>
+            <div
+              className={`grid transition-[grid-template-rows,opacity] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none ${isDetailsOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
+            >
+              <div className="min-h-0 overflow-hidden">
+                <div
+                  id={detailsId}
+                  role="region"
+                  aria-labelledby={detailsTriggerId}
+                  aria-hidden={!isDetailsOpen}
+                  className="border-t border-(--color-rule) px-3.5 py-3.5"
+                >
+                  <p className="text-sm leading-5 text-(--text-primary)/65">
+                    {product.description}
+                  </p>
+                  <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-3 text-xs">
+                    <div>
+                      <dt className="text-(--text-primary)/45">Fabric</dt>
+                      <dd className="mt-0.5 font-medium text-(--text-primary)/80">
+                        {product.gsm} GSM · {product.material}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-(--text-primary)/45">Minimum order</dt>
+                      <dd className="mt-0.5 font-medium text-(--text-primary)/80">
+                        {product.minimumOrderQuantity} units
+                      </dd>
+                    </div>
+                    <div className="col-span-2">
+                      <dt className="text-(--text-primary)/45">Typical lead time</dt>
+                      <dd className="mt-0.5 font-medium text-(--text-primary)/80">
+                        {product.standardLeadTime}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="mt-auto pt-5">
