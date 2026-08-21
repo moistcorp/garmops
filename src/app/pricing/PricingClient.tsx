@@ -1,228 +1,151 @@
-"use client";
+'use client'
 
-import Link from "next/link";
-import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, Check, CircleHelp, Clock3, PackageCheck, Truck } from "lucide-react";
-import { products } from "@/lib/products";
-import {
-  DELIVERY_DAYS,
-  RUSH_DELIVERY_DAYS,
-  VOLUME_DISCOUNT_TIERS,
-} from "@/lib/pricingRules";
-import { formatInr, getConfiguredPricingSummary } from "@/lib/configurator/pricing";
+import NumberFlow from '@number-flow/react'
+import { Select } from '@base-ui/react/select'
+import { Switch } from '@base-ui/react/switch'
+import { ArrowRight, Check, ChevronDown } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useMemo, useState } from 'react'
+import { products } from '@/lib/products'
+import { DELIVERY_DAYS, RUSH_DELIVERY_DAYS, VOLUME_DISCOUNT_TIERS } from '@/lib/pricingRules'
+import { formatInr, getConfiguredPricingSummary } from '@/lib/configurator/pricing'
+
+const MAX_ESTIMATE_QUANTITY = 5_000
+
+const productItems = products.map(product => ({ label: product.name, value: product.slug }))
 
 function quantityLabel(tier: (typeof VOLUME_DISCOUNT_TIERS)[number]) {
-  return tier.maxQty === null ? `${tier.minQty}+` : `${tier.minQty}–${tier.maxQty}`;
+  return tier.maxQty === null ? `${tier.minQty}+` : `${tier.minQty}–${tier.maxQty}`
 }
 
 export default function PricingClient() {
-  const [productId, setProductId] = useState(products[0]?.slug ?? "");
-  const [quantity, setQuantity] = useState(50);
-  const [rush, setRush] = useState(false);
-  const [productPickerOpen, setProductPickerOpen] = useState(false);
-  const productPickerRef = useRef<HTMLDivElement>(null);
-  const productPickerButtonRef = useRef<HTMLButtonElement>(null);
-  const product = products.find((item) => item.slug === productId) ?? products[0];
-  const minimumQuantity = product?.minimumOrderQuantity ?? 50;
-  const safeQuantity = Math.max(minimumQuantity, Number.isFinite(quantity) ? Math.floor(quantity) : minimumQuantity);
+  const [productId, setProductId] = useState(products[0]?.slug ?? '')
+  const [quantity, setQuantity] = useState(50)
+  const [rush, setRush] = useState(false)
+  const product = products.find(item => item.slug === productId) ?? products[0]
+  const minimumQuantity = product?.minimumOrderQuantity ?? 50
+  const safeQuantity = Math.min(MAX_ESTIMATE_QUANTITY, Math.max(minimumQuantity, Number.isFinite(quantity) ? Math.floor(quantity) : minimumQuantity))
   const estimate = useMemo(
     () => getConfiguredPricingSummary(productId, undefined, {}, undefined, safeQuantity, rush),
     [productId, rush, safeQuantity],
-  );
-  const volumeSavings = estimate.discountAmount;
-  const rushFee = rush ? safeQuantity * 75 : 0;
-  const designHref = `/configurator/build/${encodeURIComponent(productId)}`;
-
-  useEffect(() => {
-    if (!productPickerOpen) return;
-
-    function closeOnOutsidePress(event: PointerEvent) {
-      if (!productPickerRef.current?.contains(event.target as Node)) {
-        setProductPickerOpen(false);
-      }
-    }
-
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key !== "Escape") return;
-      setProductPickerOpen(false);
-      productPickerButtonRef.current?.focus();
-    }
-
-    document.addEventListener("pointerdown", closeOnOutsidePress);
-    document.addEventListener("keydown", closeOnEscape);
-    return () => {
-      document.removeEventListener("pointerdown", closeOnOutsidePress);
-      document.removeEventListener("keydown", closeOnEscape);
-    };
-  }, [productPickerOpen]);
+  )
+  const rushFee = rush ? safeQuantity * 75 : 0
+  const effectiveUnitPrice = estimate.total / safeQuantity
+  const designHref = `/configurator/build/${encodeURIComponent(productId)}?quantity=${safeQuantity}&rush=${rush ? '1' : '0'}`
 
   function selectProduct(nextProductId: string) {
-    const next = products.find((item) => item.slug === nextProductId);
-    setProductId(nextProductId);
-    setQuantity((current) => Math.max(current, next?.minimumOrderQuantity ?? 50));
-    setProductPickerOpen(false);
-    productPickerButtonRef.current?.focus();
+    const next = products.find(item => item.slug === nextProductId)
+    setProductId(nextProductId)
+    setQuantity(current => Math.max(current, next?.minimumOrderQuantity ?? 50))
   }
 
   return (
-    <main className="techpack-canvas">
-      <section className="mx-auto max-w-7xl px-4 pb-12 pt-10 sm:px-6 sm:pb-16 sm:pt-20">
-        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-(--color-accent)">Pricing, made practical</p>
-        <div className="mt-4 grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
-          <div>
-            <h1 className="max-w-3xl text-4xl font-bold leading-[1.06] tracking-tight text-(--text-primary) sm:text-5xl lg:text-6xl">
-              See the order math before you start production.
-            </h1>
-            <p className="mt-6 max-w-2xl text-base leading-7 text-(--text-primary)/65 sm:text-lg sm:leading-8">
-              Start with the garment and quantity. Your configurator shows the same volume discount, rush fee and GST treatment as checkout, then adds only the choices you make.
-            </p>
+    <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 sm:pb-24" aria-labelledby="pricing-calculator-title">
+      <div className="grid gap-6 lg:grid-cols-[0.94fr_1.06fr] lg:gap-10">
+        <section className="techpack-surface rounded-sm border p-5 sm:p-7" aria-label="Blank garment estimate controls">
+          <h2 id="pricing-calculator-title" className="text-2xl font-bold tracking-tight text-(--text-primary)">Build a starting estimate</h2>
+          <p className="mt-2 text-sm leading-6 text-(--text-muted)">Choose a blank garment, quantity and production pace. Decoration is added later in Studio.</p>
+
+          <div className="mt-7">
+            <p id="pricing-product-label" className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-(--text-muted)">1. Choose a product</p>
+            <Select.Root items={productItems} value={productId} onValueChange={value => value && selectProduct(value)}>
+              <Select.Trigger aria-labelledby="pricing-product-label" className="techpack-control mt-3 flex min-h-[68px] w-full items-center gap-3 rounded-sm border p-2.5 text-left outline-none transition-colors hover:!border-(--color-accent) focus-visible:!border-(--color-accent)">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-sm border border-(--color-rule) bg-white">
+                  {product?.icon ? <Image src={product.icon} alt="" width={38} height={38} className="h-9 w-9 object-contain" /> : null}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <Select.Value className="block truncate text-sm font-semibold text-(--text-primary)" />
+                  <span className="mt-1 block truncate text-xs text-(--text-muted)">{product?.gsm} GSM · {product?.selectorMaterial}</span>
+                </span>
+                <Select.Icon><ChevronDown size={16} className="text-(--text-muted) transition-transform data-popup-open:rotate-180" /></Select.Icon>
+              </Select.Trigger>
+              <Select.Portal>
+                <Select.Positioner className="z-50 outline-none" sideOffset={6} alignItemWithTrigger={false}>
+                  <Select.Popup className="techpack-surface max-h-[min(420px,var(--available-height))] min-w-[var(--anchor-width)] origin-[var(--transform-origin)] overflow-hidden rounded-sm border p-1.5 shadow-xl outline-none transition-[transform,opacity] duration-150 data-ending-style:scale-[0.98] data-ending-style:opacity-0 data-starting-style:scale-[0.98] data-starting-style:opacity-0">
+                    <Select.List className="max-h-[min(400px,var(--available-height))] overflow-y-auto">
+                      {products.map(item => (
+                        <Select.Item key={item.slug} value={item.slug} className="grid cursor-default grid-cols-[2.5rem_1fr_1rem] items-center gap-3 rounded-[3px] p-2.5 text-left outline-none data-highlighted:bg-(--color-cream-soft) data-selected:bg-(--color-cream-soft)">
+                          <span className="flex h-10 w-10 items-center justify-center rounded-[3px] border border-(--color-rule) bg-white"><Image src={item.icon} alt="" width={32} height={32} className="h-8 w-8 object-contain" /></span>
+                          <span className="min-w-0"><Select.ItemText className="block truncate text-sm font-semibold text-(--text-primary)">{item.name}</Select.ItemText><span className="mt-0.5 block truncate text-xs text-(--text-muted)">{item.gsm} GSM · {item.selectorDescription}</span></span>
+                          <Select.ItemIndicator><Check size={16} className="text-(--color-accent)" /></Select.ItemIndicator>
+                        </Select.Item>
+                      ))}
+                    </Select.List>
+                  </Select.Popup>
+                </Select.Positioner>
+              </Select.Portal>
+            </Select.Root>
+            <p className="mt-2 text-xs text-(--text-muted)">Custom production starts from {minimumQuantity} pieces of this product.</p>
           </div>
-          <div className="techpack-panel rounded-sm border p-5 text-sm leading-6 text-(--text-primary)/65">
-            <p className="font-semibold text-(--text-primary)">A clear starting estimate</p>
-            <p className="mt-2">This calculator covers the blank garment, volume pricing, optional rush production and GST. Custom dye, artwork on either side and a custom label are shown in Studio after you select them.</p>
+
+          <div className="mt-8">
+            <div className="flex items-end justify-between gap-4">
+              <label htmlFor="pricing-quantity" className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-(--text-muted)">2. Enter quantity</label>
+              <div className="flex items-center rounded-sm border border-(--color-rule) bg-white px-3 py-2">
+                <input id="pricing-quantity" type="number" min={minimumQuantity} max={MAX_ESTIMATE_QUANTITY} value={safeQuantity} onChange={event => setQuantity(Number(event.target.value))} className="w-20 appearance-none bg-transparent text-right font-mono text-sm font-semibold outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                <span className="ml-2 text-xs text-(--text-muted)">pcs</span>
+              </div>
+            </div>
+            <input type="range" min={minimumQuantity} max={MAX_ESTIMATE_QUANTITY} step={50} value={safeQuantity} onChange={event => setQuantity(Number(event.target.value))} aria-label="Quantity" className="mt-5 w-full accent-(--color-accent)" />
+            <div className="mt-1 flex justify-between text-xs text-(--text-muted)"><span>{minimumQuantity} pcs</span><span>{MAX_ESTIMATE_QUANTITY.toLocaleString('en-IN')} pcs</span></div>
+            <div className="mt-4 flex flex-wrap gap-2" aria-label="Popular quantities">
+              {VOLUME_DISCOUNT_TIERS.map(tier => (
+                <button key={tier.minQty} type="button" onClick={() => setQuantity(tier.minQty)} aria-pressed={safeQuantity === tier.minQty} className="rounded-sm border border-(--color-rule) bg-white px-3 py-2 text-xs font-medium text-(--text-primary)/70 transition hover:border-(--color-accent) aria-pressed:border-(--color-accent) aria-pressed:text-(--color-accent-dark)">
+                  {tier.minQty.toLocaleString('en-IN')}{tier.discountPercent ? ` · ${tier.discountPercent}% off` : ''}
+                </button>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-(--text-muted)">Need more than 5,000 pieces? <Link href="/contact" className="underline underline-offset-2">Ask for a production quote.</Link></p>
           </div>
-        </div>
-      </section>
 
-      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 sm:pb-24">
-        <div className="grid gap-6 lg:grid-cols-[0.94fr_1.06fr] lg:gap-10">
-          <section className="techpack-surface rounded-sm border p-5 sm:p-7" aria-label="Starting estimate controls">
-            <div>
-              <p id="pricing-product-label" className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-(--text-muted)">1. Choose a product</p>
-              <div ref={productPickerRef} className="relative mt-3">
-                <button
-                  ref={productPickerButtonRef}
-                  type="button"
-                  aria-labelledby="pricing-product-label pricing-selected-product"
-                  aria-haspopup="listbox"
-                  aria-expanded={productPickerOpen}
-                  aria-controls="pricing-product-options"
-                  onClick={() => setProductPickerOpen((open) => !open)}
-                  className="techpack-control flex min-h-[68px] w-full items-center gap-3 rounded-sm border p-2.5 text-left outline-none transition-colors hover:!border-(--color-accent) focus:!border-(--color-accent)"
-                >
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-sm border border-(--color-rule) bg-white">
-                    {product?.icon && <Image src={product.icon} alt="" width={38} height={38} className="h-9 w-9 object-contain" />}
-                  </span>
-                  <span id="pricing-selected-product" className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold text-(--text-primary)">{product?.name}</span>
-                    <span className="mt-1 block truncate text-xs text-(--text-muted)">{product?.gsm} GSM · {product?.selectorMaterial}</span>
-                  </span>
-                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`h-4 w-4 shrink-0 text-(--text-muted) transition-transform ${productPickerOpen ? "rotate-180" : ""}`}><path strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" /></svg>
-                </button>
-                {productPickerOpen && (
-                  <div id="pricing-product-options" role="listbox" aria-labelledby="pricing-product-label" className="techpack-surface absolute z-30 mt-2 max-h-96 w-full overflow-y-auto rounded-sm border p-1.5 shadow-xl">
-                    {products.map((item) => {
-                      const selected = item.slug === productId;
-                      return (
-                        <button
-                          key={item.slug}
-                          type="button"
-                          role="option"
-                          aria-selected={selected}
-                          onClick={() => selectProduct(item.slug)}
-                          className={`flex w-full items-center gap-3 rounded-[3px] p-2.5 text-left transition-colors ${selected ? "bg-(--color-cream-soft)" : "hover:bg-(--color-cream-soft)/70"}`}
-                        >
-                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[3px] border border-(--color-rule) bg-white">
-                            <Image src={item.icon} alt="" width={32} height={32} className="h-8 w-8 object-contain" />
-                          </span>
-                          <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-(--text-primary)">{item.name}</span><span className="mt-0.5 block truncate text-xs text-(--text-muted)">{item.gsm} GSM · {item.selectorDescription}</span></span>
-                          {selected && <Check size={16} className="shrink-0 text-(--color-accent)" aria-hidden="true" />}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-              <p className="mt-2 text-xs text-(--text-muted)">Custom production starts from {minimumQuantity} pieces of this configured product.</p>
+          <div className="mt-8 border-t border-(--color-rule) pt-6">
+            <div className="flex items-start justify-between gap-4">
+              <label htmlFor="pricing-rush" className="cursor-pointer">
+                <span className="block font-semibold text-(--text-primary)">Rush production</span>
+                <span className="mt-1 block text-xs leading-5 text-(--text-muted)">Target {RUSH_DELIVERY_DAYS} days instead of {DELIVERY_DAYS} days, subject to the finished specification and destination.</span>
+              </label>
+              <Switch.Root id="pricing-rush" checked={rush} onCheckedChange={setRush} className="relative h-7 w-12 shrink-0 rounded-full bg-[#DAD6D0] transition-colors data-checked:bg-(--color-accent) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-accent)">
+                <Switch.Thumb className="absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] data-checked:translate-x-5" />
+              </Switch.Root>
             </div>
+            {rush ? <p className="mt-3 rounded-sm bg-(--color-cream-soft) px-3 py-2 text-xs text-(--text-primary)/65">+₹75 per piece before GST · {formatInr(rushFee)} for this quantity</p> : null}
+          </div>
+        </section>
 
-            <div className="mt-8">
-              <div className="flex items-end justify-between gap-4">
-                <label htmlFor="pricing-quantity" className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-(--text-muted)">2. Enter quantity</label>
-                <div className="flex items-center rounded-sm border border-(--color-rule) bg-white px-3 py-2">
-                  <input
-                    id="pricing-quantity"
-                    type="number"
-                    min={minimumQuantity}
-                    max={1_000_000}
-                    value={safeQuantity}
-                    onChange={(event) => setQuantity(Number(event.target.value))}
-                    className="w-20 appearance-none bg-transparent text-right font-mono text-sm font-semibold outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                  />
-                  <span className="ml-2 text-xs text-(--text-muted)">pcs</span>
-                </div>
-              </div>
-              <input
-                type="range"
-                min={minimumQuantity}
-                max={1000}
-                step={50}
-                value={Math.min(safeQuantity, 1000)}
-                onChange={(event) => setQuantity(Number(event.target.value))}
-                aria-label="Quantity"
-                className="mt-5 w-full accent-(--color-accent)"
-              />
-              <div className="mt-1 flex justify-between text-xs text-(--text-muted)"><span>{minimumQuantity} pcs</span><span>1,000 pcs</span></div>
-            </div>
-
-            <div className="mt-8 border-t border-(--color-rule) pt-6">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="font-semibold text-(--text-primary)">Rush production</p>
-                  <p className="mt-1 text-xs leading-5 text-(--text-muted)">Target {RUSH_DELIVERY_DAYS} days instead of {DELIVERY_DAYS} days, subject to the finished specification and destination.</p>
-                </div>
-                <button type="button" role="switch" aria-checked={rush} onClick={() => setRush((value) => !value)} className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${rush ? "bg-(--color-accent)" : "bg-[#DAD6D0]"}`}>
-                  <span className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] ${rush ? "translate-x-5" : "translate-x-0"}`} />
-                </button>
-              </div>
-              {rush && <p className="mt-3 rounded-sm bg-(--color-cream-soft) px-3 py-2 text-xs text-(--text-primary)/65">+₹75 per piece before GST · {formatInr(rushFee)} for this quantity</p>}
-            </div>
-          </section>
-
-          <section className="techpack-dark rounded-sm border p-5 text-white sm:p-8" aria-live="polite">
-        <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-white/65">Starting estimate</p>
+        <div>
+          <section className="techpack-dark rounded-sm border p-5 text-white sm:p-8 lg:sticky lg:top-24">
+            <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-white/65">Blank garment estimate</p>
             <h2 className="mt-3 text-2xl font-bold tracking-tight">{product?.name}</h2>
-            <p className="mt-1 text-sm text-white/65">{safeQuantity.toLocaleString("en-IN")} pieces · {rush ? `${RUSH_DELIVERY_DAYS}-day rush target` : `${DELIVERY_DAYS}-day standard target`}</p>
+            <p className="mt-1 text-sm text-white/65">{safeQuantity.toLocaleString('en-IN')} pieces · {rush ? `${RUSH_DELIVERY_DAYS}-day rush target` : `${DELIVERY_DAYS}-day standard target`}</p>
             <div className="mt-7 space-y-3 border-y border-white/10 py-5 text-sm">
-              <PriceRow label="Starting garment price" value={`${formatInr(estimate.undiscountedUnitPrice)} / piece`} />
-              {volumeSavings > 0 && <PriceRow label={`Volume discount (${estimate.discountPercent}%)`} value={`− ${formatInr(volumeSavings)}`} />}
-              {rush && <PriceRow label="Rush production" value={`+ ${formatInr(rushFee)}`} />}
+              <PriceRow label="Catalogue garment price" value={`${formatInr(estimate.undiscountedUnitPrice)} / piece`} />
+              {estimate.discountAmount > 0 ? <PriceRow label={`Volume discount (${estimate.discountPercent}%)`} value={`− ${formatInr(estimate.discountAmount)}`} /> : null}
+              {rush ? <PriceRow label="Rush production" value={`+ ${formatInr(rushFee)}`} /> : null}
               <PriceRow label="Subtotal before GST" value={formatInr(estimate.taxableSubtotal)} />
               <PriceRow label="GST (5% / 12% as applicable)" value={formatInr(estimate.gst)} />
             </div>
             <div className="mt-5 flex items-end justify-between gap-4">
-              <div><p className="text-sm font-semibold">Estimated total</p><p className="mt-1 text-xs text-white/65">GST included · free shipping</p></div>
-              <p className="font-mono text-2xl font-bold">{formatInr(estimate.total)}</p>
+              <div><p className="text-sm font-semibold">Estimated garment total</p><p className="mt-1 text-xs text-white/65">GST included · free shipping</p></div>
+              <p className="font-mono text-2xl font-bold" aria-live="polite"><NumberFlow value={estimate.total} format={{ style: 'currency', currency: 'INR', maximumFractionDigits: 0 }} /></p>
             </div>
-            <Link href={designHref} className="mt-7 flex min-h-12 items-center justify-center gap-2 rounded-sm bg-white px-5 py-3 text-sm font-semibold text-(--color-navy) transition hover:bg-[#F4F1EB]">Configure this product <ArrowRight size={16} /></Link>
+            <p className="mt-3 text-xs text-white/65">Effective total: {formatInr(effectiveUnitPrice)} per piece. Artwork, print placement, custom dye and labels are added in Studio.</p>
+            <Link href={designHref} className="mt-7 flex min-h-12 items-center justify-center gap-2 rounded-sm bg-white px-5 py-3 text-sm font-semibold text-(--color-navy) transition hover:bg-[#F4F1EB]">Continue in Studio <ArrowRight size={16} /></Link>
           </section>
         </div>
-      </section>
+      </div>
 
-      <section className="techpack-section">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
-          <div className="max-w-3xl"><p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-(--color-accent)">What changes your price</p><h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">No hidden production assumptions.</h2><p className="mt-4 text-sm leading-7 text-(--text-primary)/60 sm:text-base">The estimate above intentionally starts simple. Studio makes each production choice visible before checkout.</p></div>
-          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {[
-              [PackageCheck, "Garment", "Fabric weight, fit and product determine the starting unit price."],
-              [Check, "Artwork", "Screen Print, DTF or Reflective Print is priced when you choose the technique and placement."],
-              [CircleHelp, "Custom details", "Custom dye, back artwork and a custom label update the configured price before checkout."],
-              [Truck, "Delivery & shipping", "Rush production is +₹75 per unit before GST. Shipping is free."],
-            ].map(([Icon, title, description]) => <article key={String(title)} className="techpack-panel rounded-sm border p-5"><Icon size={18} className="text-(--color-accent)" /><h3 className="mt-5 text-base font-semibold">{String(title)}</h3><p className="mt-2 text-sm leading-6 text-(--text-primary)/60">{String(description)}</p></article>)}
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
-        <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-start"><div><p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-(--color-accent)">Volume pricing</p><h2 className="mt-3 text-3xl font-bold tracking-tight">More units, lower garment cost.</h2><p className="mt-4 text-sm leading-7 text-(--text-primary)/60">Discounts apply independently to each configured product line, so the quantities and specifications stay clear at checkout.</p></div><div className="overflow-hidden rounded-sm border border-(--color-rule)">{VOLUME_DISCOUNT_TIERS.map((tier) => <div key={tier.minQty} className={`flex items-center justify-between px-5 py-4 text-sm ${safeQuantity >= tier.minQty && (tier.maxQty === null || safeQuantity <= tier.maxQty) ? "bg-(--color-cream-soft) font-semibold text-(--color-accent-dark)" : "border-t border-(--color-rule) first:border-t-0 text-(--text-primary)/65"}`}><span>{quantityLabel(tier)} pieces</span><span>{tier.discountPercent ? `${tier.discountPercent}% off` : "Starting price"}</span></div>)}</div></div>
-      </section>
-
-      <section className="bg-(--color-navy)"><div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-12 text-white sm:px-6 sm:py-16 lg:flex-row lg:items-center lg:justify-between"><div><div className="flex items-center gap-2 text-white/65"><Clock3 size={16} /><span className="font-mono text-[10px] uppercase tracking-[0.14em]">Ready when your brief is</span></div><h2 className="mt-3 text-3xl font-bold tracking-tight">Build the exact order next.</h2><p className="mt-3 max-w-xl text-sm leading-6 text-white/60">Choose the garment, colour, artwork and size split. You will see the exact configuration total before payment.</p></div><Link href="/products" className="rounded-sm bg-white px-6 py-3.5 text-center text-sm font-semibold text-(--color-navy) transition hover:bg-[#F4F1EB]">Browse products</Link></div></section>
-    </main>
-  );
+      <div className="mt-12 grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
+        <div><p className="font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-(--color-accent)">Volume pricing</p><h2 className="mt-3 text-3xl font-bold tracking-tight">More units, lower garment cost.</h2><p className="mt-4 text-sm leading-7 text-(--text-primary)/60">Discounts apply to each configured product line. Select a tier to compare it in the calculator.</p></div>
+        <div className="overflow-hidden rounded-sm border border-(--color-rule)">{VOLUME_DISCOUNT_TIERS.map(tier => {
+          const active = safeQuantity >= tier.minQty && (tier.maxQty === null || safeQuantity <= tier.maxQty)
+          return <button key={tier.minQty} type="button" onClick={() => setQuantity(tier.minQty)} aria-pressed={active} className={`flex w-full items-center justify-between px-5 py-4 text-left text-sm ${active ? 'bg-(--color-cream-soft) font-semibold text-(--color-accent-dark)' : 'border-t border-(--color-rule) first:border-t-0 text-(--text-primary)/65 hover:bg-(--color-cream-soft)/60'}`}><span>{quantityLabel(tier)} pieces</span><span>{tier.discountPercent ? `${tier.discountPercent}% off` : 'Catalogue price'}</span></button>
+        })}</div>
+      </div>
+    </section>
+  )
 }
 
 function PriceRow({ label, value }: { label: string; value: string }) {
-  return <div className="flex items-center justify-between gap-4"><span className="text-white/60">{label}</span><span className="font-mono text-right">{value}</span></div>;
+  return <div className="flex items-center justify-between gap-4"><span className="text-white/60">{label}</span><span className="font-mono text-right">{value}</span></div>
 }

@@ -77,7 +77,7 @@ export const caseStudies: CaseStudy[] = [
     projectName: 'Soundwave Festival merchandise',
     industryId: 'events-entertainment',
     headline: 'Festival merchandise across three screen-print designs.',
-    summary: 'Soundwave needed 300 pieces of merchandise across three designs for its annual music festival. The original project record describes a 22-day production timeline and delivery to the venue.',
+    summary: 'Soundwave needed 300 pieces of merchandise across three designs for its annual music festival. The documented production timeline was 22 days, with delivery to the venue.',
     coverImage: '/work/soundwave/cover.webp',
     products: [
       {
@@ -121,17 +121,17 @@ export const caseStudies: CaseStudy[] = [
       {
         title: '280 of 300 pieces sold',
         description: 'The original project record states that 280 of 300 pieces sold across the two-day festival.',
-        sourceNote: 'Original project record; sales data and owner approval are not established in the repository.',
+        sourceNote: 'Recorded in the original project record.',
       },
       {
         title: 'Tote bags sold out on day one',
         description: 'The original project record states that the tote bags sold out on the first day.',
-        sourceNote: 'Original project record; sales data and owner approval are not established in the repository.',
+        sourceNote: 'Recorded in the original project record.',
       },
       {
         title: 'A larger run was discussed',
         description: 'The original project record says Soundwave briefed Garmops for a larger run the following year.',
-        sourceNote: 'Original project record; owner approval is not established in the repository.',
+        sourceNote: 'Recorded in the original project record.',
       },
     ],
     gallery: [projectImage('/work/soundwave/cover.webp', 'Soundwave Festival project image')],

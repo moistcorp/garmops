@@ -88,7 +88,7 @@ export default function IndustryLandingPage({ content }: { content: IndustryPage
 
       <header className="mx-auto grid max-w-7xl items-center gap-8 px-4 pb-12 pt-8 sm:px-6 sm:pb-16 sm:pt-14 lg:grid-cols-[1.06fr_0.94fr] lg:gap-14 lg:pb-20">
         <div className="max-w-3xl">
-          <p className="mb-4 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">
+          <p className="mb-4 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">
             {content.eyebrow}
           </p>
           <h1 className="text-balance text-4xl font-bold leading-[1.06] tracking-tight text-(--text-primary) sm:text-5xl lg:text-6xl">
@@ -96,18 +96,18 @@ export default function IndustryLandingPage({ content }: { content: IndustryPage
           </h1>
           <p className="mt-6 max-w-2xl text-base leading-7 text-[#3f3f3f] sm:text-lg sm:leading-8">{content.lead}</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <a
-              href="#recommended-products"
-              className="rounded-sm bg-(--color-accent) px-6 py-3.5 text-center text-sm font-medium text-white transition-colors hover:bg-(--color-accent-dark)"
-            >
-              Explore recommended products
-            </a>
             <Link
               href="/configurator"
-              className="techpack-control rounded-sm border px-6 py-3.5 text-center text-sm font-medium text-(--text-primary) transition-colors hover:!border-(--color-accent) hover:text-(--color-accent-dark)"
+              className="rounded-sm bg-(--color-accent) px-6 py-3.5 text-center text-sm font-medium text-white transition-colors hover:bg-(--color-accent-dark)"
             >
               Start designing
             </Link>
+            <a
+              href="#recommended-products"
+              className="techpack-control rounded-sm border px-6 py-3.5 text-center text-sm font-medium text-(--text-primary) transition-colors hover:!border-(--color-accent) hover:text-(--color-accent-dark)"
+            >
+              Explore recommended products
+            </a>
           </div>
         </div>
 
@@ -139,7 +139,7 @@ export default function IndustryLandingPage({ content }: { content: IndustryPage
       <section className="techpack-section">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
           <div className="max-w-3xl">
-            <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">
+            <p className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">
               Start with the job
             </p>
             <h2 className="text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">What are you making?</h2>
@@ -153,7 +153,7 @@ export default function IndustryLandingPage({ content }: { content: IndustryPage
               <article key={useCase.title} className="techpack-panel rounded-sm border p-5 sm:p-6">
                 <h3 className="text-lg font-semibold text-(--text-primary)">{useCase.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-[#3f3f3f]">{useCase.description}</p>
-                <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.08em] text-(--text-muted)">
+                <p className="mt-5 font-mono text-[11px] uppercase tracking-[0.08em] text-(--text-muted)">
                   Recommended starting points
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -167,7 +167,7 @@ export default function IndustryLandingPage({ content }: { content: IndustryPage
 
       <section id="recommended-products" className="mx-auto max-w-7xl scroll-mt-24 px-4 py-14 sm:px-6 sm:py-20">
         <div className="max-w-3xl">
-          <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">Products</p>
+          <p className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">Products</p>
           <h2 className="text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">Recommended starting points</h2>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-[#3f3f3f] sm:text-base">
             These garments cover the most common needs for this industry. Open a product to check its size chart, material and full specification before customising it.
@@ -198,10 +198,10 @@ export default function IndustryLandingPage({ content }: { content: IndustryPage
                   {productFabricFeel(product)} · {productFitLabel(product)}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <span className="rounded-sm bg-(--color-cream-soft) px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.06em] text-(--text-muted)">
+                  <span className="rounded-sm bg-(--color-cream-soft) px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.06em] text-(--text-muted)">
                     {product.gsm} GSM
                   </span>
-                  <span className="rounded-sm bg-(--color-cream-soft) px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.06em] text-(--text-muted)">
+                  <span className="rounded-sm bg-(--color-cream-soft) px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.06em] text-(--text-muted)">
                     {product.selectorMaterial}
                   </span>
                 </div>
@@ -226,7 +226,7 @@ export default function IndustryLandingPage({ content }: { content: IndustryPage
       <section className="techpack-section">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
           <div className="max-w-3xl">
-            <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">How it works</p>
+            <p className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">How it works</p>
             <h2 className="text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">From garment to production</h2>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-[#3f3f3f] sm:text-base">
               The same four-step flow applies across industries so the product, artwork and quantities stay connected.
@@ -235,7 +235,7 @@ export default function IndustryLandingPage({ content }: { content: IndustryPage
           <ol className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {processSteps.map((step, index) => (
               <li key={step.title} className="techpack-panel rounded-sm border p-5 sm:p-6">
-                <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-(--color-accent-dark)">
+                <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.08em] text-(--color-accent-dark)">
                   {String(index + 1).padStart(2, '0')}
                 </span>
                 <h3 className="mt-3 text-base font-semibold text-(--text-primary)">{step.title}</h3>
@@ -248,7 +248,7 @@ export default function IndustryLandingPage({ content }: { content: IndustryPage
 
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
         <div className="max-w-3xl">
-          <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">Planning</p>
+          <p className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">Planning</p>
           <h2 className="text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">{content.planningTitle}</h2>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-[#3f3f3f] sm:text-base">{content.planningIntroduction}</p>
         </div>
@@ -271,7 +271,7 @@ export default function IndustryLandingPage({ content }: { content: IndustryPage
       <section className="techpack-section">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
           <div className="max-w-3xl">
-            <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">FAQ</p>
+            <p className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-(--text-muted)">FAQ</p>
             <h2 className="text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">Common questions before you start</h2>
           </div>
           <div className="mt-8 grid gap-3">

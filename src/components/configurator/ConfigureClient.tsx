@@ -242,6 +242,8 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   const requestedStepParam = searchParams.get("step");
   const requestedDesignId = searchParams.get("designId");
   const requestedDraftId = searchParams.get("draftId");
+  const requestedQuantityParam = searchParams.get("quantity");
+  const requestedRush = searchParams.get("rush") === "1";
   const requestedCloudSave = searchParams.get("cloudSave") === "1";
   const requestedSaveTitle = searchParams.get("saveTitle") ?? "";
   const requestedEstimateId = searchParams.get("estimateId");
@@ -279,7 +281,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
     requestedStep
   );
   const [quantity, setQuantity] = useState(() =>
-    getProductMinimumOrderQuantity(productId)
+    safeQuantity(requestedQuantityParam, getProductMinimumOrderQuantity(productId))
   );
   const [ctaErrorMessage, setCtaErrorMessage] = useState<string | null>(null);
   const [ctaErrorNonce, setCtaErrorNonce] = useState(0);
@@ -341,7 +343,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   const pendingCartCommitRef = useRef<(() => Promise<void>) | null>(null);
   const authResumeHandledRef = useRef(false);
 
-  const pricingBreakdown = buildPricingBreakdown(productId, colour, artwork, neckLabel, quantity);
+  const pricingBreakdown = buildPricingBreakdown(productId, colour, artwork, neckLabel, quantity, requestedRush);
   const [serverPricing, setServerPricing] = useState<PricingSnapshot | null>(null);
   const [catalogProductActive, setCatalogProductActive] = useState<boolean | null>(null);
   const minimumQuantity = getProductMinimumOrderQuantity(productId, {
@@ -440,7 +442,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
           back: artwork.back ? { fileId: artwork.back.fileId, fileUrl: artwork.back.fileUrl, technique: artwork.back.technique } : undefined,
         },
         neckLabel: neckLabel ? { labelType: neckLabel.labelType, fileId: neckLabel.fileId, fileUrl: neckLabel.fileUrl } : undefined,
-        deliveryType: "standard",
+        deliveryType: requestedRush ? "rush" : "standard",
       }).then((pricing) => {
         if (!cancelled) setServerPricing(pricing);
       }).catch(() => {
@@ -451,7 +453,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [artwork.back, artwork.front, colour.type, neckLabel, productId, quantity]);
+  }, [artwork.back, artwork.front, colour.type, neckLabel, productId, quantity, requestedRush]);
   const activeCustomisationStepId = expandedStepId ?? "garment-colour";
   const previewNeckLabel: NeckLabel =
     activeCustomisationStepId === "neck-label" && !neckLabel.dimensions
@@ -793,6 +795,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   }, []);
 
   useEffect(() => {
+    if (requestedQuantityParam) return;
     const timer = window.setTimeout(() => {
       const preferredQuantity = readPreferredQuantity();
       if (preferredQuantity) {
@@ -804,7 +807,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
       }
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [minimumQuantity, productId]);
+  }, [minimumQuantity, productId, requestedQuantityParam]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1178,7 +1181,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
         totalUnits(restoredSizeQuantitiesRef.current) === quantity
           ? restoredSizeQuantitiesRef.current
           : undefined,
-      rushDelivery: false,
+      rushDelivery: requestedRush,
     };
     setFeedback({ tone: "loading", title: editItemId ? "Updating your configuration…" : "Adding configuration to cart…", detail: "Checking your design, quantity and price before opening sizes." });
 
@@ -1236,7 +1239,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
             versionId: cloudResult.link.currentVersionId,
             quantity,
             sizes: sizeQuantities,
-            deliveryType: "standard",
+            deliveryType: requestedRush ? "rush" : "standard",
           })
         : await addConfiguredLine({
             cartId: serverCart.cartId,
@@ -1244,7 +1247,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
             versionId: cloudResult.link.currentVersionId,
             quantity,
             sizes: sizeQuantities,
-            deliveryType: "standard",
+            deliveryType: requestedRush ? "rush" : "standard",
           });
       const canonicalCart = canonical.cart;
       const canonicalLine = canonicalCart.lines.find((line) =>
@@ -1461,7 +1464,8 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
         colour,
         artwork,
         neckLabel,
-        quantity
+        quantity,
+        requestedRush
       );
       const garmentCanvas = document.querySelector<HTMLCanvasElement>(
         '[data-configurator-pdf-preview="true"] canvas'
@@ -1773,6 +1777,11 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
             </section>
 
             <div className="shrink-0">
+              {requestedRush ? (
+                <p role="status" className="mb-2 rounded-sm border border-(--color-accent)/25 bg-blue-50 px-3 py-2 text-xs font-medium text-(--color-accent-dark)">
+                  Rush production applied · ₹75 per piece
+                </p>
+              ) : null}
               <OrderBar
                 quantity={quantity}
                 onQuantityChange={setSafeQuantity}

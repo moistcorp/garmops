@@ -138,8 +138,10 @@ function checkoutSignature(
 
 export default function DurableSampleCheckout({
   defaults,
+  paymentOutcome,
 }: {
   defaults: SampleCheckoutDefaults;
+  paymentOutcome?: "failure";
 }) {
   const { items, total, hasHydrated } = useCartStore();
   const cartTotalRupees = total();
@@ -376,6 +378,14 @@ export default function DurableSampleCheckout({
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-black/50">
             Your products, prices, delivery address, and payment attempt are saved before you leave for PayU. The order number is created only after PayU verifies full payment.
           </p>
+          {paymentOutcome === "failure" ? (
+            <div
+              role="alert"
+              className="mt-5 max-w-2xl rounded-sm border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+            >
+              Payment wasn&apos;t completed. Your sample cart is still here, so you can review it and try again safely.
+            </div>
+          ) : null}
         </div>
 
         <div className="grid gap-8 lg:grid-cols-3 lg:gap-12">

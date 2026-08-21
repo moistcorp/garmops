@@ -5,7 +5,11 @@ import { isFeatureEnabled } from "@/lib/config/featureFlags";
 
 export const dynamic = "force-dynamic";
 
-export default async function CheckoutPage() {
+export default async function CheckoutPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ payment?: string }>;
+}) {
   if (!isFeatureEnabled("SAMPLE_CHECKOUT_ENABLED")) {
     return (
       <div className="techpack-canvas min-h-[70vh] px-4 py-12 sm:px-6">
@@ -20,9 +24,11 @@ export default async function CheckoutPage() {
   }
 
   const { user } = await requireCustomer("/checkout");
+  const query = await searchParams;
 
   return (
     <DurableSampleCheckout
+      paymentOutcome={query.payment === "failure" ? "failure" : undefined}
       defaults={{
         firstName: user.first_name ?? "",
         lastName: user.last_name ?? "",

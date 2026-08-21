@@ -34,9 +34,9 @@ const mobileGroups = [
       { label: 'Companies & Teams', href: '/corporate-merchandise' },
       { label: 'Cafés & Hospitality', href: '/industries/hospitality' },
       { label: 'Events & Entertainment', href: '/industries/events' },
-      { label: 'Sports & Fitness', href: '/industries#sports-fitness' },
-      { label: 'Creative Teams', href: '/industries#creative-teams' },
-      { label: 'Arts & Culture', href: '/industries#arts-culture' },
+      { label: 'Sports & Fitness', href: '/industries/sports-fitness' },
+      { label: 'Creative Teams', href: '/industries/creative-teams' },
+      { label: 'Arts & Culture', href: '/industries/arts-culture' },
     ],
   },
 ]

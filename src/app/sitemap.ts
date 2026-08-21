@@ -3,6 +3,7 @@ import { products } from '@/lib/products'
 import { caseStudies } from '@/lib/casestudies'
 import { journalPosts } from '@/lib/journal'
 import { allLandingPages } from '@/lib/landingPages'
+import { industryPages } from '@/lib/industries'
 import { absoluteUrl, siteConfig } from '@/lib/seo'
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -33,6 +34,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     images: page.seo.image ? [absoluteUrl(page.seo.image)] : undefined,
   }))
 
+  const additionalIndustryPages = [industryPages.sports, industryPages.creative, industryPages.arts].map(page => ({
+    url: absoluteUrl(`/${page.slug}`),
+    lastModified: releaseDate,
+    priority: 0.8,
+    changeFrequency: 'monthly' as const,
+    images: page.seo.image ? [absoluteUrl(page.seo.image)] : undefined,
+  }))
+
   const productPages = products.map(p => ({
     url: absoluteUrl(`/products/${p.slug}`),
     lastModified: releaseDate,
@@ -57,5 +66,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     images: post.image ? [absoluteUrl(post.image)] : undefined,
   }))
 
-  return [...staticPages, ...commercialPages, ...productPages, ...workPages, ...journalPages]
+  return [...staticPages, ...commercialPages, ...additionalIndustryPages, ...productPages, ...workPages, ...journalPages]
 }
