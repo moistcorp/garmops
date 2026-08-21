@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const defaultBaseURL = "http://127.0.0.1:3100";
+const reuseExistingServer = process.env.PLAYWRIGHT_REUSE_SERVER === "true";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -28,7 +29,7 @@ export default defineConfig({
   webServer: {
     command: "npm run dev -- --hostname 127.0.0.1 --port 3100",
     url: `${process.env.PLAYWRIGHT_BASE_URL ?? defaultBaseURL}/api/health`,
-    reuseExistingServer: false,
+    reuseExistingServer,
     timeout: 120_000,
     env: {
       ...process.env,

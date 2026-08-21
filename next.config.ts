@@ -31,6 +31,7 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   poweredByHeader: false,
   devIndicators: false,
+  allowedDevOrigins: ['127.0.0.1'],
   images: {
     remotePatterns: [
       {
@@ -89,8 +90,8 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self'",
               `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ''} https://challenges.cloudflare.com`,
-              "style-src 'self' 'unsafe-inline' https://api.fontshare.com https://fonts.googleapis.com",
-              "font-src 'self' https://cdn.fontshare.com https://fonts.gstatic.com",
+              "style-src 'self' 'unsafe-inline'",
+              "font-src 'self'",
               "img-src 'self' data: blob: https:",
               `connect-src 'self' https://secure.payu.in https://test.payu.in https://challenges.cloudflare.com${medusaOrigin ? ` ${medusaOrigin}` : ''}${sentryOrigin ? ` ${sentryOrigin}` : ''}`,
               "frame-src https://secure.payu.in https://test.payu.in https://challenges.cloudflare.com",

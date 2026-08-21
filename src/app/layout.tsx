@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import AppChrome from '@/components/common/AppChrome'
-import SatoshiFontResources from '@/components/common/SatoshiFontResources'
 import { googleSiteVerification, siteConfig } from '@/lib/seo'
 import { isStaffSurface } from '@/lib/config/appSurface'
+import { ibmPlexMono, satoshi } from './fonts'
 
 const googleVerification = googleSiteVerification()
 
@@ -49,10 +49,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const staffSurface = isStaffSurface()
 
   return (
-    <html lang={siteConfig.language} className="font-sans">
-      <head>
-        <SatoshiFontResources />
-      </head>
+    <html
+      lang={siteConfig.language}
+      className={`${satoshi.variable} ${ibmPlexMono.variable} font-sans`}
+    >
       <body className="font-sans bg-white text-(--text-primary) antialiased">
         <AppChrome staffSurface={staffSurface}>{children}</AppChrome>
       </body>

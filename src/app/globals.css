@@ -1,18 +1,9 @@
 @import "tailwindcss";
 
-@font-face {
-  font-family: "Satoshi";
-  src: url("https://cdn.fontshare.com/wf/NWBQYJIM7GCZ5XWD7D26ARB3VDY55ZRT/K63EV2KZIGKLE7RANQ2U42S6SVHU5RJ7/X6XYTKIVDUW7GZTZPZNN4EUM5KH54KHF.woff2")
-    format("woff2-variations");
-  font-weight: 300 900;
-  font-style: normal;
-  font-display: swap;
-}
-
 @theme inline {
   --font-sans: var(--font-satoshi);
-  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
-    Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-mono: var(--font-ibm-plex-mono), ui-monospace, SFMono-Regular, Menlo,
+    Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 * {
@@ -29,11 +20,9 @@
   --text-primary: #16212b;
   --text-secondary: #1d2a36;
   --text-muted: #53606b;
-  --font-satoshi: "Satoshi", ui-sans-serif, system-ui, -apple-system,
-    BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono:
-    "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+    var(--font-ibm-plex-mono), ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", "Courier New", monospace;
   --color-cream: #faf8f5;
   --color-cream-soft: #f3f0ea;
   --color-accent: #1d49b4;
