@@ -38,6 +38,22 @@ describe("configurator journey labels", () => {
     ).toBe("Continue to sizes");
   });
 
+  it("uses the tote-specific label step and requires its custom upload", () => {
+    expect(
+      getConfiguratorCtaLabel("artwork", {
+        ...defaults,
+        hasArtwork: true,
+        isToteProduct: true,
+      }),
+    ).toBe("Continue to bag label →");
+    expect(
+      getConfiguratorCtaLabel("neck-label", {
+        ...defaults,
+        isToteProduct: true,
+      }),
+    ).toBe("Upload bag label to continue");
+  });
+
   it("activates Payment while payment is being prepared", () => {
     expect(getPaymentJourneyStep(false)).toBe("review");
     expect(getPaymentJourneyStep(true)).toBe("payment");

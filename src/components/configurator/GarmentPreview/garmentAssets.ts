@@ -11,7 +11,6 @@ export type GarmentFolder =
   | "polo"
   | "regular-fit-sweatshirt"
   | "regular-fit-hoodie"
-  | "boxy-fit-hoodie"
   | "canvas-tote-bag";
 
 export interface GarmentViewRenderConfig {
@@ -37,8 +36,9 @@ const photographic = (
  * mapping instead of inferring quality from a filename in the compositor.
  *
  * Regular Fit Tee values intentionally match its original implementation.
- * The 1670px sets use the same compositor after visual/source inspection, but
- * keep their own framing so wide sleeves, hoods and tote handles are complete.
+ * The high-resolution sets use the same compositor after visual/source
+ * inspection, but keep their own framing so wide sleeves, hoods and tote
+ * handles are complete.
  */
 const GARMENT_RENDER_CONFIG: Record<GarmentFolder, GarmentRenderConfig> = {
   "regular-fit-tee": {
@@ -47,35 +47,28 @@ const GARMENT_RENDER_CONFIG: Record<GarmentFolder, GarmentRenderConfig> = {
     neck: photographic(2),
   },
   "boxy-fit-tee": {
-    front: photographic(1),
-    back: photographic(1),
+    front: photographic(-10),
+    back: photographic(-10),
     neck: photographic(2),
   },
   "longsleeve-tee": {
-    front: photographic(1),
-    back: photographic(1),
+    front: photographic(-10),
+    back: photographic(-10),
     neck: photographic(2),
   },
   polo: {
-    front: photographic(1),
-    back: photographic(1),
+    front: photographic(-10),
+    back: photographic(-10),
     neck: photographic(2),
   },
   "regular-fit-sweatshirt": {
-    front: photographic(1),
-    back: photographic(1),
+    front: photographic(-10),
+    back: photographic(-10),
     neck: photographic(2),
   },
   "regular-fit-hoodie": {
-    front: photographic(-3.5),
-    back: photographic(1),
-    // No authentic Regular Fit Hoodie neck set exists yet. Keep the existing
-    // Boxy Fit Hoodie fallback explicit so the missing source cannot be hidden.
-    neck: photographic(2, "boxy-fit-hoodie"),
-  },
-  "boxy-fit-hoodie": {
-    front: photographic(-3.5),
-    back: photographic(1),
+    front: photographic(-10),
+    back: photographic(-10),
     neck: photographic(2),
   },
   "canvas-tote-bag": {
@@ -92,7 +85,6 @@ const FALLBACK_RENDER_CONFIG: GarmentViewRenderConfig = {
 
 export function getGarmentFolder(productId: ProductId): GarmentFolder | null {
   if (productId.includes("canvas-tote")) return "canvas-tote-bag";
-  if (productId.includes("boxy-fit-hoodie")) return "boxy-fit-hoodie";
   if (productId.includes("regular-fit-hoodie")) return "regular-fit-hoodie";
   if (productId.includes("regular-fit-sweatshirt")) return "regular-fit-sweatshirt";
   if (productId.includes("longsleeve")) return "longsleeve-tee";

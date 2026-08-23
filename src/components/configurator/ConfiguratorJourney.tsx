@@ -29,6 +29,7 @@ interface ConfiguratorJourneyProps {
   productName?: string;
   specReference?: string;
   accountSaveNotice?: ReactNode;
+  isToteProduct?: boolean;
   compact?: boolean;
   className?: string;
 }
@@ -59,14 +60,18 @@ export function ConfiguratorJourney({
   productName,
   specReference,
   accountSaveNotice,
+  isToteProduct = false,
   compact = false,
   className = "",
 }: ConfiguratorJourneyProps) {
-  const currentIndex = Math.max(0, STEPS.findIndex((step) => step.id === currentStep));
-  const previousStep = currentIndex > 0 ? STEPS[currentIndex - 1] : undefined;
+  const steps = isToteProduct
+    ? STEPS.map((step) => step.id === "neck-label" ? { ...step, label: "Bag Label" } : step)
+    : STEPS;
+  const currentIndex = Math.max(0, steps.findIndex((step) => step.id === currentStep));
+  const previousStep = currentIndex > 0 ? steps[currentIndex - 1] : undefined;
   const previousStepHandler = previousStep ? onStepSelect[previousStep.id] : undefined;
   const previousStepHref = previousStep ? links[previousStep.id] ?? backHref : backHref;
-  const progressPercent = (currentIndex / (STEPS.length - 1)) * 100;
+  const progressPercent = (currentIndex / (steps.length - 1)) * 100;
   const specCode = specReference ? formatSpecCode(specReference) : null;
   const backButtonClass =
     "flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-(--color-rule) bg-(--color-cream) text-(--color-navy) transition-colors hover:border-(--color-accent) hover:text-(--color-accent)";
@@ -180,7 +185,7 @@ export function ConfiguratorJourney({
               />
             </div>
             <ol className="relative z-10 grid grid-cols-8 gap-1" role="list">
-              {STEPS.map((step, index) => {
+              {steps.map((step, index) => {
                 const active = index === currentIndex;
                 const complete = !active && index < currentIndex;
                 const selectHandler = onStepSelect[step.id];

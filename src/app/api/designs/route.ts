@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { medusaRequest } from "@/lib/medusa/client";
 import { cloudDesignSnapshotSchema } from "@/lib/designs/schema";
+import { getProduct } from "@/lib/configurator/products";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null) as { title?: string; snapshot?: unknown; clientImportId?: string } | null;
   const snapshot = cloudDesignSnapshotSchema.safeParse(body?.snapshot);
-  if (!body?.title || !snapshot.success) return NextResponse.json({ error: "Invalid design request" }, { status: 400 });
+  if (!body?.title || !snapshot.success || !getProduct(snapshot.data.configId)) return NextResponse.json({ error: "Invalid design request" }, { status: 400 });
   try {
     const result = await medusaRequest<Record<string, unknown>>("/store/garmops/designs", {
       method: "POST", actor: "customer",

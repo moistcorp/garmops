@@ -14,10 +14,10 @@ describe("public asset URLs", () => {
 
   it("centralizes immutable garment and flatlay versions", () => {
     expect(garmentAssetUrl("regular-fit-tee/front/mask.png")).toBe(
-      "https://assets.garmops.com/garments/v1/regular-fit-tee/front/mask.png",
+      "https://assets.garmops.com/garments/v4/regular-fit-tee/front/mask.png",
     );
     expect(flatlayAssetPath("regulartee.png")).toBe(
-      "https://assets.garmops.com/flatlays/v1/regulartee.png",
+      "https://assets.garmops.com/flatlays/v4/regulartee.png",
     );
   });
 });

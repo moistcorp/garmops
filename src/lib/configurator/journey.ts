@@ -13,9 +13,11 @@ export function getConfiguratorCtaLabel(
 ): string {
   if (openStep === "garment-colour") return "Continue to artwork →";
   if (openStep === "artwork") {
-    return options.hasArtwork ? "Continue to neck label →" : "Continue without artwork →";
+    if (!options.hasArtwork) return "Continue without artwork →";
+    return options.isToteProduct ? "Continue to bag label →" : "Continue to neck label →";
   }
   if (openStep === "neck-label") {
+    if (options.isToteProduct && !options.hasCustomLabel) return "Upload bag label to continue";
     if (options.hasCustomLabel) return "Continue to sizes";
     return "Continue to sizes";
   }

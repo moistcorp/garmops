@@ -18,6 +18,7 @@ export interface ConfiguratorTopBarProps {
   productName?: string;
   specReference?: string;
   accountSaveNotice?: ReactNode;
+  isToteProduct?: boolean;
   links?: Partial<Record<ConfiguratorJourneyStep, string>>;
   onStepSelect?: Partial<Record<ConfiguratorJourneyStep, () => void>>;
   className?: string;
@@ -66,6 +67,7 @@ export function ConfiguratorTopBar({
   productName,
   specReference,
   accountSaveNotice,
+  isToteProduct = false,
   links = {},
   onStepSelect = {},
   className = "",
@@ -91,6 +93,7 @@ export function ConfiguratorTopBar({
             productName={productName}
             specReference={specReference}
             accountSaveNotice={accountSaveNotice}
+            isToteProduct={isToteProduct}
             className="rounded-none! border-0! bg-transparent!"
           />
         </div>

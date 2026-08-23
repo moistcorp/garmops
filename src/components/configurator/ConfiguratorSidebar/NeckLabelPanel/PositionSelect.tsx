@@ -21,8 +21,7 @@ const TOTE_POSITION_OPTIONS: Array<{
   label: string;
   detail: string;
 }> = [
-  { value: 'below_neck_tape', label: 'Inside top seam', detail: '5 mm below the top seam' },
-  { value: 'on_neck_tape', label: 'On inner seam', detail: 'Attached directly on inner seam' },
+  { value: 'below_neck_tape', label: 'Inside top seam', detail: '2 cm below the top seam' },
 ];
 
 function PlacementDiagram({ value, selected }: { value: NeckLabelPosition; selected: boolean }) {
@@ -42,7 +41,7 @@ function PlacementDiagram({ value, selected }: { value: NeckLabelPosition; selec
 export default function PositionSelect({ value, onChange, isToteProduct = false }: PositionSelectProps): JSX.Element {
   const options = isToteProduct ? TOTE_POSITION_OPTIONS : GARMENT_POSITION_OPTIONS;
   return (
-    <div className="grid gap-2 sm:grid-cols-2">
+    <div className={`grid gap-2 ${isToteProduct ? 'sm:grid-cols-1' : 'sm:grid-cols-2'}`}>
       {options.map((option) => {
         const selected = value === option.value;
         return (

@@ -61,7 +61,7 @@ describe("cloud design artwork ownership", () => {
   afterEach(() => vi.restoreAllMocks());
 
   it("keeps built-in sample artwork as a trusted public asset", async () => {
-    const sampleUrl = "https://assets.garmops.com/garments/v1/artwork-sample.svg";
+    const sampleUrl = "https://assets.garmops.com/garments/v4/artwork-sample.svg";
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(json({
         design: {
@@ -144,7 +144,7 @@ describe("cloud design artwork ownership", () => {
       }));
     vi.stubGlobal("fetch", fetchMock);
 
-    const draft = sampleDraft("https://assets.garmops.com/garments/v1/artwork-sample.svg");
+    const draft = sampleDraft("https://assets.garmops.com/garments/v4/artwork-sample.svg");
     draft.artwork.front = {
       ...draft.artwork.front!,
       fileUrl: "",

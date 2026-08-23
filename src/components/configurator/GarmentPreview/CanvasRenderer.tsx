@@ -64,6 +64,13 @@ const NECK_LABEL_TOP_PERCENT: Record<NeckLabelView, Record<NeckLabelPosition, nu
   },
 };
 
+const TOTE_LABEL_TOP_PERCENT: Record<NeckLabelView, Record<NeckLabelPosition, number>> = {
+  neck: {
+    below_neck_tape: 55, // Assembly reference: label hangs 2 cm below the top seam
+    on_neck_tape: 42, // overlaps the inner seam instead of floating between the handles
+  },
+};
+
 // Standard labels are compact printed size tags, not custom-branding labels.
 // Keep this preview-only size separate from the persisted custom-label presets.
 const STANDARD_SIZE_LABEL_PREVIEW_MM = {
@@ -324,6 +331,7 @@ export default function CanvasRenderer({
   const [dragPosition, setDragPosition] = useState<PositionControlsState | null>(null);
   const garmentFolder = getGarmentFolder(productId);
   const garmentRenderConfig = getGarmentRenderConfig(productId, view);
+  const isToteProduct = productId.includes("tote");
   useGarmentAssetPrefetch(productId, view);
 
   const handleGarmentRenderProgress = useCallback(
@@ -371,7 +379,7 @@ export default function CanvasRenderer({
     const labelHeightPx = heightMm * scale;
     neckLabelBoxStyle = {
       left: "50%",
-      top: `${NECK_LABEL_TOP_PERCENT[view][neckLabel.position]}%`,
+      top: `${(isToteProduct ? TOTE_LABEL_TOP_PERCENT : NECK_LABEL_TOP_PERCENT)[view][neckLabel.position]}%`,
       width: `${(labelWidthPx / CANVAS_SIZE.width) * 100}%`,
       height: `${(labelHeightPx / CANVAS_SIZE.height) * 100}%`,
       transform: "translateX(-50%)",
@@ -451,7 +459,7 @@ export default function CanvasRenderer({
     showProductionGuides &&
     interactive &&
     view === "front" &&
-    !productId.includes("tote") &&
+    !isToteProduct &&
     showBox &&
     !!activeArtwork?.guidelines.leftChest;
 

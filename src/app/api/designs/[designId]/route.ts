@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { medusaRequest } from "@/lib/medusa/client";
 import { cloudDesignSnapshotSchema } from "@/lib/designs/schema";
+import { getProduct } from "@/lib/configurator/products";
 
 type Context = { params: Promise<{ designId: string }> };
 
@@ -19,7 +20,7 @@ export async function PATCH(request: NextRequest, context: Context) {
   const { designId } = await context.params;
   const body = await request.json().catch(() => null) as { expectedRevision?: number; snapshot?: unknown; clientOperationId?: string } | null;
   const snapshot = cloudDesignSnapshotSchema.safeParse(body?.snapshot);
-  if (!snapshot.success || !Number.isInteger(body?.expectedRevision)) return NextResponse.json({ error: "Invalid design request" }, { status: 400 });
+  if (!snapshot.success || !getProduct(snapshot.data.configId) || !Number.isInteger(body?.expectedRevision)) return NextResponse.json({ error: "Invalid design request" }, { status: 400 });
     try {
     const result = await medusaRequest<Record<string, unknown>>(`/store/garmops/designs/${encodeURIComponent(designId)}`, { method: "PATCH", actor: "customer", body: { revision: body!.expectedRevision, clientOperationId: body?.clientOperationId, productSlug: snapshot.data.configId, configuration: snapshot.data.configuration, quantity: snapshot.data.configuration.quantity } });
     const version = result.version as Record<string, unknown>;

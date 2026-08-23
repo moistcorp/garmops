@@ -69,15 +69,6 @@ export const SIZE_CHARTS: Record<string, SizeChart> = {
       { size: 'XXL', length: '27.5"', shoulder: '20.5"', chest: '51"', sleeve: '27"' },
     ],
   },
-  'boxy-hoodie': {
-    note: 'All measurements are in inches and follow the supplied Oversized Hoodie size chart.',
-    sizes: [
-      { size: 'S', chest: '46"', sleeve: '23"', length: '26"' },
-      { size: 'M', chest: '48"', sleeve: '24"', length: '27"' },
-      { size: 'L', chest: '50"', sleeve: '25"', length: '28"' },
-      { size: 'XL', chest: '52"', sleeve: '26"', length: '29"' },
-    ],
-  },
   'tote': {
     note: 'One size. Measurements are in centimetres.',
     chestLabel: 'Width',
@@ -96,7 +87,6 @@ export const PRODUCT_SIZE_CHART_MAP: Record<string, string> = {
   'longsleeve-tee-260gsm': 'longsleeve',
   'regular-fit-sweatshirt-320gsm': 'regular-sweatshirt',
   'regular-fit-hoodie-320gsm': 'regular-hoodie',
-  'boxy-fit-hoodie-320gsm': 'boxy-hoodie',
   'canvas-tote-bag': 'tote',
 }
 

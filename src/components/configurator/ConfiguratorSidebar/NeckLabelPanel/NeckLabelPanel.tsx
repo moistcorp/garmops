@@ -70,7 +70,7 @@ function fileFingerprint(value?: NeckLabel): string {
   ]);
 }
 
-function draftFromValue(value?: NeckLabel): CustomDraft {
+function draftFromValue(value?: NeckLabel, isToteProduct = false): CustomDraft {
   return {
     fileUrl: value?.fileUrl ?? '',
     fileKey: value?.fileKey,
@@ -78,7 +78,7 @@ function draftFromValue(value?: NeckLabel): CustomDraft {
     fileName: value?.fileName,
     source: value?.source,
     dimensions: value?.dimensions ?? DEFAULT_DIMENSIONS,
-    position: value?.position ?? DEFAULT_POSITION,
+    position: isToteProduct ? DEFAULT_POSITION : value?.position ?? DEFAULT_POSITION,
     stitch: value?.stitch ?? DEFAULT_STITCH,
   };
 }
@@ -180,7 +180,7 @@ export default function NeckLabelPanel({
   const emittedFingerprintRef = useRef<string | null>(null);
   const previewUrlRef = useRef<string | undefined>(undefined);
   const aiPreviewSourceRef = useRef<string | undefined>(undefined);
-  const initialDraft = draftFromValue(isCustomNeckLabel(value) ? value : undefined);
+  const initialDraft = draftFromValue(isCustomNeckLabel(value) ? value : undefined, isToteProduct);
   const customDraftRef = useRef<CustomDraft>(initialDraft);
   const initialType: NeckLabelType = isCustomNeckLabel(value) ? 'custom' : 'standard-size';
   const [labelType, setLabelType] = useState<NeckLabelType>(initialType);
@@ -192,7 +192,7 @@ export default function NeckLabelPanel({
   const [dragging, setDragging] = useState(false);
 
   const labelNoun = isToteProduct ? 'bag label' : 'neck label';
-  const standardTitle = isToteProduct ? 'Standard bag label' : 'Standard size label';
+  const standardTitle = 'Standard size label';
   const standardDetail = 'No custom branding';
   const customTitle = isToteProduct ? 'Custom bag label' : 'Custom neck label';
 
@@ -224,11 +224,16 @@ export default function NeckLabelPanel({
       const nextType: NeckLabelType = isCustomNeckLabel(value) ? 'custom' : 'standard-size';
       setLabelType(nextType);
       if (nextType === 'custom') {
-        const nextDraft = draftFromValue(value);
+        const nextDraft = draftFromValue(value, isToteProduct);
         customDraftRef.current = nextDraft;
         setCustomDraft(nextDraft);
         if (value?.fileType !== 'ai') setPreviewUrl(value?.fileUrl || undefined);
       } else {
+        if (isToteProduct) {
+          const emptyDraft = draftFromValue(undefined, true);
+          customDraftRef.current = emptyDraft;
+          setCustomDraft(emptyDraft);
+        }
         setPreviewUrl(undefined);
         setAiPreviewState('idle');
       }
@@ -245,6 +250,7 @@ export default function NeckLabelPanel({
     value?.dimensions,
     value?.position,
     value?.stitch,
+    isToteProduct,
     setPreviewUrl,
   ]);
 
@@ -460,7 +466,9 @@ export default function NeckLabelPanel({
     updateCustomDraft({ stitch: next });
   }
 
-  const selectedCustom = labelType === 'custom';
+  // Tote bags have no included/standard label choice. Keep the upload form
+  // available without emitting a custom selection until the customer acts.
+  const selectedCustom = isToteProduct || labelType === 'custom';
   const hasArtwork = Boolean(customDraft.fileUrl || customDraft.fileKey);
   const previewReady = customDraft.fileType !== 'ai'
     ? hasArtwork
@@ -473,27 +481,38 @@ export default function NeckLabelPanel({
           Choose your {labelNoun}
         </h1>
         <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-(--text-primary)/60">
-          Keep the standard size label, or add your own branded {labelNoun}.
+          {isToteProduct
+            ? 'Add a custom branded bag label inside the top seam.'
+            : `Keep the standard size label, or add your own branded ${labelNoun}.`}
         </p>
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-2" role="group" aria-label="Label type">
-        <NeckLabelTypeCard
-          type="standard-size"
-          selected={!selectedCustom}
-          title={standardTitle}
-          detail={standardDetail}
-          onClick={() => chooseLabelType('standard-size')}
-        />
-        <NeckLabelTypeCard
-          type="custom"
-          selected={selectedCustom}
-          title={customTitle}
-          detail="Add your branding"
-          price={`+ ${formatInr(NECK_LABEL_UNIT_PRICE)} / piece`}
-          onClick={() => chooseLabelType('custom')}
-        />
-      </div>
+      {isToteProduct ? (
+        <div className="techpack-subtle rounded-sm border px-4 py-3" aria-label="Custom bag label only">
+          <p className="text-sm font-semibold text-(--text-primary)">{customTitle}</p>
+          <p className="mt-1 text-xs leading-relaxed text-(--text-primary)/60">
+            Custom artwork only · + {formatInr(NECK_LABEL_UNIT_PRICE)} / piece once added
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-2 sm:grid-cols-2" role="group" aria-label="Label type">
+          <NeckLabelTypeCard
+            type="standard-size"
+            selected={!selectedCustom}
+            title={standardTitle}
+            detail={standardDetail}
+            onClick={() => chooseLabelType('standard-size')}
+          />
+          <NeckLabelTypeCard
+            type="custom"
+            selected={selectedCustom}
+            title={customTitle}
+            detail="Add your branding"
+            price={`+ ${formatInr(NECK_LABEL_UNIT_PRICE)} / piece`}
+            onClick={() => chooseLabelType('custom')}
+          />
+        </div>
+      )}
 
       {selectedCustom && (
         <>

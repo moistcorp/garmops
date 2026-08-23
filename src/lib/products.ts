@@ -266,31 +266,6 @@ export const products: Product[] = [
     price: getCatalogueBasePriceRupees('regular-fit-hoodie-320gsm'),
     image: '/products/regular-fit-hoodie-320gsm.webp',
   },
-  {
-    id: 10,
-    slug: 'boxy-fit-hoodie-320gsm',
-    name: 'Oversized Hoodie',
-    technicalName: 'Boxy Fit Hoodie',
-    selectorCategory: 'Hoodies',
-    selectorFit: 'Oversized',
-    selectorFeel: 'Warm Fleece',
-    selectorBadge: 'Oversized fit',
-    selectorDescription: 'A relaxed hoodie with dropped shoulders and a larger silhouette for modern merchandise.',
-    selectorMaterial: 'Cotton-Poly Fleece',
-    bestFor: ['Brand merch', 'Creative teams', 'Drops'],
-    pricingKey: 'Boxy Fit Hoodie (320 GSM)',
-    icon: '/icons/hoodie.webp',
-    category: 'Hoodies',
-    description: 'A warm oversized pullover hoodie with dropped shoulders and a roomier silhouette for modern branded merchandise.',
-    gsm: 320,
-    fits: ['Boxy'],
-    details: ['320 GSM 80/20 cotton-poly fleece', 'Boxy oversized fit', 'Drop shoulder', 'Kangaroo pocket', 'Oversized hood with drawcord'],
-    careInstructions: ['Machine Wash', 'Tumble Dry', 'Do not bleach'],
-    sizes: ['S', 'M', 'L', 'XL'],
-    minimumOrderQuantity: 50,
-    price: getCatalogueBasePriceRupees('boxy-fit-hoodie-320gsm'),
-    image: '/products/boxy-fit-hoodie-320gsm.webp',
-  },
 ]
 
 export function productSeoTitle(product: Product) {
@@ -347,7 +322,7 @@ export function productCategoryLandingPath(product: Product) {
 export function productCategoryLinkLabel(product: Product) {
   if (product.selectorCategory === 'T-Shirts') return 'Compare all bulk custom T-shirt options'
   if (product.selectorCategory === 'Polos') return 'Explore custom polo T-shirts for company and staff orders'
-  if (product.selectorCategory === 'Hoodies') return 'Compare classic and oversized custom hoodies'
+  if (product.selectorCategory === 'Hoodies') return 'Explore custom hoodies for company and team orders'
   if (product.selectorCategory === 'Tote Bags') return 'Explore custom canvas tote bags in bulk'
   return 'Browse all custom apparel products'
 }
@@ -374,7 +349,6 @@ export function productFabricFeel(product: Product) {
 
 export function productFitDescription(product: Product) {
   if (product.slug.includes('boxy-fit-tee')) return 'Roomier body with dropped shoulders for a deliberately oversized silhouette.'
-  if (product.slug.includes('boxy-fit-hoodie')) return 'Relaxed oversized body with dropped shoulders and a larger hood.'
   if (product.slug.includes('longsleeve')) return 'Regular straight-cut fit with long sleeves and ribbed cuffs.'
   if (product.category === 'Polos') return 'Regular fit with a structured collar and button placket.'
   if (product.category === 'Sweatshirts') return 'Regular crewneck fit with ribbed cuffs and hem.'
@@ -423,11 +397,6 @@ export function productBenefits(product: Product): ProductBenefit[] {
     { title: 'Warm everyday layer', description: '320 GSM fleece provides a substantial hand feel for cooler conditions and indoor use.' },
     { title: 'Familiar hoodie fit', description: 'Regular proportions, a kangaroo pocket and structured hood make sizing easy to understand.' },
     { title: 'Versatile team merch', description: 'A practical base for company, team and event merchandise.' },
-  ]
-  if (product.slug === 'boxy-fit-hoodie-320gsm') return [
-    { title: 'Oversized silhouette', description: 'Dropped shoulders and a roomier body create a modern branded-merch look.' },
-    { title: 'Warm substantial fleece', description: '320 GSM fabric gives the hoodie weight and structure.' },
-    { title: 'Designed for merch drops', description: 'The larger silhouette works well when the garment itself is part of the visual statement.' },
   ]
   return [
     { title: 'Durable canvas', description: '12 oz natural canvas provides a sturdy base for repeated everyday use.' },
@@ -520,12 +489,11 @@ export function productSpecifications(product: Product): ProductSpecification[] 
       ]
     default:
       return [
-        { label: 'Fabric', value: '80/20 cotton-poly fleece' },
-        { label: 'Weight', value: '320 GSM' },
-        { label: 'Fit', value: 'Oversized / boxy' },
-        { label: 'Shoulder', value: 'Drop shoulder' },
-        { label: 'Pocket', value: 'Kangaroo pocket' },
-        { label: 'Hood', value: 'Oversized with drawcord' },
+        { label: 'Fabric', value: '12 oz natural canvas' },
+        { label: 'Weight', value: '340 GSM' },
+        { label: 'Body size', value: '38 cm × 42 cm' },
+        { label: 'Base', value: 'Gusseted' },
+        { label: 'Handles', value: 'Reinforced 24" handles' },
       ]
   }
 }

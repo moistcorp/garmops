@@ -33,11 +33,17 @@ interface GarmentCalibration {
   assetAspectRatio: number;
   bodyLengthFallbackInches: number;
   torsoWidthInches: number;
+  printMarginsInches?: {
+    top: number;
+    bottom: number;
+    side: number;
+  };
   front: GarmentLandmarks;
   back: GarmentLandmarks;
 }
 
 const STANDARD_ASSET_ASPECT_RATIO = 1670 / 1494;
+const HIGH_RES_ASSET_ASPECT_RATIO = 7817 / 5542;
 
 // These landmarks are calibrated against the supplied mask/detail plates. They
 // stay in asset space so CSS sizing, browser zoom and the preview container do
@@ -51,53 +57,54 @@ const CALIBRATIONS: Record<string, GarmentCalibration> = {
     back: { neckRibBottomY: 0.14, hemTopY: 0.968, torsoLeftX: 0.223, torsoRightX: 0.779 },
   },
   "boxy-fit-tee": {
-    assetAspectRatio: STANDARD_ASSET_ASPECT_RATIO,
+    assetAspectRatio: HIGH_RES_ASSET_ASPECT_RATIO,
     bodyLengthFallbackInches: 29,
     torsoWidthInches: 23,
-    front: { neckRibBottomY: 0.20, hemTopY: 0.90, torsoLeftX: 0.25, torsoRightX: 0.75 },
-    back: { neckRibBottomY: 0.20, hemTopY: 0.902, torsoLeftX: 0.25, torsoRightX: 0.75 },
+    front: { neckRibBottomY: 0.20, hemTopY: 0.89, torsoLeftX: 0.304, torsoRightX: 0.703 },
+    back: { neckRibBottomY: 0.20, hemTopY: 0.89, torsoLeftX: 0.303, torsoRightX: 0.701 },
   },
   "longsleeve-tee": {
-    assetAspectRatio: STANDARD_ASSET_ASPECT_RATIO,
+    assetAspectRatio: HIGH_RES_ASSET_ASPECT_RATIO,
     bodyLengthFallbackInches: 27,
     torsoWidthInches: 21,
-    front: { neckRibBottomY: 0.20, hemTopY: 0.905, torsoLeftX: 0.25, torsoRightX: 0.75 },
-    back: { neckRibBottomY: 0.20, hemTopY: 0.907, torsoLeftX: 0.25, torsoRightX: 0.75 },
+    front: { neckRibBottomY: 0.18, hemTopY: 0.89, torsoLeftX: 0.308, torsoRightX: 0.690 },
+    back: { neckRibBottomY: 0.18, hemTopY: 0.89, torsoLeftX: 0.305, torsoRightX: 0.680 },
   },
   polo: {
-    assetAspectRatio: STANDARD_ASSET_ASPECT_RATIO,
+    assetAspectRatio: HIGH_RES_ASSET_ASPECT_RATIO,
     bodyLengthFallbackInches: 27,
     torsoWidthInches: 21,
-    front: { neckRibBottomY: 0.20, hemTopY: 0.945, torsoLeftX: 0.20, torsoRightX: 0.80 },
-    back: { neckRibBottomY: 0.19, hemTopY: 0.948, torsoLeftX: 0.20, torsoRightX: 0.80 },
+    front: { neckRibBottomY: 0.20, hemTopY: 0.89, torsoLeftX: 0.287, torsoRightX: 0.713 },
+    back: { neckRibBottomY: 0.19, hemTopY: 0.89, torsoLeftX: 0.290, torsoRightX: 0.710 },
   },
   "regular-fit-sweatshirt": {
-    assetAspectRatio: STANDARD_ASSET_ASPECT_RATIO,
+    assetAspectRatio: HIGH_RES_ASSET_ASPECT_RATIO,
     bodyLengthFallbackInches: 26.5,
     torsoWidthInches: 23.5,
-    front: { neckRibBottomY: 0.20, hemTopY: 0.905, torsoLeftX: 0.25, torsoRightX: 0.75 },
-    back: { neckRibBottomY: 0.16, hemTopY: 0.928, torsoLeftX: 0.25, torsoRightX: 0.75 },
+    front: { neckRibBottomY: 0.18, hemTopY: 0.89, torsoLeftX: 0.298, torsoRightX: 0.694 },
+    back: { neckRibBottomY: 0.16, hemTopY: 0.89, torsoLeftX: 0.301, torsoRightX: 0.696 },
   },
   "regular-fit-hoodie": {
-    assetAspectRatio: STANDARD_ASSET_ASPECT_RATIO,
+    assetAspectRatio: HIGH_RES_ASSET_ASPECT_RATIO,
     bodyLengthFallbackInches: 26.5,
     torsoWidthInches: 24,
-    front: { neckRibBottomY: 0.32, hemTopY: 0.96, torsoLeftX: 0.20, torsoRightX: 0.80 },
-    back: { neckRibBottomY: 0.18, hemTopY: 0.945, torsoLeftX: 0.16, torsoRightX: 0.84 },
-  },
-  "boxy-fit-hoodie": {
-    assetAspectRatio: STANDARD_ASSET_ASPECT_RATIO,
-    bodyLengthFallbackInches: 28,
-    torsoWidthInches: 25,
-    front: { neckRibBottomY: 0.31, hemTopY: 0.96, torsoLeftX: 0.20, torsoRightX: 0.80 },
-    back: { neckRibBottomY: 0.18, hemTopY: 0.96, torsoLeftX: 0.14, torsoRightX: 0.86 },
+    front: { neckRibBottomY: 0.34, hemTopY: 0.89, torsoLeftX: 0.343, torsoRightX: 0.653 },
+    back: { neckRibBottomY: 0.31, hemTopY: 0.89, torsoLeftX: 0.330, torsoRightX: 0.673 },
   },
   "canvas-tote-bag": {
-    assetAspectRatio: STANDARD_ASSET_ASPECT_RATIO,
+    assetAspectRatio: 5280 / 4736,
     bodyLengthFallbackInches: 42 / 2.54,
-    torsoWidthInches: 38,
-    front: { neckRibBottomY: 0.12, hemTopY: 0.97, torsoLeftX: 0.34, torsoRightX: 0.66 },
-    back: { neckRibBottomY: 0.12, hemTopY: 0.97, torsoLeftX: 0.34, torsoRightX: 0.66 },
+    torsoWidthInches: 38 / 2.54,
+    // A 30×30 cm production area on the 38×42 cm bag panel.
+    printMarginsInches: {
+      top: 6 / 2.54,
+      bottom: 6 / 2.54,
+      side: 4 / 2.54,
+    },
+    // For a tote, the "neck" landmark is the bag panel's top seam. Keeping
+    // handle pixels outside these landmarks prevents artwork entering the gap.
+    front: { neckRibBottomY: 0.43, hemTopY: 0.971, torsoLeftX: 0.284, torsoRightX: 0.717 },
+    back: { neckRibBottomY: 0.431, hemTopY: 0.972, torsoLeftX: 0.284, torsoRightX: 0.717 },
   },
 };
 
@@ -111,7 +118,8 @@ const DEFAULT_CALIBRATION: GarmentCalibration = {
 
 function parseInches(value?: string): number | undefined {
   const parsed = Number.parseFloat(value ?? "");
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+  if (!Number.isFinite(parsed) || parsed <= 0) return undefined;
+  return /cm\b/i.test(value ?? "") ? parsed / 2.54 : parsed;
 }
 
 function getBodyLengthInches(productId: ProductId, calibration: GarmentCalibration): number {
@@ -157,11 +165,16 @@ export function getGarmentPrintArea(
   const pixelsPerInchX =
     Math.max(1, xFromAsset(landmarks.torsoRightX) - xFromAsset(landmarks.torsoLeftX)) /
     calibration.torsoWidthInches;
+  const printMargins = calibration.printMarginsInches ?? {
+    top: 3,
+    bottom: 1.5,
+    side: 1.5,
+  };
 
-  const topPx = neckRibBottomPx + pixelsPerInchY * 3;
-  const bottomPx = hemTopPx - pixelsPerInchY * 1.5;
-  const leftPx = xFromAsset(landmarks.torsoLeftX) + pixelsPerInchX * 1.5;
-  const rightPx = xFromAsset(landmarks.torsoRightX) - pixelsPerInchX * 1.5;
+  const topPx = neckRibBottomPx + pixelsPerInchY * printMargins.top;
+  const bottomPx = hemTopPx - pixelsPerInchY * printMargins.bottom;
+  const leftPx = xFromAsset(landmarks.torsoLeftX) + pixelsPerInchX * printMargins.side;
+  const rightPx = xFromAsset(landmarks.torsoRightX) - pixelsPerInchX * printMargins.side;
 
   const safeLeftPx = Math.max(imageLeft, Math.min(leftPx, rightPx));
   const safeRightPx = Math.max(safeLeftPx, Math.min(rightPx, imageLeft + imageWidth));

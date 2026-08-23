@@ -32,7 +32,7 @@ import { getSizeChart } from '@/lib/sizecharts';
 import type { SizeChart, SizeRow } from '@/lib/sizecharts';
 import { getProduct, getProductMinimumOrderQuantity } from '@/lib/configurator/products';
 import CanvasRenderer from '../GarmentPreview/CanvasRenderer';
-import { NECK_PREVIEW_CANVAS_CLASS } from '../GarmentPreview/GarmentPreview';
+import { getNeckPreviewCanvasClass } from '../GarmentPreview/GarmentPreview';
 import ViewTabs from '../GarmentPreview/ViewTabs';
 import { ArtworkPositionProvider } from '@/lib/configurator/ArtworkPositionContext';
 import { restoreConfigurationUploads } from '@/lib/configurator/objectUrls';
@@ -527,7 +527,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
                           interactive={false}
                           className={
                             selectedView === "neck"
-                              ? NECK_PREVIEW_CANVAS_CLASS
+                              ? getNeckPreviewCanvasClass(item.productId)
                               : "h-full w-full bg-[#F7F7F7]"
                           }
                         />

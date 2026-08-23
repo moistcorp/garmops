@@ -125,6 +125,11 @@ const POSITION_LABELS: Record<NeckLabel["position"], string> = {
   on_neck_tape: "On neck tape",
 };
 
+const TOTE_POSITION_LABELS: Record<NeckLabel["position"], string> = {
+  below_neck_tape: "Inside top seam",
+  on_neck_tape: "Inside top seam",
+};
+
 const JOURNEY_STEP_FOR_CUSTOMISATION: Record<AccordionStepId, ConfiguratorJourneyStep> = {
   "garment-colour": "colour",
   artwork: "artwork",
@@ -164,7 +169,7 @@ function artworkSummary(artwork: Artwork): string | null {
   return summary || null;
 }
 
-function labelSummary(neckLabel?: NeckLabel): string | null {
+function labelSummary(neckLabel?: NeckLabel, isToteProduct = false): string | null {
   if (!neckLabel) return null;
   if (!isCustomNeckLabel(neckLabel)) return "Standard size label";
   if (
@@ -172,7 +177,8 @@ function labelSummary(neckLabel?: NeckLabel): string | null {
     !neckLabel.dimensions ||
     !neckLabel.position
   ) return null;
-  return `${neckLabel.dimensions.replace("x", " × ")} mm · ${POSITION_LABELS[neckLabel.position]}`;
+  const positionLabels = isToteProduct ? TOTE_POSITION_LABELS : POSITION_LABELS;
+  return `${neckLabel.dimensions.replace("x", " × ")} mm · ${positionLabels[neckLabel.position]}`;
 }
 
 function resolveRestoredColour(colour: GarmentColour): {
@@ -199,7 +205,8 @@ function stepsForConfiguration(
   colour: GarmentColour,
   artwork: Artwork,
   neckLabel?: NeckLabel,
-  restoredSteps?: AccordionStepState[]
+  restoredSteps?: AccordionStepState[],
+  isToteProduct = false,
 ): AccordionStepState[] {
   return INITIAL_STEPS.map((step) => {
     const restored = restoredSteps?.find((candidate) => candidate.id === step.id);
@@ -220,8 +227,11 @@ function stepsForConfiguration(
       };
     }
     const hasCustomAsset = Boolean(neckLabel?.fileUrl || neckLabel?.fileId);
+    if (isToteProduct && !hasCustomAsset) {
+      return { ...step, confirmed: false, skipped: false, summary: null };
+    }
     const summary = neckLabel?.confirmed || hasCustomAsset
-      ? labelSummary(neckLabel)
+      ? labelSummary(neckLabel, isToteProduct)
       : null;
     return {
       ...step,
@@ -290,7 +300,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   const [neckLabel, setNeckLabel] = useState<NeckLabel>(() => createStandardNeckLabel());
   const [neckLabelPreviewUrl, setNeckLabelPreviewUrl] = useState<string | undefined>();
   const [steps, setSteps] = useState<AccordionStepState[]>(() =>
-    stepsForConfiguration(DEFAULT_COLOUR, {}, undefined)
+    stepsForConfiguration(DEFAULT_COLOUR, {}, undefined, undefined, isToteProduct)
   );
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [draftRestored, setDraftRestored] = useState(false);
@@ -455,8 +465,20 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
     };
   }, [artwork.back, artwork.front, colour.type, neckLabel, productId, quantity, requestedRush]);
   const activeCustomisationStepId = expandedStepId ?? "garment-colour";
-  const previewNeckLabel: NeckLabel =
-    activeCustomisationStepId === "neck-label" && !neckLabel.dimensions
+  const previewNeckLabel: NeckLabel = isToteProduct
+    ? {
+        ...neckLabel,
+        // A tote has no standard label option. Before an upload, render the
+        // Assembly-style blank horizontal tag as a placement simulation only.
+        labelType: "custom",
+        fileUrl: isCustomNeckLabel(neckLabel) ? neckLabel.fileUrl : "",
+        fileId: isCustomNeckLabel(neckLabel) ? neckLabel.fileId : undefined,
+        dimensions: neckLabel.dimensions ?? "50x18",
+        position: "below_neck_tape",
+        stitch: neckLabel.stitch ?? "2_corner",
+        confirmed: isCustomNeckLabel(neckLabel) && neckLabel.confirmed,
+      }
+    : activeCustomisationStepId === "neck-label" && !neckLabel.dimensions
       ? {
           ...neckLabel,
           fileUrl: "",
@@ -552,7 +574,8 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
           resolvedColour.colour,
           uploads.artwork,
           uploads.neckLabel,
-          restoredSteps
+          restoredSteps,
+          isToteProduct,
         )
       );
       setQuantity(
@@ -579,6 +602,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
       editCartId,
       editItemId,
       productId,
+      isToteProduct,
       setArtwork,
       setColour,
       setDraftRestored,
@@ -1142,6 +1166,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
           cartArtwork,
           cartNeckLabel,
           steps,
+          isToteProduct,
         ),
         quantity,
       });
@@ -1412,6 +1437,10 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
     }
 
     if (expandedStepId === "neck-label") {
+      if (isToteProduct && !isCustomNeckLabel(neckLabel)) {
+        showCtaError("Upload your custom bag label artwork before continuing.");
+        return;
+      }
       if (!isCustomNeckLabel(neckLabel)) {
         const readyStandardLabel = {
           ...createStandardNeckLabel(),
@@ -1439,12 +1468,21 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
         showCtaError("Choose label dimensions, position and stitch to continue.");
         return;
       }
-      const readyLabel = { ...neckLabel, confirmed: true };
+      const readyLabel = {
+        ...neckLabel,
+        ...(isToteProduct
+          ? {
+              position: "below_neck_tape" as const,
+              stitch: neckLabel.stitch ?? "2_corner" as const,
+            }
+          : {}),
+        confirmed: true,
+      };
       setNeckLabel(readyLabel);
       updateStep("neck-label", {
         confirmed: true,
         skipped: false,
-        summary: labelSummary(readyLabel),
+        summary: labelSummary(readyLabel, isToteProduct),
       });
       addConfigurationToCart({ neckLabel: readyLabel });
       return;
@@ -1583,6 +1621,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
               ) : null}
             </div>
           ) : null}
+          isToteProduct={isToteProduct}
           links={{ product: productCatalogHref }}
           onStepSelect={journeyStepSelection}
           className="px-4"
@@ -1756,7 +1795,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
                       updateStep("neck-label", {
                         confirmed: false,
                         skipped: false,
-                        summary: labelSummary(next),
+                        summary: labelSummary(next, isToteProduct),
                       });
                     }}
                     onNeckLabelPreviewChange={setNeckLabelPreviewUrl}
@@ -1793,7 +1832,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
                       ? "Sign in to continue to sizes →"
                     : getConfiguratorCtaLabel(expandedStepId, {
                         hasArtwork: Boolean(artwork.front || artwork.back),
-                        hasCustomLabel: isCustomNeckLabel(neckLabel),
+                        hasCustomLabel: isCustomNeckLabel(neckLabel) && Boolean(neckLabel.fileUrl || neckLabel.fileId),
                         isToteProduct,
                       })
                 }

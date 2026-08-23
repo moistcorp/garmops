@@ -8,6 +8,7 @@ import { getArtworkQuality } from "@/lib/configurator/artworkQuality";
 import { getArtworkContrast } from "@/lib/configurator/artworkQuality";
 import { isCustomNeckLabel } from "@/lib/configurator/neckLabel";
 import { NECK_LABEL_POSITION_LABELS } from "@/lib/configurator/neckLabel";
+import { TOTE_LABEL_POSITION_LABELS } from "@/lib/configurator/neckLabel";
 import { AlertTriangle, LoaderCircle } from "lucide-react";
 import CanvasRenderer from "./CanvasRenderer";
 import type { GarmentRenderResult } from "./CanvasRenderer";
@@ -31,6 +32,15 @@ interface GarmentPreviewProps {
 export const NECK_PREVIEW_CANVAS_CLASS =
   "aspect-[7817/5542] w-[90%] max-w-none shrink-0 translate-y-[2%] rounded-sm sm:w-[94%] lg:w-[98%]";
 
+const SWEATSHIRT_NECK_PREVIEW_CANVAS_CLASS =
+  "aspect-[7817/4239] w-[90%] max-w-none shrink-0 translate-y-[2%] rounded-sm sm:w-[94%] lg:w-[98%]";
+
+export function getNeckPreviewCanvasClass(productId: ProductId): string {
+  return productId.includes("regular-fit-sweatshirt")
+    ? SWEATSHIRT_NECK_PREVIEW_CANVAS_CLASS
+    : NECK_PREVIEW_CANVAS_CLASS;
+}
+
 export default function GarmentPreview({
   activeView,
   onViewChange,
@@ -48,6 +58,10 @@ export default function GarmentPreview({
   const activeArtwork = activeView === "front" ? artwork.front : activeView === "back" ? artwork.back : undefined;
   const quality = getArtworkQuality(activeArtwork);
   const contrast = getArtworkContrast(activeArtwork, colourHex);
+  const isToteProduct = productId.includes("tote");
+  const labelPositionLabels = isToteProduct
+    ? TOTE_LABEL_POSITION_LABELS
+    : NECK_LABEL_POSITION_LABELS;
 
   return (
     <div className="relative h-full w-full min-h-0">
@@ -65,7 +79,7 @@ export default function GarmentPreview({
             onGarmentRenderProgress={onGarmentRenderProgress}
             className={
               activeView === "neck"
-                ? NECK_PREVIEW_CANVAS_CLASS
+                ? getNeckPreviewCanvasClass(productId)
                 : "aspect-square h-[min(68dvh,760px)] max-h-full max-w-full scale-110 rounded-sm"
             }
           />
@@ -80,10 +94,10 @@ export default function GarmentPreview({
 
       {showProductionGuides && activeArtwork && isCustomerArtworkTechnique(activeArtwork.technique) ? <div className="pointer-events-none absolute left-6 top-6 z-20 rounded-sm border border-violet-700/20 bg-white/90 px-2.5 py-1.5 text-[11px] font-medium text-violet-950">Purple outline · safe print area</div> : null}
 
-      {activeView === "neck" && neckLabel ? (
+      {activeView === "neck" && neckLabel && (!isToteProduct || Boolean(neckLabel.fileUrl || neckLabel.fileId)) ? (
         <div className="pointer-events-none absolute left-6 top-6 z-20 max-w-[220px] rounded-sm border border-(--color-rule) bg-white/92 px-3 py-2 text-xs text-(--text-primary)/65 shadow-sm">
-          <p className="font-semibold text-(--text-primary)">{isCustomNeckLabel(neckLabel) ? "Custom neck label" : "Standard size label · Included"}</p>
-          <p className="mt-1">{neckLabel.dimensions.replace("x", " × ")} mm · {NECK_LABEL_POSITION_LABELS[neckLabel.position]}</p>
+          <p className="font-semibold text-(--text-primary)">{isCustomNeckLabel(neckLabel) ? `Custom ${isToteProduct ? "bag" : "neck"} label` : `Standard ${isToteProduct ? "bag" : "size"} label · Included`}</p>
+          <p className="mt-1">{neckLabel.dimensions.replace("x", " × ")} mm · {labelPositionLabels[neckLabel.position]}</p>
         </div>
       ) : null}
 

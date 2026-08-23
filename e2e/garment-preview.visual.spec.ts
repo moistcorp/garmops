@@ -95,13 +95,31 @@ test("regular hoodie front framing", async ({ page }) => {
   await expect(preview).toHaveScreenshot("regular-hoodie-front.png", { maxDiffPixelRatio: 0.001 });
 });
 
+test("tote bag label only offers the fixed custom placement", async ({ page }) => {
+  await page.goto(
+    "/configurator/build/canvas-tote-bag?step=neck-label&draftId=e2e-tote-label-options",
+    { waitUntil: "domcontentloaded" },
+  );
+  await expect(page.locator('[data-configurator-hydrated="true"]')).toBeAttached();
+
+  await expect(page.getByLabel("Custom bag label only")).toBeVisible();
+  await expect(page.getByRole("button", { name: /Standard (bag|size) label/i })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Inside top seam/i })).toHaveCount(1);
+  await expect(page.getByRole("button", { name: /Inside top seam/i })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: /On inner seam/i })).toHaveCount(0);
+  await expect(page.getByText(/Standard bag label/i)).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Upload bag label to continue" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Upload bag label to continue" }).click();
+  await expect(page.getByText("Upload your custom bag label artwork before continuing.", { exact: true })).toBeVisible();
+});
+
 const garmentFamilies = [
   { slug: "boxy-fit-tee", productId: "boxy-fit-tee-260gsm" },
   { slug: "longsleeve-tee", productId: "longsleeve-tee-260gsm" },
   { slug: "polo", productId: "polo-280gsm" },
   { slug: "regular-fit-sweatshirt", productId: "regular-fit-sweatshirt-320gsm" },
   { slug: "regular-fit-hoodie", productId: "regular-fit-hoodie-320gsm" },
-  { slug: "boxy-fit-hoodie", productId: "boxy-fit-hoodie-320gsm" },
   { slug: "canvas-tote-bag", productId: "canvas-tote-bag" },
 ] as const;
 
@@ -114,6 +132,9 @@ for (const garment of garmentFamilies) {
       { waitUntil: "domcontentloaded" },
     );
     await expect(page.locator('[data-configurator-hydrated="true"]')).toBeAttached();
+    if (garment.slug === "canvas-tote-bag") {
+      await expect(page.getByText("04 Bag Label", { exact: true })).toBeVisible();
+    }
 
     for (const colour of [
       { name: "Jet Black", hex: "#161616" },

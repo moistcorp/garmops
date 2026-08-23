@@ -41,10 +41,19 @@ describe("garment-relative print area calibration", () => {
     expect(getGarmentPrintArea("regular-fit-tee-200gsm", "neck")).toBeUndefined();
   });
 
+  it("keeps the tote safe area on the bag panel at production size", () => {
+    const area = getGarmentPrintArea("canvas-tote-bag", "front")!;
+
+    expect(area.width).toBeCloseTo(29, 0);
+    expect(area.height).toBeCloseTo(31, 0);
+    expect(area.topPx).toBeGreaterThan(300);
+    expect(area.bottomPx).toBeLessThan(540);
+  });
+
   it("uses the per-product frame when mapping print areas", () => {
     expect(getGarmentInsetPercent("regular-fit-tee-200gsm", "front")).toBe(1);
-    expect(getGarmentInsetPercent("boxy-fit-tee-260gsm", "front")).toBe(1);
-    expect(getGarmentInsetPercent("regular-fit-hoodie-320gsm", "front")).toBe(-3.5);
+    expect(getGarmentInsetPercent("boxy-fit-tee-260gsm", "front")).toBe(-10);
+    expect(getGarmentInsetPercent("regular-fit-hoodie-320gsm", "front")).toBe(-10);
     expect(getGarmentInsetPercent("canvas-tote-bag", "front")).toBe(-5);
 
     for (const productId of [
@@ -53,7 +62,6 @@ describe("garment-relative print area calibration", () => {
       "polo-280gsm",
       "regular-fit-sweatshirt-320gsm",
       "regular-fit-hoodie-320gsm",
-      "boxy-fit-hoodie-320gsm",
       "canvas-tote-bag",
     ] as const) {
       for (const view of ["front", "back"] as const) {

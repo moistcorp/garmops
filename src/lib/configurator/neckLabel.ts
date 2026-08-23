@@ -17,6 +17,12 @@ export const NECK_LABEL_POSITION_LABELS: Record<NeckLabelPosition, string> = {
   on_neck_tape: 'On neck tape',
 };
 
+export const TOTE_LABEL_POSITION_LABELS: Record<NeckLabelPosition, string> = {
+  below_neck_tape: 'Inside top seam',
+  // Legacy saved drafts are normalized to the only supported tote placement.
+  on_neck_tape: 'Inside top seam',
+};
+
 export const NECK_LABEL_STITCH_LABELS: Record<NeckLabelStitch, string> = {
   '2_side': '2-side stitch',
   '4_corner': '4-corner stitch',
