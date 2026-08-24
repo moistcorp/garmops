@@ -124,7 +124,7 @@ export function ConfiguratorJourney({
                     <>
                       <span
                         aria-hidden="true"
-                        className="h-4 w-px shrink-0 bg-(--text-primary)/15"
+                        className="hidden h-4 w-px shrink-0 bg-(--text-primary)/15 sm:block"
                       />
                       <span className="hidden max-w-40 truncate text-sm font-medium text-(--text-primary)/85 sm:inline sm:max-w-64">
                         {productName}
@@ -136,10 +136,10 @@ export function ConfiguratorJourney({
             )}
 
             {condensed ? (
-              <div className="flex min-w-0 flex-1 items-center justify-center px-2 sm:px-6">
+              <div className="hidden min-w-0 flex-1 items-center justify-center px-2 sm:flex sm:px-6">
                 <div className="flex w-full max-w-md items-center justify-center gap-1.5 sm:gap-3">
                   <span className="shrink-0 font-mono text-[11px] font-semibold uppercase tracking-[0.06em] text-(--color-accent)">
-                    Product
+                    {steps[currentIndex]?.label}
                   </span>
                   <span className="font-mono text-[11px] text-(--text-primary)/45 sm:hidden" aria-hidden="true">·</span>
                   <div
@@ -169,7 +169,7 @@ export function ConfiguratorJourney({
 
             <div className="ml-auto flex items-center gap-3">
               {!condensed ? (
-                <div className="text-right font-mono text-xs uppercase tracking-[0.06em] text-(--color-navy)">
+                <div className="hidden text-right font-mono text-xs uppercase tracking-[0.06em] text-(--color-navy) sm:block">
                   {specCode && <span className="block">{specCode}</span>}
                   <span className="block text-(--text-primary)/60">
                     STEP {String(currentIndex + 1).padStart(2, "0")} / {String(steps.length).padStart(2, "0")}
@@ -207,59 +207,93 @@ export function ConfiguratorJourney({
             </div>
           </div>
 
-          {!condensed ? <div className="relative mt-3 px-1 pb-0.5 sm:mt-4">
-            <div aria-hidden="true" className="absolute inset-x-[6.25%] top-[10px] h-[2px] bg-(--color-rule)">
-              <span
-                className="techpack-progress absolute inset-y-0 left-0 block"
-                style={{ width: `${progressPercent}%` }}
-              />
+          {condensed ? (
+            <div className="mt-2 flex items-center gap-3 border-t border-(--color-rule) pt-2 sm:hidden">
+              <span className="shrink-0 font-mono text-[10px] font-semibold uppercase tracking-[0.06em] text-(--color-accent)">
+                {steps[currentIndex]?.label}
+              </span>
+              <div
+                className="h-0.5 min-w-8 flex-1 overflow-hidden bg-(--color-rule)"
+                role="progressbar"
+                aria-label="Configurator progress"
+                aria-valuemin={1}
+                aria-valuemax={steps.length}
+                aria-valuenow={currentIndex + 1}
+              >
+                <span
+                  className="block h-full origin-left bg-(--color-accent)"
+                  style={{ transform: `scaleX(${(currentIndex + 1) / steps.length})` }}
+                />
+              </div>
+              <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.06em] text-(--text-primary)/60">
+                {currentIndex + 1}/{steps.length}
+              </span>
             </div>
-            <ol className="relative z-10 grid grid-cols-8 gap-1" role="list">
-              {steps.map((step, index) => {
-                const active = index === currentIndex;
-                const complete = !active && index < currentIndex;
-                const selectHandler = onStepSelect[step.id];
-                const href = complete ? links[step.id] : undefined;
-                const content = (
-                  <>
-                    <span
-                      aria-hidden="true"
-                      className={`mx-auto block h-5 w-[2px] ${
-                        active
-                          ? "bg-(--color-accent)"
-                          : complete
-                            ? "bg-(--color-navy)"
-                            : "bg-[rgba(22,33,43,0.3)]"
-                      }`}
-                    />
-                    <span className={`mt-2 block font-mono text-xs uppercase tracking-[0.04em] ${
-                      active ? "text-(--color-accent)" : complete ? "text-(--color-navy)" : "text-[rgba(22,33,43,0.5)]"
-                    }`}>
-                      <span className="xl:hidden">{String(index + 1).padStart(2, "0")}{active ? <span className="hidden sm:inline"> {step.label}</span> : null}</span>
-                      <span className="hidden xl:inline">{String(index + 1).padStart(2, "0")} {step.label}</span>
-                    </span>
-                  </>
-                );
-                const controlClass = "block min-w-0 text-center transition-colors hover:text-(--color-accent)";
-                return (
-                  <li key={step.id}>
-                    {complete && selectHandler ? (
-                      <button type="button" onClick={selectHandler} className={controlClass} aria-label={`Return to ${step.label}`}>
-                        {content}
-                      </button>
-                    ) : href ? (
-                      <Link href={href} className={controlClass} aria-label={`Return to ${step.label}`}>
-                        {content}
-                      </Link>
-                    ) : (
-                      <div aria-current={active ? "step" : undefined} className={controlClass}>
-                        {content}
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
-            </ol>
+          ) : null}
+
+          {!condensed ? <div className="mt-3 px-1 pb-0.5 sm:mt-4">
+            <div className="mb-2 flex items-center justify-between gap-3 sm:hidden">
+              <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.06em] text-(--color-accent)">
+                {String(currentIndex + 1).padStart(2, "0")} {steps[currentIndex]?.label}
+              </span>
+              <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-(--text-primary)/55">
+                {currentIndex + 1} of {steps.length}
+              </span>
+            </div>
+            <div className="relative">
+              <div aria-hidden="true" className="absolute inset-x-[6.25%] top-[10px] h-[2px] bg-(--color-rule)">
+                <span
+                  className="techpack-progress absolute inset-y-0 left-0 block"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+              <ol className="relative z-10 grid grid-cols-8 gap-1" role="list">
+                {steps.map((step, index) => {
+                  const active = index === currentIndex;
+                  const complete = !active && index < currentIndex;
+                  const selectHandler = onStepSelect[step.id];
+                  const href = complete ? links[step.id] : undefined;
+                  const content = (
+                    <>
+                      <span
+                        aria-hidden="true"
+                        className={`mx-auto block h-5 w-[2px] ${
+                          active
+                            ? "bg-(--color-accent)"
+                            : complete
+                              ? "bg-(--color-navy)"
+                              : "bg-[rgba(22,33,43,0.3)]"
+                        }`}
+                      />
+                      <span className={`mt-2 block font-mono text-xs uppercase tracking-[0.04em] ${
+                        active ? "text-(--color-accent)" : complete ? "text-(--color-navy)" : "text-[rgba(22,33,43,0.5)]"
+                      }`}>
+                        <span className="xl:hidden">{String(index + 1).padStart(2, "0")}{active ? <span className="hidden sm:inline"> {step.label}</span> : null}</span>
+                        <span className="hidden xl:inline">{String(index + 1).padStart(2, "0")} {step.label}</span>
+                      </span>
+                    </>
+                  );
+                  const controlClass = "block min-w-0 text-center transition-colors hover:text-(--color-accent)";
+                  return (
+                    <li key={step.id}>
+                      {complete && selectHandler ? (
+                        <button type="button" onClick={selectHandler} className={controlClass} aria-label={`Return to ${step.label}`}>
+                          {content}
+                        </button>
+                      ) : href ? (
+                        <Link href={href} className={controlClass} aria-label={`Return to ${step.label}`}>
+                          {content}
+                        </Link>
+                      ) : (
+                        <div aria-current={active ? "step" : undefined} className={controlClass}>
+                          {content}
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
           </div> : null}
         </div>
       </nav>

@@ -13,6 +13,15 @@ const defaults = {
 
 describe("configurator journey labels", () => {
   it("names the next step from the colour step", () => {
+    expect(getConfiguratorCtaLabel("garment-colour", {
+      ...defaults,
+      colourName: "Classic White",
+    })).toBe(
+      "Continue with Classic White →",
+    );
+  });
+
+  it("falls back to the next-step label when the colour name is unavailable", () => {
     expect(getConfiguratorCtaLabel("garment-colour", defaults)).toBe(
       "Continue to artwork →",
     );

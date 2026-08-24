@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Download, RefreshCw, Trash2, Upload } from "lucide-react";
+import { Download, FileImage, RefreshCw, Trash2, Upload } from "lucide-react";
 import { clampDim, useArtworkPosition } from "@/lib/configurator/ArtworkPositionContext";
 import { DEFAULT_ARTWORK_PRINT_AREA, PRINT_AREA_TOP_OFFSET_CM } from "@/lib/configurator/sizecharts";
 import { persistUploadedBlob, persistUploadedFile, revokeObjectUrl } from "@/lib/configurator/objectUrls";
@@ -286,6 +286,9 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
   const isPending = uploadState === "preparing";
   const filename = value?.fileName ?? value?.fileUrl?.split("/").pop() ?? "";
   const reviewNeeded = value?.processingStatus === "needs_review" || value?.processingStatus === "failed";
+  const previewUrl = value?.previewUrl ?? (
+    value && ["jpg", "png", "svg"].includes(value.fileType) ? value.fileUrl : undefined
+  );
 
   return (
     <div className="flex flex-col gap-3">
@@ -313,11 +316,11 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
             onClick={() => inputRef.current?.click()}
             className="group relative z-10 flex min-h-24 w-full flex-col items-center justify-center gap-1.5 rounded-sm px-3 transition-colors hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-accent)"
           >
-            <span className="techpack-control mb-1 flex h-10 w-10 items-center justify-center rounded-sm border text-(--color-accent-dark) transition-transform group-hover:-translate-y-0.5">
+            <span className="techpack-control mb-1 flex h-10 w-10 items-center justify-center rounded-sm border text-(--color-accent-dark)">
               {isPending ? <RefreshCw size={17} className="animate-spin" aria-hidden="true" /> : <Upload size={17} strokeWidth={2.2} aria-hidden="true" />}
             </span>
             <span className="text-sm font-medium text-(--text-primary)">Drag artwork here or browse</span>
-            <span className="text-xs text-(--text-primary)/50">PNG · JPG / JPEG · PDF · SVG · AI · up to 20 MB</span>
+            <span className="text-xs text-(--text-primary)/50">SVG or AI preferred · PNG, JPG and PDF accepted · up to 20 MB</span>
           </button>
           <div className="relative z-10 mt-3 flex flex-wrap items-center justify-center gap-2">
             <a href={PRINT_TEMPLATES_HREF} download className="techpack-control inline-flex min-h-9 items-center gap-1.5 rounded-sm border px-3 text-xs font-medium text-(--text-primary)/80 transition-colors hover:!border-(--color-accent)/45 hover:text-(--color-accent-dark)">
@@ -331,12 +334,21 @@ export function ArtworkUploadSide({ side, value, onChange }: ArtworkUploadSidePr
       ) : (
         <div className="techpack-subtle rounded-sm px-2.5 py-2">
           <div className="flex flex-wrap items-center gap-2.5">
+            <span
+              aria-hidden="true"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm border border-(--color-rule) bg-white bg-contain bg-center bg-no-repeat text-(--text-primary)/35"
+              style={previewUrl ? { backgroundImage: `url(${JSON.stringify(previewUrl)})` } : undefined}
+            >
+              {!previewUrl ? <FileImage size={17} /> : null}
+            </span>
             <div className="min-w-[9rem] flex-1">
               <p className="flex items-center gap-1.5 truncate text-[13px] font-medium text-(--text-primary)">
                 <span className="truncate">{filename || "Artwork"}</span>
                 {uploadState === "uploaded" && <span className="shrink-0 text-sm font-semibold text-[#1B7F36]" aria-label="Artwork uploaded">✓</span>}
               </p>
-              <p className="mt-0.5 text-xs text-(--text-primary)/50">{value.fileType.toUpperCase()} · {value.processingStatus === "needs_review" ? "Preview needs review" : uploadState === "uploaded" ? "Artwork ready" : "Added"}</p>
+              <p className="mt-0.5 text-xs text-(--text-primary)/50">
+                {value.fileType.toUpperCase()} · {value.processingStatus === "needs_review" ? "Preview needs review" : uploadState === "uploaded" ? "Artwork ready" : "Added"} · {value.width} × {value.height} cm
+              </p>
             </div>
             <div className="ml-auto flex shrink-0 gap-1.5">
             <button type="button" onClick={() => inputRef.current?.click()} className="techpack-control inline-flex min-h-8 items-center gap-1 rounded-sm border px-2.5 text-xs font-semibold text-(--text-primary)/75 hover:!border-(--color-accent)/45 hover:text-(--color-accent-dark)">

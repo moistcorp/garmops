@@ -43,7 +43,7 @@ export function GuidelinesToggles({
                 aria-checked={enabled}
                 aria-label={`Show ${option.label} guideline`}
                 onClick={() => onChange({ ...value, [option.id]: !enabled })}
-                className={`relative h-5 w-9 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)/45 focus-visible:ring-offset-2 ${
+                className={`relative h-5 w-9 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)/45 focus-visible:ring-offset-2 focus-visible:[&>span]:transition-none ${
                   enabled
                     ? 'bg-(--color-accent) hover:bg-(--color-accent-dark)'
                     : 'bg-[#DCE1E6] hover:bg-[#CDD3DA]'
@@ -51,8 +51,8 @@ export function GuidelinesToggles({
               >
                 <span
                   aria-hidden="true"
-                  className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-[left] ${
-                    enabled ? 'left-[18px]' : 'left-0.5'
+                  className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-150 ease-[cubic-bezier(0.77,0,0.175,1)] motion-reduce:transition-none ${
+                    enabled ? 'translate-x-4' : 'translate-x-0'
                   }`}
                 />
               </button>

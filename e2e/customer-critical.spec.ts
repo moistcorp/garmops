@@ -6,7 +6,7 @@ async function configureWithoutArtwork(page: Page, productId: string, draftId: s
   if (cartId) query.set("cartId", cartId);
   await page.goto(`/configurator/build/${productId}?${query}`, { waitUntil: "domcontentloaded" });
   await expect(page.locator('[data-configurator-hydrated="true"]')).toBeAttached();
-  await page.getByRole("button", { name: /Continue to artwork/ }).click();
+  await page.getByRole("button", { name: /Continue with / }).click();
   await page.getByRole("button", { name: /Continue without artwork/ }).click();
   await page.getByRole("button", { name: /Continue to sizes/ }).click();
   await page.waitForURL(/\/configurator\/cart\/[^/]+\/review/);
@@ -69,6 +69,16 @@ test("@backend same product can be configured twice and each line enforces MOQ",
 });
 
 test("local draft survives a reload before authentication", async ({ page }) => {
+  await page.route("**/garments/v*/**", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "image/png",
+      body: Buffer.from(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+        "base64",
+      ),
+    });
+  });
   await page.goto("/configurator/build/regular-fit-tee-200gsm?draftId=66666666-6666-4666-8666-666666666666", { waitUntil: "domcontentloaded" });
   await expect(page.locator('[data-configurator-hydrated="true"]')).toBeAttached();
   await expect(page.getByRole("button", { name: /^Select / })).toHaveCount(8);
@@ -77,7 +87,7 @@ test("local draft survives a reload before authentication", async ({ page }) => 
   }
   await page.getByRole("button", { name: "Select Jet Black" }).click();
   await expect(page.getByRole("button", { name: "Select Jet Black" })).toHaveAttribute("aria-pressed", "true");
-  await page.getByRole("button", { name: /Continue to artwork/ }).click();
+  await page.getByRole("button", { name: /Continue with Jet Black/ }).click();
   await expect(page.getByRole("button", { name: /Continue without artwork/ })).toBeVisible();
   await expect
     .poll(() => page.evaluate(() => {

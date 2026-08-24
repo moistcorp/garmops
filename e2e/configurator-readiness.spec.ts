@@ -101,6 +101,66 @@ test("mobile opens preview-first and exposes the bottom controls", async ({ page
   await controlsButton.click();
   await expect(controlsButton).toHaveAttribute("aria-expanded", "true");
   await expect(page.getByRole("heading", { name: "Choose your garment colour" })).toBeVisible();
+  await expect(
+    page.getByRole("navigation", { name: "Configurator progress" }).getByText("Colour", { exact: true }).last(),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Select Classic White" })).toBeVisible();
+
+  const signatureTab = page.getByRole("tab", { name: /Signature/ });
+  const customDyeTab = page.getByRole("tab", { name: /Custom dye/ });
+  await signatureTab.focus();
+  await signatureTab.press("ArrowRight");
+  await expect(customDyeTab).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByLabel("Search your colour")).toBeVisible();
+});
+
+test("artwork remains optional and added artwork exposes a gated production flow", async ({ page }) => {
+  await page.route("**/garments/v*/**", fulfillGarmentAsset);
+  await page.goto(
+    "/configurator/build/regular-fit-tee-200gsm?draftId=e2e-artwork-flow&step=artwork",
+    { waitUntil: "domcontentloaded" },
+  );
+
+  await expect(page.locator('[data-configurator-hydrated="true"]')).toBeAttached();
+  await expect(page.getByRole("heading", { name: "Add your artwork" })).toBeVisible();
+  await expect(page.getByText("Optional. Add artwork to either side, or continue without artwork.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Continue without artwork →" })).toBeEnabled();
+
+  const frontTab = page.getByRole("tab", { name: /Front · Optional/ });
+  const backTab = page.getByRole("tab", { name: /Back · Optional/ });
+  await frontTab.focus();
+  await frontTab.press("ArrowRight");
+  await expect(backTab).toHaveAttribute("aria-selected", "true");
+  await backTab.press("ArrowLeft");
+  await expect(frontTab).toHaveAttribute("aria-selected", "true");
+
+  await page.getByRole("button", { name: "Try sample artwork" }).click();
+  const recommendedMethod = page.getByRole("radio", { name: /Screen Print/ });
+  await expect(recommendedMethod).toHaveAttribute("aria-checked", "false");
+  await expect(page.getByRole("button", { name: "Choose front print method to continue" })).toBeDisabled();
+  await expect(page.getByText("+₹1,900 method total", { exact: true })).toBeVisible();
+
+  await recommendedMethod.click();
+  await expect(recommendedMethod).toHaveAttribute("aria-checked", "true");
+  await expect(page.getByRole("button", { name: "Continue to neck label →" })).toBeEnabled();
+  await expect(page.getByText(/Front: Screen Print · Back: Not added/)).toBeVisible();
+});
+
+test("mobile artwork drawer exposes the complete optional upload entry point", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.route("**/garments/v*/**", fulfillGarmentAsset);
+  await page.goto(
+    "/configurator/build/regular-fit-tee-200gsm?draftId=e2e-artwork-mobile&step=artwork",
+    { waitUntil: "domcontentloaded" },
+  );
+
+  await expect(page.locator('[data-configurator-hydrated="true"]')).toBeAttached();
+  await page.getByRole("button", { name: /^Artwork ·/ }).click();
+  await expect(page.getByRole("heading", { name: "Add your artwork" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Drag artwork here or browse/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Download artwork template/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Try sample artwork" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Continue without artwork →" })).toBeEnabled();
 });
 
 test("opens with an honest fallback state and can retry failed preview assets", async ({ page }) => {

@@ -1,7 +1,7 @@
 // src/components/configurator/ConfiguratorSidebar/ArtworkPanel/PositionControls.tsx
 "use client";
 
-import type { JSX } from "react";
+import { useId, type JSX } from "react";
 import { Info } from "lucide-react";
 import {
   useArtworkPosition,
@@ -26,17 +26,21 @@ interface StepperProps {
 }
 
 function Stepper({ label, value, onChange, min, max = MAX_DIM, tooltip, disabled }: StepperProps) {
+  const inputId = useId();
+
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-1">
-        <span className="text-xs font-medium text-neutral-600">{label}</span>
+        <label htmlFor={inputId} className="text-xs font-medium text-neutral-600">{label}</label>
         {tooltip && (
-          <span className="group relative inline-flex">
-            <Info className="h-3 w-3 text-neutral-400" />
-            <span className="pointer-events-none absolute bottom-full left-1/2 mb-1 w-40 -translate-x-1/2 rounded bg-neutral-900 px-2 py-1 text-xs leading-relaxed text-white opacity-0  transition-opacity group-hover:opacity-100 z-10">
+          <details className="group relative inline-flex">
+            <summary className="list-none rounded-sm marker:hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-accent)" aria-label={`About ${label}`}>
+              <Info className="h-3 w-3 cursor-help text-neutral-400" aria-hidden="true" />
+            </summary>
+            <span className="absolute bottom-full left-1/2 z-20 mb-1 w-44 -translate-x-1/2 rounded-sm bg-neutral-900 px-2 py-1.5 text-xs leading-relaxed text-white shadow-lg">
               {tooltip}
             </span>
-          </span>
+          </details>
         )}
       </div>
       <div
@@ -48,12 +52,13 @@ function Stepper({ label, value, onChange, min, max = MAX_DIM, tooltip, disabled
           type="button"
           disabled={disabled}
           onClick={() => onChange(clampDim(value - STEP, min, max))}
-          className="px-2 py-1 text-neutral-500 hover:text-neutral-900 disabled:cursor-not-allowed"
+          className="min-h-8 min-w-8 px-2 py-1 text-neutral-500 hover:text-neutral-900 disabled:cursor-not-allowed"
           aria-label={`Decrease ${label}`}
         >
           −
         </button>
         <input
+          id={inputId}
           type="number"
           step={STEP}
           value={value}
@@ -62,13 +67,13 @@ function Stepper({ label, value, onChange, min, max = MAX_DIM, tooltip, disabled
             const parsed = parseFloat(e.target.value);
             onChange(clampDim(Number.isFinite(parsed) ? parsed : min, min, max));
           }}
-          className="w-14 border-x border-neutral-200 bg-transparent py-1 text-center text-sm outline-none disabled:cursor-not-allowed"
+          className="h-8 w-14 border-x border-neutral-200 bg-transparent py-1 text-center text-sm outline-none focus:bg-white disabled:cursor-not-allowed"
         />
         <button
           type="button"
           disabled={disabled}
           onClick={() => onChange(clampDim(value + STEP, min, max))}
-          className="px-2 py-1 text-neutral-500 hover:text-neutral-900 disabled:cursor-not-allowed"
+          className="min-h-8 min-w-8 px-2 py-1 text-neutral-500 hover:text-neutral-900 disabled:cursor-not-allowed"
           aria-label={`Increase ${label}`}
         >
           +

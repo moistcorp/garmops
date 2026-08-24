@@ -1,5 +1,6 @@
 "use client";
 
+import { Tabs } from "@base-ui/react/tabs";
 import { useEffect, useRef, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import {
@@ -44,6 +45,7 @@ export interface ArtworkPanelProps {
   activeView?: GarmentView;
   onViewChange?: (view: GarmentView) => void;
   garmentColourHex?: string;
+  quantity?: number;
 }
 
 type Side = "front" | "back";
@@ -67,7 +69,7 @@ function artworkFilename(side?: ArtworkSide): string {
   return side?.fileName ?? side?.fileUrl?.split("/").pop() ?? "Artwork";
 }
 
-export function ArtworkPanel({ productId, value, onChange, activeView, onViewChange, garmentColourHex = "#FFFFFF" }: ArtworkPanelProps = {}) {
+export function ArtworkPanel({ productId, value, onChange, activeView, onViewChange, garmentColourHex = "#FFFFFF", quantity = 50 }: ArtworkPanelProps = {}) {
   const [internalArtwork, setInternalArtwork] = useState<Artwork>(value ?? {});
   const artwork = value !== undefined ? value : internalArtwork;
   const [activeSide, setActiveSide] = useState<Side>(activeView === "back" ? "back" : "front");
@@ -260,33 +262,71 @@ export function ArtworkPanel({ productId, value, onChange, activeView, onViewCha
       ? "dtf"
       : "screen_print"
     : undefined;
+  const workflowSteps = [
+    { label: "File", complete: Boolean(current), active: !current },
+    { label: "Print method", complete: Boolean(selectedTechnique), active: Boolean(current && !selectedTechnique) },
+    { label: "Placement", complete: Boolean(selectedTechnique), active: false },
+  ];
 
   return (
-    <div className="flex flex-col gap-3.5 text-sm text-(--text-primary)">
-      <div className="grid grid-cols-2 border-b border-(--color-rule)" role="tablist" aria-label="Artwork side">
-        {(["front", "back"] as Side[]).map((side) => {
-          const hasArtwork = Boolean(artwork[side]);
-          const selected = panelSide === side;
-          return (
-            <button
-              key={side}
-              type="button"
-              role="tab"
-              aria-selected={selected}
-              aria-controls={`artwork-${side}-panel`}
-              onClick={() => selectSide(side)}
-              className={`min-h-11 border-b-2 px-3 text-left text-xs font-semibold uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)/40 ${selected ? "border-(--color-accent) text-(--color-accent-dark)" : "border-transparent text-(--text-primary)/50 hover:text-(--text-primary)"}`}
-            >
-              {SIDE_LABELS[side]} {hasArtwork ? <span aria-label="Artwork added">✓</span> : <span className="font-normal normal-case">· Optional</span>}
-            </button>
-          );
-        })}
+    <div className="flex flex-col gap-4 text-sm text-(--text-primary)">
+      <div>
+        <h1 className="text-xl font-semibold tracking-[-0.02em] text-(--text-primary)">
+          <span aria-hidden="true" className="mr-1 font-mono text-xs font-semibold tracking-[0.06em] text-(--color-accent)">
+            03 ·
+          </span>
+          Add your artwork
+        </h1>
+        <p className="mt-1.5 text-sm leading-relaxed text-(--text-primary)/60">
+          Optional. Add artwork to either side, or continue without artwork.
+        </p>
       </div>
 
-      <section id={`artwork-${panelSide}-panel`} role="tabpanel" aria-label={`${SIDE_LABELS[panelSide]} artwork controls`} className="flex flex-col gap-3.5">
-        <div className="flex flex-col gap-2 pt-4">
+      <ol className="grid grid-cols-3 gap-1.5" aria-label={`${SIDE_LABELS[panelSide]} artwork setup progress`}>
+        {workflowSteps.map((step, index) => (
+          <li
+            key={step.label}
+            aria-current={step.active ? "step" : undefined}
+            className={`rounded-sm border px-2 py-2 ${
+              step.complete
+                ? "border-(--color-accent)/25 bg-(--color-accent)/6"
+                : step.active
+                  ? "border-(--color-accent) bg-white"
+                  : "border-(--color-rule) bg-(--color-cream-soft)/45"
+            }`}
+          >
+            <p className={`font-mono text-[9px] font-semibold uppercase tracking-[0.05em] ${
+              step.complete || step.active ? "text-(--color-accent)" : "text-(--text-primary)/35"
+            }`}>
+              {String(index + 1).padStart(2, "0")} {step.complete ? "Ready" : step.active ? "Current" : "Waiting"}
+            </p>
+            <p className={`mt-0.5 truncate text-[11px] font-semibold ${
+              step.complete || step.active ? "text-(--text-primary)" : "text-(--text-primary)/40"
+            }`}>{step.label}</p>
+          </li>
+        ))}
+      </ol>
+
+      <Tabs.Root value={panelSide} onValueChange={(side) => selectSide(side as Side)} className="flex flex-col gap-3.5">
+        <Tabs.List activateOnFocus className="grid grid-cols-2 border-b border-(--color-rule)" aria-label="Artwork side">
+          {(["front", "back"] as Side[]).map((side) => {
+            const hasArtwork = Boolean(artwork[side]);
+            return (
+              <Tabs.Tab
+                key={side}
+                value={side}
+                className="min-h-11 border-b-2 border-transparent px-3 text-left text-xs font-semibold uppercase tracking-wide text-(--text-primary)/50 transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] hover:text-(--text-primary) aria-selected:border-(--color-accent) aria-selected:text-(--color-accent-dark) focus-visible:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-accent)"
+              >
+                {SIDE_LABELS[side]} <span className="font-normal normal-case">· {hasArtwork ? "Added" : "Optional"}</span>
+              </Tabs.Tab>
+            );
+          })}
+        </Tabs.List>
+
+        <Tabs.Panel value={panelSide} className="flex flex-col gap-3.5 outline-none" aria-label={`${SIDE_LABELS[panelSide]} artwork controls`}>
+        <div className={`flex flex-col gap-2 pt-4 ${current ? "sticky top-0 z-10 bg-white pb-2" : ""}`}>
           <h3 className="text-xs font-semibold text-(--text-primary)/70">
-            <span className="whitespace-nowrap">1 -</span> Artwork file
+            <span className="whitespace-nowrap">1 —</span> Artwork file
           </h3>
           <ArtworkUploadSide side={panelSide} value={current} onChange={(next) => handleSideChange(panelSide, next)} />
         </div>
@@ -308,7 +348,7 @@ export function ArtworkPanel({ productId, value, onChange, activeView, onViewCha
               ) : null}
             </div>
 
-            <TechniqueSelect value={selectedTechnique} side={panelSide} recommendedTechnique={recommendedTechnique} onChange={(technique) => handleTechniqueChange(panelSide, technique)} />
+            <TechniqueSelect value={selectedTechnique} side={panelSide} quantity={quantity} recommendedTechnique={recommendedTechnique} onChange={(technique) => handleTechniqueChange(panelSide, technique)} />
 
             {selectedTechnique === "reflective_print" && (
               <ReflectiveColourSelect
@@ -324,7 +364,7 @@ export function ArtworkPanel({ productId, value, onChange, activeView, onViewCha
               <section className="flex flex-col gap-3 pt-4" aria-labelledby="position-size-title">
                 <div>
                   <h3 id="position-size-title" className="text-xs font-semibold text-(--text-primary)/70">
-                    <span className="whitespace-nowrap">3 - </span> Position &amp; size
+                    <span className="whitespace-nowrap">3 — </span> Position &amp; size
                   </h3>
                   <p className="mt-1 text-xs leading-relaxed text-(--text-primary)/50">Choose a preset or drag the artwork on the garment.</p>
                 </div>
@@ -338,7 +378,7 @@ export function ArtworkPanel({ productId, value, onChange, activeView, onViewCha
                         type="button"
                         aria-pressed={selected}
                         onClick={() => applyPreset(panelSide, preset.id)}
-                        className={`min-h-10 rounded-sm border px-2.5 py-2 text-left text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)/40 ${selected ? "border-(--color-accent) bg-(--color-accent)/8 text-(--color-accent-dark)" : "techpack-control hover:!border-(--color-accent)/45"}`}
+                        className={`min-h-10 rounded-sm border px-2.5 py-2 text-left text-xs font-semibold transition-colors focus-visible:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)/40 ${selected ? "border-(--color-accent) bg-(--color-accent)/8 text-(--color-accent-dark)" : "techpack-control hover:!border-(--color-accent)/45"}`}
                       >
                         {preset.label}
                       </button>
@@ -346,24 +386,46 @@ export function ArtworkPanel({ productId, value, onChange, activeView, onViewCha
                   })}
                 </div>
 
-                <div onFocusCapture={() => onViewChange?.(panelSide)} onPointerDownCapture={() => onViewChange?.(panelSide)}>
-                  <PositionControls printAreaDimensions={placementArea} view={panelSide} />
-                </div>
+                <details className="rounded-sm border border-(--color-rule) bg-white">
+                  <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-3 text-xs font-semibold text-(--text-primary)/70 marker:hidden">
+                    <span>Fine-tune placement</span>
+                    <span className="font-mono text-[10px] font-medium text-(--text-primary)/45">
+                      {current.width} × {current.height} cm · +
+                    </span>
+                  </summary>
+                  <div className="space-y-4 border-t border-(--color-rule) px-3 py-3">
+                    <div onFocusCapture={() => onViewChange?.(panelSide)} onPointerDownCapture={() => onViewChange?.(panelSide)}>
+                      <PositionControls printAreaDimensions={placementArea} view={panelSide} />
+                    </div>
 
-                <GuidelinesToggles
-                  value={current.guidelines}
-                  onChange={(guidelines) => updateGuidelines(panelSide, guidelines)}
-                  showLeftChest={panelSide === "front" && !productId?.includes("tote")}
-                />
+                    <GuidelinesToggles
+                      value={current.guidelines}
+                      onChange={(guidelines) => updateGuidelines(panelSide, guidelines)}
+                      showLeftChest={panelSide === "front" && !productId?.includes("tote")}
+                    />
+                  </div>
+                </details>
 
               </section>
             )}
           </>
         )}
-      </section>
+        </Tabs.Panel>
+      </Tabs.Root>
 
-      <details>
-        <summary className="cursor-pointer list-none text-xs font-semibold uppercase tracking-wide text-(--text-primary)/60 marker:hidden">Artwork summary <span aria-hidden="true" className="font-normal">+</span></summary>
+      <details className="rounded-sm border border-(--color-rule) bg-(--color-cream-soft)/35 px-3 py-2.5">
+        <summary className="cursor-pointer list-none marker:hidden">
+          <span className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-wide text-(--text-primary)/60">
+            Artwork summary <span aria-hidden="true" className="font-normal">+</span>
+          </span>
+          <span className="mt-1.5 block text-xs leading-relaxed text-(--text-primary)/55">
+            {(["front", "back"] as Side[]).map((side) => {
+              const item = artwork[side];
+              const technique = isCustomerArtworkTechnique(item?.technique) ? TECHNIQUE_LABELS[item.technique] : item ? "File added" : "Not added";
+              return `${SIDE_LABELS[side]}: ${technique}`;
+            }).join(" · ")}
+          </span>
+        </summary>
         <div className="mt-2 grid gap-2 sm:grid-cols-2">
           {(["front", "back"] as Side[]).map((side) => {
             const item = artwork[side];

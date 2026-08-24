@@ -18,6 +18,8 @@ export interface OrderBarProps {
   pricingBreakdown: PricingBreakdown;
   ctaErrorMessage?: string | null;
   ctaErrorNonce?: number;
+  compactEstimate?: boolean;
+  ctaDisabled?: boolean;
 }
 
 export interface VolumeDiscountProgressState {
@@ -144,6 +146,8 @@ export function OrderBar({
   pricingBreakdown,
   ctaErrorMessage,
   ctaErrorNonce,
+  compactEstimate = false,
+  ctaDisabled = false,
 }: OrderBarProps) {
   const discountedUnitCost =
     pricingBreakdown.unitPrice * (1 - pricingBreakdown.discountPercent / 100);
@@ -188,27 +192,44 @@ export function OrderBar({
       aria-label="Order estimate"
       className="techpack-surface rounded-md !border-(--color-control-border) !bg-white border p-2"
     >
-      <VolumeDiscountProgress quantity={quantity} />
+      {compactEstimate ? (
+        <div className="grid grid-cols-3 divide-x divide-(--color-control-border) rounded-sm border border-(--color-control-border)/70 bg-(--color-cream-soft)/45 py-2">
+          <div className="min-w-0 px-2.5">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-(--text-primary)/45">Quantity</p>
+            <p className="mt-0.5 truncate font-mono text-sm font-semibold text-(--text-primary)">{quantity} pcs</p>
+          </div>
+          <div className="min-w-0 px-2.5">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-(--text-primary)/45">Unit cost</p>
+            <p className="mt-0.5 truncate font-mono text-sm font-semibold text-(--text-primary)">{formatInr(discountedUnitCost)}</p>
+          </div>
+          <div className="min-w-0 px-2.5">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-(--text-primary)/45">Estimate</p>
+            <p className="mt-0.5 truncate font-mono text-sm font-semibold text-(--text-primary)">{formatInr(pricingBreakdown.total)}</p>
+          </div>
+        </div>
+      ) : (
+        <>
+          <VolumeDiscountProgress quantity={quantity} />
 
-      <div className="mt-2 flex items-center gap-1.5" aria-label="Quantity presets">
-        <span className="mr-auto text-xs font-medium text-(--text-primary)/45">Quick set</span>
-        {quantityPresets.map((preset) => (
-          <button
-            key={preset}
-            type="button"
-            aria-pressed={quantity === preset}
-            onClick={() => onQuantityChange(preset)}
-            className={`min-h-7 min-w-11 rounded-sm border px-2 text-xs font-semibold transition-[background-color,border-color,color] duration-150 ${quantity === preset ? "border-(--color-accent) bg-(--color-accent) text-white" : "border-(--color-control-border) text-(--text-primary)/65 hover:border-(--color-accent)/50"}`}
+          <div className="mt-2 flex items-center gap-1.5" aria-label="Quantity presets">
+            <span className="mr-auto text-xs font-medium text-(--text-primary)/45">Quick set</span>
+            {quantityPresets.map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                aria-pressed={quantity === preset}
+                onClick={() => onQuantityChange(preset)}
+                className={`min-h-7 min-w-11 rounded-sm border px-2 text-xs font-semibold transition-[background-color,border-color,color] duration-150 ${quantity === preset ? "border-(--color-accent) bg-(--color-accent) text-white" : "border-(--color-control-border) text-(--text-primary)/65 hover:border-(--color-accent)/50"}`}
+              >
+                {preset}
+              </button>
+            ))}
+          </div>
+
+          <div
+            className="mt-1.5 grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-x-3 border-t border-(--color-control-border)/70 pt-1.5 sm:grid-cols-[minmax(132px,1.2fr)_minmax(92px,1fr)_minmax(92px,1fr)]"
+            aria-live="polite"
           >
-            {preset}
-          </button>
-        ))}
-      </div>
-
-      <div
-        className="mt-1.5 grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-x-3 border-t border-(--color-control-border)/70 pt-1.5 sm:grid-cols-[minmax(132px,1.2fr)_minmax(92px,1fr)_minmax(92px,1fr)]"
-        aria-live="polite"
-      >
         <div className="min-w-0">
           <label
             htmlFor="configurator-quantity"
@@ -288,12 +309,15 @@ export function OrderBar({
             {formatInr(pricingBreakdown.total)}
           </div>
         </div>
-      </div>
+          </div>
+        </>
+      )}
 
       <button
         type="button"
         onClick={onCtaClick}
-        className={`mt-2 min-h-11 w-full rounded-sm px-4 py-2 text-sm font-semibold leading-tight text-white transition-[background-color,box-shadow,opacity] duration-150 hover:opacity-90 ${
+        disabled={ctaDisabled}
+        className={`mt-2 min-h-11 w-full rounded-sm px-4 py-2 text-sm font-semibold leading-tight text-white transition-[background-color,box-shadow,opacity] duration-150 disabled:cursor-not-allowed disabled:bg-(--text-primary)/25 disabled:text-white/85 disabled:hover:opacity-100 ${
           flashError
             ? "bg-[#C62828] ring-2 ring-[#C62828]/40 ring-offset-2"
             : "bg-(--color-accent) hover:bg-(--color-accent-dark)"

@@ -522,6 +522,9 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
           : neckLabel?.confirmed
             ? `${isToteProduct ? "Standard bag" : "Standard size"} label selected`
             : `Choose a ${isToteProduct ? "bag" : "neck"} label`;
+  const artworkSideMissingTechnique = (["front", "back"] as const).find(
+    (side) => artwork[side]?.fileUrl && !artwork[side]?.technique,
+  );
   const completedCustomisationSteps = new Set(
     steps
       .filter((step) => step.confirmed || step.skipped)
@@ -1592,6 +1595,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
       >
         <ConfiguratorTopBar
           currentStep={JOURNEY_STEP_FOR_CUSTOMISATION[activeCustomisationStepId]}
+          condensedJourney
           backHref={editCartId
             ? `/configurator/cart/${encodeURIComponent(editCartId)}/review`
             : productCatalogHref}
@@ -1769,8 +1773,12 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
           <aside className="fixed inset-x-2 bottom-0 z-50 flex max-h-[calc(100dvh-5rem)] min-w-0 flex-col gap-2 overflow-y-auto rounded-t-md bg-(--color-studio-bg) p-1.5 pb-[max(.5rem,env(safe-area-inset-bottom))] shadow-[0_-12px_40px_rgba(22,33,43,0.14)] lg:static lg:z-auto lg:min-h-0 lg:max-h-none lg:flex-col lg:gap-3 lg:overflow-hidden lg:rounded-none lg:bg-transparent lg:p-0 lg:shadow-none">
             <section
               aria-label="Active customisation controls"
-              className={`techpack-stack techpack-surface flex shrink-0 flex-col overflow-hidden rounded-md border-(--color-control-border)! bg-white! border transition-[height] duration-250 ease-[cubic-bezier(.22,1,.36,1)] lg:min-h-0 lg:flex-1 ${
-                isDrawerOpen ? "h-[min(42dvh,390px)]" : "h-14"
+              className={`techpack-stack techpack-surface flex shrink-0 flex-col overflow-hidden rounded-md border-(--color-control-border)! bg-white! border transition-[height] duration-250 ease-[cubic-bezier(.22,1,.36,1)] motion-reduce:transition-none lg:min-h-0 lg:flex-1 ${
+                isDrawerOpen
+                  ? expandedStepId === "artwork"
+                    ? "h-[70dvh] max-h-[620px]"
+                    : "h-[60dvh] max-h-[520px]"
+                  : "h-14"
               } lg:h-auto`}
             >
               <button
@@ -1781,17 +1789,23 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
                 className="flex h-14 shrink-0 items-center justify-between gap-3 px-4 text-left hover:bg-white/30 lg:hidden"
               >
                 <span className="min-w-0 truncate text-sm font-medium text-(--text-primary)">
-                  {activeDrawerStepLabel}
-                  <span className="font-normal text-(--text-primary)/50">
-                    {" · "}
-                    {activeDrawerStep.summary ?? "Not added yet"}
-                  </span>
+                  {isDrawerOpen && activeDrawerStep.id === "artwork" ? (
+                    <span className="font-normal text-(--text-primary)/60">{activeControlSummary}</span>
+                  ) : (
+                    <>
+                      {activeDrawerStepLabel}
+                      <span className="font-normal text-(--text-primary)/50">
+                        {" · "}
+                        {activeDrawerStep.summary ?? "Not added yet"}
+                      </span>
+                    </>
+                  )}
                 </span>
                 <ChevronUp
                   size={17}
                   strokeWidth={2.2}
                   aria-hidden="true"
-                  className={`shrink-0 transition-transform duration-300 ${
+                  className={`shrink-0 transition-transform duration-300 motion-reduce:transition-none ${
                     isDrawerOpen ? "rotate-180" : ""
                   }`}
                 />
@@ -1865,18 +1879,23 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
                 onQuantityChange={setSafeQuantity}
                 minQuantity={minimumQuantity}
                 ctaLabel={
-                  returnToSizeQuantity && expandedStepId === "artwork"
-                    ? "Return to sizes & quantity →"
+                  expandedStepId === "artwork" && artworkSideMissingTechnique
+                    ? `Choose ${artworkSideMissingTechnique} print method to continue`
+                    : returnToSizeQuantity && expandedStepId === "artwork"
+                      ? "Return to sizes & quantity →"
                     : accountsEnabled && !customerSession.loading && !customerSession.email && expandedStepId === "neck-label"
                       ? "Sign in to continue to sizes →"
                     : getConfiguratorCtaLabel(expandedStepId, {
                         hasArtwork: Boolean(artwork.front || artwork.back),
                         hasCustomLabel: isCustomNeckLabel(neckLabel) && Boolean(neckLabel.fileUrl || neckLabel.fileId),
                         isToteProduct,
+                        colourName: colour.name,
                       })
                 }
                 onCtaClick={handleCtaClick}
                 pricingBreakdown={orderBarPricing}
+                compactEstimate={expandedStepId === "artwork"}
+                ctaDisabled={expandedStepId === "artwork" && Boolean(artworkSideMissingTechnique)}
                 ctaErrorMessage={ctaErrorMessage}
                 ctaErrorNonce={ctaErrorNonce}
               />

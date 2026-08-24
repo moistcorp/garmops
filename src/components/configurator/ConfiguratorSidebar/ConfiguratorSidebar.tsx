@@ -155,11 +155,13 @@ export function ConfiguratorSidebar({
       : activeStep.title.replace("Garment ", "");
   return (
     <section className="flex h-full min-h-0 flex-col overflow-hidden bg-transparent">
-      <div className="shrink-0 border-b border-(--color-control-border) bg-white px-4 py-3">
-        <div className="min-w-0">
-          <h2 className="text-sm font-semibold text-(--text-primary)">{activeStepTitle}</h2>
+      {activeStep.id !== "garment-colour" && activeStep.id !== "artwork" ? (
+        <div className="shrink-0 border-b border-(--color-control-border) bg-white px-4 py-3">
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold text-(--text-primary)">{activeStepTitle}</h2>
+          </div>
         </div>
-      </div>
+      ) : null}
 
       {draftRestored && (
         <div className="techpack-subtle flex shrink-0 items-center justify-between gap-2 border-x-0 border-t-0 px-4 py-2 text-xs text-(--color-accent)">
@@ -178,7 +180,6 @@ export function ConfiguratorSidebar({
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3.5">
         {activeStep.id === "garment-colour" ? (
           <GarmentColourPanel
-            key={colour.type}
             value={colour}
             onChange={(next) => {
               if (selectedColour === undefined) setInternalColour(next);
@@ -192,6 +193,7 @@ export function ConfiguratorSidebar({
         ) : activeStep.id === "artwork" ? (
           <ArtworkPanel
             productId={productId}
+            quantity={quantity}
             garmentColourHex={colour.hex}
             value={artwork}
             onChange={(next) => {

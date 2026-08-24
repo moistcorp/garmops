@@ -183,7 +183,7 @@ test("remote garment pixels remain readable for all artwork material simulations
     { waitUntil: "domcontentloaded" },
   );
   await expect(page.locator('[data-configurator-hydrated="true"]')).toBeAttached();
-  await page.getByRole("button", { name: "Continue to artwork →" }).click();
+  await page.getByRole("button", { name: "Continue with Classic White →" }).click();
   await page.getByRole("button", { name: "Try sample artwork" }).click();
   await expect(page.getByLabel("Artwork uploaded")).toBeVisible();
 

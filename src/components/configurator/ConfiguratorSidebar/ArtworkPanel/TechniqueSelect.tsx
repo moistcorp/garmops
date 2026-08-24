@@ -2,7 +2,7 @@
 
 import type { CustomerArtworkTechnique } from "@/lib/configurator/types/configurator";
 import { CUSTOMER_PRINT_TECHNIQUE_LABELS } from "@/lib/pricingRules";
-import { CUSTOMER_PRINT_TECHNIQUE_UNIT_DELTAS } from "@/lib/pricingRules";
+import { CUSTOMER_PRINT_TECHNIQUE_UNIT_DELTAS, getVolumeDiscountPercent } from "@/lib/pricingRules";
 import { formatInr } from "@/lib/configurator/pricing";
 
 export interface TechniqueSelectProps {
@@ -10,6 +10,7 @@ export interface TechniqueSelectProps {
   side?: "front" | "back";
   onChange: (technique: CustomerArtworkTechnique) => void;
   recommendedTechnique?: CustomerArtworkTechnique;
+  quantity?: number;
 }
 
 export const TECHNIQUE_LABELS = CUSTOMER_PRINT_TECHNIQUE_LABELS;
@@ -26,7 +27,7 @@ const TECHNIQUE_DESCRIPTIONS: Record<CustomerArtworkTechnique, string> = {
   reflective_print: "Best when visibility is the priority. Available in selected reflective colours.",
 };
 
-export function TechniqueSelect({ value, side = "front", onChange, recommendedTechnique }: TechniqueSelectProps) {
+export function TechniqueSelect({ value, side = "front", onChange, recommendedTechnique, quantity = 50 }: TechniqueSelectProps) {
   const sideLabel = side === "front" ? "Front" : "Back";
 
   function chooseTechnique(technique: CustomerArtworkTechnique) {
@@ -36,12 +37,14 @@ export function TechniqueSelect({ value, side = "front", onChange, recommendedTe
   return (
     <fieldset className="flex flex-col gap-2.5 pt-4" aria-label={`${sideLabel} print method`}>
       <legend className="text-xs font-semibold text-(--text-primary)/70">
-        <span className="whitespace-nowrap">2 -</span> Print method
+        <span className="whitespace-nowrap">2 —</span> Print method
       </legend>
       {recommendedTechnique ? <p className="text-xs leading-relaxed text-(--text-primary)/58"><span className="font-semibold text-(--color-accent-dark)">Recommended:</span> {TECHNIQUE_LABELS[recommendedTechnique]} based on the uploaded artwork.</p> : null}
       <div className="grid gap-2" role="radiogroup" aria-label="Print method">
         {TECHNIQUE_ORDER.map((technique) => {
           const selected = value === technique;
+          const unitDelta = CUSTOMER_PRINT_TECHNIQUE_UNIT_DELTAS[technique];
+          const methodTotal = unitDelta * quantity * (1 - getVolumeDiscountPercent(quantity) / 100);
           return (
             <button
               key={technique}
@@ -49,25 +52,31 @@ export function TechniqueSelect({ value, side = "front", onChange, recommendedTe
               role="radio"
               aria-checked={selected}
               onClick={() => chooseTechnique(technique)}
-              className={`flex min-h-14 items-center rounded-sm border px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)/45 ${
+              className={`flex min-h-14 items-center rounded-sm border px-3 py-2.5 text-left transition-colors focus-visible:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)/45 ${
                 selected
                   ? "border-(--color-accent) bg-(--color-accent)/8"
-                  : "techpack-control hover:!border-(--color-accent)/45"
+                  : recommendedTechnique === technique
+                    ? "border-(--color-rule) bg-blue-50/35 hover:border-(--color-accent)/35"
+                    : "techpack-control hover:!border-(--color-accent)/45"
               }`}
             >
               <span className="flex w-full items-center justify-between gap-3">
                 <span className="min-w-0">
                   <span className="flex flex-wrap items-center gap-1.5 text-[13px] font-semibold leading-tight text-(--text-primary)/85">{TECHNIQUE_LABELS[technique]}{recommendedTechnique === technique ? <span className="rounded-sm bg-(--color-accent)/10 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-(--color-accent-dark)">Recommended</span> : null}</span>
-                  <span className="mt-1 block text-xs leading-relaxed text-(--text-primary)/50">{TECHNIQUE_DESCRIPTIONS[technique]} · +{formatInr(CUSTOMER_PRINT_TECHNIQUE_UNIT_DELTAS[technique])}/unit</span>
+                  <span className="mt-1 block text-xs leading-relaxed text-(--text-primary)/50">{TECHNIQUE_DESCRIPTIONS[technique]}</span>
                 </span>
-                <span
-                  aria-hidden="true"
-                  className={`mt-0.5 h-3.5 w-3.5 shrink-0 rounded-full border ${
-                    selected
-                      ? "border-(--color-accent) bg-(--color-accent) ring-2 ring-(--color-accent)/20"
-                      : "border-(--text-primary)/25"
-                  }`}
-                />
+                <span className="flex shrink-0 flex-col items-end gap-1.5">
+                  <span className="font-mono text-[10px] font-semibold text-(--text-primary)/70">+{formatInr(unitDelta)}/unit</span>
+                  <span className="font-mono text-[9px] text-(--text-primary)/45">+{formatInr(methodTotal)} method total</span>
+                  <span
+                    aria-hidden="true"
+                    className={`h-3.5 w-3.5 rounded-full border ${
+                      selected
+                        ? "border-(--color-accent) bg-(--color-accent) ring-2 ring-(--color-accent)/20"
+                        : "border-(--text-primary)/25 bg-white"
+                    }`}
+                  />
+                </span>
               </span>
             </button>
           );

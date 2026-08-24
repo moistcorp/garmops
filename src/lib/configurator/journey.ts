@@ -9,9 +9,14 @@ export function getConfiguratorCtaLabel(
     hasArtwork: boolean;
     hasCustomLabel: boolean;
     isToteProduct: boolean;
+    colourName?: string;
   },
 ): string {
-  if (openStep === "garment-colour") return "Continue to artwork →";
+  if (openStep === "garment-colour") {
+    return options.colourName
+      ? `Continue with ${options.colourName} →`
+      : "Continue to artwork →";
+  }
   if (openStep === "artwork") {
     if (!options.hasArtwork) return "Continue without artwork →";
     return options.isToteProduct ? "Continue to bag label →" : "Continue to neck label →";

@@ -1,5 +1,6 @@
 "use client";
 
+import { Tabs } from "@base-ui/react/tabs";
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 
@@ -43,29 +44,24 @@ function SelectedColourSummary({ value }: { value: GarmentColour }) {
   return (
     <section
       aria-label="Selected colour"
-      className="rounded-sm border border-(--color-control-border) bg-white px-3 py-3"
+      className="sticky top-0 z-10 flex items-center gap-3 rounded-sm border border-(--color-control-border) bg-white px-3 py-2.5 shadow-[0_5px_14px_rgba(22,33,43,0.05)]"
     >
-      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.06em] text-(--text-primary)/50">
+      <span
+        className="h-9 w-9 shrink-0 rounded-sm border border-black/20 shadow-[inset_0_0_0_1px_rgba(22,33,43,0.08)]"
+        style={{ backgroundColor: value.hex }}
+        aria-hidden="true"
+      />
+      <div className="min-w-0 flex-1">
+        <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.06em] text-(--text-primary)/45">
           Selected colour
-      </p>
-      <div className="mt-2 flex items-center gap-3">
-        <span
-          className="h-14 w-14 shrink-0 rounded-sm border border-(--color-rule) shadow-sm"
-          style={{ backgroundColor: value.hex }}
-          aria-hidden="true"
-        />
-        <div className="min-w-0">
-          <p className="truncate text-base font-semibold text-(--text-primary)">{value.name}</p>
-          {isCustom && (
-            <>
-              <p className="mt-0.5 text-xs text-(--text-primary)/55">Custom colour reference</p>
-              <p className="mt-1 font-mono text-xs font-semibold uppercase tracking-[0.05em] text-(--color-accent)">
-                Preview only
-              </p>
-            </>
-          )}
-        </div>
+        </p>
+        <p className="truncate text-sm font-semibold text-(--text-primary)">{value.name}</p>
       </div>
+      <p className={`shrink-0 text-right font-mono text-[9px] font-semibold uppercase tracking-[0.05em] ${
+        isCustom ? "text-(--color-accent)" : "text-(--text-primary)/50"
+      }`}>
+        {isCustom ? <>Custom dye<br />Preview only</> : <>Signature<br />Included</>}
+      </p>
     </section>
   );
 }
@@ -82,6 +78,7 @@ export default function GarmentColourPanel({
   const [pantoneColours, setPantoneColours] = useState<PantoneColour[] | null>(null);
   const [isLoadingPantones, setIsLoadingPantones] = useState(false);
   const [pantoneError, setPantoneError] = useState("");
+  const [pantoneLoadVersion, setPantoneLoadVersion] = useState(0);
   const pantoneLoadAttempted = useRef(false);
   const customDyeMinimum = minimumQuantity ?? CUSTOM_DYE_MOQ_UNITS;
   const customDyeDeltaLabel =
@@ -114,7 +111,7 @@ export default function GarmentColourPanel({
       .finally(() => {
         setIsLoadingPantones(false);
       });
-  }, [isLoadingPantones, mode, pantoneColours]);
+  }, [isLoadingPantones, mode, pantoneColours, pantoneLoadVersion]);
 
   function changeMode(nextMode: ColourMode) {
     setMode(nextMode);
@@ -126,6 +123,7 @@ export default function GarmentColourPanel({
   function retryPantoneLibrary() {
     pantoneLoadAttempted.current = false;
     setPantoneError("");
+    setPantoneLoadVersion((current) => current + 1);
   }
 
   function handleSignatureSelect(colour: { id: string; name: string; hex: string }) {
@@ -148,9 +146,12 @@ export default function GarmentColourPanel({
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       <div>
         <h1 className="text-xl font-semibold tracking-[-0.02em] text-(--text-primary)">
+          <span aria-hidden="true" className="mr-1 font-mono text-xs font-semibold tracking-[0.06em] text-(--color-accent)">
+            02 ·
+          </span>
           Choose your garment colour
         </h1>
         <p className="mt-1.5 text-sm leading-relaxed text-(--text-primary)/60">
@@ -158,48 +159,42 @@ export default function GarmentColourPanel({
         </p>
       </div>
 
-      <div role="tablist" aria-label="Garment colour type" className="grid grid-cols-2 border-b border-(--color-rule)">
-        <button
-          id="signature-colours-tab"
-          type="button"
-          role="tab"
-          aria-selected={mode === "signature"}
-          aria-controls="signature-colours-panel"
-          onClick={() => changeMode("signature")}
-          className={`min-h-10 border-b-2 px-2 py-2 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-accent) ${
-            mode === "signature"
-              ? "border-(--color-accent) text-(--color-accent)"
-              : "border-transparent text-(--text-primary)/50 hover:text-(--text-primary)"
-          }`}
+      <Tabs.Root
+        value={mode}
+        onValueChange={(nextMode) => changeMode(nextMode as ColourMode)}
+        className="flex flex-col gap-3"
+      >
+        <Tabs.List
+          aria-label="Garment colour type"
+          activateOnFocus
+          className="grid grid-cols-2 border-b border-(--color-rule)"
         >
-          Signature Colours
-        </button>
-        <button
-          id="custom-colour-tab"
-          type="button"
-          role="tab"
-          aria-selected={mode === "custom"}
-          aria-controls="custom-colour-panel"
-          onClick={() => changeMode("custom")}
-          className={`min-h-10 border-b-2 px-2 py-2 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-accent) ${
-            mode === "custom"
-              ? "border-(--color-accent) text-(--color-accent)"
-              : "border-transparent text-(--text-primary)/50 hover:text-(--text-primary)"
-          }`}
-        >
-          Custom Colour
-        </button>
-      </div>
+          <Tabs.Tab
+            value="signature"
+            className="flex min-h-14 flex-col items-center justify-center border-b-2 border-transparent px-2 py-2 text-xs font-semibold text-(--text-primary)/50 transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] hover:text-(--text-primary) aria-selected:border-(--color-accent) aria-selected:text-(--color-accent) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-accent)"
+          >
+            <span>Signature</span>
+            <span className="mt-0.5 font-mono text-[9px] font-medium uppercase tracking-[0.05em] opacity-70">Included</span>
+          </Tabs.Tab>
+          <Tabs.Tab
+            value="custom"
+            className="flex min-h-14 flex-col items-center justify-center border-b-2 border-transparent px-2 py-2 text-xs font-semibold text-(--text-primary)/50 transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] hover:text-(--text-primary) aria-selected:border-(--color-accent) aria-selected:text-(--color-accent) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-accent)"
+          >
+            <span>Custom dye</span>
+            <span className="mt-0.5 font-mono text-[9px] font-medium uppercase tracking-[0.03em] opacity-70">
+              {customDyeDeltaLabel} · {customDyeMinimum}+ pcs
+            </span>
+          </Tabs.Tab>
+        </Tabs.List>
 
-      {mode === "signature" ? (
-        <section id="signature-colours-panel" role="tabpanel" aria-labelledby="signature-colours-tab" className="flex flex-col gap-3">
+        <Tabs.Panel value="signature" className="flex flex-col gap-3 outline-none">
           <SelectedColourSummary value={value} />
           <div>
             <div className="mb-2 flex items-center justify-between gap-2">
               <h2 className="font-mono text-[10px] font-semibold uppercase tracking-[0.06em] text-(--text-primary)/55">
-                Signature colours
+                Available colours
               </h2>
-          <span className="text-xs text-(--text-primary)/45">Standard colour</span>
+              <span className="text-xs text-(--text-primary)/45">Included</span>
             </div>
             <SignatureColourGrid
               colours={SIGNATURE_COLOURS}
@@ -207,18 +202,10 @@ export default function GarmentColourPanel({
               onSelect={handleSignatureSelect}
             />
           </div>
-          <p className="text-xs leading-relaxed text-(--text-primary)/50">
-            Signature colours carry no colour surcharge in the current pricing rules.
-          </p>
-        </section>
-      ) : (
-        <section id="custom-colour-panel" role="tabpanel" aria-labelledby="custom-colour-tab" className="flex flex-col gap-4">
-          <div>
-            <h2 className="text-lg font-semibold text-(--text-primary)">Custom Colour</h2>
-            <p className="mt-1 text-sm leading-relaxed text-(--text-primary)/60">
-              Match a specific brand colour using a production colour reference.
-            </p>
-          </div>
+        </Tabs.Panel>
+
+        <Tabs.Panel value="custom" className="flex flex-col gap-4 outline-none">
+          {value.type === "custom_dye" ? <SelectedColourSummary value={value} /> : null}
 
           <div className="grid grid-cols-3 divide-x divide-(--color-rule) rounded-sm border border-(--color-rule) bg-white">
             <div className="min-w-0 px-2.5 py-2.5">
@@ -248,11 +235,11 @@ export default function GarmentColourPanel({
             </div>
           ) : null}
 
-          {value.type === "custom_dye" ? <SelectedColourSummary value={value} /> : null}
-
-          <p className="rounded-sm border border-[#8A6212]/30 bg-[#FFFBF2] px-3 py-2.5 text-xs leading-relaxed text-[#6E4D08]">
-            Screen colours are previews only. Your final custom shade is approved through a physical lab dip before production.
-          </p>
+          {value.type === "custom_dye" ? (
+            <p className="rounded-sm border border-[#8A6212]/30 bg-[#FFFBF2] px-3 py-2.5 text-xs leading-relaxed text-[#6E4D08]">
+              Screen colours are previews only. Your final custom shade is approved through a physical lab dip before production.
+            </p>
+          ) : null}
 
           {pantoneColours ? (
             <CustomDyePantoneGrid
@@ -279,8 +266,8 @@ export default function GarmentColourPanel({
               {pantoneError ? <p className="sr-only" role="alert">{pantoneError}</p> : null}
             </div>
           )}
-        </section>
-      )}
+        </Tabs.Panel>
+      </Tabs.Root>
     </div>
   );
 }

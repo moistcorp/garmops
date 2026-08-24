@@ -32,14 +32,14 @@ export default function SignatureColourGrid({
             onClick={() => onSelect(colour)}
             aria-pressed={isActive}
             aria-label={`Select ${colour.name}`}
-            className={`group relative flex min-h-24 flex-col items-stretch gap-2 rounded-sm border p-2 text-left text-sm transition-[border-color,background-color,box-shadow,transform] duration-150 ease-out motion-safe:active:scale-[0.98] ${
+            className={`group relative flex min-h-24 flex-col items-stretch gap-2 rounded-sm border p-2 text-left text-sm transition-[border-color,background-color,box-shadow,transform] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-safe:active:scale-[0.98] ${
               isActive
                 ? "border-(--color-accent) bg-(--color-accent)/6 ring-2 ring-(--color-accent)/25"
                 : "techpack-control border hover:!border-(--color-accent)/35 hover:!bg-white/55"
             }`}
           >
             <span
-              className="h-12 w-full shrink-0 rounded-sm border border-(--color-rule)"
+              className="h-12 w-full shrink-0 rounded-sm border border-black/20 shadow-[inset_0_0_0_1px_rgba(22,33,43,0.08)]"
               style={{ backgroundColor: colour.hex }}
               aria-hidden="true"
             />
