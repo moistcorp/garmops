@@ -134,7 +134,7 @@ for (const garment of garmentFamilies) {
     );
     await expect(page.locator('[data-configurator-hydrated="true"]')).toBeAttached();
     if (garment.slug === "canvas-tote-bag") {
-      await expect(page.getByText("04 Bag Label", { exact: true })).toBeVisible();
+      await expect(page.getByRole("tab", { name: "Label" })).toBeVisible();
     }
 
     for (const colour of [

@@ -21,6 +21,7 @@ import GarmentPreview from "./GarmentPreview/GarmentPreview";
 import CanvasRenderer, {
   type GarmentRenderResult,
 } from "./GarmentPreview/CanvasRenderer";
+import { capturePdfPreview } from "./GarmentPreview/capturePdfPreview";
 import { getGarmentViewAssetWeights } from "./GarmentPreview/garmentAssets";
 import GarmopsLoadingScreen from "@/components/common/GarmopsLoadingScreen";
 import {
@@ -1506,7 +1507,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
 
   async function handleDownloadPdf() {
     setIsDownloadingPdf(true);
-    setFeedback({ tone: "loading", title: "Preparing product preview…", detail: "Your current configuration remains editable while the document is created." });
+    setFeedback({ tone: "loading", title: "Preparing design specification…", detail: "Capturing the front, back and neck previews from your current configuration." });
     try {
       const sizes = product?.sizes ?? ["XS", "S", "M", "L", "XL", "XXL"];
       const sizeQuantities = splitQuantityAcrossSizes(quantity, sizes);
@@ -1518,20 +1519,18 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
         quantity,
         requestedRush
       );
-      const garmentCanvas = document.querySelector<HTMLCanvasElement>(
-        '[data-configurator-pdf-preview="true"] canvas'
+      const previewEntries = await Promise.all(
+        (["front", "back", "neck"] as const).map(async (view) => [
+          view,
+          await capturePdfPreview(view),
+        ] as const),
       );
-      let previewDataUrl: string | undefined;
-      try {
-        previewDataUrl = garmentCanvas?.toDataURL("image/jpeg", 0.86);
-      } catch {
-        previewDataUrl = undefined;
-      }
-      setFeedback({ tone: "loading", title: "Adding commercial and production details…" });
+      const previewDataUrls = Object.fromEntries(previewEntries);
+      setFeedback({ tone: "loading", title: "Building your two-page design specification…" });
       const { generateApprovalPdf } = await import("@/lib/configurator/approvalPdf");
       await generateApprovalPdf({
         projectReference: configId,
-        documentTitle: "Merch Design Summary",
+        documentTitle: "Garmops Design Specification",
         items: [
           {
             id: configId,
@@ -1542,6 +1541,15 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
             neckLabel,
             sizeQuantities,
             unitPrice: pricing.discountedUnitPrice,
+            gsm: product.gsm,
+            material: product.material,
+            fit: product.fit,
+            isToteProduct,
+            previewLabels: {
+              front: "Front",
+              back: "Back",
+              neck: isToteProduct ? "Label" : "Neck",
+            },
           },
         ],
         totals: {
@@ -1550,10 +1558,10 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
           gst: pricing.gst,
           total: pricing.total,
         },
-        previewDataUrls: { [configId]: previewDataUrl },
+        previewDataUrls: { [configId]: previewDataUrls },
         filename: `Garmops-Design-${configId}.pdf`,
       });
-      setFeedback({ tone: "success", title: "Design PDF downloaded", detail: "The document is a dated snapshot of this configuration." });
+      setFeedback({ tone: "success", title: "Design specification downloaded", detail: "Front, back, neck, production details and the commercial estimate are included." });
     } catch {
       setFeedback({ tone: "error", title: "PDF generation failed", detail: "Your configuration is safe. Check your connection and try downloading again.", retryPdf: true });
     } finally {
@@ -1727,21 +1735,28 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
         <div
           data-configurator-pdf-preview="true"
           aria-hidden="true"
-          className="pointer-events-none fixed -left-[10000px] top-0 h-[640px] w-[480px] opacity-0"
+          className="pointer-events-none fixed -left-[10000px] top-0 opacity-0"
         >
-          <ArtworkPositionProvider activeView="front">
-            <CanvasRenderer
-              view="front"
-              colourHex={colour.hex}
-              productId={productId}
-            artwork={artwork}
-            neckLabel={neckLabel}
-            neckLabelPreviewUrl={neckLabelPreviewUrl}
-            interactive={false}
-              exclusiveLayerCache
-              className="h-full w-full bg-[#F7F7F7]"
-            />
-          </ArtworkPositionProvider>
+          {(["front", "back", "neck"] as const).map((view) => (
+            <div
+              key={view}
+              data-configurator-pdf-preview-view={view}
+              className={view === "neck" ? "h-[554px] w-[782px]" : "h-[600px] w-[600px]"}
+            >
+              <ArtworkPositionProvider activeView={view}>
+                <CanvasRenderer
+                  view={view}
+                  colourHex={colour.hex}
+                  productId={productId}
+                  artwork={artwork}
+                  neckLabel={neckLabel}
+                  neckLabelPreviewUrl={neckLabelPreviewUrl}
+                  interactive={false}
+                  className="h-full w-full bg-[#F4F6F8]"
+                />
+              </ArtworkPositionProvider>
+            </div>
+          ))}
         </div>
 
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-y-auto px-4 pb-20 lg:grid-cols-[minmax(0,1fr)_clamp(360px,34vw,420px)] lg:overflow-hidden lg:px-5 lg:pb-5 xl:grid-cols-[minmax(0,1fr)_440px]">

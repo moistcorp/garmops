@@ -86,6 +86,37 @@ test("product selection opens the workspace after every preview angle is ready",
   ).toBeVisible();
 });
 
+test("design PDF contains the themed two-page specification and all preview views", async ({ page }) => {
+  await page.route("**/garments/v*/**", fulfillGarmentAsset);
+  await page.goto(
+    "/configurator/build/regular-fit-tee-200gsm?draftId=e2e-design-pdf",
+    { waitUntil: "domcontentloaded" },
+  );
+
+  await expect(page.locator('[data-configurator-hydrated="true"]')).toBeAttached();
+  await expect(
+    page.locator(
+      '[data-configurator-pdf-preview-view] canvas[data-render-state="ready"][data-render-colour]',
+    ),
+  ).toHaveCount(3);
+
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download design PDF" }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe("Garmops-Design-regular-fit-tee-200gsm.pdf");
+
+  const stream = await download.createReadStream();
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) chunks.push(Buffer.from(chunk));
+  const document = Buffer.concat(chunks).toString("latin1");
+
+  expect(document).toContain("/Count 2");
+  expect(document).toContain("DESIGN SPECIFICATION / 01");
+  expect(document).toContain("PRODUCTION DETAILS / 02");
+  expect(document.match(/\/Subtype \/Image/g)?.length ?? 0).toBeGreaterThanOrEqual(3);
+  await expect(page.getByText("Design specification downloaded")).toBeVisible();
+});
+
 test("mobile opens preview-first and exposes the bottom controls", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.route("**/garments/v*/**", fulfillGarmentAsset);

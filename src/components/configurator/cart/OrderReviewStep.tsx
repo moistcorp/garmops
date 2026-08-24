@@ -309,15 +309,15 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
     setIsDownloadingPdf(true);
     setFeedback({ tone: 'loading', title: 'Preparing approval PDF…', detail: 'Adding previews, sizes, pricing and payment details.' });
     try {
-      const previewDataUrls: Record<string, string | undefined> = {};
+      const previewDataUrls: Record<string, { front?: string }> = {};
       items.forEach((item) => {
         const canvas = document.querySelector<HTMLCanvasElement>(
           `[data-approval-preview=\"${CSS.escape(item.id)}\"] canvas`
         );
         try {
-          previewDataUrls[item.id] = canvas?.toDataURL('image/jpeg', 0.86);
+          previewDataUrls[item.id] = { front: canvas?.toDataURL('image/jpeg', 0.86) };
         } catch {
-          previewDataUrls[item.id] = undefined;
+          previewDataUrls[item.id] = {};
         }
       });
       const { generateApprovalPdf } = await import('@/lib/configurator/approvalPdf');
@@ -349,6 +349,7 @@ export function OrderReviewStep({ cartId }: OrderReviewStepProps) {
             })
           : 'To be selected',
         previewDataUrls,
+        includeApprovalPage: true,
         filename: `Garmops-Approval-${cartId}.pdf`,
       });
       setFeedback({ tone: 'success', title: 'Approval PDF downloaded', detail: 'This dated version can be forwarded for internal approval.' });

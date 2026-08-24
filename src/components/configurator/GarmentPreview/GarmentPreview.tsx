@@ -94,7 +94,7 @@ export default function GarmentPreview({
                 className={
                   view === "neck"
                     ? getNeckPreviewCanvasClass(productId)
-                    : "aspect-square h-[min(68dvh,760px)] max-h-full max-w-full scale-110 rounded-sm"
+                    : "aspect-square h-[min(68dvh,760px)] max-h-full max-w-full scale-110 rounded-sm lg:h-[min(74dvh,840px)] lg:scale-[1.16]"
                 }
               />
             </div>
