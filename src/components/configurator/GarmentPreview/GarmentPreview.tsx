@@ -13,6 +13,7 @@ import { AlertTriangle, LoaderCircle } from "lucide-react";
 import CanvasRenderer from "./CanvasRenderer";
 import type { GarmentRenderResult } from "./CanvasRenderer";
 import ViewTabs from "./ViewTabs";
+import { CONFIGURATOR_PREVIEW_VIEWS } from "../configuratorLoadProgress";
 
 interface GarmentPreviewProps {
   activeView: GarmentView;
@@ -27,6 +28,7 @@ interface GarmentPreviewProps {
   exclusiveLayerCache?: boolean;
   onGarmentRenderProgress?: (result: GarmentRenderResult) => void;
   previewPending?: boolean;
+  loadAllViews?: boolean;
 }
 
 export const NECK_PREVIEW_CANVAS_CLASS =
@@ -54,6 +56,7 @@ export default function GarmentPreview({
   exclusiveLayerCache = false,
   onGarmentRenderProgress,
   previewPending = false,
+  loadAllViews = false,
 }: GarmentPreviewProps) {
   const activeArtwork = activeView === "front" ? artwork.front : activeView === "back" ? artwork.back : undefined;
   const quality = getArtworkQuality(activeArtwork);
@@ -66,24 +69,37 @@ export default function GarmentPreview({
   return (
     <div className="relative h-full w-full min-h-0">
       <div className="absolute inset-3 bg-(--color-studio-bg) sm:inset-4">
-        <div className="flex h-full w-full items-center justify-center">
-          <CanvasRenderer
-            view={activeView}
-            colourHex={colourHex}
-            productId={productId}
-            artwork={artwork}
-            neckLabel={neckLabel}
-            neckLabelPreviewUrl={neckLabelPreviewUrl}
-            showProductionGuides={showProductionGuides}
-            exclusiveLayerCache={exclusiveLayerCache}
-            onGarmentRenderProgress={onGarmentRenderProgress}
-            className={
-              activeView === "neck"
-                ? getNeckPreviewCanvasClass(productId)
-                : "aspect-square h-[min(68dvh,760px)] max-h-full max-w-full scale-110 rounded-sm"
-            }
-          />
-        </div>
+        {(loadAllViews ? CONFIGURATOR_PREVIEW_VIEWS : [activeView]).map((view) => {
+          const isActive = view === activeView;
+          return (
+            <div
+              key={view}
+              aria-hidden={!isActive}
+              inert={!isActive}
+              className={`absolute inset-0 flex items-center justify-center transition-opacity duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none ${
+                isActive ? "z-10 opacity-100" : "pointer-events-none z-0 opacity-0"
+              }`}
+            >
+              <CanvasRenderer
+                view={view}
+                colourHex={colourHex}
+                productId={productId}
+                artwork={artwork}
+                neckLabel={neckLabel}
+                neckLabelPreviewUrl={neckLabelPreviewUrl}
+                interactive={isActive}
+                showProductionGuides={isActive && showProductionGuides}
+                exclusiveLayerCache={exclusiveLayerCache}
+                onGarmentRenderProgress={onGarmentRenderProgress}
+                className={
+                  view === "neck"
+                    ? getNeckPreviewCanvasClass(productId)
+                    : "aspect-square h-[min(68dvh,760px)] max-h-full max-w-full scale-110 rounded-sm"
+                }
+              />
+            </div>
+          );
+        })}
       </div>
 
       {previewPending ? (

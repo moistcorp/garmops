@@ -5,18 +5,31 @@ import type { ProductId } from "@/lib/configurator/pricing";
 import type { GarmentView } from "@/lib/configurator/types/garment";
 import { garmentAssetPath, getGarmentFolder } from "./garmentAssets";
 
-export function useGarmentAssetPrefetch(productId: ProductId, view: GarmentView) {
+const GARMENT_VIEWS: readonly GarmentView[] = ["front", "back", "neck"];
+const GARMENT_LAYERS = ["mask", "texture", "shadow", "highlight"] as const;
+
+export function getInactiveGarmentViews(view: GarmentView): GarmentView[] {
+  return GARMENT_VIEWS.filter((candidate) => candidate !== view);
+}
+
+export function useGarmentAssetPrefetch(
+  productId: ProductId,
+  view: GarmentView,
+  enabled = true,
+) {
   useEffect(() => {
-    if (!getGarmentFolder(productId)) return;
-    const nextView: GarmentView = view === "front" ? "back" : view === "back" ? "neck" : "front";
+    if (!enabled || !getGarmentFolder(productId)) return;
     const images: HTMLImageElement[] = [];
     const prefetch = () => {
-      for (const layer of ["mask", "texture", "shadow", "highlight"]) {
-        const image = new Image();
-        image.crossOrigin = "anonymous";
-        image.decoding = "async";
-        image.src = garmentAssetPath(productId, nextView, layer);
-        images.push(image);
+      for (const inactiveView of getInactiveGarmentViews(view)) {
+        for (const layer of GARMENT_LAYERS) {
+          const image = new Image();
+          image.crossOrigin = "anonymous";
+          image.decoding = "async";
+          image.fetchPriority = "low";
+          image.src = garmentAssetPath(productId, inactiveView, layer);
+          images.push(image);
+        }
       }
     };
     const idle = typeof window.requestIdleCallback === "function"
@@ -27,5 +40,5 @@ export function useGarmentAssetPrefetch(productId: ProductId, view: GarmentView)
       else globalThis.clearTimeout(idle);
       for (const image of images) image.src = "";
     };
-  }, [productId, view]);
+  }, [enabled, productId, view]);
 }

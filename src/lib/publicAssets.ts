@@ -1,6 +1,6 @@
 const DEFAULT_ASSET_ORIGIN = "https://assets.garmops.com";
 
-export const PUBLIC_ASSET_VERSION = "v4";
+export const PUBLIC_ASSET_VERSION = "v5";
 
 function normalizeAssetOrigin(value: string | undefined): string {
   const candidate = value?.trim();

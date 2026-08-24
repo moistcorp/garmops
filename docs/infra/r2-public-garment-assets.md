@@ -6,8 +6,8 @@ Garmops garment renderer layers, sample SVGs, and product flatlays are public st
 
 - Bucket: `garmops-public-assets`
 - Custom domain: `https://assets.garmops.com`
-- Current immutable version: `v4`
-- Keys: `garments/v4/<existing-relative-path>` and `flatlays/v4/<existing-relative-path>`
+- Current immutable version: `v5`
+- Keys: `garments/v5/<existing-relative-path>` and `flatlays/v5/<existing-relative-path>`
 - CORS: anonymous `GET` and `HEAD` from `*`, with no credentials or write methods
 - Cache metadata: `public, max-age=31536000, immutable`
 - Alternate `r2.dev` public access: disabled
@@ -19,7 +19,7 @@ The existing `garmops-private-orders` bucket is a different system. Never connec
 
 ## Verification
 
-`scripts/garment-assets-r2-manifest.json` is the committed audit record for all 106 `v4` objects. It includes keys, sizes, full-file SHA-256 values, MIME types, dimensions, and renderer signal hashes where applicable.
+`scripts/garment-assets-r2-manifest.json` is the committed audit record for all 106 `v5` objects. It includes keys, sizes, full-file SHA-256 values, MIME types, dimensions, and renderer signal hashes where applicable. Version `v5` adds the new high-resolution oversized hoodie renderer set while preserving the verified `v4` bytes for every unchanged asset.
 
 Run the complete remote check with:
 
@@ -43,18 +43,18 @@ The verifier downloads every object through the configured custom domain and che
    ```bash
    GARMENT_ASSET_SOURCE_DIR="$PWD/asset-staging/garments" \
    FLATLAY_ASSET_SOURCE_DIR="$PWD/asset-staging/flatlays" \
-   ASSET_VERSION=v5 \
+   ASSET_VERSION=v6 \
    ASSET_ORIGIN=https://assets.garmops.com \
    R2_BUCKET_NAME=garmops-public-assets \
-   ASSET_MANIFEST_OUTPUT="$PWD/asset-staging/garment-assets-r2-manifest-v5.json" \
+   ASSET_MANIFEST_OUTPUT="$PWD/asset-staging/garment-assets-r2-manifest-v6.json" \
    node scripts/generate-r2-asset-manifest.mjs
    ```
 
-4. Upload every file under new `garments/v5/` and `flatlays/v5/` keys with its manifest MIME type and `Cache-Control: public, max-age=31536000, immutable`.
+4. Upload every file under new `garments/v6/` and `flatlays/v6/` keys with its manifest MIME type and `Cache-Control: public, max-age=31536000, immutable`.
 5. Download and verify every new object before changing application code. Do not use ETag as a SHA-256 substitute.
-6. Replace the committed manifest and change `PUBLIC_ASSET_VERSION` once in `src/lib/publicAssets.ts` from `v4` to `v5`.
+6. Replace the committed manifest and change `PUBLIC_ASSET_VERSION` once in `src/lib/publicAssets.ts` from `v5` to `v6`.
 7. Run unit, build, asset, and configurator Playwright checks, then deploy.
-8. Keep `v4` available for rollback. Delete an old version only as a separate, explicit cleanup after the new version is established.
+8. Keep `v5` available for rollback. Delete an old version only as a separate, explicit cleanup after the new version is established.
 
 Never overwrite an immutable version key. The repository contains no Cloudflare credentials; Wrangler or another S3-compatible upload tool must use ephemeral/authenticated local credentials.
 

@@ -20,6 +20,8 @@ export interface GarmentViewRenderConfig {
   insetPercent: number;
   /** Product-specific vertical calibration for the neck-label overlay. */
   neckLabelTopPercent?: Partial<Record<NeckLabelPosition, number>>;
+  /** Optional product-specific vertical calibration for standard-size labels. */
+  standardNeckLabelTopPercent?: Partial<Record<NeckLabelPosition, number>>;
   /** Another product's authentic asset set used while this view is unavailable. */
   assetFolder?: GarmentFolder;
 }
@@ -51,12 +53,13 @@ const GARMENT_RENDER_CONFIG: Record<GarmentFolder, GarmentRenderConfig> = {
   "regular-fit-tee": {
     front: photographic(1),
     back: photographic(1),
-    // The Classic T-Shirt neck tape ends at the default overlay origin.
-    // Move only its below-tape label down by the simulated 5 mm gap.
+    // Classic and Premium Classic share this calibration. Keep the on-tape
+    // placement two percentage points below the generic neck-label default.
     neck: {
       ...photographic(2),
       neckLabelTopPercent: {
         below_neck_tape: 36.5,
+        on_neck_tape: 35,
       },
     },
   },
@@ -81,8 +84,8 @@ const GARMENT_RENDER_CONFIG: Record<GarmentFolder, GarmentRenderConfig> = {
     neck: {
       ...photographic(2),
       neckLabelTopPercent: {
-        below_neck_tape: 37,
-        on_neck_tape: 35,
+        below_neck_tape: 39,
+        on_neck_tape: 36,
       },
     },
   },
@@ -107,7 +110,7 @@ const GARMENT_RENDER_CONFIG: Record<GarmentFolder, GarmentRenderConfig> = {
     neck: {
       ...photographic(2),
       neckLabelTopPercent: {
-        below_neck_tape: 22,
+        below_neck_tape: 24,
         on_neck_tape: 20,
       },
     },
@@ -120,19 +123,27 @@ const GARMENT_RENDER_CONFIG: Record<GarmentFolder, GarmentRenderConfig> = {
     neck: {
       ...photographic(2),
       neckLabelTopPercent: {
-        below_neck_tape: 35,
-        on_neck_tape: 33,
+        below_neck_tape: 40,
+        on_neck_tape: 36,
       },
     },
   },
   "boxy-fit-hoodie": {
+    // The v5 oversized-hoodie front/back layers use the same 7817×5542
+    // photographic artboard and vertical silhouette bounds as the regular
+    // hoodie. Keep the proven hoodie framing so it occupies the same preview
+    // height as the Classic T-Shirt instead of rendering at source-artboard size.
     front: photographic(-30.5),
     back: photographic(-26),
     neck: {
       ...photographic(2),
       neckLabelTopPercent: {
-        below_neck_tape: 35,
+        below_neck_tape: 39,
         on_neck_tape: 33,
+      },
+      standardNeckLabelTopPercent: {
+        below_neck_tape: 36,
+        on_neck_tape: 39,
       },
     },
   },

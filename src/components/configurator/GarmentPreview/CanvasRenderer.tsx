@@ -98,6 +98,7 @@ interface CanvasRendererProps {
   style?: CSSProperties;
   showProductionGuides?: boolean;
   exclusiveLayerCache?: boolean;
+  prefetchInactiveViews?: boolean;
   onGarmentRenderProgress?: (result: GarmentRenderResult) => void;
 }
 
@@ -319,6 +320,7 @@ export default function CanvasRenderer({
   style,
   showProductionGuides = true,
   exclusiveLayerCache = false,
+  prefetchInactiveViews = false,
   onGarmentRenderProgress,
 }: CanvasRendererProps) {
   const { positions, updatePosition } = useArtworkPosition();
@@ -331,7 +333,7 @@ export default function CanvasRenderer({
   const garmentFolder = getGarmentFolder(productId);
   const garmentRenderConfig = getGarmentRenderConfig(productId, view);
   const isToteProduct = productId.includes("tote");
-  useGarmentAssetPrefetch(productId, view);
+  useGarmentAssetPrefetch(productId, view, prefetchInactiveViews);
 
   const handleGarmentRenderProgress = useCallback(
     (progress: GarmentCompositeRenderProgress) => {
@@ -377,7 +379,11 @@ export default function CanvasRenderer({
     const labelWidthPx = widthMm * scale;
     const labelHeightPx = heightMm * scale;
     const defaultLabelTopPercent = (isToteProduct ? TOTE_LABEL_TOP_PERCENT : NECK_LABEL_TOP_PERCENT)[view][neckLabel.position];
-    const labelTopPercent = garmentRenderConfig.neckLabelTopPercent?.[neckLabel.position] ?? defaultLabelTopPercent;
+    const labelTopPercent = standard
+      ? garmentRenderConfig.standardNeckLabelTopPercent?.[neckLabel.position]
+        ?? garmentRenderConfig.neckLabelTopPercent?.[neckLabel.position]
+        ?? defaultLabelTopPercent
+      : garmentRenderConfig.neckLabelTopPercent?.[neckLabel.position] ?? defaultLabelTopPercent;
     neckLabelBoxStyle = {
       left: "50%",
       top: `${labelTopPercent}%`,

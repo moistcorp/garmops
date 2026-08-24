@@ -21,7 +21,7 @@ describe("configurator sample asset route", () => {
     expect(response.headers.get("content-type")).toBe("image/svg+xml");
     expect(await response.text()).toBe("<svg></svg>");
     expect(fetchMock).toHaveBeenCalledWith(
-      "https://assets.garmops.com/garments/v4/artwork-sample.svg",
+      "https://assets.garmops.com/garments/v5/artwork-sample.svg",
       { cache: "force-cache" },
     );
   });

@@ -1,6 +1,14 @@
 import { expect, test } from "@playwright/test";
 
-test("product selection opens the workspace while the preview finishes rendering", async ({ page }) => {
+test("product selection opens the workspace after every preview angle is ready", async ({ page }) => {
+  const requestedGarmentViews = new Set<string>();
+  page.on("request", (request) => {
+    const view = new URL(request.url()).pathname.match(
+      /\/garments\/v[^/]+\/[^/]+\/(front|back|neck)\//,
+    )?.[1];
+    if (view) requestedGarmentViews.add(view);
+  });
+
   await page.route("**/api/medusa/store/garmops/catalog", async (route) => {
     await route.fulfill({
       contentType: "application/json",
@@ -16,7 +24,7 @@ test("product selection opens the workspace while the preview finishes rendering
   const garmentAssetsReleased = new Promise<void>((resolve) => {
     releaseGarmentAssets = resolve;
   });
-  await page.route("**/garments/v1/**", async (route) => {
+  await page.route("**/garments/v*/**", async (route) => {
     await garmentAssetsReleased;
     await route.continue();
   });
@@ -28,17 +36,35 @@ test("product selection opens the workspace while the preview finishes rendering
   const loader = page.getByRole("status", {
     name: "Preparing your Garmops workspace",
   });
-  await expect(loader).toHaveCount(0);
+  await expect(loader).toBeVisible();
   await expect(page.locator('[data-configurator-ready="false"]')).toBeAttached();
-  await expect(page.getByText("Updating garment preview…")).toBeVisible();
   await expect(page.getByLabel("Active customisation controls")).toBeAttached();
+
+  await expect.poll(() => [...requestedGarmentViews].sort()).toEqual([
+    "back",
+    "front",
+    "neck",
+  ]);
 
   releaseGarmentAssets();
 
   await expect(page.locator('[data-configurator-ready="true"]')).toBeAttached();
+  await expect(loader).toHaveCount(0);
   await expect(page.getByText("Updating garment preview…")).toHaveCount(0);
   await expect(
     page.getByRole("main").getByLabel(/front garment preview/i),
+  ).toBeVisible();
+
+  await page.getByRole("tab", { name: "Neck" }).click();
+  await expect(page.getByText("Updating garment preview…")).toHaveCount(0);
+  await expect(
+    page.getByRole("main").getByLabel(/neck garment preview/i),
+  ).toBeVisible();
+
+  await page.getByRole("tab", { name: "Back" }).click();
+  await expect(page.getByText("Updating garment preview…")).toHaveCount(0);
+  await expect(
+    page.getByRole("main").getByLabel(/back garment preview/i),
   ).toBeVisible();
 });
 

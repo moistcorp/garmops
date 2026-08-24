@@ -6,12 +6,17 @@ interface GarmopsLoadingScreenProps {
   progress?: number;
   statusText?: string;
   description?: string;
+  stages?: readonly {
+    label: string;
+    state: "queued" | "loading" | "complete" | "error";
+  }[];
 }
 
 export default function GarmopsLoadingScreen({
   progress,
   statusText = "Preparing workspace…",
   description = "Loading product specifications, orders and production details.",
+  stages,
 }: GarmopsLoadingScreenProps = {}) {
   const normalizedProgress = typeof progress === "number"
     ? Math.min(100, Math.max(0, Math.round(progress)))
@@ -84,11 +89,15 @@ export default function GarmopsLoadingScreen({
             <p className="garmops-loader-title">Preparing your workspace</p>
             <p>{description}</p>
           </div>
-          <ol className="garmops-loader-steps" aria-hidden="true">
-            {productionSteps.map((step, index) => (
-              <li key={step} style={{ "--loader-step": index } as React.CSSProperties}>
+          <ol className="garmops-loader-steps" aria-label="Loading stages">
+            {(stages ?? productionSteps.map((label) => ({ label, state: "loading" as const }))).map((stage, index) => (
+              <li
+                key={stage.label}
+                data-state={stage.state}
+                style={{ "--loader-step": index } as React.CSSProperties}
+              >
                 <span>{String(index + 1).padStart(2, "0")}</span>
-                {step}
+                {stage.label}
               </li>
             ))}
           </ol>

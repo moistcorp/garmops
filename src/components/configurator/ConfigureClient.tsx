@@ -101,6 +101,11 @@ import {
   parseConfiguratorAuthResume,
   type ConfiguratorAuthResumeIntent,
 } from "@/lib/configurator/authResume";
+import {
+  CONFIGURATOR_PREVIEW_VIEWS,
+  getConfiguratorLoadState,
+  type PreviewLoadProgressByView,
+} from "./configuratorLoadProgress";
 
 interface FeedbackState {
   tone: ActionFeedbackTone;
@@ -142,22 +147,6 @@ function safeQuantity(value: unknown, minimum = 50): number {
   return Number.isFinite(parsed)
     ? Math.min(MAX_CONFIGURATION_QUANTITY, Math.max(minimum, Math.floor(parsed)))
     : minimum;
-}
-
-function garmentRenderKey({
-  productId,
-  view,
-  colourHex,
-}: Pick<GarmentRenderResult, "productId" | "view" | "colourHex">): string {
-  return `${productId}:${view}:${colourHex}`;
-}
-
-function garmentRenderProgressPoints(result: GarmentRenderResult): number {
-  if (result.state === "ready" || result.state === "error") return 60;
-  const layerProgress = result.totalLayers > 0
-    ? (result.loadedLayers / result.totalLayers) * 48
-    : 0;
-  return Math.round(layerProgress + (result.state === "compositing" ? 7 : 0));
 }
 
 function artworkSummary(artwork: Artwork): string | null {
@@ -307,8 +296,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   const [draftRestored, setDraftRestored] = useState(false);
   const [hydrationComplete, setHydrationComplete] = useState(false);
   const [previewRenderProgress, setPreviewRenderProgress] =
-    useState<GarmentRenderResult | null>(null);
-  const [previewLoadPoints, setPreviewLoadPoints] = useState(0);
+    useState<Partial<Record<GarmentView, GarmentRenderResult>>>({});
   const [configuratorOpened, setConfiguratorOpened] = useState(false);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [feedback, setFeedback] = useState<FeedbackState | null>(() =>
@@ -367,53 +355,44 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   });
   const customDyeQuantityShortfall =
     colour.type === "custom_dye" && quantity < minimumQuantity;
-  const activePreviewKey = garmentRenderKey({
-    productId,
-    view: activeView,
-    colourHex: colour.hex,
-  });
-
   const handleGarmentRenderProgress = useCallback(
     (result: GarmentRenderResult) => {
-      setPreviewRenderProgress(result);
-      setPreviewLoadPoints((current) =>
-        Math.max(current, garmentRenderProgressPoints(result))
-      );
+      setPreviewRenderProgress((current) => ({
+        ...current,
+        [result.view]: result,
+      }));
     },
     [],
   );
-  const activePreviewProgress = previewRenderProgress &&
-    garmentRenderKey(previewRenderProgress) === activePreviewKey
-      ? previewRenderProgress
-      : null;
-  const activePreviewSettled = activePreviewProgress?.state === "ready" ||
-    activePreviewProgress?.state === "error";
-  const configuratorLoadProgress = Math.min(
-    100,
-    10 + (hydrationComplete ? 30 : 0) + previewLoadPoints,
+  const currentPreviewProgress = Object.fromEntries(
+    CONFIGURATOR_PREVIEW_VIEWS.flatMap((view) => {
+      const progress = previewRenderProgress[view];
+      return progress?.productId === productId && progress.colourHex === colour.hex
+        ? [[view, progress]]
+        : [];
+    }),
+  ) as PreviewLoadProgressByView;
+  const configuratorLoadState = getConfiguratorLoadState(
+    hydrationComplete,
+    currentPreviewProgress,
   );
-  const configuratorLoadingStatus = activePreviewProgress?.state === "compositing"
-    ? "Rendering garment preview…"
-    : activePreviewProgress?.state === "loading"
-      ? `Loading preview layers ${activePreviewProgress.loadedLayers}/${activePreviewProgress.totalLayers}…`
-      : !hydrationComplete
-        ? "Restoring workspace details…"
-        : activePreviewSettled
-          ? "Final checks complete"
-          : "Starting garment preview…";
 
   useEffect(() => {
     if (
       configuratorOpened ||
       !hydrationComplete ||
-      !activePreviewSettled
+      !configuratorLoadState.allPreviewsSettled
     ) return;
 
     const frame = window.requestAnimationFrame(() => {
       setConfiguratorOpened(true);
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [activePreviewSettled, configuratorOpened, hydrationComplete]);
+  }, [
+    configuratorLoadState.allPreviewsSettled,
+    configuratorOpened,
+    hydrationComplete,
+  ]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1552,12 +1531,13 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
 
   return (
     <ArtworkPositionProvider activeView={activeView}>
-      {!hydrationComplete ? (
+      {!configuratorOpened ? (
         <div className="fixed inset-0 z-[100] overflow-y-auto bg-(--color-cream)">
           <GarmopsLoadingScreen
-            progress={configuratorLoadProgress}
-            statusText={configuratorLoadingStatus}
-            description="Restoring your saved selections. The workspace will open while the garment preview finishes loading."
+            progress={configuratorLoadState.progress}
+            statusText={configuratorLoadState.statusText}
+            stages={configuratorLoadState.stages}
+            description="Restoring your selections and preparing this product’s front, back and neck previews before the workspace opens."
           />
         </div>
       ) : null}
@@ -1565,8 +1545,8 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
         className="techpack-studio-bg flex h-dvh min-h-0 flex-col overflow-hidden text-(--text-primary)"
         data-configurator-hydrated={hydrationComplete ? "true" : "false"}
         data-configurator-ready={configuratorOpened ? "true" : "false"}
-        aria-hidden={!hydrationComplete}
-        inert={!hydrationComplete}
+        aria-hidden={!configuratorOpened}
+        inert={!configuratorOpened}
       >
         <ConfiguratorTopBar
           currentStep={JOURNEY_STEP_FOR_CUSTOMISATION[activeCustomisationStepId]}
@@ -1718,7 +1698,8 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
                 showProductionGuides={activeCustomisationStepId === "artwork"}
                 exclusiveLayerCache
                 onGarmentRenderProgress={handleGarmentRenderProgress}
-                previewPending={!activePreviewSettled}
+                previewPending={!configuratorOpened}
+                loadAllViews={hydrationComplete}
               />
             </div>
 

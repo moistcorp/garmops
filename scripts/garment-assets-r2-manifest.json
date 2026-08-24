@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "assetVersion": "v4",
+  "assetVersion": "v5",
   "assetOrigin": "https://assets.garmops.com",
   "bucket": "garmops-public-assets",
   "cacheControl": "public, max-age=31536000, immutable",
   "objects": [
     {
-      "key": "flatlays/v4/boxyhoodie.webp",
+      "key": "flatlays/v5/boxyhoodie.webp",
       "bytes": 60468,
       "sha256": "414f773ee738346ea0513e8aa9f942c28042fee453797b34a84b990e92608cbb",
       "contentType": "image/webp",
@@ -14,7 +14,7 @@
       "height": 2750
     },
     {
-      "key": "flatlays/v4/boxytee.webp",
+      "key": "flatlays/v5/boxytee.webp",
       "bytes": 44556,
       "sha256": "b785b73904b3c20d2a634018190711c6dede1e82433ef6530fc500e4727c7ad7",
       "contentType": "image/webp",
@@ -22,7 +22,7 @@
       "height": 2750
     },
     {
-      "key": "flatlays/v4/longsleeve.png",
+      "key": "flatlays/v5/longsleeve.png",
       "bytes": 2023585,
       "sha256": "87180b5898c15dc8ec072abfb12a2d294ead0ea157432eda3044438bfd7160e1",
       "contentType": "image/png",
@@ -30,7 +30,7 @@
       "height": 2750
     },
     {
-      "key": "flatlays/v4/polo.webp",
+      "key": "flatlays/v5/polo.webp",
       "bytes": 31630,
       "sha256": "b761d5cfaced3f220e7ed54705c6599e122b4041cb8955efa16763c29cc091ce",
       "contentType": "image/webp",
@@ -38,7 +38,7 @@
       "height": 2750
     },
     {
-      "key": "flatlays/v4/regularhoodie.webp",
+      "key": "flatlays/v5/regularhoodie.webp",
       "bytes": 62738,
       "sha256": "46e2c68e6f4509b8cba46110de28b0c4997df4d18c42855a6f98b20f14fba887",
       "contentType": "image/webp",
@@ -46,7 +46,7 @@
       "height": 2750
     },
     {
-      "key": "flatlays/v4/regulartee.png",
+      "key": "flatlays/v5/regulartee.png",
       "bytes": 1695091,
       "sha256": "c2ceba5fce5dd50aa7c78b01282933c72864a640c0652ae8990086599156e414",
       "contentType": "image/png",
@@ -54,7 +54,7 @@
       "height": 2750
     },
     {
-      "key": "flatlays/v4/sweatshirt.png",
+      "key": "flatlays/v5/sweatshirt.png",
       "bytes": 1448686,
       "sha256": "aabf8571dcbc8fa61e283fccbe084a852b301f36a2b2bc4d59b713abd9d2c5f8",
       "contentType": "image/png",
@@ -62,7 +62,7 @@
       "height": 2750
     },
     {
-      "key": "flatlays/v4/totebag.webp",
+      "key": "flatlays/v5/totebag.webp",
       "bytes": 165712,
       "sha256": "8c7a70f6728152ccf50989995d42e8fca7030011b9ab13daf5324156c9f0d146",
       "contentType": "image/webp",
@@ -70,7 +70,7 @@
       "height": 4906
     },
     {
-      "key": "garments/v4/artwork-sample.svg",
+      "key": "garments/v5/artwork-sample.svg",
       "bytes": 7269,
       "sha256": "9c67b71fbb92f3aade5685641296487e32f83f4ab0b7f8ec1f54393dd36af7f4",
       "contentType": "image/svg+xml",
@@ -78,695 +78,87 @@
       "height": 114
     },
     {
-      "key": "garments/v4/boxy-fit-hoodie/back/highlight.webp",
-      "bytes": 435832,
-      "sha256": "85a46375fdc89b18e2e448a52b4de448b8fb15cc6cc343c99d2a9842cedac5c3",
-      "contentType": "image/webp",
-      "width": 1670,
-      "height": 1494,
-      "signalKind": "detail",
-      "signalSha256": "7192f141049b072d9d7c1c95d21ec1a8b5a9682b1750d248a8e3c54579a83090"
-    },
-    {
-      "key": "garments/v4/boxy-fit-hoodie/back/mask.png",
-      "bytes": 54208,
-      "sha256": "04a3202e4bf21779fd8595d63b4c8a53e5316a8bd1402465759faba68d0f4743",
-      "contentType": "image/png",
-      "width": 1670,
-      "height": 1494,
-      "signalKind": "mask",
-      "signalSha256": "35457a6549b033d799194a58d4f577030177cdf2afbb14a866306b4f319fd2cf"
-    },
-    {
-      "key": "garments/v4/boxy-fit-hoodie/back/shadow.webp",
-      "bytes": 79956,
-      "sha256": "dc84b92456d9018ccc0a23bcac222cd64ec3650e965b9575c1b07d17e5d157bb",
-      "contentType": "image/webp",
-      "width": 1670,
-      "height": 1494,
-      "signalKind": "detail",
-      "signalSha256": "a375d3f006cdec4441dbd4b71c85988f3499a6779e84c34028512f56e86d06c8"
-    },
-    {
-      "key": "garments/v4/boxy-fit-hoodie/back/texture.webp",
-      "bytes": 516056,
-      "sha256": "11ac3cb839bdc3fb289fd87773d60b52deaf9b27a7b1e53249b62c39f585d786",
-      "contentType": "image/webp",
-      "width": 1670,
-      "height": 1494,
-      "signalKind": "detail",
-      "signalSha256": "a974fc0f689b69bd91ab614cfc3c9d73785b5708a35924c3483218b1ab77c5e7"
-    },
-    {
-      "key": "garments/v4/boxy-fit-hoodie/front/highlight.webp",
-      "bytes": 455802,
-      "sha256": "da2d635cd737d42a46228381542176b965d0c17188a8f952e3badab3f27743fc",
-      "contentType": "image/webp",
-      "width": 1670,
-      "height": 1494,
-      "signalKind": "detail",
-      "signalSha256": "73cb41a590e3aeb9902af6c761afdfc13cd41c26910ae4e5bf13296efbdda6d8"
-    },
-    {
-      "key": "garments/v4/boxy-fit-hoodie/front/mask.png",
-      "bytes": 52445,
-      "sha256": "f2deff034c336156c6830826ab5776f6085453c12cfa65e64970da71e1f9eaa4",
-      "contentType": "image/png",
-      "width": 1670,
-      "height": 1494,
-      "signalKind": "mask",
-      "signalSha256": "0e82b766a2726fbe27fc8a09a03c258ca7fc1cb49807820ed9f4cacad2311a16"
-    },
-    {
-      "key": "garments/v4/boxy-fit-hoodie/front/shadow.webp",
-      "bytes": 89940,
-      "sha256": "383238e4a77e8dfa013e40e20e598c7aaca46fb9b838837179ecae9d2ef105f1",
-      "contentType": "image/webp",
-      "width": 1670,
-      "height": 1494,
-      "signalKind": "detail",
-      "signalSha256": "376ed4a3dfd383b8ef9a045623ed2d938bca8117c832d46be828f1ba0a0fbff8"
-    },
-    {
-      "key": "garments/v4/boxy-fit-hoodie/front/texture.webp",
-      "bytes": 487128,
-      "sha256": "6d171c6d103489f87fb4b86b52950d53385043f1a6148ea9c28c612f8ae6c3d7",
-      "contentType": "image/webp",
-      "width": 1670,
-      "height": 1494,
-      "signalKind": "detail",
-      "signalSha256": "cddb300acab48c45090b15f4508c295e3f61a503a7c0548e626c91ef3464988b"
-    },
-    {
-      "key": "garments/v4/boxy-fit-hoodie/neck/highlight.webp",
-      "bytes": 881090,
-      "sha256": "9f854583d2abbf36889bad972e88bae1f6fef723d4c46eeb6238c350e1d8b290",
-      "contentType": "image/webp",
-      "width": 1670,
-      "height": 1494,
-      "signalKind": "detail",
-      "signalSha256": "2b2b19b1751ad538f0e8c82ca7d1043b90e243f240baa27a51921410d4a660fb"
-    },
-    {
-      "key": "garments/v4/boxy-fit-hoodie/neck/mask.png",
-      "bytes": 15808,
-      "sha256": "7765a54456c91d39b76eb40899f7b168e8a78858e82f4a5b4e123a32b55e78db",
-      "contentType": "image/png",
-      "width": 1670,
-      "height": 1494,
-      "signalKind": "mask",
-      "signalSha256": "fefbf9b5e4a9f4152dc8a9be70c058242aa44ac3287c398afb9e4a2722c72049"
-    },
-    {
-      "key": "garments/v4/boxy-fit-hoodie/neck/shadow.webp",
-      "bytes": 113262,
-      "sha256": "40252958d5aabf89b2a16d90c655e52509852ed915e8df7e15daeadb5b396ff0",
-      "contentType": "image/webp",
-      "width": 1670,
-      "height": 1494,
-      "signalKind": "detail",
-      "signalSha256": "05c33ddb0bd61c379069f53ccc1be85bf6553131131c38d3b4cadcd30304912d"
-    },
-    {
-      "key": "garments/v4/boxy-fit-hoodie/neck/texture.webp",
-      "bytes": 860244,
-      "sha256": "bb133c067aafb56775e273989a985bee6fff3f0a817d6e11b42838263962e5f5",
-      "contentType": "image/webp",
-      "width": 1670,
-      "height": 1494,
-      "signalKind": "detail",
-      "signalSha256": "475078e590786c3b75ad8002a13fdc0a65da55931322a8e6e15fc1106227516d"
-    },
-    {
-      "key": "garments/v4/boxy-fit-tee/back/highlight.webp",
-      "bytes": 2809656,
-      "sha256": "6a9613aedb9648a74466f1e85bad94149b9f31b165b351795ce2cc6c54f79bad",
+      "key": "garments/v5/boxy-fit-hoodie/back/highlight.webp",
+      "bytes": 2059766,
+      "sha256": "3e9e47a4363dfb677d09451277d376b7c28cd3ee4986ecc2942d141f5e6c00b0",
       "contentType": "image/webp",
       "width": 7817,
       "height": 5542,
       "signalKind": "detail",
-      "signalSha256": "d2dddb1a570944d630ac524b032f7ac95d040a69a72a6a3a442a89e353d86e39"
+      "signalSha256": "32a196c2a32c84821d047a4bd5fd898a3f21390b9c67d2dc385da9ec8350005c"
     },
     {
-      "key": "garments/v4/boxy-fit-tee/back/mask.png",
-      "bytes": 194032,
-      "sha256": "72b2d951c968824e51702003738935b3ef0d2a9d4c10c2105dbe1951a817d602",
+      "key": "garments/v5/boxy-fit-hoodie/back/mask.png",
+      "bytes": 193149,
+      "sha256": "ee6107b83df041971d0662dd8b3baf1788a8d1aedbb723eb1784e28d5d54a861",
       "contentType": "image/png",
       "width": 7817,
       "height": 5542,
       "signalKind": "mask",
-      "signalSha256": "50765f5a9b053293934b23eb836b6917ce4e0c89097f56d0d3694ccbae12d506"
+      "signalSha256": "4d319c25edfd9abf5f6603b02f8804001edd0b2b40579906c453191ae02ff596"
     },
     {
-      "key": "garments/v4/boxy-fit-tee/back/shadow.webp",
-      "bytes": 2360310,
-      "sha256": "6ad5bc02a9778bea44ac7e7b3a3b1c3041505f66551b88ebad6e549208b698f8",
+      "key": "garments/v5/boxy-fit-hoodie/back/shadow.webp",
+      "bytes": 1728290,
+      "sha256": "ab00cd7a318e14cde6a0ac764acec2493fcd0be0fb66e218658eff04c60ce0da",
       "contentType": "image/webp",
       "width": 7817,
       "height": 5542,
       "signalKind": "detail",
-      "signalSha256": "cac539867bdfb098b5c0ea2dceb303dc30742d323b381c167657a551001d1e42"
+      "signalSha256": "a7137cf3d739128bc4da4d2db1a5f049f3f4682d4795f361a0625a82d8846a41"
     },
     {
-      "key": "garments/v4/boxy-fit-tee/back/texture.webp",
-      "bytes": 2010374,
-      "sha256": "0529dd755c4fa730a9f5d3b87fb0892575c0a2e66c7a294d947d3a29093b009c",
+      "key": "garments/v5/boxy-fit-hoodie/back/texture.webp",
+      "bytes": 1801408,
+      "sha256": "9d471b7abc7c0ecc5b33b495c33a9bfa26a172a9b6cf3b979b75f02931748f58",
       "contentType": "image/webp",
       "width": 7817,
       "height": 5542,
       "signalKind": "detail",
-      "signalSha256": "c861ec8f07ead6409f09aa355f530c9af8a843029cec8c9e045d6b44b75fe0bc"
+      "signalSha256": "d23438ebc4ae65bff5116f181fd2d44f080450405033275864959082b2209606"
     },
     {
-      "key": "garments/v4/boxy-fit-tee/front/highlight.webp",
-      "bytes": 3841810,
-      "sha256": "2a12bf676c540a6871d4e47e96f1765fd9c4081b52d6baf7568685a9c2acc3a4",
+      "key": "garments/v5/boxy-fit-hoodie/front/highlight.webp",
+      "bytes": 2640360,
+      "sha256": "7031c782d48d50f5eda991f71a5184b26ff3000e08c443003644dc0bf2b5a5d1",
       "contentType": "image/webp",
       "width": 7817,
       "height": 5542,
       "signalKind": "detail",
-      "signalSha256": "2ec601dc117db6e3e9691b18e48b20f7f96c14c9b5624b85573e81ba68ceecc4"
+      "signalSha256": "887ce94a4493160f47db081ebd0d10934768ed18eb3b7b9556188d0d0625c0fa"
     },
     {
-      "key": "garments/v4/boxy-fit-tee/front/mask.png",
-      "bytes": 193485,
-      "sha256": "3789525639520a62890e4c62a703c89f1be51e6f2955fc8c6847d1701f0ce973",
+      "key": "garments/v5/boxy-fit-hoodie/front/mask.png",
+      "bytes": 194715,
+      "sha256": "bbd6eb92c09c6242f33cdd096415a238b442840b719434dc22b9dea0b6232e63",
       "contentType": "image/png",
       "width": 7817,
       "height": 5542,
       "signalKind": "mask",
-      "signalSha256": "eda7132ff6f62423e57c51092aca229d1b0f454840fc275961812d1514be94d9"
+      "signalSha256": "da5bc2ab1b6538979e3338a6601124d3156bedaf8c1d0f25e4a5f5866165d995"
     },
     {
-      "key": "garments/v4/boxy-fit-tee/front/shadow.webp",
-      "bytes": 2947544,
-      "sha256": "ba89c6afb2d34fd3b1378594d31d47bf71941316eef4f083eeef3895a9168bb0",
+      "key": "garments/v5/boxy-fit-hoodie/front/shadow.webp",
+      "bytes": 2040144,
+      "sha256": "30a90e65c26729f77a765e0f9645a55ad0258ed211dc5021a5886064014b7d1b",
       "contentType": "image/webp",
       "width": 7817,
       "height": 5542,
       "signalKind": "detail",
-      "signalSha256": "f28f3e6633bb3e1c4720dc2f9d902bc165649cb2062c81c0d318f48f046a7574"
+      "signalSha256": "273c0fe8ee13a945da0bd44ac76e3d0c2826594db79b23b57c356b74918c236c"
     },
     {
-      "key": "garments/v4/boxy-fit-tee/front/texture.webp",
-      "bytes": 3382030,
-      "sha256": "57ca552247310d7ded32526f1b45b9ca2817ad3ba6292d1e5753af34793d44ea",
+      "key": "garments/v5/boxy-fit-hoodie/front/texture.webp",
+      "bytes": 2177480,
+      "sha256": "e26482ae703e6b87b48d12fec935f14a0bffd42ee78120dbe619f9e01378f24a",
       "contentType": "image/webp",
       "width": 7817,
       "height": 5542,
       "signalKind": "detail",
-      "signalSha256": "074c01669656ca6e5f5bd89da253cb69941da1e77be45a5ca5a06413debae8aa"
+      "signalSha256": "166c61282ffcc7547f9c7c8b9bd9e4afcabc12d763e689c910144ee9611163c0"
     },
     {
-      "key": "garments/v4/boxy-fit-tee/neck/highlight.webp",
-      "bytes": 5493246,
-      "sha256": "d43b173f61565198ca4151435474f6750fb46229e491a905ea146d39a6223d45",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "48a62d051c64ca290286b0d7fdd4a0281864a8f834b583f80c81ec43024d5bbc"
-    },
-    {
-      "key": "garments/v4/boxy-fit-tee/neck/mask.png",
-      "bytes": 185826,
-      "sha256": "00bf42b4e346886293175b34c20642d84831a56180d162aba4a04c58e6b99057",
-      "contentType": "image/png",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "mask",
-      "signalSha256": "2bc04e99b9904b8eba176ba094e115fb47841fd4051a55f6c51ce9d329371e6c"
-    },
-    {
-      "key": "garments/v4/boxy-fit-tee/neck/shadow.webp",
-      "bytes": 4266412,
-      "sha256": "19993348cc922251468aa3ea9ca7d4ad6b11a322a8102edd8a02c3e1d0bf432b",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "d5d53d338e0a42c61d5ef46d63f56c123d72a0160c09b1e53b6dcf1675231924"
-    },
-    {
-      "key": "garments/v4/boxy-fit-tee/neck/texture.webp",
-      "bytes": 2376552,
-      "sha256": "557c32dff281d87a4429c67aee1c8280dd57a55462eeec5533481525c1d52509",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "f6b6fc7334ec6393bd0716c870d42766dff14e45d9328d2cbab6fc21217fd681"
-    },
-    {
-      "key": "garments/v4/canvas-tote-bag/back/highlight.webp",
-      "bytes": 2316078,
-      "sha256": "0fc0fcecf23ff4904fbfaf1282ba24f784375fc4f9ca5344157bc60832866b76",
-      "contentType": "image/webp",
-      "width": 5280,
-      "height": 4736,
-      "signalKind": "detail",
-      "signalSha256": "845e589436852583a98b85752d0a08b2899a464f3491634588ae2e0551d1a1d5"
-    },
-    {
-      "key": "garments/v4/canvas-tote-bag/back/mask.png",
-      "bytes": 109895,
-      "sha256": "d0a492f861d8775641ce9b3cea46fab23648e96d0a027115ebf849e399094387",
-      "contentType": "image/png",
-      "width": 5280,
-      "height": 4736,
-      "signalKind": "mask",
-      "signalSha256": "85d32ab543c350368f6eba73bdc63c21ac530db8de40e5156fa5d9087cdd2a32"
-    },
-    {
-      "key": "garments/v4/canvas-tote-bag/back/shadow.webp",
-      "bytes": 2019034,
-      "sha256": "c6e34e602479e937505a6e54834314c40fcdccf4d8fd13e05857032cf3ba2c7a",
-      "contentType": "image/webp",
-      "width": 5280,
-      "height": 4736,
-      "signalKind": "detail",
-      "signalSha256": "2992a5ea3ffca8a83920dde26479a6e18aa11856febf2637026f09cb64cedfcb"
-    },
-    {
-      "key": "garments/v4/canvas-tote-bag/back/texture.webp",
-      "bytes": 2299544,
-      "sha256": "898d70da07fcb10fbe69497502669645adbfeb64413e6d516ae00ec86c1caf44",
-      "contentType": "image/webp",
-      "width": 5280,
-      "height": 4736,
-      "signalKind": "detail",
-      "signalSha256": "08db7c510ecf01bebd8eadd0928374b16244d910df7ab737812fee8a2723b0fd"
-    },
-    {
-      "key": "garments/v4/canvas-tote-bag/front/highlight.webp",
-      "bytes": 2325520,
-      "sha256": "bc7b1b7d85fb33606e96d529c1fa6970fea47c7d55ccd8aa85ff3bfd1410a1c0",
-      "contentType": "image/webp",
-      "width": 5280,
-      "height": 4736,
-      "signalKind": "detail",
-      "signalSha256": "f3245e87bcb3f44c3aeb6060ffdda22bbabe63ea7352398dd72c47a6300a283f"
-    },
-    {
-      "key": "garments/v4/canvas-tote-bag/front/mask.png",
-      "bytes": 109892,
-      "sha256": "d7f5bfb120bd717242cf34828a448a0b250291a3a72569041a222a7361a87d45",
-      "contentType": "image/png",
-      "width": 5280,
-      "height": 4736,
-      "signalKind": "mask",
-      "signalSha256": "38e9c78364910dface72619b2886adae854af66da51ba3d9cc48f4131c0b014c"
-    },
-    {
-      "key": "garments/v4/canvas-tote-bag/front/shadow.webp",
-      "bytes": 1571118,
-      "sha256": "31159dc9433346a2d9aa7956382ddb4188e9ac0a03fc59821f0fd9e2aece0eab",
-      "contentType": "image/webp",
-      "width": 5280,
-      "height": 4736,
-      "signalKind": "detail",
-      "signalSha256": "0e52743c9e2c1971c478abb43ab868cdddd58d9aee7c4d5ca957ace6fc6c7e78"
-    },
-    {
-      "key": "garments/v4/canvas-tote-bag/front/texture.webp",
-      "bytes": 1976020,
-      "sha256": "0bdff5b940f4e87f471c3a48fd019642bf315313af0c23e32c09650111eb84c1",
-      "contentType": "image/webp",
-      "width": 5280,
-      "height": 4736,
-      "signalKind": "detail",
-      "signalSha256": "afab7d452215213d3e9817741b0b3d3a672cd010994e7c0aca1afdfb63cb1f27"
-    },
-    {
-      "key": "garments/v4/canvas-tote-bag/neck/highlight.webp",
-      "bytes": 8585518,
-      "sha256": "8bcff388e6c2be3bbe53d3c30a6ee2a9aa1b9f081de3d4717c7fd095ba8e0973",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "b7c0528c3c2f96fb19cafde76e014247861599063bdfc3f7ca7441a77c2be1e5"
-    },
-    {
-      "key": "garments/v4/canvas-tote-bag/neck/mask.png",
-      "bytes": 99044,
-      "sha256": "a8a24c2333abe978f1b47aef53fdd041ec1537302689b84dd00ae034d6f0e52f",
-      "contentType": "image/png",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "mask",
-      "signalSha256": "28946636537983b347601d91b243324bb1288973c77b9a9ce02be681d0aa9507"
-    },
-    {
-      "key": "garments/v4/canvas-tote-bag/neck/shadow.webp",
-      "bytes": 6690290,
-      "sha256": "6ebd31d857c107f37f99b527ed05ca9fd386a609db53bf6ff104f1e80e3dc14a",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "71e115702a791a6835088c48bca5f85a50b0b240634323d9746783084678a55c"
-    },
-    {
-      "key": "garments/v4/canvas-tote-bag/neck/texture.webp",
-      "bytes": 9428304,
-      "sha256": "ea9b8e0aad279fcd479a43bef10a6a81bc7f1ad5062a85b8001397eb3a1ace2a",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "1a6fd8a148d60f5204da22d93ba0abc388d5bbeb60dd8a8e8c49920b606744b6"
-    },
-    {
-      "key": "garments/v4/longsleeve-tee/back/highlight.webp",
-      "bytes": 5676322,
-      "sha256": "270309c09a1f2a565a9fb0cac774098b90de63419af26b4db4f4c4c357c2733e",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "c23e3e1a6cbb20eda300ee9025a0a41d88cb71ef0510a0f6159a61cfb5c076d8"
-    },
-    {
-      "key": "garments/v4/longsleeve-tee/back/mask.png",
-      "bytes": 197287,
-      "sha256": "0d0b03892ad0c9432138fdfb128fc05937ecb6a661a3edaf068d5e56ab773742",
-      "contentType": "image/png",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "mask",
-      "signalSha256": "34ff4c3fb641d590ed98f65b35d85f665ecdd0f61e07e9d5596ddd8e4f4a9e01"
-    },
-    {
-      "key": "garments/v4/longsleeve-tee/back/shadow.webp",
-      "bytes": 4606628,
-      "sha256": "d210f99c9d39273bf21b393fcc2309657e50d173aedcdaba346da7e5063bfe4a",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "7ed4a1d86a1f7fb840688980e4dcec3230e55e7a75ea147c9c29c3ddc9a64f81"
-    },
-    {
-      "key": "garments/v4/longsleeve-tee/back/texture.webp",
-      "bytes": 4725762,
-      "sha256": "4aeee10ab9cb2248edabee2feca0f304d793b4bf11c4dbe4817c6580b54000cd",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "c6065f0360673d793c7efcd8412b8d38613e1aa670847557c3a891619e8d61e0"
-    },
-    {
-      "key": "garments/v4/longsleeve-tee/front/highlight.webp",
-      "bytes": 5248790,
-      "sha256": "13eda042f05e5ba653f75d96a9ffba0b1950f047572b7436628469289c3dd8e3",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "9c5aa0866502c569ca9ed1695ba1bf4bcf810d4107694a456095e6d24d000805"
-    },
-    {
-      "key": "garments/v4/longsleeve-tee/front/mask.png",
-      "bytes": 197239,
-      "sha256": "9bc13140decfc3c909fe9fd8af866557a2b96d201d4a71e38eabd25efbd80f29",
-      "contentType": "image/png",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "mask",
-      "signalSha256": "5e6b9102e2598059d85eda5faba612c39f4f30ca8ffbd0cc1d3783005b2c21df"
-    },
-    {
-      "key": "garments/v4/longsleeve-tee/front/shadow.webp",
-      "bytes": 4800974,
-      "sha256": "556384704bc55820fc511359939a84dcff9e3230a496a6d32a75aa5abdefb4cf",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "cc059f710356c10bb34b9fa318b949434ed9e2cd2be1e2cb66d818a8443812e0"
-    },
-    {
-      "key": "garments/v4/longsleeve-tee/front/texture.webp",
-      "bytes": 3376230,
-      "sha256": "bdf79be1acb13d4e309043996ef563bad2d592ea0a0450319e68bb9349753c83",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "5b200039aee53c4f4b95994591094f96c67eae0943465973e76bd7952f0b4d4c"
-    },
-    {
-      "key": "garments/v4/longsleeve-tee/neck/highlight.webp",
-      "bytes": 9460060,
-      "sha256": "1ca164fc5f98b29dec4b3efee25806fe2f6641d84b5981f609bcae8eb878b40a",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "d3b0f53c9dd5bb9d5b55ba07c65a8d86283d902354fcb04e5ee15a85b3f9a782"
-    },
-    {
-      "key": "garments/v4/longsleeve-tee/neck/mask.png",
-      "bytes": 204397,
-      "sha256": "aaab98508deba56663dbf5dc7fcce55e1c6fce597771a6978506c347d5dc818e",
-      "contentType": "image/png",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "mask",
-      "signalSha256": "04f894dfb38862bbadd4dec70c9d52244f6f6b7614ac2f2d1c7a8c382a71486b"
-    },
-    {
-      "key": "garments/v4/longsleeve-tee/neck/shadow.webp",
-      "bytes": 8446026,
-      "sha256": "f006ffd6ace601e576626f5fd6ae8046cd098060544a4790457cccb128fbb991",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "e6edc47504d2dcc3f45c4169962a31b2fcdfb1785d0c3f8a8be33d1da5ec6f14"
-    },
-    {
-      "key": "garments/v4/longsleeve-tee/neck/texture.webp",
-      "bytes": 7172144,
-      "sha256": "26079cf09d5f5e488c688244b7af4e5a304e627f08fcd15b6eb710c4290676a9",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "d641086a2fdabc2a456c14945fa02d641a884569fd385b7c8750d77aabcd622a"
-    },
-    {
-      "key": "garments/v4/neck-label-sample.svg",
-      "bytes": 7270,
-      "sha256": "e7bd5679576f911728975f25f04ab0df22c62640b6584e42a3576d266bffe116",
-      "contentType": "image/svg+xml",
-      "width": 667,
-      "height": 91
-    },
-    {
-      "key": "garments/v4/polo/back/highlight.webp",
-      "bytes": 4068354,
-      "sha256": "b625af9af4fa43336b474625fa5464e92a80524cf95c978fe01771221a0270e7",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "e642cd7fd7870afe233ca5e3ef9c45e37faaa071a72dbd629b1bc03d26b0a79b"
-    },
-    {
-      "key": "garments/v4/polo/back/mask.png",
-      "bytes": 191829,
-      "sha256": "22b4f711cf086d72f608340cbe8a0534b1c8b8ad4b331cabf8a90fd7625562aa",
-      "contentType": "image/png",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "mask",
-      "signalSha256": "7ef7173a20f48eb976da6117e305c904d6b72a1652ffa576e49b1d4a800cc20e"
-    },
-    {
-      "key": "garments/v4/polo/back/shadow.webp",
-      "bytes": 3363522,
-      "sha256": "89417efa66892b8ac41a735bda6b258839db22208e4999d869f678d378a8c59b",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "4ba99abacbda6090237095ef28998f9a29c2686c0594ba5d2fc07aa3e93e9448"
-    },
-    {
-      "key": "garments/v4/polo/back/texture.webp",
-      "bytes": 3382152,
-      "sha256": "e4723178d09c082fc81bdb4beb01a623087e43bed4458e8262834f446423eac5",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "8e3abe0af96dfca8ed84e2694aed741891705b7a26cea5092eb9442a183185c7"
-    },
-    {
-      "key": "garments/v4/polo/front/highlight.webp",
-      "bytes": 4133418,
-      "sha256": "34e4f30334c222bf6102747bfc3556c5b6864d03e2a7f541a632a645fb317eee",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "cecded19c4e48f26f0bd77b42602171734f52ada0629a0467411086115475e8f"
-    },
-    {
-      "key": "garments/v4/polo/front/mask.png",
-      "bytes": 191601,
-      "sha256": "8db3b0c71cc6280922504593ffc34d2937c88438e5729ec68d32f7e5581dabd0",
-      "contentType": "image/png",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "mask",
-      "signalSha256": "4bd4a60e59e266e1ed12f14ba99ffe68cd5b9b399d9c1e042c28928776dfd000"
-    },
-    {
-      "key": "garments/v4/polo/front/shadow.webp",
-      "bytes": 3802218,
-      "sha256": "b92ae3d1b28f1224f47b84aad06d0ed3f714b84cdd809a9f932d74b513c980f8",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "bd9b3765518ab5daf9d1d42161d482fba9d40dc3e7656590e77ab52a351d3c59"
-    },
-    {
-      "key": "garments/v4/polo/front/texture.webp",
-      "bytes": 2076186,
-      "sha256": "cc62bf5ef748a8d302ac91e4061810025673225668f630a0b341f3139dba4658",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "41c146f083af128e023d6438093ef0ff0cb8fc4a80d1426c31511ae4a459fc3d"
-    },
-    {
-      "key": "garments/v4/polo/neck/highlight.webp",
-      "bytes": 8521014,
-      "sha256": "cbca1cfd7b1306e3eff0dcba76562eb154e5baf48c85bb2c8bd77447397cdffc",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "ca5dc7dd1e7eaea48af477ee3314d0ff653fffe83d3719ea494fd5868c94b7d6"
-    },
-    {
-      "key": "garments/v4/polo/neck/mask.png",
-      "bytes": 185941,
-      "sha256": "62e54ff8331b46ef878d1ebdf63d000a293e3c9405fe3025de0eb1ff793c92cd",
-      "contentType": "image/png",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "mask",
-      "signalSha256": "ed4a592a65436bc787eff23be96b006f4d24511a3d9f9367a0773090f1e73b1b"
-    },
-    {
-      "key": "garments/v4/polo/neck/shadow.webp",
-      "bytes": 6556070,
-      "sha256": "5ddca6f8e6b06728077195b97ff3524dbc7083851565b511af835e0a9bbd918e",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "d58cf0b7d2997404473c811fb2b473b2abee8d7f1f1f26089ddefcba693273c2"
-    },
-    {
-      "key": "garments/v4/polo/neck/texture.webp",
-      "bytes": 4205546,
-      "sha256": "a2858f0ff48bb45f0283d1859f7a54bb9376875fdf3d9714eb4a21926a869811",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "b4dc8b4213032064a042ffe9d56d25fbde542dc9fcef1930d6811f763ef61f96"
-    },
-    {
-      "key": "garments/v4/regular-fit-hoodie/back/highlight.webp",
-      "bytes": 4151144,
-      "sha256": "15969211449a778b51f16b210dab65a9144a7ef09d20d07d00be46a4f6996b97",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "b919993271400742a17e4ae02bebe329d86cd02ba077936a78f1a46fb31c8ec4"
-    },
-    {
-      "key": "garments/v4/regular-fit-hoodie/back/mask.png",
-      "bytes": 193934,
-      "sha256": "da391cbc13a3b8157042c6b7eda06c2ffcc6231635bb0f43480c82879d253984",
-      "contentType": "image/png",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "mask",
-      "signalSha256": "10657804cfb6f9f4f8308c53f29710f3019a21e5fe0202d8ea927343276826a7"
-    },
-    {
-      "key": "garments/v4/regular-fit-hoodie/back/shadow.webp",
-      "bytes": 3583778,
-      "sha256": "9fdd718fa4d24d725b1c13e2d0321d9282ddd74ccc3386a65db1ce09cdccdcf2",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "f444aaa9720fe87c34e26c2f123af893c6c1a000896fc62aa475cc518f1119ce"
-    },
-    {
-      "key": "garments/v4/regular-fit-hoodie/back/texture.webp",
-      "bytes": 3595680,
-      "sha256": "ca17305bc89d8ac4b25a86919c22da7d2701fcf7ac180b5b8132426dee60d4da",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "f57a3d67c97db37995363d8b97aa7d188fecbd32c65beee68fc6c918bb58ef66"
-    },
-    {
-      "key": "garments/v4/regular-fit-hoodie/front/highlight.webp",
-      "bytes": 3073666,
-      "sha256": "ae89b7987a184c0aeee79219c1c4d16652d0acc35a3a0e5f36b139f0dccff1f4",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "a6f64e2aabed2aea18cae738533b2b677b3a9cd96e4d729e43b216e5084313e9"
-    },
-    {
-      "key": "garments/v4/regular-fit-hoodie/front/mask.png",
-      "bytes": 195439,
-      "sha256": "88fa55634c0ff599d6f2131170a5dd29de42653bcb307d940f2ca1137480640a",
-      "contentType": "image/png",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "mask",
-      "signalSha256": "c7ab828be78f7caf169eea35f88b083b5cc0c5990bbdeba7ac7c6e6033dd2901"
-    },
-    {
-      "key": "garments/v4/regular-fit-hoodie/front/shadow.webp",
-      "bytes": 2457328,
-      "sha256": "390ba19de44ee69e501458d689f4a000ba7a85472cb93817726749ccb5e2c675",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "e9242655e8bf310db9423a5974de19b4b17575805f51a75cd92463f9f23c7802"
-    },
-    {
-      "key": "garments/v4/regular-fit-hoodie/front/texture.webp",
-      "bytes": 2701948,
-      "sha256": "9146e9b7d1677ae7a1c187fbd7e249d44327f958aa035263ac4e9bcf1bee289e",
-      "contentType": "image/webp",
-      "width": 7817,
-      "height": 5542,
-      "signalKind": "detail",
-      "signalSha256": "3e00234fa81587543ea276ec46096a5c488e621c41b97b900681a9ab52c588cd"
-    },
-    {
-      "key": "garments/v4/regular-fit-hoodie/neck/highlight.webp",
+      "key": "garments/v5/boxy-fit-hoodie/neck/highlight.webp",
       "bytes": 1482982,
       "sha256": "738328496d73b5d5ad5c517b3fd7f1362582fe15e519cfb264d3509f552013ae",
       "contentType": "image/webp",
@@ -776,7 +168,7 @@
       "signalSha256": "ba8326cdad6d2fc60ea9ac096dc64c46fc9b2fb05d30dbe8b2bdebc99bfa82ae"
     },
     {
-      "key": "garments/v4/regular-fit-hoodie/neck/mask.png",
+      "key": "garments/v5/boxy-fit-hoodie/neck/mask.png",
       "bytes": 12061,
       "sha256": "d473e57b4ff1fe3932ea7594435ef6b3f37a06fd25e1b423f7c766d18d9203a7",
       "contentType": "image/png",
@@ -786,7 +178,615 @@
       "signalSha256": "17c4a5a80bcb2ec9e686122d1545af7450b8c917546b3f556ca2c3abbabd5e9f"
     },
     {
-      "key": "garments/v4/regular-fit-hoodie/neck/shadow.webp",
+      "key": "garments/v5/boxy-fit-hoodie/neck/shadow.webp",
+      "bytes": 1340394,
+      "sha256": "a787c9fe3b7f0dee8082816d21578bf887d4d610b940826776a258fa066a59e7",
+      "contentType": "image/webp",
+      "width": 1876,
+      "height": 1330,
+      "signalKind": "detail",
+      "signalSha256": "148f088574b79a787ac3281de5a6b43399174a50feb995cfae831714213c82cc"
+    },
+    {
+      "key": "garments/v5/boxy-fit-hoodie/neck/texture.webp",
+      "bytes": 962746,
+      "sha256": "47b28cb302e413c5c2eee118383ec65bbb37c7cdba122be1bf5ceeab9b2f2540",
+      "contentType": "image/webp",
+      "width": 1876,
+      "height": 1330,
+      "signalKind": "detail",
+      "signalSha256": "8a5da1c398e07a3a5c45a42045f2a1f8153219fd7a6dda30afa6e0db052807ac"
+    },
+    {
+      "key": "garments/v5/boxy-fit-tee/back/highlight.webp",
+      "bytes": 2809656,
+      "sha256": "6a9613aedb9648a74466f1e85bad94149b9f31b165b351795ce2cc6c54f79bad",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "d2dddb1a570944d630ac524b032f7ac95d040a69a72a6a3a442a89e353d86e39"
+    },
+    {
+      "key": "garments/v5/boxy-fit-tee/back/mask.png",
+      "bytes": 194032,
+      "sha256": "72b2d951c968824e51702003738935b3ef0d2a9d4c10c2105dbe1951a817d602",
+      "contentType": "image/png",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "mask",
+      "signalSha256": "50765f5a9b053293934b23eb836b6917ce4e0c89097f56d0d3694ccbae12d506"
+    },
+    {
+      "key": "garments/v5/boxy-fit-tee/back/shadow.webp",
+      "bytes": 2360310,
+      "sha256": "6ad5bc02a9778bea44ac7e7b3a3b1c3041505f66551b88ebad6e549208b698f8",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "cac539867bdfb098b5c0ea2dceb303dc30742d323b381c167657a551001d1e42"
+    },
+    {
+      "key": "garments/v5/boxy-fit-tee/back/texture.webp",
+      "bytes": 2010374,
+      "sha256": "0529dd755c4fa730a9f5d3b87fb0892575c0a2e66c7a294d947d3a29093b009c",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "c861ec8f07ead6409f09aa355f530c9af8a843029cec8c9e045d6b44b75fe0bc"
+    },
+    {
+      "key": "garments/v5/boxy-fit-tee/front/highlight.webp",
+      "bytes": 3841810,
+      "sha256": "2a12bf676c540a6871d4e47e96f1765fd9c4081b52d6baf7568685a9c2acc3a4",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "2ec601dc117db6e3e9691b18e48b20f7f96c14c9b5624b85573e81ba68ceecc4"
+    },
+    {
+      "key": "garments/v5/boxy-fit-tee/front/mask.png",
+      "bytes": 193485,
+      "sha256": "3789525639520a62890e4c62a703c89f1be51e6f2955fc8c6847d1701f0ce973",
+      "contentType": "image/png",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "mask",
+      "signalSha256": "eda7132ff6f62423e57c51092aca229d1b0f454840fc275961812d1514be94d9"
+    },
+    {
+      "key": "garments/v5/boxy-fit-tee/front/shadow.webp",
+      "bytes": 2947544,
+      "sha256": "ba89c6afb2d34fd3b1378594d31d47bf71941316eef4f083eeef3895a9168bb0",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "f28f3e6633bb3e1c4720dc2f9d902bc165649cb2062c81c0d318f48f046a7574"
+    },
+    {
+      "key": "garments/v5/boxy-fit-tee/front/texture.webp",
+      "bytes": 3382030,
+      "sha256": "57ca552247310d7ded32526f1b45b9ca2817ad3ba6292d1e5753af34793d44ea",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "074c01669656ca6e5f5bd89da253cb69941da1e77be45a5ca5a06413debae8aa"
+    },
+    {
+      "key": "garments/v5/boxy-fit-tee/neck/highlight.webp",
+      "bytes": 5493246,
+      "sha256": "d43b173f61565198ca4151435474f6750fb46229e491a905ea146d39a6223d45",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "48a62d051c64ca290286b0d7fdd4a0281864a8f834b583f80c81ec43024d5bbc"
+    },
+    {
+      "key": "garments/v5/boxy-fit-tee/neck/mask.png",
+      "bytes": 185826,
+      "sha256": "00bf42b4e346886293175b34c20642d84831a56180d162aba4a04c58e6b99057",
+      "contentType": "image/png",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "mask",
+      "signalSha256": "2bc04e99b9904b8eba176ba094e115fb47841fd4051a55f6c51ce9d329371e6c"
+    },
+    {
+      "key": "garments/v5/boxy-fit-tee/neck/shadow.webp",
+      "bytes": 4266412,
+      "sha256": "19993348cc922251468aa3ea9ca7d4ad6b11a322a8102edd8a02c3e1d0bf432b",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "d5d53d338e0a42c61d5ef46d63f56c123d72a0160c09b1e53b6dcf1675231924"
+    },
+    {
+      "key": "garments/v5/boxy-fit-tee/neck/texture.webp",
+      "bytes": 2376552,
+      "sha256": "557c32dff281d87a4429c67aee1c8280dd57a55462eeec5533481525c1d52509",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "f6b6fc7334ec6393bd0716c870d42766dff14e45d9328d2cbab6fc21217fd681"
+    },
+    {
+      "key": "garments/v5/canvas-tote-bag/back/highlight.webp",
+      "bytes": 2316078,
+      "sha256": "0fc0fcecf23ff4904fbfaf1282ba24f784375fc4f9ca5344157bc60832866b76",
+      "contentType": "image/webp",
+      "width": 5280,
+      "height": 4736,
+      "signalKind": "detail",
+      "signalSha256": "845e589436852583a98b85752d0a08b2899a464f3491634588ae2e0551d1a1d5"
+    },
+    {
+      "key": "garments/v5/canvas-tote-bag/back/mask.png",
+      "bytes": 109895,
+      "sha256": "d0a492f861d8775641ce9b3cea46fab23648e96d0a027115ebf849e399094387",
+      "contentType": "image/png",
+      "width": 5280,
+      "height": 4736,
+      "signalKind": "mask",
+      "signalSha256": "85d32ab543c350368f6eba73bdc63c21ac530db8de40e5156fa5d9087cdd2a32"
+    },
+    {
+      "key": "garments/v5/canvas-tote-bag/back/shadow.webp",
+      "bytes": 2019034,
+      "sha256": "c6e34e602479e937505a6e54834314c40fcdccf4d8fd13e05857032cf3ba2c7a",
+      "contentType": "image/webp",
+      "width": 5280,
+      "height": 4736,
+      "signalKind": "detail",
+      "signalSha256": "2992a5ea3ffca8a83920dde26479a6e18aa11856febf2637026f09cb64cedfcb"
+    },
+    {
+      "key": "garments/v5/canvas-tote-bag/back/texture.webp",
+      "bytes": 2299544,
+      "sha256": "898d70da07fcb10fbe69497502669645adbfeb64413e6d516ae00ec86c1caf44",
+      "contentType": "image/webp",
+      "width": 5280,
+      "height": 4736,
+      "signalKind": "detail",
+      "signalSha256": "08db7c510ecf01bebd8eadd0928374b16244d910df7ab737812fee8a2723b0fd"
+    },
+    {
+      "key": "garments/v5/canvas-tote-bag/front/highlight.webp",
+      "bytes": 2325520,
+      "sha256": "bc7b1b7d85fb33606e96d529c1fa6970fea47c7d55ccd8aa85ff3bfd1410a1c0",
+      "contentType": "image/webp",
+      "width": 5280,
+      "height": 4736,
+      "signalKind": "detail",
+      "signalSha256": "f3245e87bcb3f44c3aeb6060ffdda22bbabe63ea7352398dd72c47a6300a283f"
+    },
+    {
+      "key": "garments/v5/canvas-tote-bag/front/mask.png",
+      "bytes": 109892,
+      "sha256": "d7f5bfb120bd717242cf34828a448a0b250291a3a72569041a222a7361a87d45",
+      "contentType": "image/png",
+      "width": 5280,
+      "height": 4736,
+      "signalKind": "mask",
+      "signalSha256": "38e9c78364910dface72619b2886adae854af66da51ba3d9cc48f4131c0b014c"
+    },
+    {
+      "key": "garments/v5/canvas-tote-bag/front/shadow.webp",
+      "bytes": 1571118,
+      "sha256": "31159dc9433346a2d9aa7956382ddb4188e9ac0a03fc59821f0fd9e2aece0eab",
+      "contentType": "image/webp",
+      "width": 5280,
+      "height": 4736,
+      "signalKind": "detail",
+      "signalSha256": "0e52743c9e2c1971c478abb43ab868cdddd58d9aee7c4d5ca957ace6fc6c7e78"
+    },
+    {
+      "key": "garments/v5/canvas-tote-bag/front/texture.webp",
+      "bytes": 1976020,
+      "sha256": "0bdff5b940f4e87f471c3a48fd019642bf315313af0c23e32c09650111eb84c1",
+      "contentType": "image/webp",
+      "width": 5280,
+      "height": 4736,
+      "signalKind": "detail",
+      "signalSha256": "afab7d452215213d3e9817741b0b3d3a672cd010994e7c0aca1afdfb63cb1f27"
+    },
+    {
+      "key": "garments/v5/canvas-tote-bag/neck/highlight.webp",
+      "bytes": 8585518,
+      "sha256": "8bcff388e6c2be3bbe53d3c30a6ee2a9aa1b9f081de3d4717c7fd095ba8e0973",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "b7c0528c3c2f96fb19cafde76e014247861599063bdfc3f7ca7441a77c2be1e5"
+    },
+    {
+      "key": "garments/v5/canvas-tote-bag/neck/mask.png",
+      "bytes": 99044,
+      "sha256": "a8a24c2333abe978f1b47aef53fdd041ec1537302689b84dd00ae034d6f0e52f",
+      "contentType": "image/png",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "mask",
+      "signalSha256": "28946636537983b347601d91b243324bb1288973c77b9a9ce02be681d0aa9507"
+    },
+    {
+      "key": "garments/v5/canvas-tote-bag/neck/shadow.webp",
+      "bytes": 6690290,
+      "sha256": "6ebd31d857c107f37f99b527ed05ca9fd386a609db53bf6ff104f1e80e3dc14a",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "71e115702a791a6835088c48bca5f85a50b0b240634323d9746783084678a55c"
+    },
+    {
+      "key": "garments/v5/canvas-tote-bag/neck/texture.webp",
+      "bytes": 9428304,
+      "sha256": "ea9b8e0aad279fcd479a43bef10a6a81bc7f1ad5062a85b8001397eb3a1ace2a",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "1a6fd8a148d60f5204da22d93ba0abc388d5bbeb60dd8a8e8c49920b606744b6"
+    },
+    {
+      "key": "garments/v5/longsleeve-tee/back/highlight.webp",
+      "bytes": 5676322,
+      "sha256": "270309c09a1f2a565a9fb0cac774098b90de63419af26b4db4f4c4c357c2733e",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "c23e3e1a6cbb20eda300ee9025a0a41d88cb71ef0510a0f6159a61cfb5c076d8"
+    },
+    {
+      "key": "garments/v5/longsleeve-tee/back/mask.png",
+      "bytes": 197287,
+      "sha256": "0d0b03892ad0c9432138fdfb128fc05937ecb6a661a3edaf068d5e56ab773742",
+      "contentType": "image/png",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "mask",
+      "signalSha256": "34ff4c3fb641d590ed98f65b35d85f665ecdd0f61e07e9d5596ddd8e4f4a9e01"
+    },
+    {
+      "key": "garments/v5/longsleeve-tee/back/shadow.webp",
+      "bytes": 4606628,
+      "sha256": "d210f99c9d39273bf21b393fcc2309657e50d173aedcdaba346da7e5063bfe4a",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "7ed4a1d86a1f7fb840688980e4dcec3230e55e7a75ea147c9c29c3ddc9a64f81"
+    },
+    {
+      "key": "garments/v5/longsleeve-tee/back/texture.webp",
+      "bytes": 4725762,
+      "sha256": "4aeee10ab9cb2248edabee2feca0f304d793b4bf11c4dbe4817c6580b54000cd",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "c6065f0360673d793c7efcd8412b8d38613e1aa670847557c3a891619e8d61e0"
+    },
+    {
+      "key": "garments/v5/longsleeve-tee/front/highlight.webp",
+      "bytes": 5248790,
+      "sha256": "13eda042f05e5ba653f75d96a9ffba0b1950f047572b7436628469289c3dd8e3",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "9c5aa0866502c569ca9ed1695ba1bf4bcf810d4107694a456095e6d24d000805"
+    },
+    {
+      "key": "garments/v5/longsleeve-tee/front/mask.png",
+      "bytes": 197239,
+      "sha256": "9bc13140decfc3c909fe9fd8af866557a2b96d201d4a71e38eabd25efbd80f29",
+      "contentType": "image/png",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "mask",
+      "signalSha256": "5e6b9102e2598059d85eda5faba612c39f4f30ca8ffbd0cc1d3783005b2c21df"
+    },
+    {
+      "key": "garments/v5/longsleeve-tee/front/shadow.webp",
+      "bytes": 4800974,
+      "sha256": "556384704bc55820fc511359939a84dcff9e3230a496a6d32a75aa5abdefb4cf",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "cc059f710356c10bb34b9fa318b949434ed9e2cd2be1e2cb66d818a8443812e0"
+    },
+    {
+      "key": "garments/v5/longsleeve-tee/front/texture.webp",
+      "bytes": 3376230,
+      "sha256": "bdf79be1acb13d4e309043996ef563bad2d592ea0a0450319e68bb9349753c83",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "5b200039aee53c4f4b95994591094f96c67eae0943465973e76bd7952f0b4d4c"
+    },
+    {
+      "key": "garments/v5/longsleeve-tee/neck/highlight.webp",
+      "bytes": 9460060,
+      "sha256": "1ca164fc5f98b29dec4b3efee25806fe2f6641d84b5981f609bcae8eb878b40a",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "d3b0f53c9dd5bb9d5b55ba07c65a8d86283d902354fcb04e5ee15a85b3f9a782"
+    },
+    {
+      "key": "garments/v5/longsleeve-tee/neck/mask.png",
+      "bytes": 204397,
+      "sha256": "aaab98508deba56663dbf5dc7fcce55e1c6fce597771a6978506c347d5dc818e",
+      "contentType": "image/png",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "mask",
+      "signalSha256": "04f894dfb38862bbadd4dec70c9d52244f6f6b7614ac2f2d1c7a8c382a71486b"
+    },
+    {
+      "key": "garments/v5/longsleeve-tee/neck/shadow.webp",
+      "bytes": 8446026,
+      "sha256": "f006ffd6ace601e576626f5fd6ae8046cd098060544a4790457cccb128fbb991",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "e6edc47504d2dcc3f45c4169962a31b2fcdfb1785d0c3f8a8be33d1da5ec6f14"
+    },
+    {
+      "key": "garments/v5/longsleeve-tee/neck/texture.webp",
+      "bytes": 7172144,
+      "sha256": "26079cf09d5f5e488c688244b7af4e5a304e627f08fcd15b6eb710c4290676a9",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "d641086a2fdabc2a456c14945fa02d641a884569fd385b7c8750d77aabcd622a"
+    },
+    {
+      "key": "garments/v5/neck-label-sample.svg",
+      "bytes": 7270,
+      "sha256": "e7bd5679576f911728975f25f04ab0df22c62640b6584e42a3576d266bffe116",
+      "contentType": "image/svg+xml",
+      "width": 667,
+      "height": 91
+    },
+    {
+      "key": "garments/v5/polo/back/highlight.webp",
+      "bytes": 4068354,
+      "sha256": "b625af9af4fa43336b474625fa5464e92a80524cf95c978fe01771221a0270e7",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "e642cd7fd7870afe233ca5e3ef9c45e37faaa071a72dbd629b1bc03d26b0a79b"
+    },
+    {
+      "key": "garments/v5/polo/back/mask.png",
+      "bytes": 191829,
+      "sha256": "22b4f711cf086d72f608340cbe8a0534b1c8b8ad4b331cabf8a90fd7625562aa",
+      "contentType": "image/png",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "mask",
+      "signalSha256": "7ef7173a20f48eb976da6117e305c904d6b72a1652ffa576e49b1d4a800cc20e"
+    },
+    {
+      "key": "garments/v5/polo/back/shadow.webp",
+      "bytes": 3363522,
+      "sha256": "89417efa66892b8ac41a735bda6b258839db22208e4999d869f678d378a8c59b",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "4ba99abacbda6090237095ef28998f9a29c2686c0594ba5d2fc07aa3e93e9448"
+    },
+    {
+      "key": "garments/v5/polo/back/texture.webp",
+      "bytes": 3382152,
+      "sha256": "e4723178d09c082fc81bdb4beb01a623087e43bed4458e8262834f446423eac5",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "8e3abe0af96dfca8ed84e2694aed741891705b7a26cea5092eb9442a183185c7"
+    },
+    {
+      "key": "garments/v5/polo/front/highlight.webp",
+      "bytes": 4133418,
+      "sha256": "34e4f30334c222bf6102747bfc3556c5b6864d03e2a7f541a632a645fb317eee",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "cecded19c4e48f26f0bd77b42602171734f52ada0629a0467411086115475e8f"
+    },
+    {
+      "key": "garments/v5/polo/front/mask.png",
+      "bytes": 191601,
+      "sha256": "8db3b0c71cc6280922504593ffc34d2937c88438e5729ec68d32f7e5581dabd0",
+      "contentType": "image/png",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "mask",
+      "signalSha256": "4bd4a60e59e266e1ed12f14ba99ffe68cd5b9b399d9c1e042c28928776dfd000"
+    },
+    {
+      "key": "garments/v5/polo/front/shadow.webp",
+      "bytes": 3802218,
+      "sha256": "b92ae3d1b28f1224f47b84aad06d0ed3f714b84cdd809a9f932d74b513c980f8",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "bd9b3765518ab5daf9d1d42161d482fba9d40dc3e7656590e77ab52a351d3c59"
+    },
+    {
+      "key": "garments/v5/polo/front/texture.webp",
+      "bytes": 2076186,
+      "sha256": "cc62bf5ef748a8d302ac91e4061810025673225668f630a0b341f3139dba4658",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "41c146f083af128e023d6438093ef0ff0cb8fc4a80d1426c31511ae4a459fc3d"
+    },
+    {
+      "key": "garments/v5/polo/neck/highlight.webp",
+      "bytes": 8521014,
+      "sha256": "cbca1cfd7b1306e3eff0dcba76562eb154e5baf48c85bb2c8bd77447397cdffc",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "ca5dc7dd1e7eaea48af477ee3314d0ff653fffe83d3719ea494fd5868c94b7d6"
+    },
+    {
+      "key": "garments/v5/polo/neck/mask.png",
+      "bytes": 185941,
+      "sha256": "62e54ff8331b46ef878d1ebdf63d000a293e3c9405fe3025de0eb1ff793c92cd",
+      "contentType": "image/png",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "mask",
+      "signalSha256": "ed4a592a65436bc787eff23be96b006f4d24511a3d9f9367a0773090f1e73b1b"
+    },
+    {
+      "key": "garments/v5/polo/neck/shadow.webp",
+      "bytes": 6556070,
+      "sha256": "5ddca6f8e6b06728077195b97ff3524dbc7083851565b511af835e0a9bbd918e",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "d58cf0b7d2997404473c811fb2b473b2abee8d7f1f1f26089ddefcba693273c2"
+    },
+    {
+      "key": "garments/v5/polo/neck/texture.webp",
+      "bytes": 4205546,
+      "sha256": "a2858f0ff48bb45f0283d1859f7a54bb9376875fdf3d9714eb4a21926a869811",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "b4dc8b4213032064a042ffe9d56d25fbde542dc9fcef1930d6811f763ef61f96"
+    },
+    {
+      "key": "garments/v5/regular-fit-hoodie/back/highlight.webp",
+      "bytes": 4151144,
+      "sha256": "15969211449a778b51f16b210dab65a9144a7ef09d20d07d00be46a4f6996b97",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "b919993271400742a17e4ae02bebe329d86cd02ba077936a78f1a46fb31c8ec4"
+    },
+    {
+      "key": "garments/v5/regular-fit-hoodie/back/mask.png",
+      "bytes": 193934,
+      "sha256": "da391cbc13a3b8157042c6b7eda06c2ffcc6231635bb0f43480c82879d253984",
+      "contentType": "image/png",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "mask",
+      "signalSha256": "10657804cfb6f9f4f8308c53f29710f3019a21e5fe0202d8ea927343276826a7"
+    },
+    {
+      "key": "garments/v5/regular-fit-hoodie/back/shadow.webp",
+      "bytes": 3583778,
+      "sha256": "9fdd718fa4d24d725b1c13e2d0321d9282ddd74ccc3386a65db1ce09cdccdcf2",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "f444aaa9720fe87c34e26c2f123af893c6c1a000896fc62aa475cc518f1119ce"
+    },
+    {
+      "key": "garments/v5/regular-fit-hoodie/back/texture.webp",
+      "bytes": 3595680,
+      "sha256": "ca17305bc89d8ac4b25a86919c22da7d2701fcf7ac180b5b8132426dee60d4da",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "f57a3d67c97db37995363d8b97aa7d188fecbd32c65beee68fc6c918bb58ef66"
+    },
+    {
+      "key": "garments/v5/regular-fit-hoodie/front/highlight.webp",
+      "bytes": 3073666,
+      "sha256": "ae89b7987a184c0aeee79219c1c4d16652d0acc35a3a0e5f36b139f0dccff1f4",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "a6f64e2aabed2aea18cae738533b2b677b3a9cd96e4d729e43b216e5084313e9"
+    },
+    {
+      "key": "garments/v5/regular-fit-hoodie/front/mask.png",
+      "bytes": 195439,
+      "sha256": "88fa55634c0ff599d6f2131170a5dd29de42653bcb307d940f2ca1137480640a",
+      "contentType": "image/png",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "mask",
+      "signalSha256": "c7ab828be78f7caf169eea35f88b083b5cc0c5990bbdeba7ac7c6e6033dd2901"
+    },
+    {
+      "key": "garments/v5/regular-fit-hoodie/front/shadow.webp",
+      "bytes": 2457328,
+      "sha256": "390ba19de44ee69e501458d689f4a000ba7a85472cb93817726749ccb5e2c675",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "e9242655e8bf310db9423a5974de19b4b17575805f51a75cd92463f9f23c7802"
+    },
+    {
+      "key": "garments/v5/regular-fit-hoodie/front/texture.webp",
+      "bytes": 2701948,
+      "sha256": "9146e9b7d1677ae7a1c187fbd7e249d44327f958aa035263ac4e9bcf1bee289e",
+      "contentType": "image/webp",
+      "width": 7817,
+      "height": 5542,
+      "signalKind": "detail",
+      "signalSha256": "3e00234fa81587543ea276ec46096a5c488e621c41b97b900681a9ab52c588cd"
+    },
+    {
+      "key": "garments/v5/regular-fit-hoodie/neck/highlight.webp",
+      "bytes": 1482982,
+      "sha256": "738328496d73b5d5ad5c517b3fd7f1362582fe15e519cfb264d3509f552013ae",
+      "contentType": "image/webp",
+      "width": 1876,
+      "height": 1330,
+      "signalKind": "detail",
+      "signalSha256": "ba8326cdad6d2fc60ea9ac096dc64c46fc9b2fb05d30dbe8b2bdebc99bfa82ae"
+    },
+    {
+      "key": "garments/v5/regular-fit-hoodie/neck/mask.png",
+      "bytes": 12061,
+      "sha256": "d473e57b4ff1fe3932ea7594435ef6b3f37a06fd25e1b423f7c766d18d9203a7",
+      "contentType": "image/png",
+      "width": 1876,
+      "height": 1330,
+      "signalKind": "mask",
+      "signalSha256": "17c4a5a80bcb2ec9e686122d1545af7450b8c917546b3f556ca2c3abbabd5e9f"
+    },
+    {
+      "key": "garments/v5/regular-fit-hoodie/neck/shadow.webp",
       "bytes": 1238202,
       "sha256": "96e7acdd1acc9fcc805085f88609b3eba34a4105bb67a3d87fa25fd04953402b",
       "contentType": "image/webp",
@@ -796,7 +796,7 @@
       "signalSha256": "9dd7c51544a3a5776c04088e460646bab3501126c62e6ff8cc58bf778f12a0f7"
     },
     {
-      "key": "garments/v4/regular-fit-hoodie/neck/texture.webp",
+      "key": "garments/v5/regular-fit-hoodie/neck/texture.webp",
       "bytes": 992460,
       "sha256": "8690e307bf0a3cac5d0eadb3bc114260c7be49c549a9ca8d950e90d6693d90ce",
       "contentType": "image/webp",
@@ -806,7 +806,7 @@
       "signalSha256": "5dbf127848a8c8e1e3179155755b285b437ea1bf475897c43d9533d38d88095b"
     },
     {
-      "key": "garments/v4/regular-fit-sweatshirt/back/highlight.webp",
+      "key": "garments/v5/regular-fit-sweatshirt/back/highlight.webp",
       "bytes": 4795416,
       "sha256": "7d32d1ea7e674c0d44dce7daa8ecf5ce65527ae38c9bd03438b57ed76e8b693b",
       "contentType": "image/webp",
@@ -816,7 +816,7 @@
       "signalSha256": "9feb0db809b9d0c220f30013785c6f1ce65e5213a64bfb408cbd95fcbd3be9c1"
     },
     {
-      "key": "garments/v4/regular-fit-sweatshirt/back/mask.png",
+      "key": "garments/v5/regular-fit-sweatshirt/back/mask.png",
       "bytes": 196564,
       "sha256": "ff2ec8b005c85e8299bbdc053120aea8b9ee5c5d6f4583e0ac8f502b7190896f",
       "contentType": "image/png",
@@ -826,7 +826,7 @@
       "signalSha256": "7e00c57eea1973c060ea168e2b508742530e270d179ec2befbaa18126ec18585"
     },
     {
-      "key": "garments/v4/regular-fit-sweatshirt/back/shadow.webp",
+      "key": "garments/v5/regular-fit-sweatshirt/back/shadow.webp",
       "bytes": 4296344,
       "sha256": "3debdab45292e2449e0ffcbb53c47f778597c731fbcbaae86f9532cb6f30395e",
       "contentType": "image/webp",
@@ -836,7 +836,7 @@
       "signalSha256": "576931d44648b22e1b466c8895996d1af4b7cb0c2049a29817cedbc96c0bf31b"
     },
     {
-      "key": "garments/v4/regular-fit-sweatshirt/back/texture.webp",
+      "key": "garments/v5/regular-fit-sweatshirt/back/texture.webp",
       "bytes": 4476910,
       "sha256": "3b1389125ee8b732556298c5ba4f0c401cc138d81f2b506a9f81187a18c3b814",
       "contentType": "image/webp",
@@ -846,7 +846,7 @@
       "signalSha256": "2483108544f750a324fa2d4d2b0dbc23085541fd9360511e753bdab63d33a249"
     },
     {
-      "key": "garments/v4/regular-fit-sweatshirt/front/highlight.webp",
+      "key": "garments/v5/regular-fit-sweatshirt/front/highlight.webp",
       "bytes": 3939392,
       "sha256": "3e8b2764e2ad096531627e02321e94176c3c686b61c8a1486816a12e175d1d86",
       "contentType": "image/webp",
@@ -856,7 +856,7 @@
       "signalSha256": "ba3f1f5b94dae7d8f6f3abca235c73337ebae655735c6d8494a95cedeef8fd08"
     },
     {
-      "key": "garments/v4/regular-fit-sweatshirt/front/mask.png",
+      "key": "garments/v5/regular-fit-sweatshirt/front/mask.png",
       "bytes": 196740,
       "sha256": "68dc6c80a4659ac175373826c8e546d3bb1ecd52dfe700363bcca5691b5df6a3",
       "contentType": "image/png",
@@ -866,7 +866,7 @@
       "signalSha256": "239b738b5b21e1fd39a4c02362709c3d8dd61986e1229af7ee0741c6153b041b"
     },
     {
-      "key": "garments/v4/regular-fit-sweatshirt/front/shadow.webp",
+      "key": "garments/v5/regular-fit-sweatshirt/front/shadow.webp",
       "bytes": 3264620,
       "sha256": "6136eec80b5de9ff3435c4a76dd14098d338bd79ac82e75e2f5c1511feb2bae3",
       "contentType": "image/webp",
@@ -876,7 +876,7 @@
       "signalSha256": "1e6cf899a7cd99e67d90b48490719344bad3d9644816baceb496f4173aed657a"
     },
     {
-      "key": "garments/v4/regular-fit-sweatshirt/front/texture.webp",
+      "key": "garments/v5/regular-fit-sweatshirt/front/texture.webp",
       "bytes": 3759286,
       "sha256": "13efac7772f426c7db3af3fd7a23d34119af41168f861ebe68a1c3cfbc055e7d",
       "contentType": "image/webp",
@@ -886,7 +886,7 @@
       "signalSha256": "3080524e148b651f9e7ec71475cd74285fa9cb29aab9d6226e44ee16af7a3446"
     },
     {
-      "key": "garments/v4/regular-fit-sweatshirt/neck/highlight.webp",
+      "key": "garments/v5/regular-fit-sweatshirt/neck/highlight.webp",
       "bytes": 8251278,
       "sha256": "489fd0f9d47f5b099ef561083839e1d29c375dc4d976d2dbf7337b243c48fe86",
       "contentType": "image/webp",
@@ -896,7 +896,7 @@
       "signalSha256": "5fbf34d7d7ecf06328bc89d7e83c72f245ae76f41e3dad46109b372c6ef154f9"
     },
     {
-      "key": "garments/v4/regular-fit-sweatshirt/neck/mask.png",
+      "key": "garments/v5/regular-fit-sweatshirt/neck/mask.png",
       "bytes": 144001,
       "sha256": "81db4c1cfd12fe343db961a7b1d982dcb0d16bbc10ccd41923739b4c841fae8f",
       "contentType": "image/png",
@@ -906,7 +906,7 @@
       "signalSha256": "7865ff827e0ff48e50eba285806fb64f55cae0e08b9687ee2ee07b44abc933fd"
     },
     {
-      "key": "garments/v4/regular-fit-sweatshirt/neck/shadow.webp",
+      "key": "garments/v5/regular-fit-sweatshirt/neck/shadow.webp",
       "bytes": 6233026,
       "sha256": "cd8eae899cde9c7997aaaf7187dd16ad2b575f3191996266bdea09d139a194c6",
       "contentType": "image/webp",
@@ -916,7 +916,7 @@
       "signalSha256": "19bfe417dca9e6d0818f048c84827f7ff9b7aa7d58d75608839a5da982d6052c"
     },
     {
-      "key": "garments/v4/regular-fit-sweatshirt/neck/texture.webp",
+      "key": "garments/v5/regular-fit-sweatshirt/neck/texture.webp",
       "bytes": 7805440,
       "sha256": "5ad166e82e82911120dd48c5b37ea5d1b723e3e4768134a46e812c4b55641583",
       "contentType": "image/webp",
@@ -926,7 +926,7 @@
       "signalSha256": "c1fa7a67898264189ec86a109d7153160554973f413391a492fe0b2a3e003b75"
     },
     {
-      "key": "garments/v4/regular-fit-tee/back/highlight.png",
+      "key": "garments/v5/regular-fit-tee/back/highlight.png",
       "bytes": 3351526,
       "sha256": "117fb0cf0fc848a7f88c929b94d1839e19c0272e21e2515f2cd5f3ab8ddbbcde",
       "contentType": "image/png",
@@ -936,7 +936,7 @@
       "signalSha256": "4ee8b8993de0ffe5775b6348486c328a0167226d16cd3800b034f555599caafb"
     },
     {
-      "key": "garments/v4/regular-fit-tee/back/mask.png",
+      "key": "garments/v5/regular-fit-tee/back/mask.png",
       "bytes": 113808,
       "sha256": "de8c9049e7a2649061fe6ac4d7b25a538f9444bc36d2fcbe9d94679d461be56c",
       "contentType": "image/png",
@@ -946,7 +946,7 @@
       "signalSha256": "400a1c5b6935bae0850b230ec7c78ce0bcf18f0ad31bb156d19a59e2c8ce7a15"
     },
     {
-      "key": "garments/v4/regular-fit-tee/back/shadow.png",
+      "key": "garments/v5/regular-fit-tee/back/shadow.png",
       "bytes": 3602226,
       "sha256": "f9c90c12d91235d30ecabe357652391f1dd90629a9cba84c258dae833957d0e8",
       "contentType": "image/png",
@@ -956,7 +956,7 @@
       "signalSha256": "7f3873b52fdbe3dca3849491eb20f1412dde5b6eb5f86189e0d34405e99ac58f"
     },
     {
-      "key": "garments/v4/regular-fit-tee/back/texture.png",
+      "key": "garments/v5/regular-fit-tee/back/texture.png",
       "bytes": 1144173,
       "sha256": "fd7a48b1c3961d2da103cd0b016f7e513f7ea51d981eff2dd04cd70a5e3c3002",
       "contentType": "image/png",
@@ -966,7 +966,7 @@
       "signalSha256": "a5ba07e6d61a0db54e894e3bd304b541ecebcecaabad67f39e2a41a4f30adc0b"
     },
     {
-      "key": "garments/v4/regular-fit-tee/front/highlight.png",
+      "key": "garments/v5/regular-fit-tee/front/highlight.png",
       "bytes": 737289,
       "sha256": "31b5847c44e8ba36cb8dbba39357028204cc594cca8827bc7589622afe23ca58",
       "contentType": "image/png",
@@ -976,7 +976,7 @@
       "signalSha256": "44610a711ff7b18ecbafce1ced26fb485ee2ea86f3e2efedcb33d8bdfb317094"
     },
     {
-      "key": "garments/v4/regular-fit-tee/front/mask.png",
+      "key": "garments/v5/regular-fit-tee/front/mask.png",
       "bytes": 119846,
       "sha256": "d87c45f81c7ea0907a559857298b1b482c664c6c3116c3901b14bb84766b3c92",
       "contentType": "image/png",
@@ -986,7 +986,7 @@
       "signalSha256": "4a24a833493f5ba9fc44272e07062547c1da5211c646e81621f534ad52b5e33f"
     },
     {
-      "key": "garments/v4/regular-fit-tee/front/shadow.png",
+      "key": "garments/v5/regular-fit-tee/front/shadow.png",
       "bytes": 3935534,
       "sha256": "7086972a82f939ba414bf9bd1e6801f51b4d0f4fe2b63ba5add5c809049b4c3b",
       "contentType": "image/png",
@@ -996,7 +996,7 @@
       "signalSha256": "aacd7b02799b98670a4707f8105ad9bc26c55863ac352bfad389065a9fe1104c"
     },
     {
-      "key": "garments/v4/regular-fit-tee/front/texture.png",
+      "key": "garments/v5/regular-fit-tee/front/texture.png",
       "bytes": 1132708,
       "sha256": "bb2480c809e95edb326bef1a691d4795eea464ffc169073e5913e3b73c4e9991",
       "contentType": "image/png",
@@ -1006,7 +1006,7 @@
       "signalSha256": "10833e0eeabf7e23d5e8b9f9b1d8889de213fc46ea5393bdf6eeda0a4758d529"
     },
     {
-      "key": "garments/v4/regular-fit-tee/neck/highlight.webp",
+      "key": "garments/v5/regular-fit-tee/neck/highlight.webp",
       "bytes": 1242488,
       "sha256": "e5e0d6fb59f4b1d718e5511ac37f330d36c929f4be1c19cc10451cb3f124350c",
       "contentType": "image/webp",
@@ -1016,7 +1016,7 @@
       "signalSha256": "a7e4d4235fe3a9e77de22708d27d52f1fa69df83d190a8b637896e90bbf1803d"
     },
     {
-      "key": "garments/v4/regular-fit-tee/neck/mask.png",
+      "key": "garments/v5/regular-fit-tee/neck/mask.png",
       "bytes": 46106,
       "sha256": "26dd0706a9cec6f0dd47feea275cf81d3034e977f2bb1aa3d834355a4b8529aa",
       "contentType": "image/png",
@@ -1026,7 +1026,7 @@
       "signalSha256": "35815a108d69b0994bcb7dcf9a943864a1845e1900e164e3ed1d802b54fc9d20"
     },
     {
-      "key": "garments/v4/regular-fit-tee/neck/shadow.webp",
+      "key": "garments/v5/regular-fit-tee/neck/shadow.webp",
       "bytes": 218242,
       "sha256": "a3662b26adac365c08d6a1c30461561de7459a44280877c340d9814287c40746",
       "contentType": "image/webp",
@@ -1036,7 +1036,7 @@
       "signalSha256": "272872f508feea47ac4af60728362392c981b4b9b2f0d77be3ff20a85028e269"
     },
     {
-      "key": "garments/v4/regular-fit-tee/neck/texture.webp",
+      "key": "garments/v5/regular-fit-tee/neck/texture.webp",
       "bytes": 740128,
       "sha256": "d7ff4fe130f31e9f5e8f9d8ff677d1cad3dc371610157a4901d3f8d6403dc901",
       "contentType": "image/webp",
@@ -1050,8 +1050,8 @@
     "garmentFiles": 98,
     "flatlayFiles": 8,
     "totalFiles": 106,
-    "garmentBytes": 253859267,
+    "garmentBytes": 266450991,
     "flatlayBytes": 5532466,
-    "totalBytes": 259391733
+    "totalBytes": 271983457
   }
 }
