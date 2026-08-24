@@ -51,6 +51,7 @@ const GARMENT_DEFORMATION: Record<GarmentFolder, number> = {
   polo: 0.82,
   "regular-fit-sweatshirt": 0.88,
   "regular-fit-hoodie": 1.08,
+  "boxy-fit-hoodie": 1.08,
   "canvas-tote-bag": 0.28,
 };
 

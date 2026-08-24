@@ -120,6 +120,7 @@ const garmentFamilies = [
   { slug: "polo", productId: "polo-280gsm" },
   { slug: "regular-fit-sweatshirt", productId: "regular-fit-sweatshirt-320gsm" },
   { slug: "regular-fit-hoodie", productId: "regular-fit-hoodie-320gsm" },
+  { slug: "boxy-fit-hoodie", productId: "boxy-fit-hoodie-320gsm" },
   { slug: "canvas-tote-bag", productId: "canvas-tote-bag" },
 ] as const;
 

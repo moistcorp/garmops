@@ -62,6 +62,7 @@ describe("garment-relative print area calibration", () => {
       "polo-280gsm",
       "regular-fit-sweatshirt-320gsm",
       "regular-fit-hoodie-320gsm",
+      "boxy-fit-hoodie-320gsm",
       "canvas-tote-bag",
     ] as const) {
       for (const view of ["front", "back"] as const) {

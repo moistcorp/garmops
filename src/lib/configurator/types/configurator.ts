@@ -121,6 +121,6 @@ export interface NeckLabel {
   source?: 'upload' | 'sample';
   dimensions: NeckLabelDimensions;
   position: NeckLabelPosition;
-  stitch?: NeckLabelStitch; // only present/relevant when position = 'below_neck_tape'
+  stitch?: NeckLabelStitch;
   confirmed: boolean;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
 import type { ProductId } from "@/lib/configurator/pricing";
 import type {
@@ -12,7 +12,7 @@ import type {
   NeckLabelPosition,
 } from "@/lib/configurator/types/configurator";
 import { isCustomerArtworkTechnique } from "@/lib/configurator/types/configurator";
-import { isCustomNeckLabel } from "@/lib/configurator/neckLabel";
+import { isCustomNeckLabel, normalizeNeckLabelStitch } from "@/lib/configurator/neckLabel";
 import type { GarmentView } from "@/lib/configurator/types/garment";
 import {
   useArtworkPosition,
@@ -169,6 +169,7 @@ function NeckLabelPreview({
   neckLabel: NeckLabel;
   previewUrl?: string;
 }) {
+  const fabricPatternId = `neck-label-fabric-${useId().replace(/:/g, "")}`;
   const standard = !isCustomNeckLabel(neckLabel);
   const { widthMm, heightMm } = standard
     ? STANDARD_SIZE_LABEL_PREVIEW_MM
@@ -180,11 +181,9 @@ function NeckLabelPreview({
   const h = heightMm * NECK_LABEL_PX_PER_MM.neck;
   const renderable = isRenderableNeckLabel(neckLabel, previewUrl);
   // Rendering data, not UI text: stitches and fallback label artwork are intentionally near-black.
-  const stitchColor = "#111111";
+  const stitchColor = "#77756E";
 
-  // Stitch type only applies to a "below neck tape" hang-tag — an "on neck
-  // tape" label is sewn flush into the tape on all four sides instead.
-  const stitch = neckLabel.position === "below_neck_tape" ? neckLabel.stitch : undefined;
+  const stitch = normalizeNeckLabelStitch(neckLabel.position, neckLabel.stitch);
   const cornerBarTack = Math.min(w * 0.12, h * 0.5);
 
   return (
@@ -195,15 +194,25 @@ function NeckLabelPreview({
       role="img"
       aria-label="Neck label preview"
     >
+      <defs>
+        <pattern
+          id={fabricPatternId}
+          width="4"
+          height="4"
+          patternUnits="userSpaceOnUse"
+          patternTransform="rotate(8)"
+        >
+          <rect width="4" height="4" fill="#FAFAF8" />
+          <path d="M0 1H4 M0 3H4" stroke="#FFFFFF" strokeOpacity={0.5} strokeWidth={0.35} />
+          <path d="M1 0V4 M3 0V4" stroke="#AAA8A1" strokeOpacity={0.08} strokeWidth={0.25} />
+        </pattern>
+      </defs>
       <rect
-        x={0.5}
-        y={0.5}
-        width={w - 1}
-        height={h - 1}
-        fill="#FFFFFF"
-        stroke="#111111"
-        strokeOpacity={0.25}
-        strokeWidth={1}
+        x={0}
+        y={0}
+        width={w}
+        height={h}
+        fill={`url(#${fabricPatternId})`}
       />
 
       {!standard && renderable ? (
@@ -230,21 +239,7 @@ function NeckLabelPreview({
         </text>
       )}
 
-      {/* On-tape labels are stitched flush around all four edges. */}
-      {neckLabel.position === "on_neck_tape" && (
-        <rect
-          x={1}
-          y={1}
-          width={w - 2}
-          height={h - 2}
-          fill="none"
-          stroke={stitchColor}
-          strokeWidth={1.2}
-          strokeDasharray="3 2"
-        />
-      )}
-
-      {/* Below-tape hang-tags: stitched down the two sides only. */}
+      {/* Labels stitched down the two sides only. */}
       {stitch === "2_side" && (
         <>
           <line x1={1} y1={0} x2={1} y2={h} stroke={stitchColor} strokeWidth={1.2} strokeDasharray="3 2" />
@@ -262,8 +257,9 @@ function NeckLabelPreview({
             x2={cornerBarTack * 0.45}
             y2={1.5}
             stroke={stitchColor}
-            strokeWidth={1.6}
-            strokeDasharray="2 1"
+            strokeWidth={0.85}
+            strokeOpacity={0.78}
+            strokeDasharray="1.5 1.15"
             strokeLinecap="round"
           />
           <line
@@ -272,8 +268,9 @@ function NeckLabelPreview({
             x2={w + cornerBarTack * 0.55}
             y2={1.5}
             stroke={stitchColor}
-            strokeWidth={1.6}
-            strokeDasharray="2 1"
+            strokeWidth={0.85}
+            strokeOpacity={0.78}
+            strokeDasharray="1.5 1.15"
             strokeLinecap="round"
           />
         </>
@@ -288,8 +285,9 @@ function NeckLabelPreview({
             x2={cornerBarTack * 0.45}
             y2={h - 1.5}
             stroke={stitchColor}
-            strokeWidth={1.6}
-            strokeDasharray="2 1"
+            strokeWidth={0.85}
+            strokeOpacity={0.78}
+            strokeDasharray="1.5 1.15"
             strokeLinecap="round"
           />
           <line
@@ -298,8 +296,9 @@ function NeckLabelPreview({
             x2={w + cornerBarTack * 0.55}
             y2={h - 1.5}
             stroke={stitchColor}
-            strokeWidth={1.6}
-            strokeDasharray="2 1"
+            strokeWidth={0.85}
+            strokeOpacity={0.78}
+            strokeDasharray="1.5 1.15"
             strokeLinecap="round"
           />
         </>
@@ -377,9 +376,11 @@ export default function CanvasRenderer({
     const scale = NECK_LABEL_PX_PER_MM[view];
     const labelWidthPx = widthMm * scale;
     const labelHeightPx = heightMm * scale;
+    const defaultLabelTopPercent = (isToteProduct ? TOTE_LABEL_TOP_PERCENT : NECK_LABEL_TOP_PERCENT)[view][neckLabel.position];
+    const labelTopPercent = garmentRenderConfig.neckLabelTopPercent?.[neckLabel.position] ?? defaultLabelTopPercent;
     neckLabelBoxStyle = {
       left: "50%",
-      top: `${(isToteProduct ? TOTE_LABEL_TOP_PERCENT : NECK_LABEL_TOP_PERCENT)[view][neckLabel.position]}%`,
+      top: `${labelTopPercent}%`,
       width: `${(labelWidthPx / CANVAS_SIZE.width) * 100}%`,
       height: `${(labelHeightPx / CANVAS_SIZE.height) * 100}%`,
       transform: "translateX(-50%)",

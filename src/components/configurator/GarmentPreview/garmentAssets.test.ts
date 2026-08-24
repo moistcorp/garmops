@@ -42,4 +42,19 @@ describe("garment preview asset mapping", () => {
     expect(getGarmentRenderConfig("regular-fit-hoodie-320gsm", "front").insetPercent).toBe(-30.5);
     expect(getGarmentRenderConfig("canvas-tote-bag", "front").insetPercent).toBe(-5);
   });
+
+  it("maps the oversized hoodie to its dedicated asset set", () => {
+    expect(getGarmentFolder("boxy-fit-hoodie-320gsm")).toBe("boxy-fit-hoodie");
+    expect(garmentAssetPath("boxy-fit-hoodie-320gsm", "front", "mask")).toBe("https://assets.garmops.com/garments/v4/boxy-fit-hoodie/front/mask.png");
+  });
+
+  it("calibrates neck-label placement to each product's neck asset", () => {
+    expect(getGarmentRenderConfig("regular-fit-tee-200gsm", "neck").neckLabelTopPercent).toEqual({
+      below_neck_tape: 36.5,
+    });
+    expect(getGarmentRenderConfig("boxy-fit-tee-260gsm", "neck").neckLabelTopPercent).toEqual({
+      below_neck_tape: 39,
+      on_neck_tape: 37,
+    });
+  });
 });

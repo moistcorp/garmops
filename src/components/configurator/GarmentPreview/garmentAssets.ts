@@ -1,4 +1,5 @@
 import type { ProductId } from "@/lib/configurator/pricing";
+import type { NeckLabelPosition } from "@/lib/configurator/types/configurator";
 import type { GarmentView } from "@/lib/configurator/types/garment";
 import { garmentAssetUrl } from "@/lib/publicAssets";
 
@@ -11,11 +12,14 @@ export type GarmentFolder =
   | "polo"
   | "regular-fit-sweatshirt"
   | "regular-fit-hoodie"
+  | "boxy-fit-hoodie"
   | "canvas-tote-bag";
 
 export interface GarmentViewRenderConfig {
   profile: GarmentRenderProfile;
   insetPercent: number;
+  /** Product-specific vertical calibration for the neck-label overlay. */
+  neckLabelTopPercent?: Partial<Record<NeckLabelPosition, number>>;
   /** Another product's authentic asset set used while this view is unavailable. */
   assetFolder?: GarmentFolder;
 }
@@ -47,32 +51,90 @@ const GARMENT_RENDER_CONFIG: Record<GarmentFolder, GarmentRenderConfig> = {
   "regular-fit-tee": {
     front: photographic(1),
     back: photographic(1),
-    neck: photographic(2),
+    // The Classic T-Shirt neck tape ends at the default overlay origin.
+    // Move only its below-tape label down by the simulated 5 mm gap.
+    neck: {
+      ...photographic(2),
+      neckLabelTopPercent: {
+        below_neck_tape: 36.5,
+      },
+    },
   },
   "boxy-fit-tee": {
     front: photographic(-20.5),
     back: photographic(-21.5),
-    neck: photographic(2),
+    // The relaxed neck asset has more transparent framing above the collar
+    // than the classic tee, so its label needs to sit lower in the canvas.
+    neck: {
+      ...photographic(2),
+      neckLabelTopPercent: {
+        below_neck_tape: 39,
+        on_neck_tape: 37,
+      },
+    },
   },
   "longsleeve-tee": {
     front: photographic(-21),
     back: photographic(-22),
-    neck: photographic(2),
+    // Match the lower-framed high-resolution neck asset, as with the relaxed
+    // tee, so the label clears the collar instead of sitting too high.
+    neck: {
+      ...photographic(2),
+      neckLabelTopPercent: {
+        below_neck_tape: 37,
+        on_neck_tape: 35,
+      },
+    },
   },
   polo: {
     front: photographic(-24.5),
     back: photographic(-25.5),
-    neck: photographic(2),
+    // The polo collar and back neck seam sit lower in the neck asset than a
+    // crew-neck tee, so the label needs a lower overlay position.
+    neck: {
+      ...photographic(2),
+      neckLabelTopPercent: {
+        below_neck_tape: 40,
+        on_neck_tape: 38,
+      },
+    },
   },
   "regular-fit-sweatshirt": {
     front: photographic(-21),
     back: photographic(-23.5),
-    neck: photographic(2),
+    // The sweatshirt's thicker collar places the back neck seam much higher
+    // than the tee assets, so the label needs an earlier overlay position.
+    neck: {
+      ...photographic(2),
+      neckLabelTopPercent: {
+        below_neck_tape: 22,
+        on_neck_tape: 20,
+      },
+    },
   },
   "regular-fit-hoodie": {
     front: photographic(-30.5),
     back: photographic(-26),
-    neck: photographic(2),
+    // The hood's back neck seam sits higher than the standard tee overlay
+    // position, so keep the label just below that seam.
+    neck: {
+      ...photographic(2),
+      neckLabelTopPercent: {
+        below_neck_tape: 35,
+        on_neck_tape: 33,
+      },
+    },
+  },
+  "boxy-fit-hoodie": {
+    front: photographic(-30.5),
+    back: photographic(-26),
+    neck: {
+      ...photographic(2),
+      neckLabelTopPercent: {
+        below_neck_tape: 35,
+        on_neck_tape: 33,
+      },
+    },
   },
   "canvas-tote-bag": {
     front: photographic(-5),
@@ -88,6 +150,7 @@ const FALLBACK_RENDER_CONFIG: GarmentViewRenderConfig = {
 
 export function getGarmentFolder(productId: ProductId): GarmentFolder | null {
   if (productId.includes("canvas-tote")) return "canvas-tote-bag";
+  if (productId.includes("boxy-fit-hoodie")) return "boxy-fit-hoodie";
   if (productId.includes("regular-fit-hoodie")) return "regular-fit-hoodie";
   if (productId.includes("regular-fit-sweatshirt")) return "regular-fit-sweatshirt";
   if (productId.includes("longsleeve")) return "longsleeve-tee";

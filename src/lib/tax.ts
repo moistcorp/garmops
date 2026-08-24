@@ -20,6 +20,7 @@ const PRODUCT_TAX: Record<string, { hsnCode: string; fixedRateBasisPoints?: numb
   "canvas-tote-bag": { hsnCode: "4202 22 20", fixedRateBasisPoints: GST_HIGH_RATE_BASIS_POINTS },
   "regular-fit-sweatshirt-320gsm": { hsnCode: "6110" },
   "regular-fit-hoodie-320gsm": { hsnCode: "6110" },
+  "boxy-fit-hoodie-320gsm": { hsnCode: "6110" },
 };
 
 export function gstRateForProduct(productId: string, unitPricePaise: number): number {

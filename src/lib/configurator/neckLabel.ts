@@ -29,6 +29,25 @@ export const NECK_LABEL_STITCH_LABELS: Record<NeckLabelStitch, string> = {
   '2_corner': '2-corner stitch',
 };
 
+const NECK_LABEL_STITCHES_BY_POSITION: Record<NeckLabelPosition, readonly NeckLabelStitch[]> = {
+  below_neck_tape: ['2_side', '4_corner', '2_corner'],
+  on_neck_tape: ['2_corner'],
+};
+
+export function neckLabelStitchesForPosition(
+  position: NeckLabelPosition,
+): readonly NeckLabelStitch[] {
+  return NECK_LABEL_STITCHES_BY_POSITION[position];
+}
+
+export function normalizeNeckLabelStitch(
+  position: NeckLabelPosition,
+  stitch?: NeckLabelStitch,
+): NeckLabelStitch {
+  const allowed = neckLabelStitchesForPosition(position);
+  return stitch && allowed.some((option) => option === stitch) ? stitch : '2_corner';
+}
+
 export function isCustomNeckLabel(
   label?: Partial<Pick<NeckLabel, 'labelType' | 'fileUrl' | 'fileId'>> | null,
 ): boolean {
@@ -47,6 +66,7 @@ export function createStandardNeckLabel(): NeckLabel {
     fileUrl: '',
     dimensions: '50x18',
     position: 'below_neck_tape',
+    stitch: '2_corner',
     confirmed: false,
   };
 }

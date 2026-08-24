@@ -91,6 +91,13 @@ const CALIBRATIONS: Record<string, GarmentCalibration> = {
     front: { neckRibBottomY: 0.34, hemTopY: 0.89, torsoLeftX: 0.343, torsoRightX: 0.653 },
     back: { neckRibBottomY: 0.31, hemTopY: 0.89, torsoLeftX: 0.330, torsoRightX: 0.673 },
   },
+  "boxy-fit-hoodie": {
+    assetAspectRatio: HIGH_RES_ASSET_ASPECT_RATIO,
+    bodyLengthFallbackInches: 28,
+    torsoWidthInches: 25,
+    front: { neckRibBottomY: 0.34, hemTopY: 0.89, torsoLeftX: 0.330, torsoRightX: 0.673 },
+    back: { neckRibBottomY: 0.31, hemTopY: 0.89, torsoLeftX: 0.330, torsoRightX: 0.673 },
+  },
   "canvas-tote-bag": {
     assetAspectRatio: 5280 / 4736,
     bodyLengthFallbackInches: 42 / 2.54,

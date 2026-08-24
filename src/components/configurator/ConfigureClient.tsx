@@ -44,6 +44,7 @@ import {
 import {
   createStandardNeckLabel,
   isCustomNeckLabel,
+  normalizeNeckLabelStitch,
 } from "@/lib/configurator/neckLabel";
 import {
   CUSTOM_DYE_MOQ_UNITS,
@@ -1470,6 +1471,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
       }
       const readyLabel = {
         ...neckLabel,
+        stitch: normalizeNeckLabelStitch(neckLabel.position, neckLabel.stitch),
         ...(isToteProduct
           ? {
               position: "below_neck_tape" as const,

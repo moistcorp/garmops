@@ -40,7 +40,7 @@ function getFlatlayImage(slug: string): string {
     return flatlayAssetPath(slug.includes("boxy") ? "boxytee.webp" : "regulartee.png");
   }
   if (slug.includes("hoodie")) {
-    return flatlayAssetPath("regularhoodie.webp");
+    return flatlayAssetPath(slug.includes("boxy") ? "boxyhoodie.webp" : "regularhoodie.webp");
   }
   if (slug.includes("polo")) return flatlayAssetPath("polo.webp");
   if (slug.includes("sweatshirt")) return flatlayAssetPath("sweatshirt.png");

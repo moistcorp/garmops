@@ -8,6 +8,8 @@ import {
   NECK_LABEL_DIMENSIONS,
   createStandardNeckLabel,
   isCustomNeckLabel,
+  neckLabelStitchesForPosition,
+  normalizeNeckLabelStitch,
 } from '@/lib/configurator/neckLabel';
 import { formatInr, NECK_LABEL_UNIT_PRICE } from '@/lib/configurator/pricing';
 import type {
@@ -71,6 +73,7 @@ function fileFingerprint(value?: NeckLabel): string {
 }
 
 function draftFromValue(value?: NeckLabel, isToteProduct = false): CustomDraft {
+  const position = isToteProduct ? DEFAULT_POSITION : value?.position ?? DEFAULT_POSITION;
   return {
     fileUrl: value?.fileUrl ?? '',
     fileKey: value?.fileKey,
@@ -78,8 +81,8 @@ function draftFromValue(value?: NeckLabel, isToteProduct = false): CustomDraft {
     fileName: value?.fileName,
     source: value?.source,
     dimensions: value?.dimensions ?? DEFAULT_DIMENSIONS,
-    position: isToteProduct ? DEFAULT_POSITION : value?.position ?? DEFAULT_POSITION,
-    stitch: value?.stitch ?? DEFAULT_STITCH,
+    position,
+    stitch: normalizeNeckLabelStitch(position, value?.stitch),
   };
 }
 
@@ -458,7 +461,7 @@ export default function NeckLabelPanel({
   function handlePositionChange(next: NeckLabelPosition) {
     updateCustomDraft({
       position: next,
-      stitch: next === 'on_neck_tape' ? undefined : customDraftRef.current.stitch ?? DEFAULT_STITCH,
+      stitch: normalizeNeckLabelStitch(next, customDraftRef.current.stitch),
     });
   }
 
@@ -591,17 +594,14 @@ export default function NeckLabelPanel({
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {NECK_LABEL_DIMENSIONS.map((option) => {
                 const selected = customDraft.dimensions === option;
-                const description = option === '50x18' ? 'Standard horizontal' : option === '60x20' ? 'Wide horizontal' : option === '65x15' ? 'Slim horizontal' : 'Square';
                 return (
                   <button key={option} type="button" onClick={() => handleDimensionsSelected(option)} aria-pressed={selected} className={`flex min-h-[98px] flex-col items-center justify-center gap-1 rounded-sm border p-2 text-center transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-accent) ${selected ? 'techpack-selected' : 'techpack-control border text-(--text-primary)/70 hover:!bg-white/60'}`}>
                     <DimensionPreview option={option} selected={selected} />
                     <span className="text-xs font-semibold leading-tight">{formatDimensions(option)}</span>
-                    <span className="text-xs font-normal leading-relaxed opacity-65">{description}</span>
                   </button>
                 );
               })}
             </div>
-            <p className="mt-2 text-xs leading-relaxed text-(--text-primary)/45">Preview shown approximately to scale.</p>
           </section>
 
           <section>
@@ -609,12 +609,14 @@ export default function NeckLabelPanel({
             <PositionSelect value={customDraft.position} onChange={handlePositionChange} isToteProduct={isToteProduct} />
           </section>
 
-          {customDraft.position === 'below_neck_tape' && (
-            <section>
-              <SectionHeading>4 — Choose stitching</SectionHeading>
-              <StitchSelect value={customDraft.stitch} onChange={handleStitchChange} />
-            </section>
-          )}
+          <section>
+            <SectionHeading>4 — Choose stitching</SectionHeading>
+            <StitchSelect
+              value={normalizeNeckLabelStitch(customDraft.position, customDraft.stitch)}
+              onChange={handleStitchChange}
+              allowedStitches={neckLabelStitchesForPosition(customDraft.position)}
+            />
+          </section>
 
           {hasArtwork && (
             <div className="techpack-subtle rounded-sm px-4 py-3 text-xs leading-relaxed text-(--text-primary)/65">
