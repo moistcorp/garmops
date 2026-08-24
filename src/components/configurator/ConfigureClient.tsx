@@ -21,6 +21,7 @@ import GarmentPreview from "./GarmentPreview/GarmentPreview";
 import CanvasRenderer, {
   type GarmentRenderResult,
 } from "./GarmentPreview/CanvasRenderer";
+import { getGarmentViewAssetWeights } from "./GarmentPreview/garmentAssets";
 import GarmopsLoadingScreen from "@/components/common/GarmopsLoadingScreen";
 import {
   ConfiguratorSidebar,
@@ -112,6 +113,7 @@ interface FeedbackState {
   title: string;
   detail?: string;
   retryPdf?: boolean;
+  retryPreviews?: boolean;
 }
 
 interface ConfigureClientProps {
@@ -141,6 +143,8 @@ const JOURNEY_STEP_FOR_CUSTOMISATION: Record<AccordionStepId, ConfiguratorJourne
   artwork: "artwork",
   "neck-label": "neck-label",
 };
+
+const CONFIGURATOR_LOADER_EXIT_MS = 160;
 
 function safeQuantity(value: unknown, minimum = 50): number {
   const parsed = Number(value);
@@ -298,6 +302,8 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   const [previewRenderProgress, setPreviewRenderProgress] =
     useState<Partial<Record<GarmentView, GarmentRenderResult>>>({});
   const [configuratorOpened, setConfiguratorOpened] = useState(false);
+  const [loaderVisible, setLoaderVisible] = useState(true);
+  const [previewRetryNonce, setPreviewRetryNonce] = useState(0);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [feedback, setFeedback] = useState<FeedbackState | null>(() =>
     requestedAuthResume === "add-to-cart"
@@ -375,11 +381,19 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   const configuratorLoadState = getConfiguratorLoadState(
     hydrationComplete,
     currentPreviewProgress,
+    getGarmentViewAssetWeights(productId),
   );
+
+  const handleRetryPreviews = useCallback(() => {
+    setFeedback(null);
+    setLoaderVisible(true);
+    setConfiguratorOpened(false);
+    setPreviewRenderProgress({});
+    setPreviewRetryNonce((current) => current + 1);
+  }, []);
 
   useEffect(() => {
     if (
-      configuratorOpened ||
       !hydrationComplete ||
       !configuratorLoadState.allPreviewsSettled
     ) return;
@@ -390,9 +404,24 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
     return () => window.cancelAnimationFrame(frame);
   }, [
     configuratorLoadState.allPreviewsSettled,
-    configuratorOpened,
     hydrationComplete,
   ]);
+
+  useEffect(() => {
+    if (!configuratorOpened) return;
+    const timeout = window.setTimeout(() => {
+      setLoaderVisible(false);
+      if (configuratorLoadState.hasPreviewErrors) {
+        setFeedback((current) => current ?? {
+          tone: "info",
+          title: "Some preview detail could not load",
+          detail: "You can keep designing with the available preview or retry the missing views.",
+          retryPreviews: true,
+        });
+      }
+    }, CONFIGURATOR_LOADER_EXIT_MS);
+    return () => window.clearTimeout(timeout);
+  }, [configuratorLoadState.hasPreviewErrors, configuratorOpened]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1531,13 +1560,26 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
 
   return (
     <ArtworkPositionProvider activeView={activeView}>
-      {!configuratorOpened ? (
-        <div className="fixed inset-0 z-[100] overflow-y-auto bg-(--color-cream)">
+      {loaderVisible ? (
+        <div
+          className="configurator-loader-overlay fixed inset-0 z-[100] overflow-y-auto bg-(--color-cream)"
+          data-phase={configuratorOpened ? "exiting" : "loading"}
+          aria-hidden={configuratorOpened || undefined}
+        >
           <GarmopsLoadingScreen
             progress={configuratorLoadState.progress}
             statusText={configuratorLoadState.statusText}
             stages={configuratorLoadState.stages}
-            description="Restoring your selections and preparing this product’s front, back and neck previews before the workspace opens."
+            product={{
+              name: product.name,
+              image: product.hoverImage,
+              gsm: product.gsm,
+              material: product.material,
+            }}
+            hasErrors={configuratorLoadState.hasPreviewErrors}
+            description={configuratorLoadState.hasPreviewErrors
+              ? "The studio is opening with a simplified fallback for one or more views."
+              : "Front, back and neck will be ready when the studio opens."}
           />
         </div>
       ) : null}
@@ -1656,7 +1698,20 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
 
         {feedback && (
           <div className="fixed right-4 top-24 z-[70] w-[min(380px,calc(100vw-2rem))]">
-            <ActionFeedback {...feedback} onDismiss={feedback.tone === "loading" ? undefined : () => setFeedback(null)} actionLabel={feedback.retryPdf ? "Try PDF again" : undefined} onAction={feedback.retryPdf ? handleDownloadPdf : undefined} />
+            <ActionFeedback
+              {...feedback}
+              onDismiss={feedback.tone === "loading" ? undefined : () => setFeedback(null)}
+              actionLabel={feedback.retryPdf
+                ? "Try PDF again"
+                : feedback.retryPreviews
+                  ? "Retry previews"
+                  : undefined}
+              onAction={feedback.retryPdf
+                ? handleDownloadPdf
+                : feedback.retryPreviews
+                  ? handleRetryPreviews
+                  : undefined}
+            />
           </div>
         )}
 
@@ -1687,6 +1742,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
               className="flex min-h-0 flex-1 items-center justify-center"
             >
               <GarmentPreview
+                key={previewRetryNonce}
                 activeView={activeView}
                 onViewChange={setActiveView}
                 colourHex={colour.hex}

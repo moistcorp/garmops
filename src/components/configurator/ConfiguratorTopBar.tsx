@@ -21,6 +21,7 @@ export interface ConfiguratorTopBarProps {
   isToteProduct?: boolean;
   links?: Partial<Record<ConfiguratorJourneyStep, string>>;
   onStepSelect?: Partial<Record<ConfiguratorJourneyStep, () => void>>;
+  condensedJourney?: boolean;
   className?: string;
 }
 
@@ -70,6 +71,7 @@ export function ConfiguratorTopBar({
   isToteProduct = false,
   links = {},
   onStepSelect = {},
+  condensedJourney = false,
   className = "",
 }: ConfiguratorTopBarProps) {
   return (
@@ -83,6 +85,7 @@ export function ConfiguratorTopBar({
           <ConfiguratorJourney
             currentStep={currentStep}
             compact
+            condensed={condensedJourney}
             backHref={backHref}
             links={links}
             onStepSelect={onStepSelect}

@@ -3,12 +3,22 @@ import {
   garmentAssetPath,
   getGarmentFolder,
   getGarmentRenderConfig,
+  getGarmentViewAssetWeights,
 } from "./garmentAssets";
 
 describe("garment preview asset mapping", () => {
   it("maps product variants to shared renderer folders", () => {
     expect(getGarmentFolder("regular-fit-tee-200gsm")).toBe("regular-fit-tee");
     expect(getGarmentFolder("regular-fit-tee-260gsm")).toBe("regular-fit-tee");
+  });
+
+  it("provides manifest-derived view weights for truthful loading progress", () => {
+    expect(getGarmentViewAssetWeights("regular-fit-tee-200gsm")).toEqual({
+      front: 5_925_377,
+      back: 8_211_733,
+      neck: 2_246_964,
+    });
+    expect(getGarmentViewAssetWeights("unknown-product")).toBeUndefined();
   });
 
   it("uses byte-correct PNG details for regular tee front and back", () => {

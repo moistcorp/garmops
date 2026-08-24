@@ -33,12 +33,14 @@ export interface ConfiguratorLoadState {
   progress: number;
   statusText: string;
   allPreviewsSettled: boolean;
+  hasPreviewErrors: boolean;
   stages: readonly ConfiguratorLoadStage[];
 }
 
 const ROUTE_READY_POINTS = 10;
 const HYDRATION_POINTS = 20;
-const PREVIEW_POINTS = 70;
+const ASSET_POINTS = 65;
+const COMPOSITE_POINTS = 5;
 const FALLBACK_LAYER_COUNT = 4;
 
 function isSettled(progress?: PreviewLoadProgress): boolean {
@@ -55,6 +57,7 @@ function stageState(progress?: PreviewLoadProgress): ConfiguratorLoadStageState 
 export function getConfiguratorLoadState(
   hydrationComplete: boolean,
   previews: PreviewLoadProgressByView,
+  viewAssetWeights: Partial<Record<GarmentView, number>> = {},
 ): ConfiguratorLoadState {
   const effectivePreviews = hydrationComplete ? previews : {};
   const allPreviewsSettled = CONFIGURATOR_PREVIEW_VIEWS.every((view) =>
@@ -75,28 +78,51 @@ export function getConfiguratorLoadState(
   const settledPreviews = CONFIGURATOR_PREVIEW_VIEWS.filter((view) =>
     isSettled(effectivePreviews[view]),
   ).length;
-  const previewWorkTotal = layerTotal + CONFIGURATOR_PREVIEW_VIEWS.length;
-  const previewWorkComplete = loadedLayers + settledPreviews;
+  const hasPreviewErrors = CONFIGURATOR_PREVIEW_VIEWS.some(
+    (view) => effectivePreviews[view]?.state === "error",
+  );
+  const assetWorkTotal = CONFIGURATOR_PREVIEW_VIEWS.reduce(
+    (total, view) => total + Math.max(1, viewAssetWeights[view] ?? 1),
+    0,
+  );
+  const assetWorkComplete = CONFIGURATOR_PREVIEW_VIEWS.reduce((total, view) => {
+    const preview = effectivePreviews[view];
+    const viewWeight = Math.max(1, viewAssetWeights[view] ?? 1);
+    if (isSettled(preview)) return total + viewWeight;
+    const totalLayers = preview?.totalLayers || FALLBACK_LAYER_COUNT;
+    const completedFraction = Math.min(
+      1,
+      (preview?.loadedLayers ?? 0) / totalLayers,
+    );
+    return total + viewWeight * completedFraction;
+  }, 0);
   const progress = Math.min(
     100,
     ROUTE_READY_POINTS +
       (hydrationComplete ? HYDRATION_POINTS : 0) +
-      Math.round((previewWorkComplete / previewWorkTotal) * PREVIEW_POINTS),
+      Math.round((assetWorkComplete / assetWorkTotal) * ASSET_POINTS) +
+      Math.round(
+        (settledPreviews / CONFIGURATOR_PREVIEW_VIEWS.length) *
+          COMPOSITE_POINTS,
+      ),
   );
 
-  let statusText = "Restoring workspace details…";
-  if (hydrationComplete && loadedLayers < layerTotal) {
-    statusText = `Loading product previews ${loadedLayers}/${layerTotal} layers…`;
+  let statusText = "Restoring your product setup…";
+  if (hydrationComplete && allPreviewsSettled && hasPreviewErrors) {
+    statusText = "Workspace ready with a limited preview";
+  } else if (hydrationComplete && allPreviewsSettled) {
+    statusText = "Front, back and neck views are ready";
+  } else if (hydrationComplete && loadedLayers < layerTotal) {
+    statusText = `Preparing previews · ${loadedLayers}/${layerTotal} assets`;
   } else if (hydrationComplete && !allPreviewsSettled) {
-    statusText = `Rendering preview angles ${settledPreviews}/${CONFIGURATOR_PREVIEW_VIEWS.length}…`;
-  } else if (hydrationComplete) {
-    statusText = "Front, back and neck previews ready";
+    statusText = `Finishing previews · ${settledPreviews} of ${CONFIGURATOR_PREVIEW_VIEWS.length} views`;
   }
 
   return {
     progress,
     statusText,
     allPreviewsSettled,
+    hasPreviewErrors,
     stages: [
       {
         label: "Workspace",

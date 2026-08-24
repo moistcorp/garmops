@@ -673,6 +673,7 @@ export default function GarmentComposite({
     let cancelled = false;
     let renderFrame: number | null = null;
     let loadedLayers = 0;
+    let loadFailed = false;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const previousAssetKey = canvas.dataset.renderAsset;
@@ -718,7 +719,7 @@ export default function GarmentComposite({
       highlightSrc,
       (nextLoadedLayers, totalLayers) => {
         loadedLayers = nextLoadedLayers;
-        if (cancelled) return;
+        if (cancelled || loadFailed) return;
         notifyRenderProgress({
           state: "loading",
           loadedLayers: nextLoadedLayers,
@@ -810,6 +811,7 @@ export default function GarmentComposite({
       })
       .catch((error: unknown) => {
         if (cancelled || !canvasRef.current) return;
+        loadFailed = true;
         canvasRef.current.dataset.renderState = "error";
         delete canvasRef.current.dataset.colourTransition;
         notifyRenderProgress({

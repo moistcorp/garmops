@@ -1,8 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { ArrowRight, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { products } from "@/lib/configurator/products";
 import ProductCard from "./ProductCard";
 import { getCatalog } from "@/lib/medusa/commerce";
@@ -62,9 +61,23 @@ export default function ProductGrid({ cartId }: { cartId?: string }) {
   );
 
   return (
-    <div className="space-y-8">
-      <nav aria-label="Product categories" className="border-y border-(--color-rule) py-4">
-        <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div className="space-y-6">
+      <nav
+        aria-label="Product categories"
+        className="sticky top-[69px] z-30 -mx-1 border-y border-(--color-rule) bg-(--color-studio-bg)/95 px-1 py-3 backdrop-blur-sm sm:top-[81px]"
+      >
+        <div className="mb-2 flex items-center justify-between gap-3 sm:hidden">
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.06em] text-(--text-primary)/65">
+            Categories
+          </span>
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.06em] text-(--text-primary)/65" aria-live="polite">
+            {activeSlugs === null
+              ? "Checking catalogue"
+              : `${filteredProducts.length} ${filteredProducts.length === 1 ? "product" : "products"}`}
+          </span>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {availableCategories.map((category) => {
             const active = activeCategory === category;
             return (
@@ -73,7 +86,7 @@ export default function ProductGrid({ cartId }: { cartId?: string }) {
                 type="button"
                 onClick={() => setActiveCategory(category)}
                 aria-pressed={active}
-                className={`min-h-10 shrink-0 rounded-sm border px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-accent) ${
+                className={`min-h-10 shrink-0 rounded-sm border px-4 py-2 text-sm font-medium transition-[color,background-color,border-color,transform] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-accent) motion-reduce:transition-colors ${
                   active
                     ? "border-(--color-accent) bg-(--color-accent) text-white"
                     : "border-(--color-rule) bg-white text-(--text-primary)/65 hover:border-(--color-accent) hover:text-(--color-accent-dark)"
@@ -83,6 +96,15 @@ export default function ProductGrid({ cartId }: { cartId?: string }) {
               </button>
             );
           })}
+          </div>
+          <p
+            className="hidden shrink-0 font-mono text-[11px] font-semibold uppercase tracking-[0.06em] text-(--text-primary)/65 sm:block"
+            aria-live="polite"
+          >
+            {activeSlugs === null
+              ? "Checking catalogue"
+              : `${filteredProducts.length} ${filteredProducts.length === 1 ? "product" : "products"}`}
+          </p>
         </div>
       </nav>
 
@@ -125,25 +147,6 @@ export default function ProductGrid({ cartId }: { cartId?: string }) {
           )}
         </>
       )}
-
-      <section className="border-t border-(--color-rule) pt-7" aria-labelledby="product-research-title">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 id="product-research-title" className="text-lg font-semibold text-(--text-primary)">
-              Not sure which garment is right?
-            </h2>
-            <p className="mt-1 text-sm text-(--text-primary)/60">
-              Compare fit, fabric weight and product details before choosing.
-            </p>
-          </div>
-          <Link
-            href="/products"
-            className="inline-flex min-h-10 w-fit items-center gap-2 rounded-sm border border-(--color-accent) px-4 py-2 text-sm font-semibold text-(--color-accent-dark) transition-colors hover:bg-(--color-accent) hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-accent)"
-          >
-            Compare products <ArrowRight size={15} aria-hidden="true" />
-          </Link>
-        </div>
-      </section>
     </div>
   );
 }

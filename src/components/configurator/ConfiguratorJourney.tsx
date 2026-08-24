@@ -31,6 +31,7 @@ interface ConfiguratorJourneyProps {
   accountSaveNotice?: ReactNode;
   isToteProduct?: boolean;
   compact?: boolean;
+  condensed?: boolean;
   className?: string;
 }
 
@@ -62,6 +63,7 @@ export function ConfiguratorJourney({
   accountSaveNotice,
   isToteProduct = false,
   compact = false,
+  condensed = false,
   className = "",
 }: ConfiguratorJourneyProps) {
   const steps = isToteProduct
@@ -133,19 +135,47 @@ export function ConfiguratorJourney({
               </div>
             )}
 
-            {accountSaveNotice && (
+            {condensed ? (
+              <div className="flex min-w-0 flex-1 items-center justify-center px-2 sm:px-6">
+                <div className="flex w-full max-w-md items-center justify-center gap-1.5 sm:gap-3">
+                  <span className="shrink-0 font-mono text-[11px] font-semibold uppercase tracking-[0.06em] text-(--color-accent)">
+                    Product
+                  </span>
+                  <span className="font-mono text-[11px] text-(--text-primary)/45 sm:hidden" aria-hidden="true">·</span>
+                  <div
+                    className="hidden h-0.5 min-w-6 flex-1 overflow-hidden bg-(--color-rule) sm:block"
+                    role="progressbar"
+                    aria-label="Configurator progress"
+                    aria-valuemin={1}
+                    aria-valuemax={steps.length}
+                    aria-valuenow={currentIndex + 1}
+                  >
+                    <span
+                      className="block h-full origin-left bg-(--color-accent)"
+                      style={{ transform: `scaleX(${(currentIndex + 1) / steps.length})` }}
+                    />
+                  </div>
+                  <span className="shrink-0 font-mono text-[11px] uppercase tracking-[0.06em] text-(--text-primary)/65">
+                    <span className="sm:hidden">{currentIndex + 1}/{steps.length}</span>
+                    <span className="hidden sm:inline">{currentIndex + 1} of {steps.length}</span>
+                  </span>
+                </div>
+              </div>
+            ) : accountSaveNotice ? (
               <div className="flex min-w-0 flex-1 items-center justify-end">
                 {accountSaveNotice}
               </div>
-            )}
+            ) : null}
 
             <div className="ml-auto flex items-center gap-3">
-              <div className="text-right font-mono text-xs uppercase tracking-[0.06em] text-(--color-navy)">
-                {specCode && <span className="block">{specCode}</span>}
-                <span className="block text-(--text-primary)/45">
-                  STEP {String(currentIndex + 1).padStart(2, "0")} / 08
-                </span>
-              </div>
+              {!condensed ? (
+                <div className="text-right font-mono text-xs uppercase tracking-[0.06em] text-(--color-navy)">
+                  {specCode && <span className="block">{specCode}</span>}
+                  <span className="block text-(--text-primary)/60">
+                    STEP {String(currentIndex + 1).padStart(2, "0")} / {String(steps.length).padStart(2, "0")}
+                  </span>
+                </div>
+              ) : null}
               {(onDownloadPdf || showCart) && (
                 <div className="flex min-w-fit items-center gap-2 border-l border-(--color-rule) pl-3">
                 {onDownloadPdf && (
@@ -177,7 +207,7 @@ export function ConfiguratorJourney({
             </div>
           </div>
 
-          <div className="relative mt-3 px-1 pb-0.5 sm:mt-4">
+          {!condensed ? <div className="relative mt-3 px-1 pb-0.5 sm:mt-4">
             <div aria-hidden="true" className="absolute inset-x-[6.25%] top-[10px] h-[2px] bg-(--color-rule)">
               <span
                 className="techpack-progress absolute inset-y-0 left-0 block"
@@ -230,7 +260,7 @@ export function ConfiguratorJourney({
                 );
               })}
             </ol>
-          </div>
+          </div> : null}
         </div>
       </nav>
     </>

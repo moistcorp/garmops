@@ -3,9 +3,9 @@ import GarmopsLoadingScreen from "@/components/common/GarmopsLoadingScreen";
 export default function ConfiguratorBuildLoading() {
   return (
     <GarmopsLoadingScreen
-      progress={8}
       statusText="Opening selected product…"
-      description="Preparing the product workspace and its garment preview. This screen will close automatically when everything is ready."
+      title="Opening your configurator"
+      description="Starting the selected product and its preview workspace."
       stages={[
         { label: "Workspace", state: "loading" },
         { label: "Front", state: "queued" },

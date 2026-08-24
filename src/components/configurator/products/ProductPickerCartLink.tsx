@@ -47,9 +47,11 @@ export default function ProductPickerCartLink() {
       className="relative m-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-(--color-rule) bg-(--color-cream) text-(--color-accent) transition-colors hover:border-(--color-accent) hover:bg-(--color-accent) hover:text-white"
     >
       <ShoppingCart size={21} strokeWidth={1.8} />
-      <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-sm border border-(--color-accent) bg-(--color-accent) px-1 font-mono text-xs font-medium text-white">
-        {summary?.itemCount ?? 0}
-      </span>
+      {summary && summary.itemCount > 0 ? (
+        <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-sm border border-(--color-accent) bg-(--color-accent) px-1 font-mono text-xs font-medium text-white">
+          {summary.itemCount}
+        </span>
+      ) : null}
     </Link>
   );
 }

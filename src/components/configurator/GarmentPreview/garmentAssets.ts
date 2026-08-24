@@ -154,6 +154,59 @@ const GARMENT_RENDER_CONFIG: Record<GarmentFolder, GarmentRenderConfig> = {
   },
 };
 
+/**
+ * Total encoded bytes for the four compositor assets in each product view.
+ * Generated from scripts/garment-assets-r2-manifest.json (asset version v5).
+ * Keeping the compact per-view totals in the client avoids shipping the full
+ * asset manifest while still making the loader reflect the relative network
+ * cost of each preview angle.
+ */
+const GARMENT_VIEW_ASSET_BYTES: Record<
+  GarmentFolder,
+  Record<GarmentView, number>
+> = {
+  "regular-fit-tee": {
+    front: 5_925_377,
+    back: 8_211_733,
+    neck: 2_246_964,
+  },
+  "boxy-fit-tee": {
+    front: 10_364_869,
+    back: 7_374_372,
+    neck: 12_322_036,
+  },
+  "longsleeve-tee": {
+    front: 13_623_233,
+    back: 15_205_999,
+    neck: 25_282_627,
+  },
+  polo: {
+    front: 10_203_423,
+    back: 11_005_857,
+    neck: 19_468_571,
+  },
+  "regular-fit-sweatshirt": {
+    front: 11_160_038,
+    back: 13_765_234,
+    neck: 22_433_745,
+  },
+  "regular-fit-hoodie": {
+    front: 8_428_381,
+    back: 11_524_536,
+    neck: 3_725_705,
+  },
+  "boxy-fit-hoodie": {
+    front: 7_052_699,
+    back: 5_782_613,
+    neck: 3_798_183,
+  },
+  "canvas-tote-bag": {
+    front: 5_982_550,
+    back: 6_744_551,
+    neck: 24_803_156,
+  },
+};
+
 const FALLBACK_RENDER_CONFIG: GarmentViewRenderConfig = {
   profile: "standard",
   insetPercent: 2,
@@ -178,6 +231,21 @@ export function getGarmentRenderConfig(
   const garmentFolder = getGarmentFolder(productId);
   if (!garmentFolder) return FALLBACK_RENDER_CONFIG;
   return GARMENT_RENDER_CONFIG[garmentFolder][view];
+}
+
+export function getGarmentViewAssetWeights(
+  productId: ProductId,
+): Record<GarmentView, number> | undefined {
+  const garmentFolder = getGarmentFolder(productId);
+  if (!garmentFolder) return undefined;
+
+  return Object.fromEntries(
+    (["front", "back", "neck"] as const).map((view) => {
+      const assetFolder =
+        GARMENT_RENDER_CONFIG[garmentFolder][view].assetFolder ?? garmentFolder;
+      return [view, GARMENT_VIEW_ASSET_BYTES[assetFolder][view]];
+    }),
+  ) as Record<GarmentView, number>;
 }
 
 export function garmentAssetPath(productId: ProductId, view: GarmentView, layer: string): string {

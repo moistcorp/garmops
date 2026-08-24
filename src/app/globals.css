@@ -411,6 +411,16 @@ canvas {
 }
 
 /* Rich workspace loader retained for explicit, determinate production tasks. */
+.configurator-loader-overlay {
+  opacity: 1;
+  transition: opacity 160ms var(--ease-out-ui);
+}
+
+.configurator-loader-overlay[data-phase="exiting"] {
+  pointer-events: none;
+  opacity: 0;
+}
+
 .garmops-loader-shell {
   display: grid;
   min-height: min(760px, calc(100svh - 4rem));
@@ -434,7 +444,7 @@ canvas {
   gap: 1rem;
   border-bottom: 1px solid var(--color-rule);
   padding: 0.75rem 1rem;
-  color: rgba(22, 33, 43, 0.48);
+  color: rgba(22, 33, 43, 0.64);
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 600;
@@ -491,14 +501,48 @@ canvas {
 }
 
 .garmops-loader-pattern-line {
-  animation: garmops-pattern-draw 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite
-    alternate;
   stroke: var(--color-accent);
   stroke-dasharray: 690;
   stroke-dashoffset: 690;
   stroke-linecap: square;
   stroke-linejoin: miter;
   stroke-width: 2;
+  transition: stroke-dashoffset 220ms var(--ease-in-out-ui);
+}
+
+.garmops-loader-board[data-mode="indeterminate"] .garmops-loader-pattern-line {
+  animation: garmops-pattern-draw-once 800ms var(--ease-out-ui) forwards;
+}
+
+.garmops-loader-product-visual {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: 50%;
+  width: min(68%, 330px);
+  height: 82%;
+  transform: translate(-50%, -50%);
+}
+
+.garmops-loader-product-image {
+  position: absolute;
+  inset: 0;
+}
+
+.garmops-loader-product-image img {
+  object-fit: contain;
+  object-position: center;
+}
+
+.garmops-loader-product-image[data-layer="base"] {
+  opacity: 0.24;
+  filter: grayscale(1) contrast(0.9);
+}
+
+.garmops-loader-product-image[data-layer="reveal"] {
+  opacity: 0.78;
+  filter: grayscale(0.7) saturate(0.75) contrast(1.05);
+  transition: clip-path 220ms var(--ease-in-out-ui);
 }
 
 .garmops-loader-seam,
@@ -526,9 +570,10 @@ canvas {
   left: 19%;
   width: 62%;
   height: 1px;
-  animation: garmops-pattern-scan 2.8s ease-in-out infinite;
   background: var(--color-accent);
   box-shadow: 0 0 12px rgba(29, 73, 180, 0.45);
+  opacity: 0.78;
+  transition: transform 220ms var(--ease-in-out-ui);
 }
 
 .garmops-loader-scan::before,
@@ -589,7 +634,7 @@ canvas {
 .garmops-loader-measure {
   position: absolute;
   z-index: 2;
-  color: rgba(22, 33, 43, 0.4);
+  color: rgba(22, 33, 43, 0.52);
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.12em;
@@ -667,10 +712,13 @@ canvas {
 .garmops-loader-spec {
   position: absolute;
   z-index: 5;
-  color: rgba(22, 33, 43, 0.42);
+  max-width: 28%;
+  color: rgba(22, 33, 43, 0.62);
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.08em;
+  text-align: right;
+  text-transform: uppercase;
 }
 
 .garmops-loader-spec-one {
@@ -699,15 +747,25 @@ canvas {
 
 .garmops-loader-copy p {
   margin-top: 0.45rem;
-  color: rgba(22, 33, 43, 0.55);
+  color: rgba(22, 33, 43, 0.68);
   font-size: 0.8rem;
   line-height: 1.55;
 }
 
+.garmops-loader-copy .garmops-loader-product-facts {
+  margin-top: 0.55rem;
+  color: rgba(22, 33, 43, 0.78);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .garmops-loader-steps {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.35rem;
+  grid-template-columns: minmax(66px, 1.25fr) repeat(3, minmax(0, 1fr));
+  column-gap: 0.65rem;
   align-self: end;
   margin: 0;
   padding: 0;
@@ -716,7 +774,7 @@ canvas {
 
 .garmops-loader-steps li {
   border-top: 2px solid rgba(22, 33, 43, 0.13);
-  color: rgba(22, 33, 43, 0.38);
+  color: rgba(22, 33, 43, 0.58);
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 600;
@@ -740,11 +798,47 @@ canvas {
   color: #92400e;
 }
 
-.garmops-loader-steps li span {
-  display: block;
-  margin-bottom: 0.15rem;
+.garmops-loader-step-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 12px;
+  margin-bottom: 0.22rem;
+}
+
+.garmops-loader-step-head > span {
   font-size: 9px;
   font-weight: 400;
+}
+
+.garmops-loader-step-head svg {
+  width: 11px;
+  height: 11px;
+  stroke-width: 2;
+}
+
+.garmops-loader-step-pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: garmops-loader-pulse 900ms var(--ease-in-out-ui) infinite alternate;
+}
+
+.garmops-loader-step-label,
+.garmops-loader-step-state {
+  display: block;
+}
+
+.garmops-loader-step-label {
+  white-space: nowrap;
+}
+
+.garmops-loader-step-state {
+  margin-top: 0.18rem;
+  font-size: 8px;
+  font-weight: 500;
+  opacity: 0.72;
 }
 
 .garmops-loader-progress-panel {
@@ -759,7 +853,7 @@ canvas {
   gap: 1rem;
   min-height: 38px;
   padding: 0.65rem 1rem;
-  color: rgba(22, 33, 43, 0.56);
+  color: rgba(22, 33, 43, 0.72);
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 600;
@@ -777,6 +871,20 @@ canvas {
 .garmops-loader-progress-status span:last-child {
   flex-shrink: 0;
   color: var(--color-accent);
+}
+
+.garmops-loader-progress-panel[data-tone="warning"] {
+  background: rgba(180, 83, 9, 0.06);
+}
+
+.garmops-loader-progress-panel[data-tone="warning"]
+  .garmops-loader-progress-status span:last-child {
+  color: #92400e;
+}
+
+.garmops-loader-progress-panel[data-tone="warning"]
+  .garmops-loader-progress span {
+  background: #b45309;
 }
 
 .garmops-loader-progress {
@@ -825,6 +933,10 @@ canvas {
     width: 78%;
   }
 
+  .garmops-loader-product-visual {
+    width: 78%;
+  }
+
   .garmops-loader-scan {
     left: 11%;
     width: 78%;
@@ -832,8 +944,16 @@ canvas {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .configurator-loader-overlay,
+  .garmops-loader-product-image[data-layer="reveal"],
   .garmops-loader-pattern-line,
   .garmops-loader-scan,
+  .garmops-loader-progress[data-mode="determinate"] span {
+    transition-duration: 0.01ms;
+  }
+
+  .garmops-loader-pattern-line,
+  .garmops-loader-step-pulse,
   .garmops-loader-progress[data-mode="indeterminate"] span {
     animation: none;
   }
@@ -843,45 +963,27 @@ canvas {
   }
 
   .garmops-loader-scan {
-    opacity: 0;
-  }
-
-  .garmops-loader-progress[data-mode="determinate"] span {
-    transition-duration: 0.01ms;
+    opacity: 0.35;
   }
 }
 
-@keyframes garmops-pattern-draw {
-  0%,
-  12% {
+@keyframes garmops-pattern-draw-once {
+  from {
     stroke-dashoffset: 690;
   }
 
-  88%,
-  100% {
+  to {
     stroke-dashoffset: 0;
   }
 }
 
-@keyframes garmops-pattern-scan {
-  0%,
-  10% {
-    opacity: 0;
-    transform: translateY(0);
+@keyframes garmops-loader-pulse {
+  from {
+    opacity: 0.35;
   }
 
-  22% {
+  to {
     opacity: 1;
-  }
-
-  78% {
-    opacity: 1;
-  }
-
-  90%,
-  100% {
-    opacity: 0;
-    transform: translateY(clamp(180px, 30vw, 260px));
   }
 }
 
