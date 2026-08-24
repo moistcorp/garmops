@@ -39,7 +39,7 @@ describe("garment preview asset mapping", () => {
 
   it("keeps product-specific framing with the reference tee unchanged", () => {
     expect(getGarmentRenderConfig("regular-fit-tee-200gsm", "front").insetPercent).toBe(1);
-    expect(getGarmentRenderConfig("regular-fit-hoodie-320gsm", "front").insetPercent).toBe(-10);
+    expect(getGarmentRenderConfig("regular-fit-hoodie-320gsm", "front").insetPercent).toBe(-30.5);
     expect(getGarmentRenderConfig("canvas-tote-bag", "front").insetPercent).toBe(-5);
   });
 });

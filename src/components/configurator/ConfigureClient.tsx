@@ -1721,7 +1721,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
             </div>
 
             <div
-              className="absolute right-4 top-4 z-30 lg:bottom-4 lg:top-auto"
+              className="absolute right-4 top-4 z-30 lg:bottom-2 lg:top-auto"
             >
               <WhatsAppAssistantBar configId={configId} productName={productName} />
             </div>

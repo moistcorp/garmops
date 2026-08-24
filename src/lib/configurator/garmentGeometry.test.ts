@@ -52,8 +52,8 @@ describe("garment-relative print area calibration", () => {
 
   it("uses the per-product frame when mapping print areas", () => {
     expect(getGarmentInsetPercent("regular-fit-tee-200gsm", "front")).toBe(1);
-    expect(getGarmentInsetPercent("boxy-fit-tee-260gsm", "front")).toBe(-10);
-    expect(getGarmentInsetPercent("regular-fit-hoodie-320gsm", "front")).toBe(-10);
+    expect(getGarmentInsetPercent("boxy-fit-tee-260gsm", "front")).toBe(-20.5);
+    expect(getGarmentInsetPercent("regular-fit-hoodie-320gsm", "front")).toBe(-30.5);
     expect(getGarmentInsetPercent("canvas-tote-bag", "front")).toBe(-5);
 
     for (const productId of [

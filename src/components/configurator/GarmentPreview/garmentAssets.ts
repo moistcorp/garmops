@@ -38,7 +38,10 @@ const photographic = (
  * Regular Fit Tee values intentionally match its original implementation.
  * The high-resolution sets use the same compositor after visual/source
  * inspection, but keep their own framing so wide sleeves, hoods and tote
- * handles are complete.
+ * handles are complete. Their front/back insets compensate for transparent
+ * source-artboard padding and equalize visible garment area with Regular Tee;
+ * the values differ by view because the supplied silhouettes occupy different
+ * fractions of those artboards.
  */
 const GARMENT_RENDER_CONFIG: Record<GarmentFolder, GarmentRenderConfig> = {
   "regular-fit-tee": {
@@ -47,28 +50,28 @@ const GARMENT_RENDER_CONFIG: Record<GarmentFolder, GarmentRenderConfig> = {
     neck: photographic(2),
   },
   "boxy-fit-tee": {
-    front: photographic(-10),
-    back: photographic(-10),
+    front: photographic(-20.5),
+    back: photographic(-21.5),
     neck: photographic(2),
   },
   "longsleeve-tee": {
-    front: photographic(-10),
-    back: photographic(-10),
+    front: photographic(-21),
+    back: photographic(-22),
     neck: photographic(2),
   },
   polo: {
-    front: photographic(-10),
-    back: photographic(-10),
+    front: photographic(-24.5),
+    back: photographic(-25.5),
     neck: photographic(2),
   },
   "regular-fit-sweatshirt": {
-    front: photographic(-10),
-    back: photographic(-10),
+    front: photographic(-21),
+    back: photographic(-23.5),
     neck: photographic(2),
   },
   "regular-fit-hoodie": {
-    front: photographic(-10),
-    back: photographic(-10),
+    front: photographic(-30.5),
+    back: photographic(-26),
     neck: photographic(2),
   },
   "canvas-tote-bag": {
