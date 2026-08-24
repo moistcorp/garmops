@@ -163,6 +163,68 @@ test("mobile artwork drawer exposes the complete optional upload entry point", a
   await expect(page.getByRole("button", { name: "Continue without artwork →" })).toBeEnabled();
 });
 
+test("neck label keeps the included path optional and guides the custom path", async ({ page }) => {
+  await page.route("**/garments/v*/**", fulfillGarmentAsset);
+  await page.goto(
+    "/configurator/build/regular-fit-tee-200gsm?draftId=e2e-neck-label-flow&step=neck-label",
+    { waitUntil: "domcontentloaded" },
+  );
+
+  await expect(page.locator('[data-configurator-hydrated="true"]')).toBeAttached();
+  await expect(page.getByRole("heading", { name: "Choose your neck label" })).toBeVisible();
+
+  const standardLabel = page.getByRole("radio", { name: /Standard · Included/ });
+  const customLabel = page.getByRole("radio", { name: /Custom neck label/ });
+  await expect(standardLabel).toBeChecked();
+  await expect(page.getByText("No artwork upload is required.")).toBeVisible();
+  await expect(page.getByRole("button", { name: /continue with standard label/i })).toBeEnabled();
+
+  await customLabel.click();
+  await expect(customLabel).toBeChecked();
+  await expect(page.getByText("Upload artwork to choose size, placement and stitching.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Upload label artwork to continue" })).toBeDisabled();
+
+  await page.getByRole("button", { name: "Try sample label" }).click();
+  await expect(page.getByText("Custom label ready")).toBeVisible();
+  await expect(page.getByRole("button", { name: /Label size/ })).toHaveAttribute("aria-expanded", "true");
+  await page.getByRole("radio", { name: /60 × 20 mm/ }).click();
+  await expect(page.getByRole("button", { name: /Placement/ })).toHaveAttribute("aria-expanded", "true");
+  await expect(page.getByRole("button", { name: /continue with custom label/i })).toBeEnabled();
+});
+
+test("sign-in dialog explains the saved design and waits for security verification", async ({ page }) => {
+  await page.route("**/garments/v*/**", fulfillGarmentAsset);
+  await page.route("https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit", async (route) => {
+    await route.fulfill({
+      contentType: "application/javascript",
+      body: `window.turnstile={render:function(_element,options){setTimeout(function(){options.callback("e2e-turnstile-token")},800);return "e2e-widget"},reset:function(){},remove:function(){}};`,
+    });
+  });
+  await page.goto(
+    "/configurator/build/regular-fit-tee-200gsm?draftId=e2e-auth-dialog&step=neck-label",
+    { waitUntil: "domcontentloaded" },
+  );
+
+  await expect(page.locator('[data-configurator-hydrated="true"]')).toBeAttached();
+  await page.getByRole("button", { name: /Sign in to continue with standard label/i }).click();
+
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByText("Secure sign in")).toBeVisible();
+  await expect(dialog.getByText("No password", { exact: true })).toBeVisible();
+  await expect(dialog.getByText("Classic T-Shirt · Standard label included · 50 pieces")).toBeVisible();
+  await expect(dialog.getByText("We’ll send a six-digit code. No password needed.")).toBeVisible();
+
+  const gatedButton = dialog.getByRole("button", { name: "Complete security check to continue" });
+  await expect(gatedButton).toBeDisabled();
+  await expect(dialog.getByText("Security check complete")).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "Email me a code →" })).toBeEnabled();
+
+  await dialog.getByRole("button", { name: "Continue editing" }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Sign in to continue with standard label/i })).toBeFocused();
+});
+
 test("opens with an honest fallback state and can retry failed preview assets", async ({ page }) => {
   let failNeckTexture = true;
   await page.route("**/garments/v*/**", async (route) => {

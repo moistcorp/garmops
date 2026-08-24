@@ -1,17 +1,21 @@
 'use client';
 
-import { JSX, useCallback, useEffect, useId, useRef, useState } from 'react';
-import { Check, Download, Plus, Trash2, Upload } from 'lucide-react';
+import Image from 'next/image';
+import { JSX, type ReactNode, useCallback, useEffect, useId, useRef, useState } from 'react';
+import { Check, CheckCircle2, ChevronDown, Download, LockKeyhole, Plus, Trash2, Upload } from 'lucide-react';
 import { persistUploadedFile, revokeObjectUrl } from '@/lib/configurator/objectUrls';
 import { AiPreviewError, renderAiPreview } from '@/lib/configurator/aiPreview';
 import {
   NECK_LABEL_DIMENSIONS,
+  NECK_LABEL_POSITION_LABELS,
+  NECK_LABEL_STITCH_LABELS,
   createStandardNeckLabel,
   isCustomNeckLabel,
   neckLabelStitchesForPosition,
   normalizeNeckLabelStitch,
 } from '@/lib/configurator/neckLabel';
-import { formatInr, NECK_LABEL_UNIT_PRICE } from '@/lib/configurator/pricing';
+import { formatInr, getVolumeDiscountPercent, NECK_LABEL_UNIT_PRICE } from '@/lib/configurator/pricing';
+import type { ProductId } from '@/lib/configurator/pricing';
 import type {
   NeckLabel,
   NeckLabelDimensions,
@@ -23,6 +27,7 @@ import type {
 import PositionSelect from './PositionSelect';
 import StitchSelect from './StitchSelect';
 import { garmentAssetUrl } from '@/lib/publicAssets';
+import CanvasRenderer from '@/components/configurator/GarmentPreview/CanvasRenderer';
 
 export interface NeckLabelPanelProps {
   value?: NeckLabel;
@@ -30,6 +35,9 @@ export interface NeckLabelPanelProps {
   onClear?: () => void;
   onPreviewChange?: (previewUrl?: string) => void;
   isToteProduct?: boolean;
+  productId?: ProductId;
+  colourHex?: string;
+  quantity?: number;
 }
 
 const DEFAULT_POSITION: NeckLabelPosition = 'below_neck_tape';
@@ -50,6 +58,8 @@ type CustomDraft = {
   position: NeckLabelPosition;
   stitch?: NeckLabelStitch;
 };
+
+type SetupSection = 'size' | 'placement' | 'stitching';
 
 function fileTypeFromName(name: string): NeckLabelFileType | undefined {
   const ext = name.split('.').pop()?.toLowerCase();
@@ -102,11 +112,7 @@ function DimensionPreview({
   return (
     <span className="flex h-9 items-center justify-center" aria-hidden="true">
       <span
-        className={`block rounded-xs border ${
-          selected
-            ? 'border-white/90 bg-white/30'
-            : 'border-(--color-accent)/45 bg-(--color-accent)/14'
-        }`}
+        className={`block rounded-xs border ${selected ? 'border-(--color-accent) bg-(--color-accent)/18' : 'border-(--color-accent)/35 bg-(--color-accent)/10'}`}
         style={{
           width: `${Math.max(26, widthMm * 0.72)}px`,
           height: `${Math.max(10, heightMm * 0.62)}px`,
@@ -122,34 +128,37 @@ function NeckLabelTypeCard({
   title,
   detail,
   price,
-  onClick,
+  badge,
+  name,
+  onSelect,
 }: {
   type: NeckLabelType;
   selected: boolean;
   title: string;
   detail: string;
   price?: string;
-  onClick: () => void;
+  badge: string;
+  name: string;
+  onSelect: () => void;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={selected}
-      className={`flex min-h-[122px] flex-1 flex-col items-start justify-start rounded-sm border p-4 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-accent) ${
-        selected
-          ? 'techpack-selected'
-          : 'techpack-control border text-(--text-primary)/75 hover:!bg-white/60'
-      }`}
-    >
+    <label className={`relative flex min-h-[92px] flex-1 cursor-pointer flex-col items-start justify-start rounded-sm border p-3.5 text-left transition-[background-color,border-color,color,transform] duration-150 active:scale-[.985] has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-(--color-accent) sm:min-h-[116px] sm:p-4 ${selected ? 'border-(--color-accent) bg-[#EEF3FF] text-(--text-primary) ring-1 ring-(--color-accent)/10' : 'techpack-control text-(--text-primary)/75 hover:!border-(--color-accent)/45 hover:!bg-white/60'}`}>
+      <input
+        type="radio"
+        name={name}
+        value={type}
+        checked={selected}
+        onChange={onSelect}
+        className="absolute inset-0 z-10 cursor-pointer opacity-0"
+      />
       <span className="flex w-full items-center justify-between gap-2">
         <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] opacity-65">
-          {type === 'standard-size' ? 'Standard' : 'Custom'}
+          {badge}
         </span>
         <span
           aria-hidden="true"
           className={`flex size-4 items-center justify-center rounded-full border ${
-            selected ? 'border-white bg-white/90' : 'border-current/30'
+            selected ? 'border-(--color-accent) bg-white' : 'border-current/30'
           }`}
         >
           {selected && <span className="size-2 rounded-full bg-(--color-accent)" />}
@@ -166,7 +175,7 @@ function NeckLabelTypeCard({
           </span>
         )}
       </span>
-    </button>
+    </label>
   );
 }
 
@@ -176,8 +185,13 @@ export default function NeckLabelPanel({
   onClear,
   onPreviewChange,
   isToteProduct = false,
+  productId,
+  colourHex,
+  quantity = 50,
 }: NeckLabelPanelProps): JSX.Element {
   const uploadInputId = useId();
+  const labelTypeGroupName = useId();
+  const dimensionGroupName = useId();
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const importTokenRef = useRef(0);
   const emittedFingerprintRef = useRef<string | null>(null);
@@ -193,11 +207,23 @@ export default function NeckLabelPanel({
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [persistenceWarning, setPersistenceWarning] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [activeSetupSection, setActiveSetupSection] = useState<SetupSection | null>(
+    initialDraft.fileUrl || initialDraft.fileKey ? 'size' : null,
+  );
+  const [showMobilePreview, setShowMobilePreview] = useState(false);
 
   const labelNoun = isToteProduct ? 'bag label' : 'neck label';
   const standardTitle = 'Standard size label';
-  const standardDetail = 'No custom branding';
+  const standardDetail = 'Size and care information only';
   const customTitle = isToteProduct ? 'Custom bag label' : 'Custom neck label';
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 1023px)');
+    const sync = () => setShowMobilePreview(media.matches);
+    sync();
+    media.addEventListener('change', sync);
+    return () => media.removeEventListener('change', sync);
+  }, []);
 
   const setPreviewUrl = useCallback((next?: string) => {
     if (previewUrlRef.current && previewUrlRef.current !== next) {
@@ -230,6 +256,7 @@ export default function NeckLabelPanel({
         const nextDraft = draftFromValue(value, isToteProduct);
         customDraftRef.current = nextDraft;
         setCustomDraft(nextDraft);
+        setActiveSetupSection(nextDraft.fileUrl || nextDraft.fileKey ? 'size' : null);
         if (value?.fileType !== 'ai') setPreviewUrl(value?.fileUrl || undefined);
       } else {
         if (isToteProduct) {
@@ -239,6 +266,7 @@ export default function NeckLabelPanel({
         }
         setPreviewUrl(undefined);
         setAiPreviewState('idle');
+        setActiveSetupSection(null);
       }
     });
     return () => { cancelled = true; };
@@ -318,6 +346,7 @@ export default function NeckLabelPanel({
     setUploadError(null);
     setLabelType(nextType);
     if (nextType === 'standard-size') {
+      setActiveSetupSection(null);
       setPreviewUrl(undefined);
       setAiPreviewState('idle');
       emit({
@@ -327,6 +356,7 @@ export default function NeckLabelPanel({
       });
       return;
     }
+    setActiveSetupSection(customDraftRef.current.fileUrl || customDraftRef.current.fileKey ? 'size' : null);
     emit({ ...customDraftRef.current, labelType: 'custom' });
     if (customDraftRef.current.fileType === 'ai' && aiPreviewUrl) {
       onPreviewChange?.(aiPreviewUrl);
@@ -348,6 +378,7 @@ export default function NeckLabelPanel({
     setCustomDraft(next);
     setPreviewUrl(SAMPLE_ARTWORK_HREF);
     setAiPreviewState('ready');
+    setActiveSetupSection('size');
     emit({ ...next, labelType: 'custom' });
   }
 
@@ -387,6 +418,7 @@ export default function NeckLabelPanel({
     };
     customDraftRef.current = nextDraft;
     setCustomDraft(nextDraft);
+    setActiveSetupSection('size');
     if (nextFileType === 'ai') {
       setPreviewUrl(undefined);
       setAiPreviewState('preparing');
@@ -449,6 +481,7 @@ export default function NeckLabelPanel({
     setAiPreviewState('idle');
     setUploadError(null);
     setPersistenceWarning(null);
+    setActiveSetupSection(null);
     if (uploadInputRef.current) uploadInputRef.current.value = '';
     emit({ ...next, labelType: 'custom' });
     onClear?.();
@@ -456,6 +489,7 @@ export default function NeckLabelPanel({
 
   function handleDimensionsSelected(next: NeckLabelDimensions) {
     updateCustomDraft({ dimensions: next });
+    setActiveSetupSection('placement');
   }
 
   function handlePositionChange(next: NeckLabelPosition) {
@@ -463,10 +497,12 @@ export default function NeckLabelPanel({
       position: next,
       stitch: normalizeNeckLabelStitch(next, customDraftRef.current.stitch),
     });
+    setActiveSetupSection('stitching');
   }
 
   function handleStitchChange(next: NeckLabelStitch) {
     updateCustomDraft({ stitch: next });
+    setActiveSetupSection(null);
   }
 
   // Tote bags have no included/standard label choice. Keep the upload form
@@ -476,10 +512,29 @@ export default function NeckLabelPanel({
   const previewReady = customDraft.fileType !== 'ai'
     ? hasArtwork
     : aiPreviewState === 'ready' && Boolean(aiPreviewUrl);
+  const safeQuantity = Number.isFinite(quantity) ? Math.max(1, Math.floor(quantity)) : 50;
+  const discountPercent = getVolumeDiscountPercent(safeQuantity);
+  const labelOrderDelta = NECK_LABEL_UNIT_PRICE * safeQuantity * (1 - discountPercent / 100);
+  const normalizedStitch = normalizeNeckLabelStitch(customDraft.position, customDraft.stitch);
+  const previewLabel: NeckLabel = selectedCustom
+    ? {
+        ...customDraft,
+        labelType: 'custom',
+        fileUrl: customDraft.fileUrl,
+        stitch: normalizedStitch,
+        confirmed: false,
+      }
+    : createStandardNeckLabel();
+  const previewImageSource = customDraft.fileType === 'ai'
+    ? aiPreviewUrl
+    : customDraft.fileUrl || undefined;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 pb-1">
       <div>
+        <p className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-(--color-accent)">
+          04 · Label details
+        </p>
         <h1 className="text-xl font-semibold tracking-tight text-(--text-primary)">
           Choose your {labelNoun}
         </h1>
@@ -490,35 +545,78 @@ export default function NeckLabelPanel({
         </p>
       </div>
 
+      {showMobilePreview && productId && colourHex ? (
+        <section className="sticky top-0 z-20 -mx-1 rounded-sm border border-(--color-control-border) bg-white p-2 shadow-sm lg:hidden" aria-label="Live neck label preview">
+          <div className="mb-1.5 flex items-center justify-between gap-3 px-1">
+            <span className="text-xs font-semibold text-(--text-primary)">Back neck · Live preview</span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-(--text-primary)/50">
+              {selectedCustom ? formatDimensions(customDraft.dimensions) : 'Included label'}
+            </span>
+          </div>
+          <div className="h-32 overflow-hidden rounded-sm bg-(--color-studio-bg)">
+            <CanvasRenderer
+              view="neck"
+              colourHex={colourHex}
+              productId={productId}
+              artwork={{}}
+              neckLabel={previewLabel}
+              neckLabelPreviewUrl={previewImageSource}
+              interactive={false}
+              showProductionGuides={false}
+              className="h-full w-full scale-[1.35] rounded-sm"
+            />
+          </div>
+        </section>
+      ) : null}
+
       {isToteProduct ? (
         <div className="techpack-subtle rounded-sm border px-4 py-3" aria-label="Custom bag label only">
           <p className="text-sm font-semibold text-(--text-primary)">{customTitle}</p>
           <p className="mt-1 text-xs leading-relaxed text-(--text-primary)/60">
-            Custom artwork only · + {formatInr(NECK_LABEL_UNIT_PRICE)} / piece once added
+            Custom artwork required · +{formatInr(NECK_LABEL_UNIT_PRICE)}/unit once added
           </p>
         </div>
       ) : (
-        <div className="grid gap-2 sm:grid-cols-2" role="group" aria-label="Label type">
+        <fieldset className="grid gap-2 sm:grid-cols-2">
+          <legend className="sr-only">Choose label type</legend>
           <NeckLabelTypeCard
             type="standard-size"
             selected={!selectedCustom}
             title={standardTitle}
             detail={standardDetail}
-            onClick={() => chooseLabelType('standard-size')}
+            badge="Standard · Included"
+            name={labelTypeGroupName}
+            onSelect={() => chooseLabelType('standard-size')}
           />
           <NeckLabelTypeCard
             type="custom"
             selected={selectedCustom}
             title={customTitle}
-            detail="Add your branding"
-            price={`+ ${formatInr(NECK_LABEL_UNIT_PRICE)} / piece`}
-            onClick={() => chooseLabelType('custom')}
+            detail="Best for branded apparel"
+            price={`+${formatInr(NECK_LABEL_UNIT_PRICE)}/unit · approx. ${formatInr(labelOrderDelta)} for ${safeQuantity}`}
+            badge="Custom"
+            name={labelTypeGroupName}
+            onSelect={() => chooseLabelType('custom')}
           />
-        </div>
+        </fieldset>
       )}
 
-      {selectedCustom && (
+      {!selectedCustom ? (
+        <div className="rounded-sm border border-(--color-accent)/22 bg-[#F6F8FF] p-4">
+          <div className="flex items-start gap-3">
+            <CheckCircle2 className="mt-0.5 shrink-0 text-(--color-accent)" size={18} aria-hidden="true" />
+            <div>
+              <p className="text-sm font-semibold text-(--text-primary)">Standard label ready</p>
+              <p className="mt-1 text-xs leading-relaxed text-(--text-primary)/60">
+                Included size tab · Below neck tape. No artwork upload is required.
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : (
         <>
+          <WorkflowProgress hasArtwork={hasArtwork} activeSection={activeSetupSection} />
+
           <section>
             <SectionHeading>1 — Upload label artwork</SectionHeading>
             <div className="relative">
@@ -532,6 +630,22 @@ export default function NeckLabelPanel({
               />
               {hasArtwork ? (
                 <div className="techpack-subtle flex min-h-[104px] items-center gap-3 rounded-sm p-3">
+                  <div className="neck-label-preview-grid relative size-14 shrink-0 overflow-hidden rounded-sm border border-(--color-control-border) bg-white">
+                    {previewReady && previewImageSource ? (
+                      <Image
+                        src={previewImageSource}
+                        alt=""
+                        fill
+                        unoptimized
+                        sizes="56px"
+                        className="object-contain p-1.5"
+                      />
+                    ) : (
+                      <span className="flex h-full items-center justify-center font-mono text-[9px] uppercase tracking-wide text-(--text-primary)/40">
+                        {aiPreviewState === 'preparing' ? 'Preparing' : 'Artwork'}
+                      </span>
+                    )}
+                  </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[13px] font-semibold leading-tight text-(--text-primary)/85">
                       {customDraft.source === 'sample' ? `Garmops sample · ${formatDimensions(customDraft.dimensions)}` : customDraft.fileName ?? `${labelNoun}.${customDraft.fileType ?? 'ai'}`}
@@ -540,7 +654,7 @@ export default function NeckLabelPanel({
                       {aiPreviewState === 'preparing' ? 'Preparing preview…' : previewReady ? <><Check size={13} strokeWidth={2.5} aria-hidden="true" /> Preview ready</> : 'Artwork uploaded'}
                     </span>
                   </div>
-                  <div className="flex shrink-0 items-center gap-1.5">
+                  <div className="flex shrink-0 flex-col items-stretch gap-1.5 sm:flex-row">
                     <label
                       htmlFor={uploadInputId}
                       className="techpack-control inline-flex min-h-9 cursor-pointer items-center rounded-sm border px-2.5 text-xs font-semibold text-(--text-primary)/75 hover:!border-(--color-accent)/45 hover:text-(--color-accent-dark)"
@@ -572,7 +686,7 @@ export default function NeckLabelPanel({
                       <Upload size={17} strokeWidth={2.2} aria-hidden="true" />
                     </span>
                     <span className="text-sm font-medium text-(--text-primary)">Drag artwork here or browse</span>
-                    <span className="text-xs text-(--text-primary)/50">SVG · AI · Up to 20 MB</span>
+                    <span className="text-xs text-(--text-primary)/50">SVG or PDF-compatible AI · Up to 20 MB</span>
                   </label>
                   <div className="relative z-10 mt-3 flex flex-wrap items-center justify-center gap-2">
                     <a href={TEMPLATE_HREF} download className="techpack-control inline-flex min-h-9 items-center gap-1.5 rounded-sm border px-3 text-xs font-medium text-(--text-primary)/80 hover:!border-(--color-accent)/45 hover:text-(--color-accent-dark)">
@@ -589,38 +703,75 @@ export default function NeckLabelPanel({
             {persistenceWarning && <p className="mt-2 rounded-sm border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">{persistenceWarning}</p>}
           </section>
 
-          <section>
-            <SectionHeading>2 — Choose label size</SectionHeading>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {NECK_LABEL_DIMENSIONS.map((option) => {
-                const selected = customDraft.dimensions === option;
-                return (
-                  <button key={option} type="button" onClick={() => handleDimensionsSelected(option)} aria-pressed={selected} className={`flex min-h-[98px] flex-col items-center justify-center gap-1 rounded-sm border p-2 text-center transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-accent) ${selected ? 'techpack-selected' : 'techpack-control border text-(--text-primary)/70 hover:!bg-white/60'}`}>
-                    <DimensionPreview option={option} selected={selected} />
-                    <span className="text-xs font-semibold leading-tight">{formatDimensions(option)}</span>
-                  </button>
-                );
-              })}
+          {hasArtwork ? (
+            <div className="space-y-2">
+              <SetupSectionCard
+                number="2"
+                title="Label size"
+                summary={formatDimensions(customDraft.dimensions)}
+                open={activeSetupSection === 'size'}
+                onToggle={() => setActiveSetupSection((current) => current === 'size' ? null : 'size')}
+              >
+                <fieldset className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <legend className="sr-only">Choose label size</legend>
+                  {NECK_LABEL_DIMENSIONS.map((option) => {
+                    const selected = customDraft.dimensions === option;
+                    const recommended = option === DEFAULT_DIMENSIONS;
+                    return (
+                      <label key={option} className={`relative flex min-h-[96px] cursor-pointer flex-col items-center justify-center gap-1 rounded-sm border p-2 text-center transition-[background-color,border-color,transform] duration-150 active:scale-[.985] has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-(--color-accent) ${selected ? 'border-(--color-accent) bg-[#EEF3FF] text-(--text-primary) ring-1 ring-(--color-accent)/10' : 'techpack-control text-(--text-primary)/70 hover:!border-(--color-accent)/45 hover:!bg-white/60'}`}>
+                        <input type="radio" name={dimensionGroupName} value={option} checked={selected} onChange={() => handleDimensionsSelected(option)} className="absolute inset-0 z-10 cursor-pointer opacity-0" />
+                        <DimensionPreview option={option} selected={selected} />
+                        <span className="text-xs font-semibold leading-tight">{formatDimensions(option)}</span>
+                        <span className="text-[10px] leading-tight text-(--text-primary)/48">{recommended ? 'Recommended for tees' : option === '45x45' ? 'Square format' : 'Wide format'}</span>
+                      </label>
+                    );
+                  })}
+                </fieldset>
+              </SetupSectionCard>
+
+              <SetupSectionCard
+                number="3"
+                title="Placement"
+                summary={(isToteProduct ? 'Inside top seam' : NECK_LABEL_POSITION_LABELS[customDraft.position])}
+                open={activeSetupSection === 'placement'}
+                onToggle={() => setActiveSetupSection((current) => current === 'placement' ? null : 'placement')}
+              >
+                <PositionSelect value={customDraft.position} onChange={handlePositionChange} isToteProduct={isToteProduct} />
+              </SetupSectionCard>
+
+              <SetupSectionCard
+                number="4"
+                title="Stitching"
+                summary={NECK_LABEL_STITCH_LABELS[normalizedStitch]}
+                open={activeSetupSection === 'stitching'}
+                onToggle={() => setActiveSetupSection((current) => current === 'stitching' ? null : 'stitching')}
+              >
+                <StitchSelect
+                  value={normalizedStitch}
+                  onChange={handleStitchChange}
+                  allowedStitches={neckLabelStitchesForPosition(customDraft.position)}
+                />
+              </SetupSectionCard>
+
+              <div className="rounded-sm border border-(--color-accent)/22 bg-[#F6F8FF] px-3.5 py-3" aria-live="polite">
+                <div className="flex items-start gap-2.5">
+                  <CheckCircle2 className="mt-0.5 shrink-0 text-(--color-accent)" size={17} aria-hidden="true" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-(--text-primary)">Custom label ready</p>
+                    <p className="mt-1 text-xs leading-relaxed text-(--text-primary)/60">
+                      {formatDimensions(customDraft.dimensions)} · {isToteProduct ? 'Inside top seam' : NECK_LABEL_POSITION_LABELS[customDraft.position]} · {NECK_LABEL_STITCH_LABELS[normalizedStitch]}
+                    </p>
+                    <p className="mt-1 font-mono text-[10px] font-semibold uppercase tracking-[0.06em] text-(--color-accent)">
+                      +{formatInr(NECK_LABEL_UNIT_PRICE)}/unit · approx. {formatInr(labelOrderDelta)} for {safeQuantity}
+                      {discountPercent > 0 ? ` after ${discountPercent}% volume discount` : ''}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
-          </section>
-
-          <section>
-            <SectionHeading>3 — Choose placement</SectionHeading>
-            <PositionSelect value={customDraft.position} onChange={handlePositionChange} isToteProduct={isToteProduct} />
-          </section>
-
-          <section>
-            <SectionHeading>4 — Choose stitching</SectionHeading>
-            <StitchSelect
-              value={normalizeNeckLabelStitch(customDraft.position, customDraft.stitch)}
-              onChange={handleStitchChange}
-              allowedStitches={neckLabelStitchesForPosition(customDraft.position)}
-            />
-          </section>
-
-          {hasArtwork && (
-            <div className="techpack-subtle rounded-sm px-4 py-3 text-xs leading-relaxed text-(--text-primary)/65">
-              Artwork uploaded. Check the live preview, then continue when the label details look right.
+          ) : (
+            <div className="flex items-center gap-2 rounded-sm border border-dashed border-(--color-control-border) px-3 py-2.5 text-xs text-(--text-primary)/52">
+              <LockKeyhole size={14} aria-hidden="true" /> Upload artwork to choose size, placement and stitching.
             </div>
           )}
         </>
@@ -631,4 +782,74 @@ export default function NeckLabelPanel({
 
 function SectionHeading({ children }: { children: string }) {
   return <h2 className="mb-2.5 font-mono text-xs font-semibold uppercase tracking-[0.08em] text-(--text-primary)/70">{children}</h2>;
+}
+
+function SetupSectionCard({
+  number,
+  title,
+  summary,
+  open,
+  onToggle,
+  children,
+}: {
+  number: string;
+  title: string;
+  summary: string;
+  open: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <section className="overflow-hidden rounded-sm border border-(--color-control-border) bg-white">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        className="flex min-h-12 w-full items-center gap-3 px-3 text-left transition-colors duration-150 hover:bg-(--color-cream-soft)/55"
+      >
+        <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-(--color-accent)/10 font-mono text-[10px] font-semibold text-(--color-accent)">{number}</span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-xs font-semibold text-(--text-primary)">{title}</span>
+          <span className="mt-0.5 block truncate text-[11px] text-(--text-primary)/52">{summary}</span>
+        </span>
+        <ChevronDown size={15} className={`shrink-0 text-(--text-primary)/45 transition-transform duration-150 motion-reduce:transition-none ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
+      </button>
+      {open ? <div className="border-t border-(--color-control-border) p-3">{children}</div> : null}
+    </section>
+  );
+}
+
+function WorkflowProgress({
+  hasArtwork,
+  activeSection,
+}: {
+  hasArtwork: boolean;
+  activeSection: SetupSection | null;
+}) {
+  const steps: Array<{ id: 'artwork' | SetupSection; label: string }> = [
+    { id: 'artwork', label: 'Artwork' },
+    { id: 'size', label: 'Size' },
+    { id: 'placement', label: 'Placement' },
+    { id: 'stitching', label: 'Stitching' },
+  ];
+  const activeIndex = activeSection ? steps.findIndex((step) => step.id === activeSection) : hasArtwork ? steps.length : 0;
+
+  return (
+    <ol className="grid grid-cols-4 gap-1" aria-label="Custom label setup progress">
+      {steps.map((step, index) => {
+        const complete = hasArtwork && index < activeIndex;
+        const active = index === activeIndex;
+        const locked = !hasArtwork && index > 0;
+        return (
+          <li key={step.id} className="min-w-0">
+            <span className={`mb-1.5 block h-0.5 rounded-full ${complete || active ? 'bg-(--color-accent)' : 'bg-(--color-control-border)'}`} />
+            <span className={`flex items-center gap-1 truncate font-mono text-[9px] font-semibold uppercase tracking-[0.05em] ${complete || active ? 'text-(--color-accent)' : 'text-(--text-primary)/38'}`}>
+              {complete ? <Check size={10} strokeWidth={2.8} aria-hidden="true" /> : locked ? <LockKeyhole size={9} aria-hidden="true" /> : null}
+              {step.label}
+            </span>
+          </li>
+        );
+      })}
+    </ol>
+  );
 }

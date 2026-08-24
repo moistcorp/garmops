@@ -1,6 +1,7 @@
 "use client";
 
 import Script from "next/script";
+import { CheckCircle2, LoaderCircle } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type TurnstileApi = {
@@ -10,6 +11,8 @@ type TurnstileApi = {
       sitekey: string;
       action: string;
       theme: "light";
+      appearance: "interaction-only";
+      size: "flexible";
       callback: (token: string) => void;
       "expired-callback": () => void;
       "error-callback": () => void;
@@ -58,6 +61,8 @@ export default function TurnstileWidget({
         sitekey: siteKey,
         action,
         theme: "light",
+        appearance: "interaction-only",
+        size: "flexible",
         callback: (value) => {
           setWidgetError(false);
           updateToken(value);
@@ -119,7 +124,7 @@ export default function TurnstileWidget({
   }
 
   return (
-    <>
+    <div className="space-y-2">
       <Script
         src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
         strategy="afterInteractive"
@@ -128,8 +133,24 @@ export default function TurnstileWidget({
         onError={() => setWidgetError(true)}
       />
       <div
+        role="status"
+        aria-live="polite"
+        className={`flex min-h-10 items-center gap-2 rounded-sm border px-3 py-2 text-xs font-medium ${
+          token
+            ? "border-emerald-700/18 bg-emerald-50/65 text-emerald-800"
+            : "border-(--color-control-border) bg-(--color-cream-soft)/45 text-(--text-primary)/58"
+        }`}
+      >
+        {token ? (
+          <CheckCircle2 size={15} strokeWidth={2.4} className="shrink-0" aria-hidden="true" />
+        ) : (
+          <LoaderCircle size={15} className="shrink-0 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+        )}
+        <span>{token ? "Security check complete" : "Checking security…"}</span>
+      </div>
+      <div
         ref={containerRef}
-        className="techpack-control cf-turnstile flex min-h-[65px] items-center overflow-hidden rounded-sm px-4 py-3"
+        className="cf-turnstile flex max-w-full items-center justify-center overflow-hidden rounded-sm empty:hidden"
         data-action="turnstile-spin-v2"
       />
       <input type="hidden" name="cf-turnstile-response" value={token} />
@@ -139,6 +160,6 @@ export default function TurnstileWidget({
           settings, then reload this page.
         </p>
       ) : null}
-    </>
+    </div>
   );
 }

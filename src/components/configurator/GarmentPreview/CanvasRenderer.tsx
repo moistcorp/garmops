@@ -190,7 +190,7 @@ function NeckLabelPreview({
   return (
     <svg
       viewBox={`0 0 ${w} ${h}`}
-      className="h-full w-full overflow-visible drop-"
+      className="h-full w-full overflow-visible drop-shadow-sm"
       preserveAspectRatio="xMidYMid meet"
       role="img"
       aria-label="Neck label preview"
@@ -214,6 +214,16 @@ function NeckLabelPreview({
         width={w}
         height={h}
         fill={`url(#${fabricPatternId})`}
+      />
+      <rect
+        x={0.5}
+        y={0.5}
+        width={Math.max(0, w - 1)}
+        height={Math.max(0, h - 1)}
+        fill="none"
+        stroke="#B8B6AE"
+        strokeOpacity={0.72}
+        strokeWidth={0.8}
       />
 
       {!standard && renderable ? (
@@ -755,11 +765,18 @@ export default function CanvasRenderer({
       )}
 
       {showNeckLabel && neckLabel && neckLabelBoxStyle && (
-        <div className="absolute z-10" style={neckLabelBoxStyle}>
-          <NeckLabelPreview
-            neckLabel={neckLabel}
-            previewUrl={neckLabelPreviewUrl}
-          />
+        <div
+          key={`${neckLabel.dimensions}-${neckLabel.position}-${neckLabel.stitch ?? ''}`}
+          className="neck-label-preview-frame absolute z-10"
+          style={neckLabelBoxStyle}
+        >
+          <span className="pointer-events-none absolute -inset-3 rounded-sm border border-dashed border-(--color-accent)/38 bg-white/5" aria-hidden="true" />
+          <div className="relative h-full w-full">
+            <NeckLabelPreview
+              neckLabel={neckLabel}
+              previewUrl={neckLabelPreviewUrl}
+            />
+          </div>
         </div>
       )}
 

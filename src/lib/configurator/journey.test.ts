@@ -29,7 +29,7 @@ describe("configurator journey labels", () => {
 
   it("names the next step for the standard label choice", () => {
     expect(getConfiguratorCtaLabel("artwork", defaults)).toBe("Continue without artwork →");
-    expect(getConfiguratorCtaLabel("neck-label", defaults)).toBe("Continue to sizes");
+    expect(getConfiguratorCtaLabel("neck-label", defaults)).toBe("Continue with standard label →");
   });
 
   it("uses continuation labels after optional work is added", () => {
@@ -44,7 +44,16 @@ describe("configurator journey labels", () => {
         ...defaults,
         hasCustomLabel: true,
       }),
-    ).toBe("Continue to sizes");
+    ).toBe("Continue with custom label →");
+  });
+
+  it("asks for artwork only after custom label is selected", () => {
+    expect(
+      getConfiguratorCtaLabel("neck-label", {
+        ...defaults,
+        customLabelSelected: true,
+      }),
+    ).toBe("Upload label artwork to continue");
   });
 
   it("uses the tote-specific label step and requires its custom upload", () => {

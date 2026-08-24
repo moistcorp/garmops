@@ -103,15 +103,15 @@ test("tote bag label only offers the fixed custom placement", async ({ page }) =
   await expect(page.locator('[data-configurator-hydrated="true"]')).toBeAttached();
 
   await expect(page.getByLabel("Custom bag label only")).toBeVisible();
-  await expect(page.getByRole("button", { name: /Standard (bag|size) label/i })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: /Inside top seam/i })).toHaveCount(1);
-  await expect(page.getByRole("button", { name: /Inside top seam/i })).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByRole("button", { name: /On inner seam/i })).toHaveCount(0);
+  await expect(page.getByRole("radio", { name: /Standard (bag|size) label/i })).toHaveCount(0);
+  await expect(page.getByText("Upload artwork to choose size, placement and stitching.")).toBeVisible();
+  await page.getByRole("button", { name: "Try sample label" }).click();
+  await page.getByRole("button", { name: /Placement/ }).click();
+  await expect(page.getByRole("radio", { name: /Inside top seam/i })).toHaveCount(1);
+  await expect(page.getByRole("radio", { name: /Inside top seam/i })).toBeChecked();
+  await expect(page.getByRole("radio", { name: /On inner seam/i })).toHaveCount(0);
   await expect(page.getByText(/Standard bag label/i)).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Upload bag label to continue" })).toBeVisible();
-
-  await page.getByRole("button", { name: "Upload bag label to continue" }).click();
-  await expect(page.getByText("Upload your custom bag label artwork before continuing.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: /continue with custom label/i })).toBeEnabled();
 });
 
 const garmentFamilies = [

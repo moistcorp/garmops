@@ -24,12 +24,12 @@ export const test = base.extend<AuthFixtures>({
     await use(async (page, email = customerEmailForProject(testInfo.project.name)) => {
       await page.goto("/login?next=%2Faccount%2Forders", { waitUntil: "domcontentloaded" });
       await page.getByLabel("Email address").fill(email);
-      await page.getByRole("button", { name: "Continue with email" }).click();
+      await page.getByRole("button", { name: "Email me a code →" }).click();
       await expect(page.getByTestId("e2e-test-otp")).toBeAttached();
       const code = await page.getByTestId("e2e-test-otp").textContent();
       expect(code).toMatch(/^\d{6}$/);
       await page.getByLabel("One-time code").fill(code ?? "");
-      await page.getByRole("button", { name: "Verify" }).click();
+      await page.getByRole("button", { name: "Verify and continue →" }).click();
       await page.waitForURL((url) => url.pathname === "/account/orders");
       const session = await page.evaluate(async () => {
         const response = await fetch("/api/medusa/store/customers/me", { cache: "no-store" });

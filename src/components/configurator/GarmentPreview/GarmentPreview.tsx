@@ -32,10 +32,10 @@ interface GarmentPreviewProps {
 }
 
 export const NECK_PREVIEW_CANVAS_CLASS =
-  "aspect-[7817/5542] w-[90%] max-w-none shrink-0 translate-y-[2%] rounded-sm sm:w-[94%] lg:w-[98%]";
+  "aspect-[7817/5542] w-[112%] max-w-none shrink-0 translate-y-[2%] rounded-sm sm:w-[120%] lg:w-[126%]";
 
 const SWEATSHIRT_NECK_PREVIEW_CANVAS_CLASS =
-  "aspect-[7817/4239] w-[90%] max-w-none shrink-0 translate-y-[2%] rounded-sm sm:w-[94%] lg:w-[98%]";
+  "aspect-[7817/4239] w-[112%] max-w-none shrink-0 translate-y-[2%] rounded-sm sm:w-[120%] lg:w-[126%]";
 
 export function getNeckPreviewCanvasClass(productId: ProductId): string {
   return productId.includes("regular-fit-sweatshirt")
@@ -67,7 +67,7 @@ export default function GarmentPreview({
     : NECK_LABEL_POSITION_LABELS;
 
   return (
-    <div className="relative h-full w-full min-h-0">
+    <div className="relative h-full w-full min-h-0 overflow-hidden">
       <div className="absolute inset-3 bg-(--color-studio-bg) sm:inset-4">
         {(loadAllViews ? CONFIGURATOR_PREVIEW_VIEWS : [activeView]).map((view) => {
           const isActive = view === activeView;
@@ -110,10 +110,16 @@ export default function GarmentPreview({
 
       {showProductionGuides && activeArtwork && isCustomerArtworkTechnique(activeArtwork.technique) ? <div className="pointer-events-none absolute left-6 top-6 z-20 rounded-sm border border-violet-700/20 bg-white/90 px-2.5 py-1.5 text-[11px] font-medium text-violet-950">Purple outline · safe print area</div> : null}
 
+      {activeView === "neck" ? (
+        <div className="pointer-events-none absolute right-6 top-6 z-20 rounded-sm border border-(--color-rule) bg-white/92 px-2.5 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-(--text-primary)/60 shadow-sm">
+          {isToteProduct ? "Inside seam" : "Back neck · Close-up"}
+        </div>
+      ) : null}
+
       {activeView === "neck" && neckLabel && (!isToteProduct || Boolean(neckLabel.fileUrl || neckLabel.fileId)) ? (
         <div className="pointer-events-none absolute left-6 top-6 z-20 max-w-[220px] rounded-sm border border-(--color-rule) bg-white/92 px-3 py-2 text-xs text-(--text-primary)/65 shadow-sm">
           <p className="font-semibold text-(--text-primary)">{isCustomNeckLabel(neckLabel) ? `Custom ${isToteProduct ? "bag" : "neck"} label` : `Standard ${isToteProduct ? "bag" : "size"} label · Included`}</p>
-          <p className="mt-1">{neckLabel.dimensions.replace("x", " × ")} mm · {labelPositionLabels[neckLabel.position]}</p>
+          <p className="mt-1">{isCustomNeckLabel(neckLabel) ? `${neckLabel.dimensions.replace("x", " × ")} mm · ` : "Compact size tab · "}{labelPositionLabels[neckLabel.position]}</p>
         </div>
       ) : null}
 

@@ -1671,7 +1671,12 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
           <CustomerAuthDialog
             open={authDialogOpen}
             title={authIntent === "add-to-cart" ? "Sign in to continue" : "Sign in to save your design"}
-            description={authIntent === "add-to-cart" ? "Sign in to secure this design and continue to sizes. Your work is already saved on this device." : "Sign in to save this design to your account and access it on another device."}
+            description={authIntent === "add-to-cart" ? `Secure your ${productName} design and continue to sizes. Your work is already saved on this device.` : "Save this design to your account and access it on another device."}
+            contextSummary={
+              authIntent === "add-to-cart"
+                ? `${productName} · ${isCustomNeckLabel(neckLabel) ? "Custom label ready" : "Standard label included"} · ${quantity} pieces`
+                : `${productName} · ${colour.name} · ${quantity} pieces`
+            }
             onClose={() => {
               setAuthDialogOpen(false);
               setAuthIntent(null);
@@ -1775,7 +1780,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
               aria-label="Active customisation controls"
               className={`techpack-stack techpack-surface flex shrink-0 flex-col overflow-hidden rounded-md border-(--color-control-border)! bg-white! border transition-[height] duration-250 ease-[cubic-bezier(.22,1,.36,1)] motion-reduce:transition-none lg:min-h-0 lg:flex-1 ${
                 isDrawerOpen
-                  ? expandedStepId === "artwork"
+                  ? expandedStepId === "artwork" || expandedStepId === "neck-label"
                     ? "h-[70dvh] max-h-[620px]"
                     : "h-[60dvh] max-h-[520px]"
                   : "h-14"
@@ -1883,19 +1888,25 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
                     ? `Choose ${artworkSideMissingTechnique} print method to continue`
                     : returnToSizeQuantity && expandedStepId === "artwork"
                       ? "Return to sizes & quantity →"
-                    : accountsEnabled && !customerSession.loading && !customerSession.email && expandedStepId === "neck-label"
-                      ? "Sign in to continue to sizes →"
+                    : accountsEnabled && !customerSession.loading && !customerSession.email && expandedStepId === "neck-label" && ((!isToteProduct && !isCustomNeckLabel(neckLabel)) || Boolean(neckLabel.fileUrl || neckLabel.fileId))
+                      ? isCustomNeckLabel(neckLabel)
+                        ? "Sign in to continue with custom label →"
+                        : "Sign in to continue with standard label →"
                     : getConfiguratorCtaLabel(expandedStepId, {
                         hasArtwork: Boolean(artwork.front || artwork.back),
                         hasCustomLabel: isCustomNeckLabel(neckLabel) && Boolean(neckLabel.fileUrl || neckLabel.fileId),
+                        customLabelSelected: isCustomNeckLabel(neckLabel),
                         isToteProduct,
                         colourName: colour.name,
                       })
                 }
                 onCtaClick={handleCtaClick}
                 pricingBreakdown={orderBarPricing}
-                compactEstimate={expandedStepId === "artwork"}
-                ctaDisabled={expandedStepId === "artwork" && Boolean(artworkSideMissingTechnique)}
+                compactEstimate={expandedStepId === "artwork" || expandedStepId === "neck-label"}
+                ctaDisabled={
+                  (expandedStepId === "artwork" && Boolean(artworkSideMissingTechnique)) ||
+                  (expandedStepId === "neck-label" && (isToteProduct || isCustomNeckLabel(neckLabel)) && !neckLabel.fileUrl && !neckLabel.fileId)
+                }
                 ctaErrorMessage={ctaErrorMessage}
                 ctaErrorNonce={ctaErrorNonce}
               />

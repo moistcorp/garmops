@@ -8,6 +8,7 @@ export function getConfiguratorCtaLabel(
   options: {
     hasArtwork: boolean;
     hasCustomLabel: boolean;
+    customLabelSelected?: boolean;
     isToteProduct: boolean;
     colourName?: string;
   },
@@ -23,8 +24,9 @@ export function getConfiguratorCtaLabel(
   }
   if (openStep === "neck-label") {
     if (options.isToteProduct && !options.hasCustomLabel) return "Upload bag label to continue";
-    if (options.hasCustomLabel) return "Continue to sizes";
-    return "Continue to sizes";
+    if (options.customLabelSelected && !options.hasCustomLabel) return "Upload label artwork to continue";
+    if (options.hasCustomLabel) return "Continue with custom label →";
+    return "Continue with standard label →";
   }
   return "Continue to sizes";
 }

@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useState } from "react";
+import { Check, CircleAlert } from "lucide-react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import {
   requestCustomerOtpAction,
   verifyCustomerOtpAction,
 } from "@/app/(auth)/actions";
 import TurnstileWidget from "@/components/auth/TurnstileWidget";
-import { ActionFeedback } from "@/components/configurator/ActionFeedback";
 import {
   INITIAL_AUTH_ACTION_STATE,
   type AuthActionState,
@@ -22,42 +22,122 @@ import {
 type Step = "email" | "otp";
 
 const inputClass =
-  "techpack-control w-full rounded-sm border px-4 py-3 text-sm outline-none transition-colors focus:!border-(--color-accent)";
+  "techpack-control w-full rounded-sm border px-4 py-3 text-sm outline-none transition-[border-color,background-color] duration-150";
+const primaryButtonClass =
+  "min-h-11 rounded-sm bg-(--color-accent) px-6 py-3 text-sm font-semibold text-white transition-[background-color,opacity,transform] duration-150 hover:bg-(--color-accent-dark) active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-55 disabled:active:scale-100 motion-reduce:transform-none";
 
-function Message({ state }: { state: AuthActionState }) {
-  if (!state.message) return null;
+function InlineError({ message, id }: { message?: string; id?: string }) {
+  if (!message) return null;
   return (
-    <ActionFeedback
-      tone={state.status === "error" ? "error" : "success"}
-      title={state.message}
-    />
+    <p
+      id={id}
+      role="alert"
+      className="flex items-start gap-1.5 text-xs font-medium leading-relaxed text-[#A62D2D]"
+    >
+      <CircleAlert size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
+      {message}
+    </p>
   );
+}
+
+function stateError(state: AuthActionState, field?: string): string | undefined {
+  if (field && state.fieldErrors?.[field]?.[0]) return state.fieldErrors[field][0];
+  return state.status === "error" ? state.message : undefined;
 }
 
 function AuthProgress({ step }: { step: Step }) {
   const activeIndex = step === "email" ? 0 : 1;
-  const labels = ["Email", "Verify"];
+  const labels = ["Email", "6-digit code"];
+
   return (
-    <ol
-      className="mb-6 grid grid-cols-2 border border-(--color-rule)"
-      aria-label="Account access progress"
-    >
-      {labels.map((label, index) => (
-        <li
-          key={label}
-          aria-current={index === activeIndex ? "step" : undefined}
-          className={`border-r border-(--color-rule) px-2 py-2 text-center font-mono text-xs font-semibold uppercase tracking-[0.08em] last:border-r-0 ${
-            index === activeIndex
-              ? "bg-(--color-accent) text-white"
-              : index < activeIndex
-                ? "bg-(--color-cream-soft) text-(--color-navy)"
-                : "text-(--text-muted)"
-          }`}
-        >
-          {String(index + 1).padStart(2, "0")} {label}
-        </li>
-      ))}
+    <ol className="mb-5 flex items-center" aria-label="Sign-in progress">
+      {labels.map((label, index) => {
+        const complete = index < activeIndex;
+        const active = index === activeIndex;
+        return (
+          <li
+            key={label}
+            aria-current={active ? "step" : undefined}
+            className={`flex min-w-0 items-center gap-2 ${index === 0 ? "flex-1" : "shrink-0"}`}
+          >
+            <span
+              className={`flex size-6 shrink-0 items-center justify-center rounded-full border font-mono text-[10px] font-semibold ${
+                complete || active
+                  ? "border-(--color-accent) bg-(--color-accent) text-white"
+                  : "border-(--color-control-border) text-(--text-primary)/38"
+              }`}
+              aria-hidden="true"
+            >
+              {complete ? <Check size={12} strokeWidth={2.8} /> : index + 1}
+            </span>
+            <span
+              className={`truncate text-xs font-semibold ${
+                complete || active ? "text-(--text-primary)" : "text-(--text-primary)/42"
+              }`}
+            >
+              {label}
+            </span>
+            {index === 0 ? (
+              <span className="mx-2 h-px min-w-5 flex-1 bg-(--color-control-border)" aria-hidden="true" />
+            ) : null}
+          </li>
+        );
+      })}
     </ol>
+  );
+}
+
+function OtpCodeInput({
+  value,
+  onChange,
+  error,
+  disabled,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  error?: string;
+  disabled: boolean;
+}) {
+  const slots = Array.from({ length: 6 }, (_, index) => value[index] ?? "");
+
+  return (
+    <label className="flex flex-col gap-2 text-xs font-medium uppercase tracking-wide text-black/58">
+      One-time code
+      <div className="relative grid grid-cols-6 gap-2 rounded-sm">
+        <input
+          name="token"
+          value={value}
+          onChange={(event) => onChange(event.target.value.replace(/\D/g, "").slice(0, 6))}
+          inputMode="numeric"
+          pattern="[0-9]{6}"
+          maxLength={6}
+          required
+          autoComplete="one-time-code"
+          autoFocus
+          disabled={disabled}
+          aria-label="One-time code"
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? "customer-otp-error" : undefined}
+          className="absolute inset-0 z-10 h-full w-full cursor-text bg-transparent text-transparent caret-transparent outline-none disabled:cursor-not-allowed"
+        />
+        {slots.map((digit, index) => (
+          <span
+            key={index}
+            aria-hidden="true"
+            className={`flex h-12 items-center justify-center rounded-sm border bg-white text-lg font-semibold text-(--text-primary) ${
+              error
+                ? "border-[#A62D2D]/55"
+                : index === Math.min(value.length, 5)
+                  ? "border-(--color-accent)/55"
+                  : "border-(--color-control-border)"
+            }`}
+          >
+            {digit}
+          </span>
+        ))}
+      </div>
+      <InlineError id="customer-otp-error" message={error} />
+    </label>
   );
 }
 
@@ -98,8 +178,12 @@ export default function CustomerAuthFlow({
   allowGoogle?: boolean;
 }) {
   const router = useRouter();
+  const emailInputRef = useRef<HTMLInputElement>(null);
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState(() => initialEmail.trim().toLowerCase());
+  const [otp, setOtp] = useState("");
+  const [emailSecurityToken, setEmailSecurityToken] = useState("");
+  const [resendSecurityToken, setResendSecurityToken] = useState("");
   const [resendAvailableAt, setResendAvailableAt] = useState(0);
   const [now, setNow] = useState(0);
   const [googlePending, setGooglePending] = useState(false);
@@ -108,19 +192,20 @@ export default function CustomerAuthFlow({
 
   const finish = (destination: string) => {
     if (onAuthenticated) onAuthenticated(destination);
-    else {
-      router.replace(destination);
-    }
+    else router.replace(destination);
   };
 
   const [requestState, requestAction, requesting] = useActionState(
     async (state: AuthActionState, formData: FormData) => {
       const result = await requestCustomerOtpAction(state, formData);
       if (result.status === "success" && result.verificationEmail) {
+        const nextNow = Date.now();
         setEmail(result.verificationEmail);
         setChallengeId(result.challengeId ?? "");
+        setOtp("");
         setStep("otp");
-        setResendAvailableAt(Date.now() + 30_000);
+        setNow(nextNow);
+        setResendAvailableAt(nextNow + 30_000);
       }
       return result;
     },
@@ -130,13 +215,17 @@ export default function CustomerAuthFlow({
   const [verifyState, verifyAction, verifying] = useActionState(
     async (state: AuthActionState, formData: FormData) => {
       const result = await verifyCustomerOtpAction(state, formData);
-      if (result.status === "success" && result.destination) {
-        finish(result.destination);
-      }
+      if (result.status === "success" && result.destination) finish(result.destination);
       return result;
     },
     INITIAL_AUTH_ACTION_STATE,
   );
+
+  useEffect(() => {
+    if (step !== "email" || emailLocked || window.matchMedia("(max-width: 639px)").matches) return;
+    const frame = window.requestAnimationFrame(() => emailInputRef.current?.focus());
+    return () => window.cancelAnimationFrame(frame);
+  }, [emailLocked, step]);
 
   useEffect(() => {
     if (step !== "otp" || resendAvailableAt <= Date.now()) return;
@@ -144,10 +233,7 @@ export default function CustomerAuthFlow({
     return () => window.clearInterval(timer);
   }, [step, resendAvailableAt]);
 
-  const cooldown = Math.max(
-    0,
-    Math.ceil((resendAvailableAt - now) / 1000),
-  );
+  const cooldown = Math.max(0, Math.ceil((resendAvailableAt - now) / 1000));
 
   const signInWithGoogle = async () => {
     setGooglePending(true);
@@ -165,92 +251,90 @@ export default function CustomerAuthFlow({
     } catch (error) {
       document.cookie = `${AUTH_NEXT_COOKIE}=; Max-Age=0; Path=/; SameSite=Lax`;
       setGooglePending(false);
-      setGoogleError(
-        error instanceof Error
-          ? error.message
-          : "Google sign-in could not be started.",
-      );
+      setGoogleError(error instanceof Error ? error.message : "Google sign-in could not be started.");
     }
   };
 
+  const changeEmail = () => {
+    setStep("email");
+    setOtp("");
+    setEmailSecurityToken("");
+    setResendSecurityToken("");
+  };
+
   if (step === "otp") {
+    const otpError = stateError(verifyState, "token");
+    const resendError = stateError(requestState);
+
     return (
-      <div className="space-y-4">
+      <div>
         <AuthProgress step="otp" />
-        <form
-          action={verifyAction}
-          className="flex flex-col gap-4"
-          aria-busy={verifying}
-        >
+        <div className="mb-5 rounded-sm border border-(--color-accent)/18 bg-(--color-accent)/5 px-3.5 py-3">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-(--text-primary)/48">Code sent to</p>
+          <div className="mt-1 flex items-center justify-between gap-3">
+            <strong className="min-w-0 truncate text-sm text-(--text-primary)">{email}</strong>
+            {!emailLocked ? (
+              <button type="button" onClick={changeEmail} className="shrink-0 text-xs font-semibold text-(--color-accent) hover:underline">
+                Change
+              </button>
+            ) : null}
+          </div>
+        </div>
+
+        {requestState.testCode ? (
+          <span data-testid="e2e-test-otp" className="sr-only">{requestState.testCode}</span>
+        ) : null}
+
+        <form action={verifyAction} className="flex flex-col gap-4" aria-busy={verifying}>
           <input type="hidden" name="email" value={email} />
           <input type="hidden" name="challengeId" value={challengeId} />
           <input type="hidden" name="next" value={next} />
-          <p className="rounded-sm border border-(--color-accent)/20 bg-(--color-accent)/5 p-4 text-sm text-black/65">
-            We sent a six-digit code to <strong>{email}</strong>.
-          </p>
-          {requestState.testCode ? <span data-testid="e2e-test-otp" className="sr-only">{requestState.testCode}</span> : null}
-          <label className="flex flex-col gap-1.5 text-xs font-medium uppercase tracking-wide text-black/55">
-            One-time code
-            <input
-              className={inputClass}
-              name="token"
-              inputMode="numeric"
-              pattern="[0-9]{6}"
-              maxLength={6}
-              required
-              autoComplete="one-time-code"
-              autoFocus
-            />
-          </label>
-          <Message state={verifyState} />
-          <button
-            type="submit"
-            disabled={verifying}
-            className="min-h-11 rounded-sm bg-(--color-accent) px-6 py-3 text-sm font-medium text-white disabled:opacity-60"
-          >
-            {verifying ? "Verifying…" : "Verify"}
+          <OtpCodeInput value={otp} onChange={setOtp} error={otpError} disabled={verifying} />
+          <button type="submit" disabled={verifying || otp.length !== 6} className={primaryButtonClass}>
+            {verifying ? "Verifying…" : "Verify and continue →"}
           </button>
         </form>
-        <form action={requestAction} className="flex flex-col gap-3">
+
+        <div className="my-5 h-px bg-(--color-rule)" />
+
+        <form action={requestAction} className="flex flex-col gap-3" aria-busy={requesting}>
           <input type="hidden" name="email" value={email} />
           <input type="hidden" name="next" value={next} />
           <TurnstileWidget
             action="login"
             resetToken={requestState.resetToken}
+            onToken={setResendSecurityToken}
           />
+          <InlineError message={resendError} />
           <button
             type="submit"
-            disabled={requesting || cooldown > 0}
-            className="min-h-11 text-left text-sm text-(--color-accent) hover:underline disabled:text-black/40"
+            disabled={requesting || cooldown > 0 || !resendSecurityToken}
+            className="min-h-10 self-start text-sm font-semibold text-(--color-accent) hover:underline disabled:cursor-not-allowed disabled:text-black/38"
           >
-            {cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend code"}
+            {requesting
+              ? "Sending a new code…"
+              : cooldown > 0
+                ? `Resend code in ${cooldown}s`
+                : !resendSecurityToken
+                  ? "Preparing resend…"
+                  : "Resend code"}
           </button>
         </form>
-        {!emailLocked ? (
-          <button
-            type="button"
-            onClick={() => setStep("email")}
-            className="min-h-11 text-sm text-(--color-accent) hover:underline"
-          >
-            {allowGoogle ? "Change email or use Google" : "Change email"}
-          </button>
-        ) : null}
       </div>
     );
   }
 
+  const emailError = stateError(requestState, "email");
+
   return (
     <div>
       <AuthProgress step="email" />
-      <form
-        action={requestAction}
-        className="flex flex-col gap-4"
-        aria-busy={requesting}
-      >
+      <form action={requestAction} className="flex flex-col gap-4" aria-busy={requesting}>
         <input type="hidden" name="next" value={next} />
-        <label className="flex flex-col gap-1.5 text-xs font-medium uppercase tracking-wide text-black/55">
+        <label className="flex flex-col gap-1.5 text-xs font-medium uppercase tracking-wide text-black/58">
           Email address
           <input
+            ref={emailInputRef}
             className={inputClass}
             name="email"
             type="email"
@@ -259,21 +343,31 @@ export default function CustomerAuthFlow({
             readOnly={emailLocked}
             required
             autoComplete="email"
-            autoFocus={!emailLocked}
             placeholder="you@example.com"
+            aria-invalid={Boolean(emailError)}
+            aria-describedby={`customer-email-help${emailError ? " customer-email-error" : ""}`}
           />
         </label>
-        <TurnstileWidget action="login" resetToken={requestState.resetToken} />
-        <Message state={requestState} />
-        {googleError && (
-          <ActionFeedback tone="error" title={googleError} />
-        )}
+        <p id="customer-email-help" className="-mt-2 text-xs leading-relaxed text-(--text-primary)/52">
+          We’ll send a six-digit code. No password needed.
+        </p>
+        <InlineError id="customer-email-error" message={emailError} />
+        <TurnstileWidget
+          action="login"
+          resetToken={requestState.resetToken}
+          onToken={setEmailSecurityToken}
+        />
+        <InlineError message={googleError} />
         <button
           type="submit"
-          disabled={requesting || googlePending}
-          className="min-h-11 rounded-sm bg-(--color-accent) px-6 py-3 text-sm font-medium text-white disabled:opacity-60"
+          disabled={requesting || googlePending || !emailSecurityToken}
+          className={primaryButtonClass}
         >
-          {requesting ? "Sending code…" : "Continue with email"}
+          {requesting
+            ? "Sending code…"
+            : !emailSecurityToken
+              ? "Complete security check to continue"
+              : "Email me a code →"}
         </button>
       </form>
 
@@ -281,16 +375,14 @@ export default function CustomerAuthFlow({
         <>
           <div className="my-5 flex items-center gap-3" aria-hidden="true">
             <span className="h-px flex-1 bg-(--color-rule)" />
-            <span className="font-mono text-xs uppercase tracking-[0.1em] text-black/35">
-              or
-            </span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-black/38">or</span>
             <span className="h-px flex-1 bg-(--color-rule)" />
           </div>
           <button
             type="button"
             onClick={signInWithGoogle}
             disabled={googlePending || requesting}
-            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-sm border border-(--color-rule) bg-white px-6 py-3 text-sm font-medium text-(--text-primary) transition-colors hover:border-(--color-accent) disabled:opacity-60"
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-sm border border-(--color-rule) bg-white px-6 py-3 text-sm font-medium text-(--text-primary) transition-[border-color,background-color,opacity,transform] duration-150 hover:border-(--color-accent) active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-55 disabled:active:scale-100 motion-reduce:transform-none"
           >
             <GoogleMark />
             {googlePending ? "Opening Google…" : "Continue with Google"}
@@ -298,22 +390,16 @@ export default function CustomerAuthFlow({
         </>
       ) : null}
 
-      <p className="mt-5 text-xs leading-relaxed text-black/45">
+      <p className="mt-5 text-xs leading-relaxed text-black/58">
         By continuing, you agree to the{" "}
-        <Link
-          href="/terms"
-          className="text-(--color-accent) hover:underline"
-        >
+        <Link href="/terms" className="font-medium text-(--color-accent) hover:underline">
           Terms of Service
         </Link>{" "}
         and acknowledge the{" "}
-        <Link
-          href="/privacy"
-          className="text-(--color-accent) hover:underline"
-        >
+        <Link href="/privacy" className="font-medium text-(--color-accent) hover:underline">
           Privacy Policy
         </Link>
-        . Missing contact or billing details can be completed during Delivery.
+        .
       </p>
     </div>
   );
