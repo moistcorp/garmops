@@ -117,6 +117,96 @@ test("design PDF contains the themed two-page specification and all preview view
   await expect(page.getByText("Design specification downloaded")).toBeVisible();
 });
 
+test("post-login cart handoff stays with the order CTA and reports real save stages", async ({ page }) => {
+  await page.route("**/garments/v*/**", fulfillGarmentAsset);
+  await page.route("**/api/medusa/store/customers/me", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ customer: { id: "customer-e2e", email: "buyer@example.com" } }),
+    });
+  });
+  await page.route("**/api/designs", async (route) => {
+    if (route.request().method() !== "POST") return route.fallback();
+    await page.waitForTimeout(450);
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        design: {
+          id: "design-e2e",
+          draftRevision: 1,
+          currentVersion: 1,
+          currentVersionId: "version-e2e",
+          lastSavedAt: "2026-08-25T10:00:00.000Z",
+        },
+      }),
+    });
+  });
+  await page.route("**/api/designs/design-e2e", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        design: {
+          draftRevision: 2,
+          currentVersion: 2,
+          currentVersionId: "version-e2e-2",
+          lastSavedAt: "2026-08-25T10:00:01.000Z",
+        },
+      }),
+    });
+  });
+  await page.route("**/api/medusa/store/garmops/cart", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        cart: {
+          cartId: "cart-e2e",
+          cartType: "configured",
+          lines: [],
+          subtotalPaise: 0,
+          discountPaise: 0,
+          gstPaise: 0,
+          rushFeePaise: 0,
+          shippingPaise: 0,
+          grandTotalPaise: 0,
+          validationProblems: [],
+        },
+      }),
+    });
+  });
+  let releaseCartLine: () => void = () => undefined;
+  const cartLineReleased = new Promise<void>((resolve) => {
+    releaseCartLine = resolve;
+  });
+  await page.route("**/api/medusa/store/garmops/cart-lines", async (route) => {
+    await cartLineReleased;
+    await route.fulfill({ status: 500, body: "Test cart line intentionally delayed" });
+  });
+
+  await page.goto(
+    "/configurator/build/regular-fit-tee-200gsm?draftId=e2e-post-login-handoff&step=neck-label",
+    { waitUntil: "domcontentloaded" },
+  );
+  await expect(page.locator('[data-configurator-hydrated="true"]')).toBeAttached();
+  const cta = page.getByRole("button", { name: "Continue with standard label →" });
+  await expect(cta).toBeEnabled();
+  await cta.click();
+
+  const handoff = page.locator('[data-configuration-handoff="true"]');
+  await expect(handoff).toBeVisible();
+  await expect(handoff).toHaveAttribute("data-stage", "saving-design");
+  await expect(handoff).toContainText("Classic T-Shirt · Classic White · 50 pcs");
+  await expect(handoff).toContainText("Saving your configuration");
+  await expect(page.getByRole("button", { name: "Opening sizes…" })).toBeDisabled();
+
+  await expect(handoff).toHaveAttribute("data-stage", "checking-price");
+  await expect(handoff).toContainText("Design saved");
+  await expect(handoff).toContainText("Confirming the current price");
+  await expect(page.getByText("Adding configuration to cart…")).toHaveCount(0);
+
+  releaseCartLine();
+  await expect(page.getByText("Could not synchronize this configuration")).toBeVisible();
+});
+
 test("mobile opens preview-first and exposes the bottom controls", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.route("**/garments/v*/**", fulfillGarmentAsset);

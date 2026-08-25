@@ -32,7 +32,7 @@ import {
   DEFAULT_COLOUR,
 } from "./ConfiguratorSidebar/ConfiguratorSidebar";
 import { TECHNIQUE_LABELS } from "./ConfiguratorSidebar/ArtworkPanel/TechniqueSelect";
-import { OrderBar } from "./OrderBar";
+import { OrderBar, type ConfigurationHandoffState } from "./OrderBar";
 import { ConfiguratorTopBar } from "./ConfiguratorTopBar";
 import type { ConfiguratorJourneyStep } from "./ConfiguratorJourney";
 import { WhatsAppAssistantBar } from "./WhatsAppAssistantBar";
@@ -306,6 +306,8 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
   const [loaderVisible, setLoaderVisible] = useState(true);
   const [previewRetryNonce, setPreviewRetryNonce] = useState(0);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+  const [configurationHandoff, setConfigurationHandoff] =
+    useState<ConfigurationHandoffState | null>(null);
   const [feedback, setFeedback] = useState<FeedbackState | null>(() =>
     requestedAuthResume === "add-to-cart"
       ? {
@@ -1221,7 +1223,13 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
           : undefined,
       rushDelivery: requestedRush,
     };
-    setFeedback({ tone: "loading", title: editItemId ? "Updating your configuration…" : "Adding configuration to cart…", detail: "Checking your design, quantity and price before opening sizes." });
+    setFeedback(null);
+    setConfigurationHandoff({
+      stage: authenticatedJustNow ? "account-verified" : "saving-design",
+      productName,
+      colourName: colour.name,
+      quantity,
+    });
 
     try {
       const storageKey = editItemId ? `cart-item:${editItemId}` : designStorageKey;
@@ -1259,11 +1267,16 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
           pendingCartCommitRef.current = () => commitConfigurationToCart(overrides, true);
           setAuthIntent("add-to-cart");
           setAuthDialogOpen(true);
+          setConfigurationHandoff(null);
           setFeedback(null);
           return;
         }
         throw new Error(cloudResult.kind === "conflict" ? "This design changed in another session. Resolve the saved design before adding it." : cloudResult.message);
       }
+
+      setConfigurationHandoff((current) =>
+        current ? { ...current, stage: "checking-price" } : current,
+      );
 
       const resolvedServerCart = await serverCartResult;
       if (resolvedServerCart.error) throw resolvedServerCart.error;
@@ -1318,8 +1331,12 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
       if (!writeDraft(canonicalCart.cartId, nextDraft)) throw new Error("Your browser could not save the synchronized cart.");
       if (requestedEstimateId && cloudLinkRef.current) writeEstimateForDesign(cloudLinkRef.current.designId, requestedEstimateId);
       clearBuildDraft(designStorageKey);
+      setConfigurationHandoff((current) =>
+        current ? { ...current, stage: "opening-sizes" } : current,
+      );
       router.push(`/configurator/cart/${encodeURIComponent(canonicalCart.cartId)}/review`);
     } catch (error) {
+      setConfigurationHandoff(null);
       setFeedback({
         tone: "error",
         title: "Could not synchronize this configuration",
@@ -1346,13 +1363,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
         return;
       }
       if (intent === "add-to-cart") {
-        setFeedback({
-          tone: "loading",
-          title: editItemId
-            ? "Updating your configuration…"
-            : "Adding configuration to cart…",
-          detail: "Your account is ready. Checking your design and price before opening sizes.",
-        });
+        setFeedback(null);
         void commitConfigurationToCart(undefined, true);
         return;
       }
@@ -1918,6 +1929,7 @@ export default function ConfigureClient({ configId, product }: ConfigureClientPr
                 onCtaClick={handleCtaClick}
                 pricingBreakdown={orderBarPricing}
                 compactEstimate={expandedStepId === "artwork" || expandedStepId === "neck-label"}
+                configurationHandoff={configurationHandoff}
                 ctaDisabled={
                   (expandedStepId === "artwork" && Boolean(artworkSideMissingTechnique)) ||
                   (expandedStepId === "neck-label" && (isToteProduct || isCustomNeckLabel(neckLabel)) && !neckLabel.fileUrl && !neckLabel.fileId)

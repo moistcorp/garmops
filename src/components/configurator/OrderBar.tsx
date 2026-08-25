@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { TrendingUp } from "lucide-react";
+import { Check, LoaderCircle, TrendingUp } from "lucide-react";
 import type { PricingBreakdown } from "@/lib/configurator/pricing";
 import { formatInr } from "@/lib/configurator/pricing";
 import {
@@ -20,6 +20,20 @@ export interface OrderBarProps {
   ctaErrorNonce?: number;
   compactEstimate?: boolean;
   ctaDisabled?: boolean;
+  configurationHandoff?: ConfigurationHandoffState | null;
+}
+
+export type ConfigurationHandoffStage =
+  | "account-verified"
+  | "saving-design"
+  | "checking-price"
+  | "opening-sizes";
+
+export interface ConfigurationHandoffState {
+  stage: ConfigurationHandoffStage;
+  productName: string;
+  colourName: string;
+  quantity: number;
 }
 
 export interface VolumeDiscountProgressState {
@@ -137,6 +151,116 @@ function VolumeDiscountProgress({ quantity }: { quantity: number }) {
   );
 }
 
+const HANDOFF_STAGES: Array<{
+  id: Exclude<ConfigurationHandoffStage, "account-verified">;
+  label: string;
+}> = [
+  { id: "saving-design", label: "Design saved" },
+  { id: "checking-price", label: "Current price" },
+  { id: "opening-sizes", label: "Sizes & quantity" },
+];
+
+function handoffStageIndex(stage: ConfigurationHandoffStage): number {
+  if (stage === "account-verified" || stage === "saving-design") return 0;
+  if (stage === "checking-price") return 1;
+  return 2;
+}
+
+function handoffCurrentLabel(stage: ConfigurationHandoffStage): string {
+  if (stage === "account-verified") return "Saving your configuration";
+  if (stage === "saving-design") return "Saving your configuration";
+  if (stage === "checking-price") return "Confirming the current price";
+  return "Opening size allocation";
+}
+
+function ConfigurationHandoff({ handoff }: { handoff: ConfigurationHandoffState }) {
+  const [showSlowConnectionHint, setShowSlowConnectionHint] = useState(false);
+  const currentStage = handoffStageIndex(handoff.stage);
+  const progress = ((currentStage + 1) / HANDOFF_STAGES.length) * 100;
+
+  useEffect(() => {
+    if (handoff.stage === "opening-sizes") return;
+    const timer = window.setTimeout(() => setShowSlowConnectionHint(true), 3000);
+    return () => window.clearTimeout(timer);
+  }, [handoff.stage]);
+
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      data-configuration-handoff="true"
+      data-stage={handoff.stage}
+      className="configuration-handoff mt-2 rounded-sm border border-(--color-accent)/30 bg-blue-50/70 px-3 py-3"
+    >
+      <div className="flex items-start gap-2.5">
+        {handoff.stage === "account-verified" ? (
+          <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-(--color-accent) text-white">
+            <Check size={11} strokeWidth={3} aria-hidden="true" />
+          </span>
+        ) : (
+          <LoaderCircle
+            size={16}
+            className="mt-0.5 shrink-0 animate-spin text-(--color-accent) motion-reduce:animate-none"
+            aria-hidden="true"
+          />
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-(--color-accent)">
+            {handoff.stage === "account-verified" ? "Account verified" : "Configuration handoff"}
+          </p>
+          <p className="mt-0.5 text-sm font-semibold text-(--text-primary)">
+            {handoffCurrentLabel(handoff.stage)}
+          </p>
+          <p className="mt-0.5 truncate text-xs leading-relaxed text-(--text-primary)/62">
+            {handoff.productName} · {handoff.colourName} · {handoff.quantity} pcs
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 grid grid-cols-3 gap-1.5" aria-label="Configuration progress">
+        {HANDOFF_STAGES.map((stage, index) => {
+          const complete = index < currentStage;
+          const current = index === currentStage;
+          return (
+            <div key={stage.id} className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span
+                  className={`h-1.5 flex-1 rounded-full ${
+                    complete || current ? "bg-(--color-accent)" : "bg-(--color-control-border)"
+                  }`}
+                />
+                {complete ? <Check size={11} className="shrink-0 text-(--color-accent)" aria-hidden="true" /> : null}
+              </div>
+              <p className={`mt-1 truncate text-[10px] font-semibold ${complete || current ? "text-(--text-primary)" : "text-(--text-primary)/42"}`}>
+                {stage.label}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+      <div
+        className="mt-2 h-0.5 overflow-hidden rounded-full bg-(--color-accent)/12"
+        role="progressbar"
+        aria-label="Configuration handoff progress"
+        aria-valuemin={1}
+        aria-valuemax={HANDOFF_STAGES.length}
+        aria-valuenow={currentStage + 1}
+        aria-valuetext={`${currentStage + 1} of ${HANDOFF_STAGES.length}: ${handoffCurrentLabel(handoff.stage)}`}
+      >
+        <div
+          className="h-full bg-(--color-accent) transition-[width] duration-200 ease-[cubic-bezier(.23,1,.32,1)] motion-reduce:transition-none"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+      <p className="mt-2 text-[11px] leading-relaxed text-(--text-primary)/60">
+        {showSlowConnectionHint && handoff.stage !== "opening-sizes"
+          ? "Still working — your design is safely saved."
+          : "Next: Sizes & quantity"}
+      </p>
+    </div>
+  );
+}
+
 export function OrderBar({
   quantity,
   onQuantityChange,
@@ -148,6 +272,7 @@ export function OrderBar({
   ctaErrorNonce,
   compactEstimate = false,
   ctaDisabled = false,
+  configurationHandoff = null,
 }: OrderBarProps) {
   const discountedUnitCost =
     pricingBreakdown.unitPrice * (1 - pricingBreakdown.discountPercent / 100);
@@ -313,17 +438,19 @@ export function OrderBar({
         </>
       )}
 
+      {configurationHandoff ? <ConfigurationHandoff handoff={configurationHandoff} /> : null}
+
       <button
         type="button"
         onClick={onCtaClick}
-        disabled={ctaDisabled}
-        className={`mt-2 min-h-11 w-full rounded-sm px-4 py-2 text-sm font-semibold leading-tight text-white transition-[background-color,box-shadow,opacity] duration-150 disabled:cursor-not-allowed disabled:bg-(--text-primary)/25 disabled:text-white/85 disabled:hover:opacity-100 ${
+        disabled={ctaDisabled || Boolean(configurationHandoff)}
+        className={`mt-2 min-h-11 w-full rounded-sm px-4 py-2 text-sm font-semibold leading-tight text-white transition-[background-color,box-shadow,opacity,transform] duration-150 active:scale-[.98] disabled:cursor-not-allowed disabled:bg-(--text-primary)/25 disabled:text-white/85 disabled:hover:opacity-100 motion-reduce:transition-none ${
           flashError
             ? "bg-[#C62828] ring-2 ring-[#C62828]/40 ring-offset-2"
             : "bg-(--color-accent) hover:bg-(--color-accent-dark)"
         }`}
       >
-        {ctaLabel}
+        {configurationHandoff ? "Opening sizes…" : ctaLabel}
       </button>
 
       {ctaErrorMessage && (

@@ -256,6 +256,26 @@ canvas {
   }
 }
 
+.configuration-handoff {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 180ms var(--ease-out-ui),
+    transform 180ms var(--ease-out-ui);
+
+  @starting-style {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .configuration-handoff {
+    transform: none;
+    transition: opacity 180ms var(--ease-out-ui);
+  }
+}
+
 .techpack-dark {
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
   background: var(--color-navy) !important;
